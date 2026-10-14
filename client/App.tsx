@@ -8,6 +8,7 @@ import { Lobby } from "./src/ui/Lobby";
 import { Game } from "./src/ui/Game";
 import { ProfileScreen } from "./src/ui/ProfileScreen";
 import { Result } from "./src/ui/Result";
+import { RulesScreen } from "./src/ui/RulesScreen";
 import { Leaderboard } from "./src/ui/Leaderboard";
 import { httpBase, makeHttp } from "./src/net/http";
 import { color } from "./src/theme";
@@ -22,7 +23,8 @@ export default function App() {
   const conn = useMemo(() => new Connection(SERVER, userId, (u) => new WebSocket(u) as any), [userId]);
   const [st, setSt] = useState<ConnState>(conn.state);
   const http = useMemo(() => makeHttp(httpBase(SERVER), userId), [userId]);
-  const [screen, setScreen] = useState<"home" | "profile" | "board">("home");
+  const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules">("home");
+  const [rulesOpen, setRulesOpen] = useState(false); // o'yin davomida ham ochiladi
   useEffect(() => { const un = conn.subscribe(setSt); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
   useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "POYGA"; } }, []);
   if (!fontsLoaded) return null;
@@ -31,12 +33,13 @@ export default function App() {
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
       <View role="main" style={{ flex: 1 }}>
-      {!room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); }} />
+      {rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
+        : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); }} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
-        : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} />
+        : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onRules={() => setScreen("rules")} />
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
-        : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} />}
+        : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} />}
       </View>
     </SafeAreaView>
   );

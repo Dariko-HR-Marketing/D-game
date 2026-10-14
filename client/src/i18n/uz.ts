@@ -17,6 +17,7 @@ export const uz = {
     consequences: "O'chirilganda: profil va sozlamalar o'chadi; o'yin natijalari ismsiz (anonim) saqlanadi; bu amalni qaytarib bo'lmaydi.",
     export: "Ma'lumotni yuklab olish", typeWord: "Tasdiqlash uchun «O'CHIRISH» deb yozing", deleteBtn: "Hisobni o'chirish", needProfile: "Profilni to'ldiring",
   },
+  rules: { title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
   leave: {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
     warn: "Chiqsangiz, siz qaytib kira olmaysiz: o'rningizni bot egallaydi va o'yin sizsiz davom etadi. Bu amalni qaytarib bo'lmaydi.",

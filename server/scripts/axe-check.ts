@@ -23,6 +23,7 @@ for (const [w, h] of [[390, 844], [1024, 768], [1440, 900]] as [number, number][
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ua" + w), c = await mk("ub" + w); const tag = `${w}px`;
   await a.getByRole("button", { name: "Xona yaratish" }).waitFor({ timeout: 15000 }); await scan(a, `bosh sahifa ${tag}`);
+  await a.getByRole("button", { name: "Qoidalar" }).click(); await a.waitForSelector("text=O'yin qoidalari"); await scan(a, `qoidalar ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Profil" }).click(); await a.getByLabel("Ism", { exact: true }).waitFor(); await scan(a, `profil ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Reyting" }).click(); await a.waitForSelector("text=Reyting"); await scan(a, `reyting ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Xona yaratish" }).click(); await a.waitForSelector("text=O'yinchilar");

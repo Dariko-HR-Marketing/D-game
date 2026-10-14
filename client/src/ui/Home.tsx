@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { uz, errText } from "../i18n/uz";
 import { color } from "../theme";
 
-export function Home({ status, error, onCreate, onJoin, onProfile, onLeaderboard }: { status: string; error: string | null; onCreate: () => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void }) {
+export function Home({ status, error, onCreate, onJoin, onProfile, onLeaderboard, onRules }: { status: string; error: string | null; onCreate: () => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void }) {
   const [code, setCode] = useState("");
   const online = status === "online";
   return (
@@ -17,6 +17,7 @@ export function Home({ status, error, onCreate, onJoin, onProfile, onLeaderboard
       <Button label={uz.home.join} kind="ghost" onPress={() => onJoin(code)} disabled={!online || code.length !== 6} />
       <Button label={uz.profile.title} kind="ghost" onPress={onProfile} />
       <Button label={uz.profile.leaderboard} kind="ghost" onPress={onLeaderboard} />
+      <Button label={uz.rules.open} kind="ghost" onPress={onRules} />
       {error && <Text style={s.err} accessibilityRole="alert">{errText(error)}</Text>}
     </View>
   );

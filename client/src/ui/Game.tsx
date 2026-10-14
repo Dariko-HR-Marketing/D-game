@@ -99,7 +99,7 @@ function SharesInput({ card, onAct }: { card: any; onAct: (a: Record<string, unk
   </>);
 }
 
-export function Game({ room, userId, onAct, onReact, onLeave, reactions }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[] }) {
+export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const { width } = useWindowDimensions();
   const wide = width >= 900; // planshet/kompyuter: taxta chapda, panel o'ngda
@@ -123,6 +123,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions }: { roo
         {card && mineTurn && wide && <CardEnter id={card.id}><DecisionCard card={card} onAct={onAct} /></CardEnter>}
         {!card && mineTurn && !state.winner && <Button label={uz.game.roll} onPress={() => onAct({ type: "roll" })} />}
         <Text style={s.log}>{state.log.slice(-3).join("\n")}</Text>
+        <Button label={uz.rules.open} kind="ghost" onPress={onRules} />
         <View style={s.reactRow} accessibilityLabel={uz.react.label}>
           {REACTIONS.map((e) => <Button key={e} label={e} kind="ghost" onPress={() => onReact(e)} />)}
         </View>
