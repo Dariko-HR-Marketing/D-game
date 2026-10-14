@@ -1,0 +1,6 @@
+packages:
+  - rules
+  - server
+  - client
+  - content
+  - admin

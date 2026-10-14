@@ -1,0 +1,426 @@
+[
+ {
+  "i": 0,
+  "t": "Y",
+  "name": "Yana pullar",
+  "income": null,
+  "price": null,
+  "note": ""
+ },
+ {
+  "i": 1,
+  "t": "T",
+  "name": "Xususiy «Avtoolam» gazetasini ochish",
+  "income": 22000,
+  "price": 550000,
+  "note": ""
+ },
+ {
+  "i": 2,
+  "t": "V",
+  "name": "Chorvoqda yer sotib olish",
+  "income": null,
+  "price": 270000,
+  "note": ""
+ },
+ {
+  "i": 3,
+  "t": "T",
+  "name": "50 ta Matiz avtomobilini sotib olib, taksi xizmatini yo‘lga qo‘yish",
+  "income": 13000,
+  "price": 400000,
+  "note": ""
+ },
+ {
+  "i": 4,
+  "t": "O",
+  "name": "Golf klubini sotib olib, do‘stlar bilan golf o‘ynash",
+  "income": null,
+  "price": 3000000,
+  "note": ""
+ },
+ {
+  "i": 5,
+  "t": "X",
+  "name": "Bankrot",
+  "income": null,
+  "price": null,
+  "note": ""
+ },
+ {
+  "i": 6,
+  "t": "V",
+  "name": "Chiqindilarni yo‘q qilish zavodi",
+  "income": null,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 7,
+  "t": "T",
+  "name": "«Toshkent FM» xususiy radiostansiyasini ochish",
+  "income": 10000,
+  "price": 350000,
+  "note": ""
+ },
+ {
+  "i": 8,
+  "t": "O",
+  "name": "2 000 kishilik yetimxona qurish",
+  "income": null,
+  "price": 1000000,
+  "note": ""
+ },
+ {
+  "i": 9,
+  "t": "T",
+  "name": "Sauna, basseyn va tennis korti bor fitnes markazi ochish",
+  "income": 14000,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 10,
+  "t": "V",
+  "name": "Toshkentdan xonadonlar sotib olish",
+  "income": null,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 11,
+  "t": "T",
+  "name": "Buyum bozori qurish",
+  "income": 14000,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 12,
+  "t": "O",
+  "name": "Zominda chang‘i ko‘targichlari bor shaxsiy yer sotib olib, chang‘ida uchish",
+  "income": null,
+  "price": 2800000,
+  "note": ""
+ },
+ {
+  "i": 13,
+  "t": "T",
+  "name": "Oilaviy restoran ochish",
+  "income": 17000,
+  "price": 400000,
+  "note": ""
+ },
+ {
+  "i": 14,
+  "t": "V",
+  "name": "Quyosh akkumulyatorlari ishlab chiqaruvchi innovatsion kompaniya ochish",
+  "income": null,
+  "price": 200000,
+  "note": ""
+ },
+ {
+  "i": 15,
+  "t": "Y",
+  "name": "Yana pullar",
+  "income": null,
+  "price": null,
+  "note": ""
+ },
+ {
+  "i": 16,
+  "t": "T",
+  "name": "Go‘zallik salonlari tarmog‘ini ochish",
+  "income": 21000,
+  "price": 700000,
+  "note": ""
+ },
+ {
+  "i": 17,
+  "t": "O",
+  "name": "Retro avtomobillar kolleksiyasini yig‘ish: Pobeda, ZIM, Volga, Moskvich 403, BMW (1940), Mercedes-Benz",
+  "income": null,
+  "price": 1000000,
+  "note": ""
+ },
+ {
+  "i": 18,
+  "t": "T",
+  "name": "«UN MOMENTO» kimyoviy tozalash shoxobchalari tarmog‘ini ochish",
+  "income": 17000,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 19,
+  "t": "O",
+  "name": "Mashhur yozuvchi asari asosida jangari film suratga olish",
+  "income": null,
+  "price": 2000000,
+  "note": ""
+ },
+ {
+  "i": 20,
+  "t": "T",
+  "name": "10 ta xonadonni sotib olib, ijaraga berish",
+  "income": 15000,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 21,
+  "t": "V",
+  "name": "Zotdor sigirlar boqiladigan ferma",
+  "income": 120000,
+  "price": 150000,
+  "note": ""
+ },
+ {
+  "i": 22,
+  "t": "T",
+  "name": "Ofis mebeli ishlab chiqaruvchi sex ochish",
+  "income": 6000,
+  "price": 80000,
+  "note": ""
+ },
+ {
+  "i": 23,
+  "t": "X",
+  "name": "Ajrashish",
+  "income": null,
+  "price": null,
+  "note": ""
+ },
+ {
+  "i": 24,
+  "t": "V",
+  "name": "Avtomobil ehtiyot qismlarini ishlab chiqaruvchi sex",
+  "income": 20000,
+  "price": 200000,
+  "note": ""
+ },
+ {
+  "i": 25,
+  "t": "O",
+  "name": "Chorvoq suv ombori bo‘yida pansionat sotib olish",
+  "income": null,
+  "price": 2000000,
+  "note": ""
+ },
+ {
+  "i": 26,
+  "t": "Y",
+  "name": "Yana pullar",
+  "income": null,
+  "price": null,
+  "note": ""
+ },
+ {
+  "i": 27,
+  "t": "O",
+  "name": "Skoliozga chalinganlar uchun shifoxona qurish",
+  "income": null,
+  "price": 1000000,
+  "note": ""
+ },
+ {
+  "i": 28,
+  "t": "T",
+  "name": "Charm poyabzal ishlab chiqarish fabrikasi",
+  "income": 10000,
+  "price": 300000,
+  "note": ""
+ },
+ {
+  "i": 29,
+  "t": "V",
+  "name": "«UzDigital TV» kompaniyasini ochish",
+  "income": 12000,
+  "price": 120000,
+  "note": ""
+ },
+ {
+  "i": 30,
+  "t": "T",
+  "name": "Shaharda 100 ta reklama shitini o‘rnatish va ijaraga berish",
+  "income": 10000,
+  "price": 300000,
+  "note": ""
+ },
+ {
+  "i": 31,
+  "t": "O",
+  "name": "Avstraliyada orol sotib olib, osoyishtalikda dam olish",
+  "income": null,
+  "price": 3000000,
+  "note": ""
+ },
+ {
+  "i": 32,
+  "t": "T",
+  "name": "500 o‘rinli yangi kinoteatr qurish",
+  "income": 15000,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 33,
+  "t": "X",
+  "name": "Audit tekshiruvi",
+  "income": null,
+  "price": null,
+  "note": "Daromadingizning 20 foizini yo‘qotdingiz!"
+ },
+ {
+  "i": 34,
+  "t": "X",
+  "name": "Start",
+  "income": null,
+  "price": null,
+  "note": "Ishbilarmonlar doirasiga marhamat!"
+ },
+ {
+  "i": 35,
+  "t": "O",
+  "name": "O‘g‘lingizni o‘zbek estradasi va kino yulduzi qilish",
+  "income": null,
+  "price": 700000,
+  "note": ""
+ },
+ {
+  "i": 36,
+  "t": "T",
+  "name": "Shahar markazida to‘yxona-restoran",
+  "income": 20000,
+  "price": 500000,
+  "note": ""
+ },
+ {
+  "i": 37,
+  "t": "V",
+  "name": "Toshkent–O‘sh yo‘lida gaz quyish shoxobchasi",
+  "income": 30000,
+  "price": 300000,
+  "note": ""
+ },
+ {
+  "i": 38,
+  "t": "T",
+  "name": "Turk va koreys kiyimlarini tikish kompaniyasi",
+  "income": 7000,
+  "price": 170000,
+  "note": ""
+ },
+ {
+  "i": 39,
+  "t": "O",
+  "name": "Bir yil davomida dunyo bo‘ylab sayohat qilish",
+  "income": null,
+  "price": 700000,
+  "note": ""
+ },
+ {
+  "i": 40,
+  "t": "T",
+  "name": "Toshkentda elita ofis markazini qurish",
+  "income": 30000,
+  "price": 1000000,
+  "note": ""
+ },
+ {
+  "i": 41,
+  "t": "V",
+  "name": "Issiqxonani isitishning yangi usuli uchun patent",
+  "income": null,
+  "price": 60000,
+  "note": ""
+ },
+ {
+  "i": 42,
+  "t": "Y",
+  "name": "Yana pullar",
+  "income": null,
+  "price": null,
+  "note": ""
+ },
+ {
+  "i": 43,
+  "t": "O",
+  "name": "Shaxsiy samolyot sotib olish",
+  "income": null,
+  "price": 1700000,
+  "note": ""
+ },
+ {
+  "i": 44,
+  "t": "T",
+  "name": "Avtomobil yuvish shoxobchalari tarmog‘ini ochish",
+  "income": 12000,
+  "price": 300000,
+  "note": ""
+ },
+ {
+  "i": 45,
+  "t": "O",
+  "name": "Chorvoq suv omborida suzish uchun yaxta sotib olish",
+  "income": null,
+  "price": 1000000,
+  "note": ""
+ },
+ {
+  "i": 46,
+  "t": "T",
+  "name": "UzDaewoo avtomobillarini ta’mirlash tarmog‘ini ochish",
+  "income": 10000,
+  "price": 270000,
+  "note": ""
+ },
+ {
+  "i": 47,
+  "t": "X",
+  "name": "Siz nohalol biznes olib bordingiz!",
+  "income": null,
+  "price": 1000000,
+  "note": "1 000 000 to‘lang va ozod bo‘ling!"
+ },
+ {
+  "i": 48,
+  "t": "T",
+  "name": "Dorixonalar tarmog‘ini ochish",
+  "income": 17000,
+  "price": 450000,
+  "note": ""
+ },
+ {
+  "i": 49,
+  "t": "O",
+  "name": "Entoni Robbinsning bir yillik ta’lim dasturiga yozilish",
+  "income": null,
+  "price": 1000000,
+  "note": ""
+ },
+ {
+  "i": 50,
+  "t": "T",
+  "name": "McDonald’s franshizasini sotib olib, tez tayyor taomlar tarmog‘ini yaratish",
+  "income": 150000,
+  "price": 3000000,
+  "note": ""
+ },
+ {
+  "i": 51,
+  "t": "O",
+  "name": "Ronaldoni jamoangizda futbol o‘ynashga taklif qilish",
+  "income": null,
+  "price": 1500000,
+  "note": ""
+ },
+ {
+  "i": 52,
+  "t": "T",
+  "name": "Restoran va kichik ichimlik zavodi ochish",
+  "income": 11000,
+  "price": 330000,
+  "note": ""
+ }
+]
