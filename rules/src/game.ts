@@ -86,7 +86,7 @@ export const currentPlayer = (s: GameState) => s.players[s.turn % s.players.leng
 const idx = (s: GameState, id: string) => s.players.findIndex((p) => p.id === id);
 const setP = (s: GameState, p: GamePlayer) => { s.players[idx(s, p.id)] = p; };
 /** Jurnal chegaralangan (so'nggi 100): holat va snapshot hajmi cheksiz o'smasin. To'liq jurnal serverda (harakatlar ketma-ketligi). */
-const logf = (s: GameState, m: string) => { s.log.push(m); if (s.log.length > 100) s.log.splice(0, s.log.length - 100); };
+const logf = (s: GameState, m: string) => { s.log.push(m); if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
 
 /** Yangi kasb bilan boshidan (§5.3): hamma aktiv va qarz yo'qoladi. */
 function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {

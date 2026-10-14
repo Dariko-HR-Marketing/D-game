@@ -76,3 +76,24 @@ describe("WebSocket", () => {
     expect(await closed).toBe(4429); expect(errs).toContain("rate_limited"); await x.app.close();
   });
 });
+
+import { RoomManager, publicState } from "./rooms";
+describe("yashirin ma'lumot mijozga chiqmaydi (aldashga qarshi)", () => {
+  it("holat ko'rinishida urug', RNG holati va deka tartibi yo'q; deka soni bor", async () => {
+    const x = buildApp(); const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 123456);
+    const v = x.rooms.view(x.rooms.rooms.get(r.code)!); const json = JSON.stringify(v);
+    expect(json).not.toContain("rngState"); expect(json).not.toContain('"seed"'); expect(json).not.toContain('"decks"');
+    expect((v.state as any).deckCounts.kichik.draw).toBeGreaterThan(0);
+    // deka kartalarining ID ro'yxati (tartib) umuman yo'q: faqat joriy karta (pendingCard) ko'rinadi
+    const st = x.rooms.rooms.get(r.code)!.state!; expect(json).not.toContain(st.decks.kichik.draw.slice(0, 3).join('","'));
+    expect(publicState(null)).toBeNull();
+  });
+  it("WebSocket orqali ham yashirin ma'lumot kelmaydi", async () => {
+    const x = buildApp(); await x.app.listen({ port: 0 }); const port = (x.app.server.address() as any).port;
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/ws?token=u1`); const msgs: string[] = []; ws.on("message", (d) => msgs.push(d.toString())); await new Promise((r) => ws.on("open", r));
+    ws.send(JSON.stringify({ type: "create" })); await new Promise((r) => setTimeout(r, 80)); ws.send(JSON.stringify({ type: "start" })); await new Promise((r) => setTimeout(r, 150));
+    expect(msgs.some((m) => m.includes('"players"'))).toBe(true);
+    for (const m of msgs) { expect(m).not.toContain("rngState"); expect(m).not.toContain('"seed"'); expect(m).not.toContain('"decks"'); }
+    ws.close(); await x.app.close();
+  });
+});

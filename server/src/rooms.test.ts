@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { buildCtx } from "./ctx";
 import { MemoryStore } from "./store";
-import { Clock, RoomManager, DECISION_MS } from "./rooms";
+import { Clock, RoomManager, DECISION_MS, publicState } from "./rooms";
 import { currentPlayer, newGame, reduce, chooseDream } from "@poyga/rules";
 
 const ctx = buildCtx();
@@ -102,7 +102,7 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
     expect(before).toBeGreaterThan(0);
     expect(rm.join(r.code, "a").ok).toBe(true);
     expect(rm.rooms.get(r.code)!.members[0].online).toBe(true);
-    expect(rm.view(rm.rooms.get(r.code)!).state).toEqual(store.snapshots.get(r.code));
+    expect(rm.view(rm.rooms.get(r.code)!).state).toEqual(publicState(store.snapshots.get(r.code)!));
   });
   it("chiqib ketgan o'yinchi o'rniga bot o'ynaydi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");

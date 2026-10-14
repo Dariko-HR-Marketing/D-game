@@ -65,7 +65,9 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
-    for (const c of sockets.get(code) ?? []) c.send(JSON.stringify(ev));
+    const set = sockets.get(code); if (!set || set.size === 0) return;
+    const msg = JSON.stringify(ev); // bir marta seriyalanadi, hamma ulanishga bir xil satr (4 baravar kam CPU)
+    for (const c of set) c.send(msg);
   });
 
   // Veb mijoz va admin panel boshqa originda ishlaydi: faqat CORS_ORIGINS dagi originlarga ruxsat (standart: yopiq).
@@ -78,11 +80,12 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (req.method === "OPTIONS") return reply.code(204).send();
   });
   // Xavfsizlik sarlavhalari va HTTP tezlik cheklovi (IP bo'yicha; admin kirish urinishlari qattiqroq).
-  const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20);
+  // WS ulanishi alohida va kengroq: maktab/ofis NAT ortidagi ko'p o'yinchi bir IP dan ulanadi (ta'lim auditoriyasi, §1).
+  const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
   app.addHook("onRequest", async (req, reply) => {
     reply.header("x-content-type-options", "nosniff").header("x-frame-options", "DENY").header("referrer-policy", "no-referrer").header("cache-control", "no-store");
     if (req.method === "OPTIONS" || req.url === "/health") return;
-    const lim = req.url.startsWith("/admin") ? adminLimit : httpLimit;
+    const lim = req.url.startsWith("/admin") ? adminLimit : req.url.startsWith("/ws") ? wsConnLimit : httpLimit;
     if (!lim.allow(req.ip)) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
   });
   app.register(websocket, { options: { maxPayload: 16 * 1024 } });
