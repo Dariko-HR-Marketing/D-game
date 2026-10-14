@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions, Animated } from "react-native";
+import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions, Animated, Image } from "react-native";
 import { animationMs, useReducedMotion } from "../motion";
+import { CARD_IMAGES_BASE, cardImageUrl } from "../cardImage";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
@@ -68,10 +69,19 @@ function useCountdown(deadline: number | null) {
   return left;
 }
 
+/** Karta asl rasmi; yuklanmasa (fayl hali yo'q/xato) — jim matnga qaytadi. */
+function CardArt({ file, text }: { file?: string; text: string }) {
+  const url = cardImageUrl(CARD_IMAGES_BASE, file); const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [url]);
+  if (!url || failed) return null;
+  return <Image source={{ uri: url }} accessibilityLabel={text} resizeMode="contain" style={s.art} onError={() => setFailed(true)} />;
+}
+
 function DecisionCard({ card, onAct, sheet }: { card: any; onAct: (a: Record<string, unknown>) => void; sheet?: boolean }) {
   return (
     <View style={sheet ? undefined : s.card} accessibilityRole="alert">
       <Text style={s.cardTag}>{card.mode === "mandatory" ? uz.game.mandatory : uz.game.optional}</Text>
+      <CardArt file={card.file} text={card.text} />
       <Text style={s.cardText}>{card.text}</Text>
       {card.mode !== "mandatory" && card.effect?.kind === "buyShares" && <SharesInput card={card} onAct={onAct} />}
       {card.mode !== "mandatory" && card.effect?.kind !== "buyShares" && (<>
@@ -147,6 +157,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
 }
 const s = StyleSheet.create({
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, maxHeight: "65%" as any, backgroundColor: color.white, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderTopWidth: 3, borderColor: color.gold, padding: 16, paddingBottom: 24, shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: -4 }, elevation: 12 },
+  art: { width: "100%", height: 200, borderRadius: 8, backgroundColor: color.bg },
   wrap: { padding: 16, gap: 16 }, title: { fontSize: 14, fontWeight: "800", color: color.text2, letterSpacing: 1 }, turn: { fontSize: 18, fontWeight: "700", color: color.navy },
   panel: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: color.line, gap: 4 },
   row: { flexDirection: "row", justifyContent: "space-between" }, l: { color: color.text2 }, v: { color: color.navy, fontWeight: "700" },

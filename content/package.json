@@ -17,6 +17,7 @@
  },
  "exports": {
   ".": "./src/index.ts",
-  "./effects": "./src/effects.ts"
+  "./effects": "./src/effects.ts",
+  "./cardfile": "./src/cardfile.ts"
  }
 }

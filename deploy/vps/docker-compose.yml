@@ -41,6 +41,6 @@ services:
       API_DOMAIN: ${API_DOMAIN}
       APP_DOMAIN: ${APP_DOMAIN}
       ADMIN_DOMAIN: ${ADMIN_DOMAIN}
-    volumes: ["caddy_data:/data", "caddy_config:/config"]
+    volumes: ["caddy_data:/data", "caddy_config:/config", "./cards:/srv/cards:ro"]
 
 volumes: { pgdata: {}, caddy_data: {}, caddy_config: {} }

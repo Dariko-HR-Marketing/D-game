@@ -172,3 +172,14 @@ describe("taxta burilishi (§9: telefonda 90°)", () => {
     const full = ringPosition(7, 48, 0.44, 4), base = ringPosition(7, 48); expect(full.x).toBeCloseTo(base.x); expect(full.y).toBeCloseTo(base.y);
   });
 });
+
+import { cardImageUrl } from "./cardImage";
+describe("karta rasmi manzili (§2.5)", () => {
+  it("to'g'ri fayl nomi manzilga aylanadi; oxiridagi / olib tashlanadi", () => {
+    expect(cardImageUrl("/cards", "KB_001.png")).toBe("/cards/KB_001.png"); expect(cardImageUrl("/cards", "11_G'AZNACHI.png")).toBe("/cards/11_G'AZNACHI.png"); expect(cardImageUrl("https://cdn.example/cards/", "01_BEGONA_FIRMA_DIREKTORI.png")).toBe("https://cdn.example/cards/01_BEGONA_FIRMA_DIREKTORI.png");
+  });
+  it("yo'l o'tishi, begona kengaytma, bo'sh nom rad etiladi", () => {
+    for (const f of ["../secret.png", "a/b.png", "x.png?evil=1", "x.svg", "x.html", "", "a b.png", "<img>.png"]) expect(cardImageUrl("/cards", f), f).toBeNull();
+    expect(cardImageUrl("/cards", undefined)).toBeNull(); expect(cardImageUrl("/cards", null)).toBeNull();
+  });
+});

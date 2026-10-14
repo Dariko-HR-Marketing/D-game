@@ -34,3 +34,4 @@ export function validateBundle(b: Bundle): string[] {
   if (b.cards.kasb.length === 0) problems.push("kasblar yo'q");
   return problems;
 }
+export * from "./cardfile";

@@ -19,12 +19,20 @@
 {$APP_DOMAIN} {
 	import security
 	encode zstd gzip
-	root * /srv/app
-	@hashed path /_expo/* /assets/*
-	header @hashed Cache-Control "public, max-age=31536000, immutable"
-	header / Cache-Control "no-store"
-	try_files {path} /index.html
-	file_server
+	# Karta rasmlari (§2.5): alohida beriladi; `deploy/vps/cards/` papkasiga qo'yiladi (docs/SERVER.md)
+	handle_path /cards/* {
+		root * /srv/cards
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
+	handle {
+		root * /srv/app
+		@hashed path /_expo/* /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		header / Cache-Control "no-store"
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 {$ADMIN_DOMAIN} {

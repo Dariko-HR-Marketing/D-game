@@ -4,3 +4,5 @@ dist/
 dist/
 .expo/
 deploy/vps/.env
+deploy/vps/cards/*
+!deploy/vps/cards/.gitkeep

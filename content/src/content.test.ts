@@ -61,3 +61,16 @@ describe("admin kontentini tekshirish", () => {
     expect(() => parseBundle(r)).toThrow();
   });
 });
+
+import { isSafeCardFile, cardFileUrl } from "./index";
+describe("karta rasmi fayl nomlari (§2.5)", () => {
+  it("hamma 418 kartaning fayl nomi xavfsiz shaklga mos va URL ga aylanadi", () => {
+    const files = Object.values(cards).flat().map((x: any) => x.file as string);
+    expect(files).toHaveLength(418);
+    for (const f of files) { expect(isSafeCardFile(f), f).toBe(true); expect(cardFileUrl("/cards", f), f).toContain("/cards/"); }
+  });
+  it("apostrofli nom kodlanadi; yo'l o'tishi va begona kengaytma rad etiladi", () => {
+    expect(cardFileUrl("/cards", "11_G'AZNACHI.png")).toBe("/cards/11_G'AZNACHI.png");
+    for (const f of ["../x.png", "a/b.png", "x.svg", "x.png?a=1", "", "a b.png", "<i>.png"]) expect(cardFileUrl("/cards", f), f).toBeNull();
+  });
+});
