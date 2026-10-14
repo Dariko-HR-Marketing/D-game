@@ -28,7 +28,7 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 23. Mijoz (Expo, veb bundle ishlaydi): hozir 3 ta ekran (bosh sahifa, xona, o'yin). Prototipdagi 71 ekranning qolgani, 90° burilgan taxta (telefon), karta rasmlari (fayllar yo'q), hamkorlik/bank ekranlari, Google/Apple tugmalari — dizayner materiali va keyingi bosqichlar.
 24. iOS/Android qurilishi (EAS) va do'kon hisoblari sandboxda tekshirilmadi; faqat veb eksport va brauzer e2e tekshirildi.
 25. Admin: kirish hozir `ADMIN_TOKENS` (vaqtinchalik). Ishlab chiqarishda SSO/2FA va token aylanishi kerak (qaror: buyurtmachi/xavfsizlik jamoasi).
-26. Admin ma'lumotlari (foydalanuvchi, bloklash, shikoyat, audit) hozir xotirada (`AdminState`); PostgreSQL migratsiyasi keyingi qadam. Kontent versiyalari ham xotirada — server qayta ishga tushsa paketdagi v1 ga qaytadi.
+26. (Hal qilindi) Admin ma'lumotlari, kontent versiyalari va tugamagan o'yinlar PostgreSQL'da saqlanadi va qayta ishga tushganda tiklanadi. Cheklov: boshlanmagan xona (lobbi) saqlanmaydi; yozuvlar navbat bilan (write-behind) bajariladi, jarayon keskin o'chsa oxirgi soniyalardagi admin yozuvlari yo'qolishi mumkin.
 27. Admin rollari ruxsatlari mening taxminim (`server/src/admin.ts` `PERMS`): administrator hammasi; kontent muharriri kontent yozadi va nashr qiladi; qo'llab-quvvatlash foydalanuvchi/xona/jurnal/shikoyat/bloklash; tahlilchi faqat shaxssiz analitika. Tasdiqlash kerak.
 28. Admin kontent muharriri hozir xom JSON; karta rasmlari (`file`) yuklash, narx/obuna/turnir bo'limlari (2–3-bosqich) yo'q.
 29. Analitika (§12): hozir xona/o'yin darajasidagi umumiy ko'rsatkichlar; karta bo'yicha qabul/o'tkazish va xarid hodisalari yig'ilmaydi.

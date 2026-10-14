@@ -9,12 +9,12 @@ import { RoomManager } from "./rooms";
 export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState } = {}) {
   const app = Fastify();
   const store = opts.store ?? new MemoryStore();
   const auth = opts.auth ?? devAuth;
   const registry = opts.registry ?? new ContentRegistry();
-  const adminState = new AdminState();
+  const adminState = opts.adminState ?? new AdminState();
   const rooms = new RoomManager(registry, store);
   registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();

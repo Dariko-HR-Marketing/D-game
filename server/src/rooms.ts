@@ -1,7 +1,7 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
 import { Action, Ctx, GameState, chooseDream, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
-import type { Store } from "./store";
+import type { RoomMeta, Store } from "./store";
 import type { ContentRegistry } from "./registry";
 
 export interface Clock { now(): number; setTimeout(f: () => void, ms: number): unknown; clearTimeout(h: unknown): void }
@@ -45,6 +45,28 @@ export class RoomManager {
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
   }
 
+  private meta(r: Room): RoomMeta {
+    return { hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt };
+  }
+
+  /** Server qayta ishga tushganda tugamagan o'yinlarni tiklaydi (§6.3). O'yinchilar oflayn deb belgilanadi va qayta ulanganda davom etadi. */
+  async restore(): Promise<number> {
+    let n = 0;
+    for (const a of await this.store.loadActive()) {
+      if (this.rooms.has(a.code)) continue;
+      let ctx: Ctx | undefined;
+      if ("active" in this.content) ctx = a.meta.contentVersion != null ? this.content.ctxFor(a.meta.contentVersion) : undefined;
+      else ctx = this.content;
+      if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
+      const r: Room = { code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ ...m, online: false })), state: a.state, seq: a.meta.seq,
+        timer: null, deadline: null, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null };
+      this.rooms.set(a.code, r);
+      for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
+      this.armProposals(r); this.arm(r); n++;
+    }
+    return n;
+  }
+
   private newCode() {
     for (;;) {
       const c = Array.from({ length: 6 }, () => ALPHABET[Math.floor(this.rand() * ALPHABET.length)]).join("");
@@ -86,7 +108,7 @@ export class RoomManager {
     let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId));
     s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length)));
     r.state = s;
-    await this.store.saveSnapshot(code, s);
+    await this.store.saveSnapshot(code, s, this.meta(r));
     this.arm(r);
     this.emit(r);
     return { ok: true };
@@ -109,7 +131,7 @@ export class RoomManager {
     r.state = out.state; r.seq++;
     this.armProposals(r);
     await this.store.append(r.code, { seq: r.seq, at: this.clock.now(), action: auto ? { type: "auto", reason: auto, action } : action });
-    await this.store.saveSnapshot(r.code, r.state);
+    await this.store.saveSnapshot(r.code, r.state, this.meta(r));
     if (r.state.winner) this.finish(r); else this.arm(r);
     this.emit(r);
     return { ok: true };

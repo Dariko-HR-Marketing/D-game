@@ -3,6 +3,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 import type { ContentRegistry, Part } from "./registry";
+import { WriteQueue, type Persist } from "./persist";
 
 export type Role = "administrator" | "content_editor" | "support" | "analyst";
 export type Perm = "content.read" | "content.write" | "users.read" | "users.ban" | "rooms.read" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read";
@@ -24,12 +25,27 @@ export class AdminState {
   audit: AuditEntry[] = [];
   complaints: Complaint[] = [];
   private cid = 1;
+  readonly writes = new WriteQueue();
+  constructor(private persist?: Persist) {}
+  static async restore(persist: Persist) {
+    const s = new AdminState(persist);
+    for (const u of await persist.loadUsers()) s.users.set(u.id, u);
+    s.complaints = await persist.loadComplaints(); s.audit = await persist.loadAudit();
+    s.cid = Math.max(0, ...s.complaints.map((c) => c.id)) + 1;
+    return s;
+  }
+  private lastSaved = new Map<string, number>();
   touch(id: string, at: number) {
     const u = this.users.get(id);
     if (u) u.lastSeen = at; else this.users.set(id, { id, firstSeen: at, lastSeen: at, banned: false });
+    // bazaga: yangi foydalanuvchi darhol, qolganda kamida 1 daqiqada bir marta
+    if (!this.lastSaved.has(id) || at - this.lastSaved.get(id)! > 60_000) this.saveUser(id, at);
   }
+  saveUser(id: string, at = Date.now()) { const u = this.users.get(id); if (!u) return; this.lastSaved.set(id, at); const c = { ...u }; this.writes.push(async () => this.persist?.saveUser(c)); }
+  saveComplaint(c: Complaint) { const x = { ...c }; this.writes.push(async () => this.persist?.saveComplaint(x)); }
+  record(a: AuditEntry) { this.audit.push(a); this.writes.push(async () => this.persist?.appendAudit(a)); }
   isBanned(id: string) { return this.users.get(id)?.banned ?? false; }
-  addComplaint(c: Omit<Complaint, "id" | "status">) { const x: Complaint = { ...c, id: this.cid++, status: "open" }; this.complaints.push(x); return x; }
+  addComplaint(c: Omit<Complaint, "id" | "status">) { const x: Complaint = { ...c, id: this.cid++, status: "open" }; this.complaints.push(x); this.saveComplaint(x); return x; }
 }
 
 export type AdminAuth = (token: string | undefined) => { id: string; role: Role } | null;
@@ -48,7 +64,7 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
       if (!who) return reply.code(401).send({ error: "unauthorized" });
       if (!can(who.role, perm)) return reply.code(403).send({ error: "forbidden" });
       const out = await h(req, who);
-      if (auditAction) d.state.audit.push({ at: now(), admin: who.id, role: who.role, action: auditAction, target: (req.params as any)?.id ?? (req.params as any)?.v, detail: req.body });
+      if (auditAction) d.state.record({ at: now(), admin: who.id, role: who.role, action: auditAction, target: (req.params as any)?.id ?? (req.params as any)?.v, detail: req.body });
       return out;
     };
 
@@ -83,20 +99,20 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
   app.post("/admin/users/:id/ban", guard("users.ban", (req) => {
     const id = (req.params as any).id as string; const u = d.state.users.get(id);
     if (!u) return { error: "no_user" };
-    u.banned = true; u.banReason = String((req.body as any)?.reason ?? "");
+    u.banned = true; u.banReason = String((req.body as any)?.reason ?? ""); d.state.saveUser(id);
     for (const [code, r] of d.rooms.rooms) if (r.members.some((m) => m.userId === id && !m.bot)) d.rooms.leave(code, id); // o'yindan chiqariladi, o'rniga bot
     return { ok: true };
   }, "user.ban"));
   app.post("/admin/users/:id/unban", guard("users.ban", (req) => {
     const u = d.state.users.get((req.params as any).id); if (!u) return { error: "no_user" };
-    u.banned = false; u.banReason = undefined; return { ok: true };
+    u.banned = false; u.banReason = undefined; d.state.saveUser(u.id); return { ok: true };
   }, "user.unban"));
 
   // --- shikoyatlar ---
   app.get("/admin/complaints", guard("complaints.manage", () => d.state.complaints));
   app.post("/admin/complaints/:id/resolve", guard("complaints.manage", (req, who) => {
     const c = d.state.complaints.find((x) => x.id === Number((req.params as any).id)); if (!c) return { error: "no_complaint" };
-    c.status = "resolved"; c.resolution = String((req.body as any)?.resolution ?? ""); c.resolvedBy = who.id; return { ok: true };
+    c.status = "resolved"; c.resolution = String((req.body as any)?.resolution ?? ""); c.resolvedBy = who.id; d.state.saveComplaint(c); return { ok: true };
   }, "complaint.resolve"));
 
   // --- analitika (shaxssiz, §12) ---
