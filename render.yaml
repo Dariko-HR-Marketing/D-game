@@ -1,0 +1,62 @@
+# Render Blueprint (Infrastructure as Code). Render panelida: New → Blueprint → repo'ni tanlang.
+# DIQQAT: Render rejalari (plan) nomlari va narxlari o'zgarib turadi — fayl ichidagi `plan` qiymatlarini panelda tekshiring.
+# Bu fayl Render'da sinab ko'rilmagan (sandboxda Render yo'q); xato chiqsa panel aniq qatorni ko'rsatadi.
+databases:
+  - name: poyga-db
+    databaseName: poyga
+    user: poyga
+    plan: free            # faqat sinov uchun: bepul baza cheklangan muddatdan keyin o'chadi. Doimiy ish uchun pullik rejaga o'ting.
+    postgresMajorVersion: "16"
+
+services:
+  # --- Server: WebSocket + HTTP (Docker) ---
+  - type: web
+    name: poyga-server
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter         # bepul reja 15 daqiqa harakatsizlikdan keyin uxlaydi — o'yin serveri uchun yaramaydi
+    healthCheckPath: /ready
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: staging    # "production" — haqiqiy kirish (SMS/Google/Apple) ulanmaguncha server ishga tushmaydi (ataylab)
+      - key: DATABASE_URL
+        fromDatabase: { name: poyga-db, property: connectionString }
+      - key: CORS_ORIGINS
+        sync: false       # panelda kiriting: https://poyga-client.onrender.com,https://poyga-admin.onrender.com
+      - key: ADMIN_TOKENS
+        sync: false       # panelda kiriting: {"UZUN-TASODIFIY-TOKEN":{"id":"root","role":"administrator"}}
+      - key: METRICS_TOKEN
+        generateValue: true
+      - key: LOG_LEVEL
+        value: info
+
+  # --- Veb mijoz (Expo web) ---
+  - type: web
+    name: poyga-client
+    runtime: static
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @poyga/client export:web
+    staticPublishPath: client/dist
+    autoDeploy: true
+    routes:
+      - { type: rewrite, source: /*, destination: /index.html }
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: EXPO_PUBLIC_SERVER_URL
+        sync: false       # panelda kiriting: wss://poyga-server.onrender.com  (build vaqtida kiradi!)
+
+  # --- Admin panel (Vite) ---
+  - type: web
+    name: poyga-admin
+    runtime: static
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @poyga/admin build
+    staticPublishPath: admin/dist
+    autoDeploy: true
+    routes:
+      - { type: rewrite, source: /*, destination: /index.html }
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_API_URL
+        sync: false       # panelda kiriting: https://poyga-server.onrender.com

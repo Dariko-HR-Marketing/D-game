@@ -83,6 +83,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   });
   // Xavfsizlik sarlavhalari va HTTP tezlik cheklovi (IP bo'yicha; admin kirish urinishlari qattiqroq).
   // WS ulanishi alohida va kengroq: maktab/ofis NAT ortidagi ko'p o'yinchi bir IP dan ulanadi (ta'lim auditoriyasi, §1).
+  const wsPingMs = Number(process.env.WS_PING_MS ?? 25_000);
   const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
   app.addHook("onRequest", async (req, reply) => {
     reply.header("x-content-type-options", "nosniff").header("x-frame-options", "DENY").header("referrer-policy", "no-referrer").header("cache-control", "no-store");
@@ -99,6 +100,9 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
       if (!userId) return socket.close(4401, "unauthorized");
       if (adminState.isBanned(userId)) return socket.close(4403, "banned");
       cWs(); openSockets++;
+      // Proxy (Render va b.) bo'sh WebSocket'ni ~1 daqiqada uzishi mumkin: serverdan davriy ping; ikki marta javob bo'lmasa — uzamiz.
+      let missed = 0; const ping = setInterval(() => { if (missed >= 2) { socket.terminate(); return; } missed++; try { socket.ping(); } catch { /* yopilgan */ } }, wsPingMs);
+      socket.on("pong", () => { missed = 0; });
       adminState.touch(userId, Date.now());
       let code: string | null = null; const bucket = new Bucket(10, 30); let strikes = 0; // 10 xabar/s, burst 30
       const client = { userId, send: (s: string) => socket.send(s) };
@@ -127,7 +131,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
         }
         } catch (e) { cWsErr(); app.log.error({ err: String((e as Error).message), type: m.type }, "ws: ichki xato"); reply({ type: "error", error: "internal" }); } // bitta xato jarayonni qulatmaydi
       });
-      socket.on("close", () => { openSockets--; if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
+      socket.on("close", () => { clearInterval(ping); openSockets--; if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
     });
   });
   // --- profil, tarix, reyting, hisobni boshqarish (§5.9, §7) ---

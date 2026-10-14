@@ -65,3 +65,21 @@ describe("jurnal maxfiyligi va chidamlilik", () => {
     ws.close(); await x.app.close();
   });
 });
+
+describe("WebSocket ping (proxy uzib qo'ymasligi uchun)", () => {
+  it("server davriy ping yuboradi; javob bermagan ulanish uziladi", async () => {
+    process.env.WS_PING_MS = "60"; // buildApp o'qiydi
+    try {
+      const x = buildApp(); await x.app.listen({ port: 0 }); const port = (x.app.server.address() as any).port;
+      const alive = new WebSocket(`ws://127.0.0.1:${port}/ws?token=a1`); let pings = 0; alive.on("ping", () => pings++); await new Promise((r) => alive.on("open", r));
+      const dead = new WebSocket(`ws://127.0.0.1:${port}/ws?token=a2`); await new Promise((r) => dead.on("open", r));
+      (dead as any)._receiver.removeAllListeners("ping"); dead.pong = () => {}; // pong yubormaydi
+      (dead as any)._socket.removeAllListeners("data"); // hech narsani o'qimaydi → ping'ga javob yo'q
+      const closed = new Promise<number>((r) => dead.on("close", (c) => r(c)));
+      await new Promise((r) => setTimeout(r, 400));
+      expect(pings).toBeGreaterThanOrEqual(3); expect(alive.readyState).toBe(WebSocket.OPEN);
+      await Promise.race([closed, new Promise((r) => setTimeout(r, 600))]); expect(dead.readyState).not.toBe(WebSocket.OPEN);
+      alive.close(); await x.app.close();
+    } finally { delete process.env.WS_PING_MS; }
+  });
+});

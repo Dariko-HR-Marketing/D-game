@@ -1,5 +1,7 @@
 # Joylashtirish (deploy) qo'llanmasi
 
+> **Render uchun batafsil qo'llanma:** [`docs/RENDER.md`](RENDER.md) (+ `render.yaml` Blueprint).
+
 ## Arxitektura
 - **Server** — bitta Docker konteyner (`Dockerfile`), WebSocket + HTTP, port 3000. Doimiy ishlaydigan jarayon kerak (taymerlar va xonalar xotirada): serverless (Vercel/Lambda) mos emas.
 - **PostgreSQL 16** — boshqariladigan xizmat (zaxira nusxa yoqilgan). Migratsiyalar server ishga tushganda o'zi bajariladi (`server/migrations`).
