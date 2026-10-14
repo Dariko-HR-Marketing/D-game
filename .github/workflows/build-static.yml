@@ -1,0 +1,19 @@
+name: build-static
+# Qo'lda ishga tushiriladi (Actions → build-static → Run workflow): cPanel/statik hosting uchun tayyor zip paketlar.
+on:
+  workflow_dispatch:
+    inputs:
+      ws_url:   { description: "Server WebSocket manzili (wss://…)", required: true, default: "wss://api.dariko.uz" }
+      http_url: { description: "Server HTTP manzili (https://…)",   required: true, default: "https://api.dariko.uz" }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: ./scripts/build-static.sh "${{ inputs.ws_url }}" "${{ inputs.http_url }}"
+      - uses: actions/upload-artifact@v4
+        with: { name: poyga-static, path: dist-packages/*.zip, retention-days: 14 }

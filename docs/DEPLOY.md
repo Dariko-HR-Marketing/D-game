@@ -1,5 +1,6 @@
 # Joylashtirish (deploy) qo'llanmasi
 
+> **A-HOST (cPanel) bilan:** [`docs/AHOST.md`](AHOST.md) — statik qism A-HOST'da, server VPS yoki Render'da.
 > **Render uchun batafsil qo'llanma:** [`docs/RENDER.md`](RENDER.md) (+ `render.yaml` Blueprint).
 
 ## Arxitektura

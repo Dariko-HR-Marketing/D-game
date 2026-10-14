@@ -1,0 +1,5 @@
+# TLS sertifikatini Caddy o'zi oladi va yangilaydi (Let's Encrypt). WebSocket (wss) avtomatik proksilanadi.
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy server:3000
+}

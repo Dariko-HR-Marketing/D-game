@@ -1,0 +1,37 @@
+# VPS uchun to'liq to'plam: PostgreSQL + POYGA server + Caddy (avtomatik HTTPS, WebSocket qo'llab-quvvatlanadi).
+# Ishlatish: deploy/vps/ papkasida `cp .env.example .env`, qiymatlarni to'ldiring, so'ng `docker compose up -d --build`.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: poyga
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD kerak}
+      POSTGRES_DB: poyga
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U poyga"], interval: 5s, retries: 10 }
+    # Port tashqariga ochilmaydi: faqat server ichki tarmoqdan ulanadi.
+
+  server:
+    build: { context: ../.., dockerfile: Dockerfile }
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      NODE_ENV: ${NODE_ENV:-staging}
+      DATABASE_URL: postgres://poyga:${POSTGRES_PASSWORD}@db:5432/poyga
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS kerak}
+      ADMIN_TOKENS: ${ADMIN_TOKENS:?ADMIN_TOKENS kerak}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+      LOG_LEVEL: info
+      PORT: "3000"
+    # Tashqariga to'g'ridan-to'g'ri ochilmaydi — faqat Caddy orqali.
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [server]
+    ports: ["80:80", "443:443"]
+    environment: { API_DOMAIN: "${API_DOMAIN:?API_DOMAIN kerak, masalan api.dariko.uz}" }
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy_data:/data", "caddy_config:/config"]
+
+volumes: { pgdata: {}, caddy_data: {}, caddy_config: {} }
