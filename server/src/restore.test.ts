@@ -7,6 +7,7 @@ import { ContentRegistry } from "./registry";
 import { AdminState } from "./admin";
 import { PgPersist } from "./persist";
 import { PgStore } from "./pgstore";
+import { ProfileService } from "./profiles";
 
 class FakeClock implements Clock {
   t = 0; q: { at: number; f: () => void; id: number }[] = []; n = 0;
@@ -79,5 +80,21 @@ describe.skipIf(!url)("PostgreSQL: admin va kontent saqlanadi", () => {
     a.join(r.code, "b"); await a.start(r.code, "a", 5);
     const b = new RoomManager(reg, st, new FakeClock()); expect(await b.restore()).toBeGreaterThanOrEqual(1);
     expect(b.rooms.get(r.code)!.state).toEqual(a.rooms.get(r.code)!.state);
+  });
+  it("profil, natijalar saqlanadi; o'chirishda anonimlashadi", async () => {
+    await pool.query("truncate profiles, game_results restart identity");
+    const s = new ProfileService(persist, () => 2026, () => 5000);
+    s.put("a", { name: "Ali", color: 2, birthYear: 1990 }); s.put("b", { name: "Bobur", color: 0, birthYear: 2012 });
+    s.record({ room: "R1", finishedAt: 9000, durationMs: 4000, rounds: 12, winner: "a", contentVersion: 1,
+      players: [{ id: "a", bot: false, circle: "big", restarts: 1, won: true }, { id: "b", bot: false, circle: "small", restarts: 0, won: false }] });
+    await s.writes.flush(); expect(s.writes.errors).toEqual([]);
+    const r = await ProfileService.restore(persist, () => 2026);
+    expect(r.get("b")).toMatchObject({ name: "Bobur", birthYear: 2012 }); expect(r.restrictedOf(["a", "b"])).toEqual(["b"]);
+    expect(r.stats("a")).toMatchObject({ games: 1, wins: 1, reachedBig: 1 });
+    expect(r.leaderboard()[0]).toMatchObject({ name: "Ali", wins: 1 });
+    r.delete("a"); await r.writes.flush(); expect(r.writes.errors).toEqual([]);
+    const r2 = await ProfileService.restore(persist, () => 2026);
+    expect(r2.get("a")).toBeUndefined(); expect(r2.results[0].winner).toBe("deleted");
+    expect(r2.results[0].players.map((p) => p.id)).toEqual(["deleted", "b"]);
   });
 });

@@ -41,7 +41,7 @@ export type Proposal =
   | { id: number; kind: "partner"; owner: string; partner: string; cardId: string };
 
 export interface GameState {
-  version: 1; bots: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
+  version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
   pending: Pending; winner: string | null; log: string[];
@@ -57,8 +57,9 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 }
 const clone = <T>(x: T): T => structuredClone(x);
 
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = []): GameState {
-  const s = { version: 1, bots, proposals: [], nextProposal: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
+/** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = []): GameState {
+  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
     for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
@@ -314,6 +315,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
     }
 
     case "loan_request": { // oluvchi so'raydi, beruvchi qabul qiladi
+      if (s.restricted.includes(a.playerId) || s.restricted.includes(a.giverId)) return err("restricted_age");
       const rec = P(a.playerId), giver = s.players.find((p) => p.id === a.giverId);
       if (!giver || giver.id === rec.id) return err("bad_giver");
       if (s.bots.includes(rec.id) || s.bots.includes(giver.id)) return err("bot"); // §6.5
@@ -329,6 +331,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const pr = s.proposals.find((x) => x.id === a.proposalId);
       if (!pr || pr.kind !== "loan") return err("no_proposal");
       if (pr.giver !== a.playerId) return err("not_giver");
+      if (s.restricted.includes(pr.giver) || s.restricted.includes(pr.receiver)) return err("restricted_age");
       const giver = P(pr.giver), rec = P(pr.receiver);
       const chk = checkMutualLoan({ players: humans(s).length, amount: pr.amount, months: pr.months, giverCash: giver.cash,
         receiverSalary: rec.salary, receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: rec.handDebts.reduce((x, d) => x + d.amount, 0) });
@@ -350,6 +353,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
 
     case "partner_offer": {
       const owner = P(a.playerId);
+      if (s.restricted.includes(owner.id) || s.restricted.includes(a.partnerId)) return err("restricted_age");
       if (s.bots.includes(a.partnerId) || s.bots.includes(owner.id)) return err("bot");
       if (!s.pending || s.pending.playerId !== owner.id || currentPlayer(s).id !== owner.id) return err("no_pending_card");
       const e = effectOf(ctx, s.pending.cardId).effect;
@@ -366,6 +370,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const pr = s.proposals.find((x) => x.id === a.proposalId);
       if (!pr || pr.kind !== "partner") return err("no_proposal");
       if (pr.partner !== a.playerId) return err("not_partner");
+      if (s.restricted.includes(pr.owner) || s.restricted.includes(pr.partner)) return err("restricted_age");
       if (!s.pending || s.pending.cardId !== pr.cardId || s.pending.playerId !== pr.owner) return err("card_gone");
       const e = effectOf(ctx, pr.cardId).effect;
       if (e.kind !== "buy") return err("card_gone");

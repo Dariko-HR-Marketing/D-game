@@ -8,7 +8,7 @@ export class PgStore implements Store {
   static connect(url: string) { return new PgStore(new Pool({ connectionString: url })); }
 
   async migrate() {
-    for (const f of ["001_init.sql", "002_admin_content.sql"])
+    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql"])
       await this.pool.query(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf-8"));
   }
   async saveSnapshot(code: string, s: GameState, meta?: RoomMeta) {

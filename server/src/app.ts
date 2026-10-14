@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
+import { ProfileService } from "./profiles";
 import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
@@ -9,13 +10,18 @@ import { RoomManager } from "./rooms";
 export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService } = {}) {
   const app = Fastify();
   const store = opts.store ?? new MemoryStore();
   const auth = opts.auth ?? devAuth;
   const registry = opts.registry ?? new ContentRegistry();
   const adminState = opts.adminState ?? new AdminState();
-  const rooms = new RoomManager(registry, store);
+  const profiles = opts.profiles ?? new ProfileService();
+  const rooms = new RoomManager(registry, store, undefined, undefined, {
+    restricted: (ids) => profiles.restrictedOf(ids),               // §2.8: 16 yoshgacha — qarz/sheriklik yopiq
+    profile: (id) => profiles.get(id),
+    onEnd: (code, r) => profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion),
+  });
   registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
@@ -23,13 +29,13 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     for (const c of sockets.get(code) ?? []) c.send(JSON.stringify(ev));
   });
 
-  // Admin veb-panel boshqa originda ishlaydi: faqat sozlangan origin(lar)ga CORS (standart: yopiq).
-  const origins = (process.env.ADMIN_ORIGINS ?? "").split(",").filter(Boolean);
+  // Veb mijoz va admin panel boshqa originda ishlaydi: faqat CORS_ORIGINS dagi originlarga ruxsat (standart: yopiq).
+  const origins = (process.env.CORS_ORIGINS ?? process.env.ADMIN_ORIGINS ?? "").split(",").filter(Boolean);
   app.addHook("onRequest", async (req, reply) => {
     const o = req.headers.origin;
     if (!o || !origins.includes(o)) return;
     reply.header("access-control-allow-origin", o).header("vary", "origin")
-      .header("access-control-allow-headers", "authorization,content-type").header("access-control-allow-methods", "GET,POST,OPTIONS");
+      .header("access-control-allow-headers", "authorization,content-type").header("access-control-allow-methods", "GET,POST,PUT,DELETE,OPTIONS");
     if (req.method === "OPTIONS") return reply.code(204).send();
   });
   app.register(websocket);
@@ -67,6 +73,28 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
       socket.on("close", () => { if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
     });
   });
+  // --- profil, tarix, reyting, hisobni boshqarish (§5.9, §7) ---
+  const userOf = (req: any) => auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined);
+  const secured = (h: (uid: string, req: any, reply: any) => unknown) => async (req: any, reply: any) => {
+    const uid = userOf(req); if (!uid) return reply.code(401).send({ error: "unauthorized" });
+    return h(uid, req, reply);
+  };
+  const year = () => new Date().getFullYear();
+  app.get("/me/profile", secured((uid) => { const p = profiles.get(uid); return { profile: p ?? null, restricted: p ? profiles.restrictedOf([uid]).length > 0 : false, stats: profiles.stats(uid) }; }));
+  app.put("/me/profile", secured((uid, req, reply) => {
+    const r = profiles.put(uid, req.body); if (!r.ok) return reply.code(400).send({ error: r.error });
+    return { profile: r.profile, restricted: profiles.restrictedOf([uid]).length > 0, year: year() };
+  }));
+  app.get("/me/history", secured((uid) => profiles.history(uid)));
+  app.get("/me/export", secured((uid) => ({ userId: uid, exportedAt: Date.now(), ...profiles.export(uid) })));
+  app.delete("/me", secured((uid, req, reply) => {
+    if ((req.body as any)?.confirm !== "O'CHIRISH") return reply.code(400).send({ error: "confirm_required" });
+    if (rooms.activeRoomOf.has(uid)) return reply.code(409).send({ error: "in_game" });
+    profiles.delete(uid); adminState.users.delete(uid);
+    return { ok: true };
+  }));
+  app.get("/leaderboard", async (req) => profiles.leaderboard(Math.min(100, Number((req.query as any).limit) || 20)));
+
   // Shikoyat: foydalanuvchi tokeni bilan (kirish xizmati ulangach haqiqiy autentifikatsiya)
   app.post("/complaints", async (req, reply) => {
     const uid = auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined);
@@ -75,5 +103,5 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!b.text || b.text.length > 2000) return reply.code(400).send({ error: "bad_text" });
     return adminState.addComplaint({ from: uid, against: b.against ?? null, room: b.room ?? null, text: b.text, at: Date.now() });
   });
-  return { app, rooms, store, registry, adminState };
+  return { app, rooms, store, registry, adminState, profiles };
 }

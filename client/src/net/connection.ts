@@ -3,7 +3,7 @@ export interface WS { send(s: string): void; close(): void; onopen: (() => void)
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
+export interface RoomView { names?: Record<string, { name: string; color: number }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
 export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null }
 
 export class Connection {

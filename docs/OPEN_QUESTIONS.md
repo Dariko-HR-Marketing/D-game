@@ -34,3 +34,8 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 29. Analitika (§12): hozir xona/o'yin darajasidagi umumiy ko'rsatkichlar; karta bo'yicha qabul/o'tkazish va xarid hodisalari yig'ilmaydi.
 30. Bank krediti qaytarish (ixtiyoriy to'lash) harakati SPEC'da aniq emas: oylik to'lov formulasi bor, lekin asosiy qarzni yopish tartibi yo'q — hozir faqat kredit olish bor; qarz faqat yangi kasbga o'tish orqali yo'qoladi. Chiqish sharti (qarz = 0) uchun bu muhim: buyurtmachi qoidasi kerak.
 31. Mijozda hamkorlik ekranlari (bank, suyunchi, qarz so'rash/qabul, sheriklik taklif/qabul/sotib olish, qarz to'lash) umumiy panel sifatida; prototip N39–N43 ekranlari bilan vizual moslash dizayner bilan.
+32. Ball va yutuqlar (§5.9): "har 100 ball — daraja" bor, lekin qaysi hodisaga necha ball berilishi, "5 yulduz — Yollanma ishchi → Sarmoyador" mantig'i va yutuqlar ro'yxati SPEC'da yo'q. `POINTS` konfiguratsiyasi bo'sh (null), daraja 0 qoladi. Reyting hozircha g'alabalar soni bo'yicha (ball bo'yicha emas).
+33. Reyting: faqat ismi bor, kamida 1 o'yin o'ynagan odamlar; botlar yo'q; shaxsiy ID chiqmaydi, faqat ism va fishka rangi (maxfiylik bo'yicha yurist tasdig'i kerak).
+34. 16 yoshgacha: qarz/sheriklik serverda yopiq (testlangan). Ota-ona SMS tasdig'i, ota-ona sahifasi, erkin chat va reklama cheklovlari — 2-bosqich (to'lov) bilan birga; yosh tug'ilgan yil bo'yicha (yil − tug'ilgan yil < 16).
+35. Hisobni o'chirish: profil o'chadi, natijalarda ID "deleted" bo'ladi, ma'lumotni yuklab olish mavjud. Qancha muddat saqlash va yuridik talablar (O'zbekiston ma'lumot joylashuvi) — yurist.
+36. CORS: veb mijoz va admin originlari `CORS_ORIGINS` env orqali beriladi (standart: yopiq).

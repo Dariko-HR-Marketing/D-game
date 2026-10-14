@@ -19,7 +19,7 @@ export interface Room {
 }
 export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string };
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { code: string; members: Member[]; state: GameState | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
+export interface RoomView { names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: GameState | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -32,7 +32,8 @@ export class RoomManager {
   activeRoomOf = new Map<string, string>(); // §7: bir hisob — bitta faol o'yin
   listeners = new Set<(code: string, ev: RoomEvent) => void>();
 
-  constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random) {}
+  constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random,
+    private hooks: { restricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number } | undefined } = {}) {}
   private activeCtx(): { version: number | null; ctx: Ctx } {
     return "active" in this.content ? this.content.active() : { version: null, ctx: this.content };
   }
@@ -41,7 +42,9 @@ export class RoomManager {
   private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); }
   view(r: Room): RoomView {
     const pc = r.state?.pending ? effectOf(r.ctx, r.state.pending.cardId) : null;
-    return { code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline,
+    const names: Record<string, { name: string; color: number }> = {};
+    for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color }; }
+    return { names, code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline,
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
   }
 
@@ -105,7 +108,7 @@ export class RoomManager {
     let b = 1;
     while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
-    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId));
+    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? []);
     s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length)));
     r.state = s;
     await this.store.saveSnapshot(code, s, this.meta(r));
@@ -200,6 +203,7 @@ export class RoomManager {
   private finish(r: Room) {
     if (r.timer) this.clock.clearTimeout(r.timer);
     r.timer = null; r.deadline = null; r.endedAt = this.clock.now();
+    this.hooks.onEnd?.(r.code, r);
     for (const m of r.members) this.activeRoomOf.delete(m.userId);
   }
 }

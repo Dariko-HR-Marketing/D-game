@@ -14,8 +14,8 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       <Text style={s.sub}>{uz.lobby.players} · {room.members.length}/6</Text>
       {room.members.map((m, i) => (
         <View key={m.userId} style={s.row}>
-          <View style={[s.dot, { backgroundColor: PLAYER_COLORS[i % 6] }]} />
-          <Text style={s.name}>{m.bot ? uz.lobby.bot : m.userId}{m.userId === userId ? ` (${uz.lobby.you})` : ""}{m.online ? "" : ` · ${uz.lobby.offline}`}</Text>
+          <View style={[s.dot, { backgroundColor: PLAYER_COLORS[(room.names?.[m.userId]?.color ?? i) % 6] }]} />
+          <Text style={s.name}>{m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? m.userId}{m.userId === userId ? ` (${uz.lobby.you})` : ""}{m.online ? "" : ` · ${uz.lobby.offline}`}</Text>
         </View>
       ))}
       <Text style={s.note}>{uz.lobby.hint}</Text>

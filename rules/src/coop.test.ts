@@ -119,3 +119,15 @@ describe("bank krediti (ixtiyoriy)", () => {
     expect(run(s, { type: "bank_loan", playerId: "p0", amount: 6400 }).ok).toBe(true);
   });
 });
+
+describe("16 yoshgacha cheklov (§2.8)", () => {
+  it("o'zaro qarz va sheriklik yopiq, suyunchi ochiq", () => {
+    const s = newGame(ctx, ["p0", "p1", "p2", "p3", "p4"], 1, [], ["p0"]);
+    P(s, "p1").cash = 100_000;
+    expect(run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 10, months: 1 })).toEqual({ ok: false, error: "restricted_age" });
+    expect(run(s, { type: "loan_request", playerId: "p2", giverId: "p0", amount: 10, months: 1 })).toEqual({ ok: false, error: "restricted_age" });
+    expect(run(s, { type: "partner_offer", playerId: "p0", partnerId: "p1" })).toEqual({ ok: false, error: "restricted_age" });
+    s.proposals.push({ id: 1, kind: "suyunchi", parent: "p1", given: [] });
+    expect(run(s, { type: "suyunchi", playerId: "p0", proposalId: 1, amount: 10 }).ok).toBe(true);
+  });
+});

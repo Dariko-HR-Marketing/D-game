@@ -6,6 +6,9 @@ import { Connection, ConnState } from "./src/net/connection";
 import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
 import { Game } from "./src/ui/Game";
+import { ProfileScreen } from "./src/ui/ProfileScreen";
+import { Leaderboard } from "./src/ui/Leaderboard";
+import { httpBase, makeHttp } from "./src/net/http";
 import { color } from "./src/theme";
 
 const SERVER = process.env.EXPO_PUBLIC_SERVER_URL ?? "ws://localhost:3000";
@@ -17,13 +20,17 @@ export default function App() {
   const userId = useMemo(devUser, []);
   const conn = useMemo(() => new Connection(SERVER, userId, (u) => new WebSocket(u) as any), [userId]);
   const [st, setSt] = useState<ConnState>(conn.state);
+  const http = useMemo(() => makeHttp(httpBase(SERVER), userId), [userId]);
+  const [screen, setScreen] = useState<"home" | "profile" | "board">("home");
   useEffect(() => { const un = conn.subscribe(setSt); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
   if (!fontsLoaded) return null;
   const room = st.room;
   return (
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
-      {!room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} />
+      {!room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); }} />
+        : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
+        : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} />
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} />}
     </SafeAreaView>

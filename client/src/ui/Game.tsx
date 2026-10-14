@@ -89,7 +89,7 @@ export function Game({ room, userId, onAct }: { room: RoomView; userId: string; 
       <View><Board room={room} size={boardSize} /></View>
       <View style={[{ gap: 12, flex: 1, minWidth: 280 }, wide && { maxWidth: 420 }]}>
         <Text style={s.turn} accessibilityLiveRegion="polite">
-          {state.winner ? `${uz.game.winner}: ${state.winner}` : mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${currentId(room)}`}
+          {state.winner ? `${uz.game.winner}: ${state.winner}` : mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${room.names?.[currentId(room)!]?.name ?? currentId(room)}`}
           {left > 0 && !state.winner ? ` · ${left} ${uz.game.seconds}` : ""}
         </Text>
         {mine && <Blank p={mine} />}

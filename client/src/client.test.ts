@@ -79,3 +79,18 @@ describe("hamkorlik yordamchilari", () => {
     expect(partnerCandidates(r, "a")).toEqual(["b"]);
   });
 });
+
+import { httpBase, makeHttp, validName, validYear, isUnder16, HttpError, DELETE_WORD } from "./net/http";
+describe("profil yordamchilari", () => {
+  it("ws→http, tekshiruvlar, 16 yosh", () => {
+    expect(httpBase("ws://h:3000")).toBe("http://h:3000"); expect(httpBase("wss://h")).toBe("https://h");
+    expect(validName("A")).toBe(false); expect(validName("Ali")).toBe(true); expect(validName("<b>")).toBe(false);
+    expect(validYear("1899", 2026)).toBe(false); expect(validYear("2000", 2026)).toBe(true); expect(validYear("2027", 2026)).toBe(false);
+    expect(isUnder16("2011", 2026)).toBe(true); expect(isUnder16("2010", 2026)).toBe(false); expect(DELETE_WORD).toBe("O'CHIRISH");
+  });
+  it("HTTP xatosi kod bilan", async () => {
+    const f = (async () => ({ ok: false, status: 400, json: async () => ({ error: "bad_name" }) })) as any;
+    await expect(makeHttp("http://s", "t", f).saveProfile({ name: "", color: 0, birthYear: 1 })).rejects.toMatchObject({ status: 400, code: "bad_name" });
+    expect(new HttpError(409, "in_game").code).toBe("in_game");
+  });
+});

@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 import type { Bundle } from "@poyga/content";
 import type { AuditEntry, Complaint } from "./admin";
 import type { VersionInfo } from "./registry";
+import type { GameResult, Profile, ProfilePersist } from "./profiles";
 
 export interface UserRow { id: string; firstSeen: number; lastSeen: number; banned: boolean; banReason?: string }
 export interface Persist {
@@ -26,7 +27,7 @@ export class WriteQueue {
   flush() { return this.tail; }
 }
 
-export class PgPersist implements Persist {
+export class PgPersist implements Persist, ProfilePersist {
   constructor(private pool: Pool) {}
   async loadVersions() {
     const r = await this.pool.query("select version, part, note, author, extract(epoch from at)*1000 as at, published, bundle from content_versions order by version");
@@ -64,5 +65,28 @@ export class PgPersist implements Persist {
   }
   async appendAudit(a: AuditEntry) {
     await this.pool.query("insert into audit_log(at,admin,role,action,target,detail) values(to_timestamp($1/1000.0),$2,$3,$4,$5,$6)", [a.at, a.admin, a.role, a.action, a.target ?? null, a.detail === undefined ? null : JSON.stringify(a.detail)]);
+  }
+
+  async loadProfiles(): Promise<Profile[]> {
+    const r = await this.pool.query("select user_id, name, color, birth_year, extract(epoch from updated_at)*1000 as at from profiles");
+    return r.rows.map((x) => ({ userId: x.user_id, name: x.name, color: x.color, birthYear: x.birth_year, updatedAt: Number(x.at) }));
+  }
+  async saveProfile(p: Profile) {
+    await this.pool.query("insert into profiles(user_id,name,color,birth_year,updated_at) values($1,$2,$3,$4,to_timestamp($5/1000.0)) on conflict (user_id) do update set name=excluded.name, color=excluded.color, birth_year=excluded.birth_year, updated_at=excluded.updated_at",
+      [p.userId, p.name, p.color, p.birthYear, p.updatedAt]);
+  }
+  async deleteProfile(userId: string) { await this.pool.query("delete from profiles where user_id=$1", [userId]); await this.pool.query("delete from app_users where id=$1", [userId]); }
+  async loadResults(): Promise<GameResult[]> {
+    const r = await this.pool.query("select room_code, extract(epoch from finished_at)*1000 as at, duration_ms, rounds, winner, content_version, players from game_results order by id");
+    return r.rows.map((x) => ({ room: x.room_code, finishedAt: Number(x.at), durationMs: Number(x.duration_ms), rounds: x.rounds, winner: x.winner, contentVersion: x.content_version, players: x.players }));
+  }
+  async saveResult(g: GameResult) {
+    await this.pool.query("insert into game_results(room_code,finished_at,duration_ms,rounds,winner,content_version,players) values($1,to_timestamp($2/1000.0),$3,$4,$5,$6,$7)",
+      [g.room, g.finishedAt, g.durationMs, g.rounds, g.winner, g.contentVersion, JSON.stringify(g.players)]);
+  }
+  async anonymizeResults(userId: string) {
+    await this.pool.query(`update game_results set winner = case when winner=$1 then 'deleted' else winner end,
+      players = (select jsonb_agg(case when p->>'id'=$1 then jsonb_set(p,'{id}','"deleted"') else p end) from jsonb_array_elements(players) p)
+      where players @> $2::jsonb`, [userId, JSON.stringify([{ id: userId }])]);
   }
 }
