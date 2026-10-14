@@ -5,7 +5,11 @@ export interface JournalEntry { seq: number; at: number; action: Action | { type
 export interface RoomMeta { hostId: string; members: { userId: string; bot: boolean }[]; contentVersion: number | null; seq: number; createdAt: number }
 export interface ActiveRoom { code: string; state: GameState; meta: RoomMeta }
 export interface Store {
+  /** Tayyorlik tekshiruvi (/ready): saqlagich javob beradimi. */
+  ping?(): Promise<void>;
   saveSnapshot(roomCode: string, state: GameState, meta?: RoomMeta): Promise<void>;
+  /** Tashlab ketilgan xonani yopadi (qayta ishga tushganda tiklanmaydi). */
+  closeRoom(roomCode: string): Promise<void>;
   /** Istalgan xona (tugagan ham) — tahlil uchun. */
   loadRoom(code: string): Promise<{ state: GameState; meta: RoomMeta | null } | null>;
   /** Tugamagan o'yinlar (server qayta ishga tushganda tiklash uchun). */
@@ -20,6 +24,8 @@ export class MemoryStore implements Store {
   metas = new Map<string, RoomMeta>();
   logs = new Map<string, JournalEntry[]>();
   async saveSnapshot(c: string, s: GameState, m?: RoomMeta) { this.snapshots.set(c, s); if (m) this.metas.set(c, m); }
+  async ping() {}
+  async closeRoom(c: string) { this.metas.delete(c); }
   async loadRoom(c: string) { const s = this.snapshots.get(c); return s ? { state: s, meta: this.metas.get(c) ?? null } : null; }
   async loadActive() { return [...this.snapshots].filter(([c, s]) => !s.winner && this.metas.has(c)).map(([code, state]) => ({ code, state, meta: this.metas.get(code)! })); }
   async append(c: string, e: JournalEntry) { (this.logs.get(c) ?? this.logs.set(c, []).get(c)!).push(e); }

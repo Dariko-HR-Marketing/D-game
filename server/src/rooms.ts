@@ -16,6 +16,7 @@ export interface Room {
   timer: unknown; deadline: number | null;
   ctx: Ctx; contentVersion: number | null; // o'yin boshlanganda qulflanadi (§11)
   createdAt: number; endedAt: number | null;
+  offlineSince: number | null; // hamma odam oflayn bo'lgan vaqt (tashlab ketilgan xonani yopish uchun)
 }
 export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string };
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
@@ -33,7 +34,8 @@ export class RoomManager {
   listeners = new Set<(code: string, ev: RoomEvent) => void>();
 
   constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random,
-    private hooks: { restricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number } | undefined } = {}) {}
+    private hooks: { restricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number } | undefined;
+      onStart?: (code: string, r: Room) => void; onAbandon?: (code: string) => void; onApply?: (type: string, ok: boolean, ms: number, error?: string) => void } = {}) {}
   private activeCtx(): { version: number | null; ctx: Ctx } {
     return "active" in this.content ? this.content.active() : { version: null, ctx: this.content };
   }
@@ -64,7 +66,7 @@ export class RoomManager {
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
       const r: Room = { code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ ...m, online: false })), state: a.state, seq: a.meta.seq,
-        timer: null, deadline: null, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null };
+        timer: null, deadline: null, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.armProposals(r); this.arm(r); n++;
@@ -83,7 +85,7 @@ export class RoomManager {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
     const code = this.newCode();
     this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null,
-      ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null });
+      ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null });
     this.activeRoomOf.set(hostId, code);
     return { ok: true, code };
   }
@@ -114,6 +116,7 @@ export class RoomManager {
     s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length)));
     r.state = s;
     await this.store.saveSnapshot(code, s, this.meta(r));
+    this.hooks.onStart?.(code, r);
     this.arm(r);
     this.emit(r);
     return { ok: true };
@@ -131,7 +134,9 @@ export class RoomManager {
   }
 
   private async apply(r: Room, action: Action, auto: string | null): Promise<{ ok: true } | { ok: false; error: Err }> {
+    const t0 = performance.now();
     const out = reduce(r.state!, r.ctx, action);
+    this.hooks.onApply?.(action.type, out.ok, performance.now() - t0, out.ok ? undefined : out.error);
     if (!out.ok) return out;
     r.state = out.state; r.seq++;
     this.armProposals(r);
@@ -181,14 +186,14 @@ export class RoomManager {
 
   disconnect(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
-    if (r && m) { m.online = false; this.emit(r); }
+    if (r && m) { m.online = false; this.markOffline(r); this.emit(r); }
   }
 
   /** §6.3: qayta ulanganda holat to'liq tiklanadi (snapshot + seq). */
   reconnect(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (!r || !m) return { ok: false, error: "not_member" };
-    m.online = true; this.emit(r);
+    m.online = true; r.offlineSince = null; this.emit(r);
     return { ok: true };
   }
 
@@ -197,9 +202,29 @@ export class RoomManager {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (!r || !m) return;
     this.activeRoomOf.delete(userId);
+    this.markOffline(r, userId);
     if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) this.rooms.delete(code); }
     else { m.bot = true; m.online = false; if (currentPlayer(r.state).id === userId) this.arm(r); }
     this.emit(r);
+  }
+
+  private markOffline(r: Room, leaving?: string) {
+    const anyOnline = r.members.some((x) => !x.bot && x.online && x.userId !== leaving);
+    if (!anyOnline && r.offlineSince === null) r.offlineSince = this.clock.now(); else if (anyOnline) r.offlineSince = null;
+  }
+
+  /** Tashlab ketilgan xonalarni yopadi: hamma odam `idleMs` dan ortiq oflayn. Davriy chaqiriladi (main.ts). Qaytadi: yopilganlar soni. */
+  async sweep(idleMs: number): Promise<number> {
+    let n = 0; const now = this.clock.now();
+    for (const [code, r] of [...this.rooms]) {
+      if (r.endedAt || r.offlineSince === null || now - r.offlineSince < idleMs) continue;
+      if (r.timer) this.clock.clearTimeout(r.timer);
+      for (const [k, h] of this.proposalTimers) if (k.startsWith(`${code}:`)) { this.clock.clearTimeout(h); this.proposalTimers.delete(k); }
+      r.timer = null; r.deadline = null; r.endedAt = now;
+      for (const m of r.members) this.activeRoomOf.delete(m.userId);
+      await this.store.closeRoom(code); this.hooks.onAbandon?.(code); n++;
+    }
+    return n;
   }
 
   private finish(r: Room) {

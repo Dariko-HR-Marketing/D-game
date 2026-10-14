@@ -3,6 +3,7 @@ import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
 import { AnalysisService, presentable } from "./analysis";
+import { Metrics } from "./metrics";
 import { WriteQueue } from "./persist";
 import { parseMessage } from "./protocol";
 import { Bucket, KeyedLimiter } from "./ratelimit";
@@ -14,11 +15,23 @@ import { RoomManager } from "./rooms";
 export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
-  const app = Fastify({ bodyLimit: 64 * 1024 });
-  const store = opts.store ?? new MemoryStore();
+  // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
+  const serializers = { req: (r: any) => ({ method: r.method, path: String(r.url).split("?")[0], id: r.id }), res: (r: any) => ({ status: r.statusCode }) };
+  const logger = opts.logger ? { level: "info", ...(opts.logger === true ? {} : opts.logger), serializers } : false;
+  const app = Fastify({ bodyLimit: 64 * 1024, logger });
+  const m = new Metrics();
+  const cHttp = m.counter("poyga_http_requests_total", "HTTP so'rovlari (holat kodi bo'yicha)");
+  const cLimited = m.counter("poyga_rate_limited_total", "Tezlik cheklovi tufayli rad etilganlar");
+  const cWs = m.counter("poyga_ws_connections_total", "WebSocket ulanishlari");
+  const cWsErr = m.counter("poyga_ws_errors_total", "Ichki xatolar (WebSocket)");
+  const cActions = m.counter("poyga_actions_total", "O'yin harakatlari (tur va natija bo'yicha)");
+  const cGames = m.counter("poyga_games_total", "O'yinlar (boshlandi/tugadi)");
+  const hAction = m.histogram("poyga_action_seconds", "Harakatni dvigatel bilan hisoblash vaqti", [0.001, 0.005, 0.01, 0.05, 0.1, 0.5]);
+  let openSockets = 0;
+  const store: Store = opts.store ?? new MemoryStore();
   const auth = opts.auth ?? devAuth;
   const registry = opts.registry ?? new ContentRegistry();
   const adminState = opts.adminState ?? new AdminState();
@@ -27,7 +40,26 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const rooms = new RoomManager(registry, store, undefined, undefined, {
     restricted: (ids) => profiles.restrictedOf(ids),               // §2.8: 16 yoshgacha — qarz/sheriklik yopiq
     profile: (id) => profiles.get(id),
-    onEnd: (code, r) => { profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
+    onStart: () => cGames({ event: "started" }),
+    onAbandon: () => cGames({ event: "abandoned" }),
+    onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
+    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
+  });
+  m.gauge("poyga_rooms_active", "Faol (tugamagan, boshlangan) xonalar", () => [...rooms.rooms.values()].filter((r) => r.state && !r.endedAt).length);
+  m.gauge("poyga_rooms_lobby", "Boshlanmagan xonalar", () => [...rooms.rooms.values()].filter((r) => !r.state).length);
+  m.gauge("poyga_players_online", "Ulangan o'yinchilar (bot emas)", () => [...rooms.rooms.values()].reduce((t, r) => t + r.members.filter((x) => !x.bot && x.online).length, 0));
+  m.gauge("poyga_ws_sockets", "Ochiq WebSocket ulanishlari", () => openSockets);
+  m.gauge("poyga_process_resident_bytes", "Jarayon xotirasi (RSS)", () => process.memoryUsage().rss);
+  m.gauge("poyga_uptime_seconds", "Ishlash vaqti", () => Math.round(process.uptime()));
+  app.addHook("onResponse", async (req, reply) => { if (req.url !== "/metrics") cHttp({ status: String(Math.floor(reply.statusCode / 100)) + "xx" }); });
+  // /health — jarayon tirik; /ready — saqlagich ham javob beradi (yuk balanslagich uchun); /metrics — token bilan (METRICS_TOKEN).
+  app.get("/ready", async (_req, reply) => {
+    try { await store.ping?.(); return { ready: true }; } catch (e) { app.log.error({ err: String((e as Error).message) }, "ready: saqlagich javob bermadi"); return reply.code(503).send({ ready: false }); }
+  });
+  const metricsToken = opts.metricsToken ?? process.env.METRICS_TOKEN;
+  app.get("/metrics", async (req, reply) => {
+    if (!metricsToken || (req.headers.authorization ?? "") !== `Bearer ${metricsToken}`) return reply.code(metricsToken ? 401 : 404).send({ error: "unauthorized" });
+    return reply.header("content-type", "text/plain; version=0.0.4").send(m.render());
   });
   registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store, cards: () => analysis.topCards() });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
@@ -51,7 +83,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     reply.header("x-content-type-options", "nosniff").header("x-frame-options", "DENY").header("referrer-policy", "no-referrer").header("cache-control", "no-store");
     if (req.method === "OPTIONS" || req.url === "/health") return;
     const lim = req.url.startsWith("/admin") ? adminLimit : httpLimit;
-    if (!lim.allow(req.ip)) return reply.code(429).send({ error: "rate_limited" });
+    if (!lim.allow(req.ip)) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
   });
   app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   app.get("/health", async () => ({ ok: true }));
@@ -61,6 +93,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
       const userId = auth(new URL(req.url, "http://x").searchParams.get("token") ?? undefined);
       if (!userId) return socket.close(4401, "unauthorized");
       if (adminState.isBanned(userId)) return socket.close(4403, "banned");
+      cWs(); openSockets++;
       adminState.touch(userId, Date.now());
       let code: string | null = null; const bucket = new Bucket(10, 30); let strikes = 0; // 10 xabar/s, burst 30
       const client = { userId, send: (s: string) => socket.send(s) };
@@ -68,10 +101,11 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
       const attach = (c: string) => { code = c; (sockets.get(c) ?? sockets.set(c, new Set()).get(c)!).add(client); };
 
       socket.on("message", async (raw: Buffer) => {
-        if (!bucket.take()) { reply({ type: "error", error: "rate_limited" }); if (++strikes > 5) socket.close(4429, "rate_limited"); return; }
+        if (!bucket.take()) { cLimited({ scope: "ws" }); reply({ type: "error", error: "rate_limited" }); if (++strikes > 5) socket.close(4429, "rate_limited"); return; }
         const parsed = parseMessage(raw.toString());
         if (!parsed.ok) return reply({ type: "error", error: parsed.error });
         const m = parsed.msg;
+        try {
         switch (m.type) {
           case "create": { const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error });
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
@@ -82,12 +116,13 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
             const r = await rooms.start(code, userId, seed); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
             const r = await rooms.act(code, userId, { ...m.action, playerId: userId }, m.seq);
-            if (!r.ok) reply({ type: "error", error: r.error }); return; }
+            if (!r.ok) { if (r.error === "stale_seq") cActions({ type: m.action.type, result: "stale" }); reply({ type: "error", error: r.error }); } return; }
           case "leave": if (code) { rooms.leave(code, userId); sockets.get(code)?.delete(client); code = null; } return;
           default: return reply({ type: "error", error: "unknown_type" });
         }
+        } catch (e) { cWsErr(); app.log.error({ err: String((e as Error).message), type: m.type }, "ws: ichki xato"); reply({ type: "error", error: "internal" }); } // bitta xato jarayonni qulatmaydi
       });
-      socket.on("close", () => { if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
+      socket.on("close", () => { openSockets--; if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
     });
   });
   // --- profil, tarix, reyting, hisobni boshqarish (§5.9, §7) ---

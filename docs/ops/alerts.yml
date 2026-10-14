@@ -1,0 +1,42 @@
+# Prometheus ogohlantirish qoidalari (SPEC §11). Chegaralar boshlang'ich — haqiqiy yuk ma'lum bo'lgach sozlanadi.
+groups:
+  - name: poyga
+    rules:
+      - alert: PoygaDown
+        expr: up{job="poyga"} == 0
+        for: 2m
+        labels: { severity: page }
+        annotations: { summary: "POYGA server javob bermayapti", runbook: "docs/ops/RUNBOOK.md#server-ishlamayapti" }
+      - alert: PoygaNotReady
+        expr: probe_success{job="poyga-ready"} == 0
+        for: 2m
+        labels: { severity: page }
+        annotations: { summary: "/ready 503: saqlagich (PostgreSQL) javob bermayapti", runbook: "docs/ops/RUNBOOK.md#postgresql" }
+      - alert: PoygaHighServerErrors
+        expr: sum(rate(poyga_http_requests_total{status="5xx"}[5m])) / sum(rate(poyga_http_requests_total[5m])) > 0.02
+        for: 10m
+        labels: { severity: ticket }
+        annotations: { summary: "HTTP 5xx ulushi 2 % dan yuqori" }
+      - alert: PoygaInternalWsErrors
+        expr: increase(poyga_ws_errors_total[10m]) > 5
+        labels: { severity: ticket }
+        annotations: { summary: "WebSocket ichki xatolar ko'payib ketdi", runbook: "docs/ops/RUNBOOK.md#ichki-xatolar" }
+      - alert: PoygaSlowActions
+        expr: histogram_quantile(0.99, sum(rate(poyga_action_seconds_bucket[5m])) by (le)) > 0.1
+        for: 10m
+        labels: { severity: ticket }
+        annotations: { summary: "Harakatni hisoblash p99 > 100 ms (dvigatel yoki CPU muammosi)" }
+      - alert: PoygaRateLimitSpike
+        expr: sum(rate(poyga_rate_limited_total[5m])) > 5
+        for: 10m
+        labels: { severity: info }
+        annotations: { summary: "Tezlik cheklovi ko'p ishlayapti (suiiste'mol yoki noto'g'ri mijoz?)" }
+      - alert: PoygaMemoryHigh
+        expr: poyga_process_resident_bytes > 1.5e9
+        for: 15m
+        labels: { severity: ticket }
+        annotations: { summary: "Jarayon xotirasi 1.5 GB dan oshdi (xona/taymer oqishi?)" }
+      - alert: PoygaNoGamesFinished
+        expr: increase(poyga_games_total{event="started"}[6h]) > 5 and increase(poyga_games_total{event="finished"}[6h]) == 0
+        labels: { severity: info }
+        annotations: { summary: "O'yinlar boshlanmoqda, lekin hech biri tugamayapti (6 soat)" }

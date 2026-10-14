@@ -111,4 +111,40 @@ describe.skipIf(!url)("PostgreSQL: admin va kontent saqlanadi", () => {
     const again = await AnalysisService.restore(st, reg, new WriteQueue(), persist);
     expect(again.cardStats).toEqual(svc.cardStats);
   });
+  it("closeRoom: yopilgan xona qayta tiklanmaydi", async () => {
+    const reg = new ContentRegistry(); const rm = new RoomManager(reg, st, new FakeClock());
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 9);
+    expect((await st.loadActive()).some((x) => x.code === r.code)).toBe(true);
+    await st.closeRoom(r.code); expect((await st.loadActive()).some((x) => x.code === r.code)).toBe(false);
+  });
+});
+
+describe("tashlab ketilgan xonalarni yopish (sweep)", () => {
+  const setup = async () => {
+    const store = new MemoryStore(); const reg = new ContentRegistry(); const c = new FakeClock(); let k = 0;
+    const rm = new RoomManager(reg, store, c, () => (k++ * 0.37) % 1);
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 3);
+    return { rm, c, code: r.code, store };
+  };
+  const IDLE = 30 * 60_000;
+  it("hamma odam oflayn bo'lib IDLE o'tsa yopiladi; taymerlar to'xtaydi; hisob bo'shaydi; qayta ishga tushganda tiklanmaydi", async () => {
+    const { rm, c, code, store } = await setup();
+    rm.disconnect(code, "a"); rm.disconnect(code, "b");
+    await c.advance(IDLE - 1000); expect(await rm.sweep(IDLE)).toBe(0);
+    await c.advance(2000); expect(await rm.sweep(IDLE)).toBe(1);
+    const room = rm.rooms.get(code)!; expect(room.endedAt).not.toBeNull(); expect(room.timer).toBeNull();
+    expect(rm.activeRoomOf.has("a")).toBe(false); expect(rm.create("a").ok).toBe(true);
+    expect(await new RoomManager(new ContentRegistry(), store, new FakeClock()).restore()).toBe(0);
+    expect(await rm.sweep(IDLE)).toBe(0); // ikkinchi marta yopilmaydi
+  });
+  it("bitta odam ham onlayn bo'lsa yopilmaydi; qayta ulanish hisobni to'xtatadi", async () => {
+    const { rm, c, code } = await setup();
+    rm.disconnect(code, "a"); await c.advance(IDLE * 2); expect(await rm.sweep(IDLE)).toBe(0); // b onlayn
+    rm.disconnect(code, "b"); await c.advance(IDLE / 2); rm.reconnect(code, "a"); await c.advance(IDLE); expect(await rm.sweep(IDLE)).toBe(0);
+  });
+  it("qayta ishga tushganda tiklangan, hech kim ulanmagan xona IDLE dan keyin yopiladi", async () => {
+    const { rm, code, store, c } = await setup(); void rm; void c;
+    const c2 = new FakeClock(); const rm2 = new RoomManager(new ContentRegistry(), store, c2); expect(await rm2.restore()).toBe(1);
+    await c2.advance(IDLE + 1); expect(await rm2.sweep(IDLE)).toBe(1); expect(rm2.rooms.get(code)!.endedAt).not.toBeNull();
+  });
 });
