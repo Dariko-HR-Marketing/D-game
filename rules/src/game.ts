@@ -1,7 +1,7 @@
 // O'yin darajasidagi holat mashinasi: navbat, katak, karta qarori, chiqish, g'alaba.
 // Hamma narsa sof va serializatsiya qilinadigan holat ustida; tasodifiylik holatdagi `rng` dan.
 import type { CardEffect, Effect } from "@poyga/content";
-import { RULES, canExitSmallCircle, hasWonBigCircle } from "./index";
+import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   passiveIncome, playerCashflow, sellAsset, smallCell, takeBankLoan, totalDebt, shuffle, rollDie, seededRng,
@@ -29,13 +29,19 @@ export interface Ctx {
 export type DeckName = keyof Ctx["deckIds"];
 export interface DeckState { draw: string[]; discard: string[] }
 
-export interface GamePlayer extends Player { dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean }
+export interface HandDebt { id: number; to: string; amount: number; months: number }
+export interface GamePlayer extends Player { handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean }
 export type Pending =
   | null
   | { type: "card"; playerId: string; cardId: string; deck: DeckName };
 
+export type Proposal =
+  | { id: number; kind: "suyunchi"; parent: string; given: string[] }
+  | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
+  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string };
+
 export interface GameState {
-  version: 1; seed: number; rngState: number;
+  version: 1; bots: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
   pending: Pending; winner: string | null; log: string[];
@@ -51,8 +57,8 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 }
 const clone = <T>(x: T): T => structuredClone(x);
 
-export function newGame(ctx: Ctx, playerIds: string[], seed: number): GameState {
-  const s = { version: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = []): GameState {
+  const s = { version: 1, bots, proposals: [], nextProposal: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
     for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
@@ -60,7 +66,7 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number): GameState 
   s.players = playerIds.map((id) => {
     const kid = drawFrom(s, "kasb");
     const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
-    return { ...newPlayer(id, k), dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false };
+    return { ...newPlayer(id, k), handDebts: [], dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false };
   });
   return s;
 }
@@ -84,7 +90,7 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false };
+  return { ...newPlayer(p.id, k), handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false };
 }
 
 /** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */
@@ -104,6 +110,14 @@ export function chooseDream(s: GameState, playerId: string, dreamIdx: number): G
 
 export type Action =
   | { type: "roll"; playerId: string }
+  | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
+  | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
+  | { type: "loan_accept"; playerId: string; proposalId: number }
+  | { type: "loan_repay"; playerId: string; debtId: number; amount: number }
+  | { type: "partner_offer"; playerId: string; partnerId: string }
+  | { type: "partner_accept"; playerId: string; proposalId: number }
+  | { type: "partner_buyout"; playerId: string; assetCode: string }
+  | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean };
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
@@ -112,6 +126,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (state.winner) return { ok: false, error: "game_over" };
   const s = clone(state);
   const cur = currentPlayer(s);
+  if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
   if (a.type === "roll") {
     if (s.pending) return { ok: false, error: "decision_pending" };
@@ -206,7 +221,8 @@ function smallLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
     case "B": return offer(s, p, "bozor", ctx);
     case "O": { // farzand: bank 500 beradi (§5.6)
       const q = haveChild({ ...p, cash: p.cash + RULES.suyunchiBank }) as GamePlayer;
-      setP(s, q); logf(s, `${p.id}: farzand tug'ildi`); return;
+      setP(s, q); logf(s, `${p.id}: farzand tug'ildi`);
+      s.proposals.push({ id: s.nextProposal++, kind: "suyunchi", parent: p.id, given: [] }); return;
     }
     case "D": case "S": return;
     case "K": case "Q": logf(s, `${p.id}: ${smallCell(p.pos)} katagi — qoida kutilmoqda (OPEN_QUESTIONS #8)`); return;
@@ -256,13 +272,118 @@ function endTurn(s: GameState, ctx: Ctx) {
   const p = currentPlayer(s);
   if (p.circle === "small" && canExitSmallCircle({
     cash: p.cash, salary: p.salary, passiveIncome: passiveIncome(p), expenses: monthlyExpenses(p),
-    bankDebt: p.bankDebt, otherDebt: totalDebt(p) - p.bankDebt, openPartnerships: 0 })) {
+    bankDebt: p.bankDebt, otherDebt: totalDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) })) {
     const lock = playerCashflow(p);
     setP(s, { ...p, circle: "big", pos: CONFIG.bigStart, lockedFlow: lock });
     logf(s, `${p.id}: kichik aylanadan chiqdi`);
   }
   s.turn++;
   if (s.turn % s.players.length === 0) s.round++;
+}
+
+export const openPartnerships = (p: Player) => p.assets.filter((a) => a.partnerId || a.stakeOf).length;
+const humans = (s: GameState) => s.players.filter((p) => !s.bots.includes(p.id));
+const err = (error: string): Outcome => ({ ok: false, error });
+
+/** Hamkorlik (§5.6): navbatdan mustaqil harakatlar. */
+function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } | { type: "decide" }>): Outcome {
+  const ok = (): Outcome => ({ ok: true, state: s });
+  const P = (id: string) => s.players[idx(s, id)];
+  switch (a.type) {
+    case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();
+
+    case "suyunchi": {
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "suyunchi") return err("no_proposal");
+      const giver = P(a.playerId), parent = P(pr.parent);
+      if (giver.id === parent.id) return err("self");
+      if (giver.circle !== "small" || parent.circle !== "small") return err("small_circle_only"); // §5.6
+      if (s.bots.includes(giver.id)) return err("bot");
+      if (pr.given.includes(giver.id)) return err("already_given");
+      if (!isValidSuyunchi(a.amount, giver.cash)) return err("invalid_amount");
+      setP(s, { ...giver, cash: giver.cash - a.amount }); setP(s, { ...parent, cash: parent.cash + a.amount });
+      pr.given.push(giver.id); return ok();
+    }
+
+    case "loan_request": { // oluvchi so'raydi, beruvchi qabul qiladi
+      const rec = P(a.playerId), giver = s.players.find((p) => p.id === a.giverId);
+      if (!giver || giver.id === rec.id) return err("bad_giver");
+      if (s.bots.includes(rec.id) || s.bots.includes(giver.id)) return err("bot"); // §6.5
+      if (rec.circle !== "small" || giver.circle !== "small") return err("small_circle_only"); // §2.7
+      const existing = rec.handDebts.reduce((x, d) => x + d.amount, 0);
+      const chk = checkMutualLoan({ players: humans(s).length, amount: a.amount, months: a.months, giverCash: giver.cash,
+        receiverSalary: rec.salary, receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: existing });
+      if (!chk.ok) return err(chk.reason);
+      s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months });
+      return ok();
+    }
+    case "loan_accept": {
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "loan") return err("no_proposal");
+      if (pr.giver !== a.playerId) return err("not_giver");
+      const giver = P(pr.giver), rec = P(pr.receiver);
+      const chk = checkMutualLoan({ players: humans(s).length, amount: pr.amount, months: pr.months, giverCash: giver.cash,
+        receiverSalary: rec.salary, receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: rec.handDebts.reduce((x, d) => x + d.amount, 0) });
+      if (!chk.ok) return err(chk.reason); // holat o'zgargan bo'lishi mumkin
+      setP(s, { ...giver, cash: giver.cash - pr.amount });
+      setP(s, { ...rec, cash: rec.cash + pr.amount, handDebts: [...rec.handDebts, { id: pr.id, to: giver.id, amount: pr.amount, months: pr.months }] });
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); return ok();
+    }
+    case "loan_repay": { // foizsiz, to'lov ixtiyoriy
+      const rec = P(a.playerId), d = rec.handDebts.find((x) => x.id === a.debtId);
+      if (!d) return err("no_debt");
+      if (!Number.isInteger(a.amount) || a.amount <= 0 || a.amount > d.amount || a.amount > rec.cash) return err("invalid_amount");
+      const giver = P(d.to);
+      setP(s, { ...giver, cash: giver.cash + a.amount });
+      setP(s, { ...rec, cash: rec.cash - a.amount,
+        handDebts: rec.handDebts.map((x) => (x.id === d.id ? { ...x, amount: x.amount - a.amount } : x)).filter((x) => x.amount > 0) });
+      return ok();
+    }
+
+    case "partner_offer": {
+      const owner = P(a.playerId);
+      if (s.bots.includes(a.partnerId) || s.bots.includes(owner.id)) return err("bot");
+      if (!s.pending || s.pending.playerId !== owner.id || currentPlayer(s).id !== owner.id) return err("no_pending_card");
+      const e = effectOf(ctx, s.pending.cardId).effect;
+      if (e.kind !== "buy" || !["small_business", "business"].includes(e.asset)) return err("business_only"); // §5.6
+      const partner = s.players.find((p) => p.id === a.partnerId);
+      if (!partner || partner.id === owner.id) return err("bad_partner");
+      if (owner.circle !== partner.circle) return err("circle_mismatch"); // §2.7
+      const room = RULES.bankLimit - owner.bankDebt;
+      if (owner.cash >= e.price || e.price - owner.cash <= room) return err("not_needed"); // naqd va bank limiti tugagach
+      s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId });
+      return ok();
+    }
+    case "partner_accept": {
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "partner") return err("no_proposal");
+      if (pr.partner !== a.playerId) return err("not_partner");
+      if (!s.pending || s.pending.cardId !== pr.cardId || s.pending.playerId !== pr.owner) return err("card_gone");
+      const e = effectOf(ctx, pr.cardId).effect;
+      if (e.kind !== "buy") return err("card_gone");
+      const half = e.price / 2, owner = P(pr.owner), partner = P(pr.partner);
+      if (partner.cash < half) return err("partner_cash"); // sherik faqat naqd to'laydi
+      if (owner.cash < half) return err("owner_cash");
+      const inc = (e.monthlyIncome ?? 0) / 2;
+      const base = { price: e.price, creditPayment: 0, credit: 0 };
+      setP(s, { ...owner, cash: owner.cash - half, assets: [...owner.assets, { ...base, kind: e.asset, code: e.code, monthlyIncome: inc, partnerId: partner.id }] });
+      setP(s, { ...partner, cash: partner.cash - half, assets: [...partner.assets, { ...base, kind: "partner_stake", code: e.code, monthlyIncome: inc, stakeOf: owner.id }] });
+      s.pending = null; s.proposals = s.proposals.filter((x) => x.id !== pr.id);
+      endTurn(s, ctx); return ok();
+    }
+    case "partner_buyout": { // to'liq narx + 1 oylik foyda naqd (§5.6)
+      const owner = P(a.playerId), asset = owner.assets.find((x) => x.code === a.assetCode && x.partnerId);
+      if (!asset) return err("no_partnership");
+      const partner = P(asset.partnerId!);
+      const stake = partner.assets.find((x) => x.code === a.assetCode && x.stakeOf === owner.id);
+      const full = (asset.monthlyIncome + (stake?.monthlyIncome ?? 0));
+      const price = partnerBuyoutPrice(asset.price, full);
+      if (owner.cash < price) return err("insufficient_cash");
+      setP(s, { ...owner, cash: owner.cash - price, assets: owner.assets.map((x) => (x === asset ? { ...x, monthlyIncome: full, partnerId: undefined } : x)) });
+      setP(s, { ...partner, cash: partner.cash + price, assets: partner.assets.filter((x) => x !== stake) });
+      return ok();
+    }
+  }
 }
 
 export { sellAsset, passMonths };

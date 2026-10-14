@@ -22,3 +22,6 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 17. Balans: oddiy bot 1500 navbatda kichik aylanadan chiqa olmadi (30 o'yin) — §5.11 va §13 "qog'oz sinovi" bilan tekshirilishi kerak.
 18. Kirish (SMS/Google/Apple): server `Authenticate` interfeysi orqali ulanadi; hozir faqat dev-token. Xizmat tanlovi va kalitlar buyurtmachidan.
 19. Bazaga yozish: `Store` interfeysi bor, MemoryStore ishlaydi; PostgreSQL implementatsiyasi (sxema/migratsiya) keyingi qadam.
+20. Sheriklik: "ulush qaytgach 24 oy dividend" tartibi SPEC'da noaniq — hozir faqat 50/50 foyda va egasi tomonidan sotib olish (to'liq narx + 1 oylik foyda) kodlangan; 24 oylik dividend davri va "bepul" variant kodlanmagan.
+21. Hamkorlik qarzi muddati (`months`) saqlanadi, lekin to'lov ixtiyoriy bo'lgani uchun jarima/eslatma avtomatikasi yo'q; "Ishonchsiz" belgisi va −50 ball ("tasdiq kutilmoqda") kodlanmagan.
+22. Katta aylana mulkiy sheriklik: faqat bir xil aylanadagi o'yinchilar o'rtasida ruxsat (§2.7).

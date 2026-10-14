@@ -52,6 +52,8 @@ export function move(pos: number, steps: number, size = 48, isD: (i: number) => 
 export interface Asset {
   kind: string; code: string; price: number; monthlyIncome: number; creditPayment: number; credit: number;
   shares?: number;
+  partnerId?: string; // egasi tomonda: sherik
+  stakeOf?: string;   // sherik tomonda: biznes egasi
 }
 export interface Player {
   id: string; pos: number; circle: "small" | "big"; profession: number;

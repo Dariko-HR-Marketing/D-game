@@ -115,3 +115,23 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
     expect(rm.create("a").ok).toBe(true);
   });
 });
+
+describe("hamkorlik taymeri", () => {
+  it("taklif 30 s da o'chadi va navbatni to'xtatmaydi", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
+    await rm.start(r.code, "a", 3);
+    const room = rm.rooms.get(r.code)!;
+    // qo'lda taklif qo'shib, keyingi harakatda taymer o'rnatilishini tekshiramiz
+    room.state!.proposals.push({ id: 77, kind: "suyunchi", parent: "a", given: [] });
+    const first = room.state!.players[room.state!.turn % 2].id;
+    await rm.act(r.code, first, { type: "roll", playerId: first }, room.seq);
+    expect(room.state!.proposals.some((p) => p.id === 77)).toBe(true);
+    await clock.advance(DECISION_MS);
+    expect(room.state!.proposals.some((p) => p.id === 77)).toBe(false);
+  });
+  it("mijoz 'expire' yubora olmaydi", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
+    await rm.start(r.code, "a", 3);
+    expect((await rm.act(r.code, "a", { type: "expire", playerId: "server", proposalId: 1 } as any, 0)).ok).toBe(false);
+  });
+});

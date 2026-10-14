@@ -70,7 +70,7 @@ export class RoomManager {
     if (r.state) return { ok: false, error: "already_started" };
     let b = 1;
     while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
-    let s = newGame(this.ctx, r.members.map((m) => m.userId), seed);
+    let s = newGame(this.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId));
     s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % this.ctx.dreams.length)));
     r.state = s;
     await this.store.saveSnapshot(code, s);
@@ -85,7 +85,7 @@ export class RoomManager {
     if (!r) return { ok: false, error: "room_not_found" };
     if (!r.state) return { ok: false, error: "not_started" };
     if (!r.members.some((m) => m.userId === userId)) return { ok: false, error: "not_member" };
-    if (action.playerId !== userId) return { ok: false, error: "not_member" };
+    if (action.playerId !== userId || (action as { type: string }).type === "expire") return { ok: false, error: "not_member" };
     if (seq !== r.seq) return { ok: false, error: "stale_seq" };
     return this.apply(r, action, null);
   }
@@ -94,11 +94,27 @@ export class RoomManager {
     const out = reduce(r.state!, this.ctx, action);
     if (!out.ok) return out;
     r.state = out.state; r.seq++;
+    this.armProposals(r);
     await this.store.append(r.code, { seq: r.seq, at: this.clock.now(), action: auto ? { type: "auto", reason: auto, action } : action });
     await this.store.saveSnapshot(r.code, r.state);
     if (r.state.winner) this.finish(r); else this.arm(r);
     this.emit(r);
     return { ok: true };
+  }
+
+  private proposalTimers = new Map<string, unknown>(); // `${room}:${id}`
+  /** Hamkorlik takliflari 30 soniyadan keyin avtomatik o'chadi (§5.6); navbatni to'xtatmaydi. */
+  private armProposals(r: Room) {
+    const live = new Set(r.state!.proposals.map((p) => p.id));
+    for (const [k, h] of this.proposalTimers) if (k.startsWith(`${r.code}:`) && !live.has(Number(k.split(":")[1]))) { this.clock.clearTimeout(h); this.proposalTimers.delete(k); }
+    for (const p of r.state!.proposals) {
+      const k = `${r.code}:${p.id}`;
+      if (this.proposalTimers.has(k)) continue;
+      this.proposalTimers.set(k, this.clock.setTimeout(() => {
+        this.proposalTimers.delete(k);
+        if (r.state?.proposals.some((x) => x.id === p.id)) void this.apply(r, { type: "expire", playerId: "server", proposalId: p.id }, "proposal_timeout");
+      }, DECISION_MS));
+    }
   }
 
   /** Navbat taymeri (§5.2, §6.3): 30 s ichida qaror bo'lmasa — avtomatik. Bot va oflayn o'yinchi ham shu yo'ldan. */
