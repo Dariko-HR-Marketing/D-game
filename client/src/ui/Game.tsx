@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
@@ -8,6 +8,7 @@ import { ringPosition } from "../boardLayout";
 import { currentId, exitProgress, isMyTurn, me } from "../model";
 import type { RoomView } from "../net/connection";
 import { SMALL_BOARD } from "@poyga/rules";
+import { Actions } from "./Actions";
 
 const CELL_COLOR: Record<string, string> = { S: color.navy, I: color.green, H: color.red, B: color.gold, D: "#2C6DB5", K: color.text2, Q: color.text2, O: "#7B4FA3" };
 
@@ -65,6 +66,17 @@ function useCountdown(deadline: number | null) {
   return left;
 }
 
+function SharesInput({ card, onAct }: { card: any; onAct: (a: Record<string, unknown>) => void }) {
+  const e = card.effect; const [q, setQ] = useState(String(e.min));
+  return (<>
+    <TextInput accessibilityLabel={uz.coop.shares} value={q} keyboardType="number-pad" onChangeText={(t) => setQ(t.replace(/\D/g, ""))}
+      style={{ minHeight: 44, borderWidth: 1, borderColor: color.line, borderRadius: 10, paddingHorizontal: 12, fontSize: 16 }} />
+    <Text style={s.log}>{e.min}–{e.max} × {money(e.pricePerShare)} = {money((Number(q) || 0) * e.pricePerShare)}</Text>
+    <Button label={uz.game.accept} disabled={Number(q) < e.min || Number(q) > e.max} onPress={() => onAct({ type: "decide", accept: true, useBank: true, qty: Number(q) })} />
+    <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} />
+  </>);
+}
+
 export function Game({ room, userId, onAct }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void }) {
   const { width } = useWindowDimensions();
   const wide = width >= 900; // planshet/kompyuter: taxta chapda, panel o'ngda
@@ -81,11 +93,13 @@ export function Game({ room, userId, onAct }: { room: RoomView; userId: string; 
           {left > 0 && !state.winner ? ` · ${left} ${uz.game.seconds}` : ""}
         </Text>
         {mine && <Blank p={mine} />}
+        <Actions room={room} userId={userId} onAct={onAct} />
         {card && mineTurn && (
           <View style={s.card} accessibilityRole="alert">
             <Text style={s.cardTag}>{card.mode === "mandatory" ? uz.game.mandatory : uz.game.optional}</Text>
             <Text style={s.cardText}>{card.text}</Text>
-            {card.mode !== "mandatory" && (<>
+            {card.mode !== "mandatory" && card.effect?.kind === "buyShares" && <SharesInput card={card} onAct={onAct} />}
+            {card.mode !== "mandatory" && card.effect?.kind !== "buyShares" && (<>
               <Button label={uz.game.accept} onPress={() => onAct({ type: "decide", accept: true, useBank: true })} />
               <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></>)}
           </View>)}

@@ -46,3 +46,36 @@ describe("ulanish", () => {
     expect(c.state.error).toBe("room_full");
   });
 });
+
+import { suyunchiAmounts, myProposals, canOfferPartner, loanBounds, bankRoom, partnerCandidates } from "./model";
+const room = (over: any = {}) => ({
+  pendingCard: null,
+  state: { turn: 0, bots: [] as string[], proposals: [] as any[], players: [
+    { id: "a", circle: "small", cash: 1000, salary: 1000, bankDebt: 0, assets: [], handDebts: [] },
+    { id: "b", circle: "small", cash: 5000, salary: 800, bankDebt: 0, assets: [], handDebts: [] },
+    { id: "c", circle: "big", cash: 5000, salary: 0, bankDebt: 0, assets: [], handDebts: [] }] , ...over.state }, ...over });
+describe("hamkorlik yordamchilari", () => {
+  it("suyunchi: 10–500, qadam 10, naqddan oshmaydi", () => {
+    expect(suyunchiAmounts(35)).toEqual([10, 20, 30]); expect(suyunchiAmounts(1e6)).toHaveLength(50); expect(suyunchiAmounts(5)).toEqual([]);
+  });
+  it("takliflar to'g'ri odamga ko'rinadi", () => {
+    const r: any = room(); r.state.proposals = [
+      { id: 1, kind: "suyunchi", parent: "b", given: [] }, { id: 2, kind: "loan", giver: "a", receiver: "b", amount: 1, months: 1 }, { id: 3, kind: "partner", owner: "b", partner: "a", cardId: "x" }];
+    const a = myProposals(r, "a"); expect(a.suyunchi).toHaveLength(1); expect(a.loansToAccept).toHaveLength(1); expect(a.partnerToAccept).toHaveLength(1);
+    const b = myProposals(r, "b"); expect(b.suyunchi).toHaveLength(0); expect(b.loansPending).toHaveLength(1); expect(b.partnerPending).toHaveLength(1);
+    expect(myProposals(r, "c").suyunchi).toHaveLength(0); // katta aylana — suyunchi yo'q
+  });
+  it("sheriklik taklifi faqat naqd va bank limiti tugaganda", () => {
+    const r: any = room({ pendingCard: { effect: { kind: "buy", asset: "business", price: 50_000 } } });
+    expect(canOfferPartner(r, "a")).toBe(true);           // 1000 + 10 000 bank < 50 000
+    r.pendingCard.effect.price = 5000; expect(canOfferPartner(r, "a")).toBe(false); // bank yetadi
+    r.pendingCard.effect.asset = "apartment"; r.pendingCard.effect.price = 50_000; expect(canOfferPartner(r, "a")).toBe(false); // faqat biznes
+    r.pendingCard.effect.asset = "business"; expect(canOfferPartner(r, "b")).toBe(false); // navbati emas
+  });
+  it("qarz chegaralari: beruvchi 20 %, oluvchi limiti; 5 dan kam odam", () => {
+    const r: any = room(); const b = loanBounds(r, "a", "b");
+    expect(b.max).toBe(1000); expect(b.enough).toBe(false); // min(20 % × 5000, (1000)×0.5×36=18 000)
+    expect(bankRoom({ bankDebt: 3600 })).toBe(6400);
+    expect(partnerCandidates(r, "a")).toEqual(["b"]);
+  });
+});

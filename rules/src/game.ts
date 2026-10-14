@@ -110,6 +110,7 @@ export function chooseDream(s: GameState, playerId: string, dreamIdx: number): G
 
 export type Action =
   | { type: "roll"; playerId: string }
+  | { type: "bank_loan"; playerId: string; amount: number }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
   | { type: "loan_accept"; playerId: string; proposalId: number }
@@ -290,6 +291,13 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
   const ok = (): Outcome => ({ ok: true, state: s });
   const P = (id: string) => s.players[idx(s, id)];
   switch (a.type) {
+    case "bank_loan": { // §5.3: ixtiyoriy bank krediti, faqat o'z navbatida; 100 ga karrali; limit 10 000
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      if (!Number.isInteger(a.amount) || a.amount <= 0 || a.amount % 100 !== 0) return err("invalid_amount");
+      const r = takeBankLoan(P(a.playerId), a.amount);
+      if (r.restart) return err("bank_limit"); // o'yinchi o'zi yangi kasbga o'tishni tanlamaydi: faqat majburiy to'lovda
+      setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: bank krediti ${a.amount}`); return ok();
+    }
     case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();
 
     case "suyunchi": {

@@ -32,3 +32,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 27. Admin rollari ruxsatlari mening taxminim (`server/src/admin.ts` `PERMS`): administrator hammasi; kontent muharriri kontent yozadi va nashr qiladi; qo'llab-quvvatlash foydalanuvchi/xona/jurnal/shikoyat/bloklash; tahlilchi faqat shaxssiz analitika. Tasdiqlash kerak.
 28. Admin kontent muharriri hozir xom JSON; karta rasmlari (`file`) yuklash, narx/obuna/turnir bo'limlari (2–3-bosqich) yo'q.
 29. Analitika (§12): hozir xona/o'yin darajasidagi umumiy ko'rsatkichlar; karta bo'yicha qabul/o'tkazish va xarid hodisalari yig'ilmaydi.
+30. Bank krediti qaytarish (ixtiyoriy to'lash) harakati SPEC'da aniq emas: oylik to'lov formulasi bor, lekin asosiy qarzni yopish tartibi yo'q — hozir faqat kredit olish bor; qarz faqat yangi kasbga o'tish orqali yo'qoladi. Chiqish sharti (qarz = 0) uchun bu muhim: buyurtmachi qoidasi kerak.
+31. Mijozda hamkorlik ekranlari (bank, suyunchi, qarz so'rash/qabul, sheriklik taklif/qabul/sotib olish, qarz to'lash) umumiy panel sifatida; prototip N39–N43 ekranlari bilan vizual moslash dizayner bilan.

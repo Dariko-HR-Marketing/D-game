@@ -107,3 +107,15 @@ describe("sheriklik", () => {
     expect(t.proposals).toHaveLength(0);
   });
 });
+
+describe("bank krediti (ixtiyoriy)", () => {
+  it("faqat o'z navbatida, 100 ga karrali, limit 10 000", () => {
+    let s = mk(2); const c0 = P(s, "p0").cash;
+    expect(run(s, { type: "bank_loan", playerId: "p1", amount: 100 })).toEqual({ ok: false, error: "not_your_turn" });
+    expect(run(s, { type: "bank_loan", playerId: "p0", amount: 150 })).toEqual({ ok: false, error: "invalid_amount" });
+    s = must(run(s, { type: "bank_loan", playerId: "p0", amount: 3600 }));
+    expect(P(s, "p0").cash).toBe(c0 + 3600); expect(P(s, "p0").bankDebt).toBe(3600);
+    expect(run(s, { type: "bank_loan", playerId: "p0", amount: 6500 })).toEqual({ ok: false, error: "bank_limit" });
+    expect(run(s, { type: "bank_loan", playerId: "p0", amount: 6400 }).ok).toBe(true);
+  });
+});
