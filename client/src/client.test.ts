@@ -30,7 +30,7 @@ describe("ulanish", () => {
   it("uzilsa qayta ulanadi va xonaga qaytadan qo'shiladi; harakat seq bilan", () => {
     FakeWS.all = []; const timers: (() => void)[] = [];
     const c = new Connection("ws://x", "tok", (u) => new FakeWS(u), (f) => { timers.push(f); return 0; });
-    c.connect(); const w1 = FakeWS.all[0]; w1.onopen();
+    c.connect(); const w1 = FakeWS.all[0]; w1.onopen(); c.create();
     expect(w1.url).toBe("ws://x/ws?token=tok");
     w1.onmessage({ data: JSON.stringify({ type: "state", room: { code: "ABC234", members: [], state: null, seq: 5, deadline: null, pendingCard: null } }) });
     c.act({ type: "roll" });
@@ -122,7 +122,7 @@ describe("tahlil ko'rinishi", () => {
 
 describe("eski holat (stale_seq) da avtomatik qayta urinish", () => {
   const state = (seq: number) => JSON.stringify({ type: "state", room: { code: "ABC234", members: [], state: null, seq, deadline: null, pendingCard: null } });
-  const mk = () => { FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w = FakeWS.all[0]; w.onopen(); w.onmessage({ data: state(5) }); return { c, w }; };
+  const mk = () => { FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w = FakeWS.all[0]; w.onopen(); c.create(); w.onmessage({ data: state(5) }); return { c, w }; };
   it("xato ko'rsatilmaydi; yangi holat kelgach harakat yangi seq bilan bir marta qayta yuboriladi", () => {
     const { c, w } = mk(); c.act({ type: "roll" });
     w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) });
@@ -141,5 +141,25 @@ describe("eski holat (stale_seq) da avtomatik qayta urinish", () => {
     const { c, w } = mk(); c.act({ type: "roll" });
     w.onmessage({ data: JSON.stringify({ type: "error", error: "not_your_turn" }) }); expect(c.state.error).toBe("not_your_turn");
     const n = w.sent.length; w.onmessage({ data: state(6) }); expect(w.sent.length).toBe(n);
+  });
+});
+
+describe("reaksiyalar (mijoz)", () => {
+  it("so'nggi 3 tasi saqlanadi, tartibda; chiqishda tozalanadi; react xabari yuboriladi", () => {
+    FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w = FakeWS.all[0]; w.onopen();
+    for (const e of ["👍", "👏", "😮", "😂"]) w.onmessage({ data: JSON.stringify({ type: "reaction", from: "u1", emoji: e, at: 1 }) });
+    expect(c.state.reactions.map((r) => r.emoji)).toEqual(["👏", "😮", "😂"]);
+    c.react("👍"); expect(JSON.parse(w.sent.at(-1)!)).toEqual({ type: "react", emoji: "👍" });
+    c.leave(); expect(c.state.reactions).toEqual([]);
+  });
+});
+
+describe("chiqqandan keyin tasodifiy holat xabari xonani qaytarmaydi", () => {
+  it("leave() dan keyin kelgan 'state' e'tiborga olinmaydi; create/join dan keyin qabul qilinadi", () => {
+    FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w = FakeWS.all[0]; w.onopen();
+    const st = (seq: number) => ({ data: JSON.stringify({ type: "state", room: { code: "ABC234", members: [], state: null, seq, deadline: null, pendingCard: null } }) });
+    c.create(); w.onmessage(st(1)); expect(c.state.room?.code).toBe("ABC234");
+    c.leave(); expect(c.state.room).toBeNull(); w.onmessage(st(2)); expect(c.state.room).toBeNull(); // yo'lda qolgan xabar
+    c.join("abc234"); w.onmessage(st(3)); expect(c.state.room?.seq).toBe(3);
   });
 });

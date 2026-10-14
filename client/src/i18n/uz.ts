@@ -17,6 +17,11 @@ export const uz = {
     consequences: "O'chirilganda: profil va sozlamalar o'chadi; o'yin natijalari ismsiz (anonim) saqlanadi; bu amalni qaytarib bo'lmaydi.",
     export: "Ma'lumotni yuklab olish", typeWord: "Tasdiqlash uchun «O'CHIRISH» deb yozing", deleteBtn: "Hisobni o'chirish", needProfile: "Profilni to'ldiring",
   },
+  leave: {
+    button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
+    warn: "Chiqsangiz, siz qaytib kira olmaysiz: o'rningizni bot egallaydi va o'yin sizsiz davom etadi. Bu amalni qaytarib bo'lmaydi.",
+  },
+  react: { label: "Reaksiya", from: "dan" },
   result: {
     title: "O'yin natijasi", winner: "G'olib", analysis: "O'yin tahlili", loading: "Tahlil tayyorlanmoqda…", failed: "Tahlilni yuklab bo'lmadi", home: "Bosh sahifa",
     cashflowChart: "Pul oqimi (aylanalar bo'yicha)", exitRound: "Kichik aylanadan chiqdi", never: "chiqmadi", restarts: "Qayta boshlash", peakCash: "Eng ko'p naqd", peakFlow: "Eng yuqori pul oqimi",
@@ -34,6 +39,7 @@ export const uz = {
     already_started: "O'yin allaqachon boshlangan", not_host: "Faqat xona egasi boshlay oladi", stale_seq: "Holat yangilandi. Qayta urinib ko'ring",
     bad_name: "Ism 2–24 belgi bo'lishi kerak", bad_color: "Rang noto'g'ri", bad_birth_year: "Tug'ilgan yil noto'g'ri", restricted_age: "16 yoshgacha bu amal yopiq", in_game: "Avval o'yindan chiqing", confirm_required: "Tasdiqlash so'zi noto'g'ri",
     already_sold: "Siz allaqachon sotgansiz", nothing_to_sell: "Sotiladigan mos aktiv yo'q",
+    left_game: "Siz bu o'yindan chiqqansiz — qaytib kira olmaysiz", bad_reaction: "Bunday reaksiya yo'q",
     invalid_amount: "Summa noto'g'ri", bank_limit: "Bank limiti oshib ketadi", already_given: "Siz allaqachon bergansiz", small_circle_only: "Faqat kichik aylanada", not_needed: "Naqd yoki bank limiti yetadi",
     partner_cash: "Sherikning naqdi yetmaydi", owner_cash: "Sizning naqdingiz yetmaydi", insufficient_cash: "Naqd yetmaydi", bot: "Botlar qatnashmaydi", no_proposal: "Taklif muddati tugadi",
     "5 dan kam o'yinchi": "Qarz uchun kamida 5 o'yinchi kerak", "beruvchi naqdining 20 % idan oshdi": "Beruvchi naqdining 20 % idan oshdi", "oluvchi limitidan oshdi": "Oluvchi limitidan oshdi",

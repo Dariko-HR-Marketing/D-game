@@ -10,7 +10,7 @@ export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => 
 export const MAX_PLAYERS = 6, MIN_PLAYERS = 2;
 export const DECISION_MS = RULES.cardDecisionSeconds * 1000;
 
-export interface Member { userId: string; bot: boolean; online: boolean }
+export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null;
@@ -18,7 +18,9 @@ export interface Room {
   createdAt: number; endedAt: number | null;
   offlineSince: number | null; // hamma odam oflayn bo'lgan vaqt (tashlab ketilgan xonani yopish uchun)
 }
-export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string };
+/** §6.7: reaksiyalar ochiq. Ruxsat etilgan to'plam kichik va neytral (SPEC to'plamni aytmaydi — OPEN_QUESTIONS #52). */
+export const REACTIONS = ["👍", "👏", "😮", "😂"] as const;
+export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "reaction"; from: string; emoji: string; at: number };
 /** Mijozga ketadigan holat: tasodifiy urug', RNG holati va deka tartibi YASHIRILADI (aks holda kelgusi kubik va kartalarni oldindan hisoblab aldash mumkin). */
 export function publicState(st: GameState | null) {
   if (!st) return null;
@@ -59,7 +61,7 @@ export class RoomManager {
   }
 
   private meta(r: Room): RoomMeta {
-    return { hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt };
+    return { hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt };
   }
 
   /** Server qayta ishga tushganda tugamagan o'yinlarni tiklaydi (§6.3). O'yinchilar oflayn deb belgilanadi va qayta ulanganda davom etadi. */
@@ -71,7 +73,7 @@ export class RoomManager {
       if ("active" in this.content) ctx = a.meta.contentVersion != null ? this.content.ctxFor(a.meta.contentVersion) : undefined;
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
-      const r: Room = { code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ ...m, online: false })), state: a.state, seq: a.meta.seq,
+      const r: Room = { code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, online: false })), state: a.state, seq: a.meta.seq,
         timer: null, deadline: null, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
@@ -99,7 +101,7 @@ export class RoomManager {
   join(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
     const r = this.rooms.get(code.toUpperCase());
     if (!r) return { ok: false, error: "room_not_found" };
-    if (r.members.some((m) => m.userId === userId)) return this.reconnect(r.code, userId);
+    if (r.members.some((m) => m.userId === userId)) return this.reconnect(r.code, userId); // chiqib ketgan bo'lsa reconnect rad etadi
     if (this.activeRoomOf.has(userId)) return { ok: false, error: "already_in_game" };
     if (r.state) return { ok: false, error: "already_started" };
     if (r.members.length >= MAX_PLAYERS) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
@@ -193,6 +195,15 @@ export class RoomManager {
     await this.apply(r, { type: "decide", playerId: cur.id, accept: !!bot && affordable }, bot ? "bot" : "timeout");
   }
 
+  /** §6.7 Reaksiya: faqat xona a'zosi, ruxsat etilgan to'plamdan; tezlik cheklovi tashqarida (app). Holatga ta'sir qilmaydi, saqlanmaydi. */
+  react(code: string, userId: string, emoji: string): { ok: true } | { ok: false; error: Err } {
+    const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
+    if (!r || !m || m.left) return { ok: false, error: "not_member" };
+    if (!(REACTIONS as readonly string[]).includes(emoji)) return { ok: false, error: "bad_reaction" };
+    for (const l of this.listeners) l(r.code, { type: "reaction", from: userId, emoji, at: this.clock.now() });
+    return { ok: true };
+  }
+
   disconnect(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (r && m) { m.online = false; this.markOffline(r); this.emit(r); }
@@ -202,6 +213,7 @@ export class RoomManager {
   reconnect(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (!r || !m) return { ok: false, error: "not_member" };
+    if (m.left) return { ok: false, error: "left_game" }; // ixtiyoriy chiqish qaytarilmaydi: o'rnini bot egallagan
     m.online = true; r.offlineSince = null; this.emit(r);
     return { ok: true };
   }
@@ -213,7 +225,7 @@ export class RoomManager {
     this.activeRoomOf.delete(userId);
     this.markOffline(r, userId);
     if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) this.rooms.delete(code); }
-    else { m.bot = true; m.online = false; if (currentPlayer(r.state).id === userId) this.arm(r); }
+    else { m.bot = true; m.left = true; m.online = false; if (currentPlayer(r.state).id === userId) this.arm(r); }
     this.emit(r);
   }
 

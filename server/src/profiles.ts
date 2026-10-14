@@ -52,19 +52,20 @@ export class ProfileService {
   restrictedOf(ids: string[]) { return ids.filter((id) => isRestricted(this.profiles.get(id), this.year())); }
 
   record(r: GameResult) { this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
-  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null) {
+  /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
+  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = []) {
     this.record({ room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
-      players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won })) });
+      players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won })) });
   }
 
   stats(userId: string): Stats {
     let games = 0, wins = 0, reachedBig = 0, points = 0;
-    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (!p) continue;
+    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (!p || p.bot) continue; // bot (yoki chiqib ketgan) hisobga olinmaydi
       games++; if (p.won) { wins++; points += POINTS.win ?? 0; } if (p.circle === "big") { reachedBig++; points += POINTS.exitSmallCircle ?? 0; } }
     return { games, wins, reachedBig, points, level: levelOf(points) };
   }
   history(userId: string, limit = 50) {
-    return this.results.filter((r) => r.players.some((p) => p.id === userId)).slice(-limit).reverse()
+    return this.results.filter((r) => r.players.some((p) => p.id === userId && !p.bot)).slice(-limit).reverse()
       .map((r) => ({ room: r.room, finishedAt: r.finishedAt, rounds: r.rounds, durationMs: r.durationMs, won: r.winner === userId, reachedBig: r.players.find((p) => p.id === userId)!.circle === "big", players: r.players.filter((p) => !p.bot).length }));
   }
   /** Reyting: g'alabalar, so'ng o'yinlar soni kam bo'lgani yuqori. Faqat ismi bor va 1 tadan ko'p o'ynagan odamlar; botlar yo'q. Ball qoidasi yo'q bo'lgani uchun ball bo'yicha emas. */

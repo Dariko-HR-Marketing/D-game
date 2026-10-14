@@ -8,7 +8,7 @@ import { color, GREEN_TEXT, PLAYER_COLORS } from "../theme";
 import { readableOn } from "../contrast";
 import { ringPosition } from "../boardLayout";
 import { currentId, exitProgress, isMyTurn, me } from "../model";
-import type { RoomView } from "../net/connection";
+import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
 import { SMALL_BOARD } from "@poyga/rules";
 import { Actions } from "./Actions";
 
@@ -86,7 +86,8 @@ function SharesInput({ card, onAct }: { card: any; onAct: (a: Record<string, unk
   </>);
 }
 
-export function Game({ room, userId, onAct }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void }) {
+export function Game({ room, userId, onAct, onReact, onLeave, reactions }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[] }) {
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const { width } = useWindowDimensions();
   const wide = width >= 900; // planshet/kompyuter: taxta chapda, panel o'ngda
   const left = useCountdown(room.deadline);
@@ -115,6 +116,17 @@ export function Game({ room, userId, onAct }: { room: RoomView; userId: string; 
           </View></CardEnter>)}
         {!card && mineTurn && !state.winner && <Button label={uz.game.roll} onPress={() => onAct({ type: "roll" })} />}
         <Text style={s.log}>{state.log.slice(-3).join("\n")}</Text>
+        <View style={s.reactRow} accessibilityLabel={uz.react.label}>
+          {REACTIONS.map((e) => <Button key={e} label={e} kind="ghost" onPress={() => onReact(e)} />)}
+        </View>
+        <View accessibilityLiveRegion="polite">
+          {reactions.map((r) => <Text key={r.id} style={s.log}>{room.names?.[r.from]?.name ?? (r.from === userId ? uz.result.you : r.from)}: {r.emoji}</Text>)}
+        </View>
+        {!state.winner && (!confirmLeave ? <Button label={uz.leave.button} kind="ghost" onPress={() => setConfirmLeave(true)} /> : (
+          <View style={s.leaveBox} accessibilityRole="alert">
+            <Text style={s.cardTag}>{uz.leave.title}</Text><Text style={s.cardText}>{uz.leave.warn}</Text>
+            <Button label={uz.leave.confirm} onPress={onLeave} /><Button label={uz.leave.cancel} kind="ghost" onPress={() => setConfirmLeave(false)} />
+          </View>))}
       </View>
     </ScrollView>
   );
@@ -126,5 +138,6 @@ const s = StyleSheet.create({
   h2: { fontWeight: "700", color: color.navy, marginBottom: 2 },
   card: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 2, borderColor: color.gold, gap: 10 },
   cardTag: { color: color.text2, fontSize: 12, fontWeight: "700", textTransform: "uppercase" }, cardText: { color: color.navy, fontSize: 16, lineHeight: 22 },
-  log: { color: color.text2, fontSize: 12 },
+  log: { color: color.text2, fontSize: 12 }, reactRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  leaveBox: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 2, borderColor: color.red, gap: 10 },
 });

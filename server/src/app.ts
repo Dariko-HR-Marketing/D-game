@@ -45,7 +45,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     onAbandon: () => cGames({ event: "abandoned" }),
     onError: (where, e) => { cErr({ where }); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },
     onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
-    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
+    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId)); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });
   m.gauge("poyga_rooms_active", "Faol (tugamagan, boshlangan) xonalar", () => [...rooms.rooms.values()].filter((r) => r.state && !r.endedAt).length);
   m.gauge("poyga_rooms_lobby", "Boshlanmagan xonalar", () => [...rooms.rooms.values()].filter((r) => !r.state).length);
@@ -83,6 +83,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   });
   // Xavfsizlik sarlavhalari va HTTP tezlik cheklovi (IP bo'yicha; admin kirish urinishlari qattiqroq).
   // WS ulanishi alohida va kengroq: maktab/ofis NAT ortidagi ko'p o'yinchi bir IP dan ulanadi (ta'lim auditoriyasi, §1).
+  const reactLimit = new KeyedLimiter(0.7, 3); // ~1 reaksiya / 1.5 s, burst 3
   const wsPingMs = Number(process.env.WS_PING_MS ?? 25_000);
   const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
   app.addHook("onRequest", async (req, reply) => {
@@ -126,7 +127,10 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
             const r = await rooms.act(code, userId, { ...m.action, playerId: userId }, m.seq);
             if (!r.ok) { if (r.error === "stale_seq") cActions({ type: m.action.type, result: "stale" }); reply({ type: "error", error: r.error }); } return; }
-          case "leave": if (code) { rooms.leave(code, userId); sockets.get(code)?.delete(client); code = null; } return;
+          case "react": { if (!code) return reply({ type: "error", error: "no_room" });
+            if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
+            const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
+          case "leave": if (code) { sockets.get(code)?.delete(client); rooms.leave(code, userId); code = null; } return; // avval ulanishni xonadan ajratamiz: chiqayotganga holat qaytib kelmasin
           default: return reply({ type: "error", error: "unknown_type" });
         }
         } catch (e) { cWsErr(); app.log.error({ err: String((e as Error).message), type: m.type }, "ws: ichki xato"); reply({ type: "error", error: "internal" }); } // bitta xato jarayonni qulatmaydi

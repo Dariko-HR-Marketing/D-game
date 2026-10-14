@@ -2,7 +2,7 @@ import type { Action, GameState } from "@poyga/rules";
 
 /** O'yin jurnali (§6.6): urug' + harakatlar ketma-ketligi — o'yinni to'liq qayta tiklash mumkin. */
 export interface JournalEntry { seq: number; at: number; action: Action | { type: "auto"; reason: string; action: Action } }
-export interface RoomMeta { hostId: string; members: { userId: string; bot: boolean }[]; contentVersion: number | null; seq: number; createdAt: number }
+export interface RoomMeta { hostId: string; members: { userId: string; bot: boolean; left?: boolean }[]; contentVersion: number | null; seq: number; createdAt: number }
 export interface ActiveRoom { code: string; state: GameState; meta: RoomMeta }
 export interface Store {
   /** Tayyorlik tekshiruvi (/ready): saqlagich javob beradimi. */

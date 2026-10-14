@@ -36,7 +36,7 @@ export default function App() {
         : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} />
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
-        : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} />}
+        : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} />}
       </View>
     </SafeAreaView>
   );

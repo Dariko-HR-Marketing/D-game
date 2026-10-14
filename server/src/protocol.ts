@@ -25,6 +25,7 @@ export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start") }).strict(),
   z.object({ type: z.literal("leave") }).strict(),
+  z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
 ]);
 export type Msg = z.infer<typeof Message>;
