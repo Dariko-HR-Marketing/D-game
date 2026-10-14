@@ -8,7 +8,7 @@ import { bankRoom, canOfferPartner, marketOffers, loanBounds, loanGivers, me, my
 import type { RoomView } from "../net/connection";
 
 const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <View style={s.box}><Text style={s.h} accessibilityRole="header">{title}</Text>{children}</View>);
+  <View style={s.box}><Text style={s.h} aria-level={2} accessibilityRole="header">{title}</Text>{children}</View>);
 
 function Pick({ options, value, onChange, label }: { options: string[]; value: string; onChange: (v: string) => void; label: string }) {
   return (<View style={s.chips} accessibilityLabel={label}>{options.map((o) => (

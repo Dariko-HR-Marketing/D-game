@@ -9,7 +9,7 @@ export function Home({ status, error, onCreate, onJoin, onProfile, onLeaderboard
   const online = status === "online";
   return (
     <View style={s.wrap}>
-      <Text style={s.logo} accessibilityRole="header">{uz.app.name}</Text>
+      <Text style={s.logo} aria-level={1} accessibilityRole="header">{uz.app.name}</Text>
       {!online && <Text style={s.note}>{status === "offline" ? uz.home.offline : uz.home.connecting}</Text>}
       <Button label={uz.home.create} onPress={onCreate} disabled={!online} />
       <TextInput accessibilityLabel={uz.home.code} placeholder={uz.home.code} value={code} onChangeText={(t) => setCode(t.toUpperCase())}

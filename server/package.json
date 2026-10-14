@@ -6,7 +6,8 @@
  "scripts": {
   "test": "vitest run",
   "typecheck": "tsc --noEmit",
-  "dev": "tsx src/main.ts"
+  "dev": "tsx src/main.ts",
+  "a11y": "tsx scripts/axe-check.ts"
  },
  "dependencies": {
   "@poyga/content": "workspace:*",
@@ -23,6 +24,8 @@
   "@types/ws": "^8.5.12",
   "ws": "^8.18.0",
   "tsx": "^4.19.0",
-  "@types/pg": "^8.11.10"
+  "@types/pg": "^8.11.10",
+  "playwright-core": "^1.49.0",
+  "axe-core": "^4.10.0"
  }
 }

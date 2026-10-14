@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, ScrollView, Pressable, StyleSheet } from "react-native";
 import { Button } from "./Button";
 import { uz, errText } from "../i18n/uz";
-import { color, PLAYER_COLORS, MIN_TAP } from "../theme";
+import { color, PLAYER_COLORS, MIN_TAP, GREEN_TEXT } from "../theme";
 import { DELETE_WORD, Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
 export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack: () => void; onDeleted: () => void }) {
@@ -28,7 +28,7 @@ export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack:
 
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h} accessibilityRole="header">{uz.profile.title}</Text>
+      <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.profile.title}</Text>
       {stats && <Text style={s.sub}>{uz.profile.level}: {stats.level} · {uz.profile.games}: {stats.games} · {uz.profile.wins}: {stats.wins} · {uz.profile.big}: {stats.reachedBig}</Text>}
       <Text style={s.l}>{uz.profile.name}</Text>
       <TextInput accessibilityLabel={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} />
@@ -40,10 +40,10 @@ export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack:
       <TextInput accessibilityLabel={uz.profile.birthYear} value={year} onChangeText={(t) => setYear(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" style={s.input} />
       {isUnder16(year) && <Text style={s.note} accessibilityRole="alert">{uz.profile.under16}</Text>}
       <Button label={uz.profile.save} onPress={save} disabled={!canSave} />
-      {msg && <Text style={{ color: color.green }} accessibilityLiveRegion="polite">{msg}</Text>}
+      {msg && <Text style={{ color: GREEN_TEXT }} accessibilityLiveRegion="polite">{msg}</Text>}
       {err && <Text style={{ color: color.red }} accessibilityRole="alert">{errText(err)}</Text>}
 
-      <Text style={[s.h, { marginTop: 16 }]}>{uz.profile.history}</Text>
+      <Text style={[s.h, { marginTop: 16 }]} accessibilityRole="header" aria-level={2}>{uz.profile.history}</Text>
       {hist.length === 0 ? <Text style={s.sub}>{uz.profile.empty}</Text> : hist.slice(0, 10).map((h, i) => (
         <Text key={i} style={s.sub}>{new Date(h.finishedAt).toLocaleDateString("uz")} · {h.won ? uz.profile.won : uz.profile.lost} · {h.rounds} {uz.game.round.toLowerCase()}</Text>))}
 
@@ -61,6 +61,6 @@ const s = StyleSheet.create({
   wrap: { padding: 20, gap: 10, maxWidth: 480, width: "100%", alignSelf: "center" }, h: { fontSize: 22, fontWeight: "800", color: color.navy }, l: { color: color.text2, fontWeight: "600" },
   sub: { color: color.text2 }, note: { color: color.text2 }, row: { flexDirection: "row", gap: 10, flexWrap: "wrap" },
   input: { minHeight: MIN_TAP, borderWidth: 1, borderColor: color.line, borderRadius: 10, paddingHorizontal: 12, fontSize: 16, backgroundColor: color.white, color: color.navy },
-  dot: { width: MIN_TAP, height: MIN_TAP, borderRadius: MIN_TAP / 2, borderWidth: 3, borderColor: "transparent" }, dotOn: { borderColor: color.navy },
+  dot: { width: MIN_TAP, height: MIN_TAP, borderRadius: MIN_TAP / 2, borderWidth: 3, borderColor: color.line }, dotOn: { borderColor: color.navy, borderWidth: 4 },
   danger: { borderWidth: 1, borderColor: color.red, borderRadius: 12, padding: 12, gap: 10, backgroundColor: color.white },
 });

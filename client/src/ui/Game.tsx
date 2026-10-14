@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions, Animated } from "react-native";
+import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
-import { color, PLAYER_COLORS } from "../theme";
+import { color, GREEN_TEXT, PLAYER_COLORS } from "../theme";
+import { readableOn } from "../contrast";
 import { ringPosition } from "../boardLayout";
 import { currentId, exitProgress, isMyTurn, me } from "../model";
 import type { RoomView } from "../net/connection";
@@ -18,18 +20,18 @@ function Board({ room, size }: { room: RoomView; size: number }) {
   const n = circle === "small" ? 48 : 53;
   const cell = Math.max(12, Math.floor(((2 * Math.PI * 0.44 * size) / n) * 0.86)); // qo'shni kataklar ustma-ust tushmaydi
   return (
-    <View style={{ width: size, height: size }} accessibilityLabel="Taxta">
+    <View style={{ width: size, height: size }} role="img" aria-label={`Taxta. ${players.map((p: any) => `${room.names?.[p.id]?.name ?? p.id}: ${p.pos}-katak`).join("; ")}`}>
       {Array.from({ length: n }, (_, i) => {
         const { x, y } = ringPosition(i, n);
         const t = circle === "small" ? SMALL_BOARD[i] : "";
-        return <View key={i} style={{ position: "absolute", left: x * size - cell / 2, top: y * size - cell / 2, width: cell, height: cell, borderRadius: 4,
+        return <View key={i} aria-hidden style={{ position: "absolute", left: x * size - cell / 2, top: y * size - cell / 2, width: cell, height: cell, borderRadius: 4,
           backgroundColor: circle === "small" ? CELL_COLOR[t] : color.line, opacity: 0.9 }}>
-          <Text style={{ color: color.white, fontSize: cell * 0.5, textAlign: "center", fontWeight: "700" }}>{t}</Text></View>;
+          <Text style={{ color: readableOn(circle === "small" ? CELL_COLOR[t] : color.line), fontSize: cell * 0.5, textAlign: "center", fontWeight: "700" }}>{t}</Text></View>;
       })}
       {players.map((p: any, k: number) => {
         const nn = p.circle === "small" ? 48 : 53, { x, y } = ringPosition(p.pos, nn, 0.34 + k * 0.025);
-        return <View key={p.id} accessibilityLabel={p.id} style={{ position: "absolute", left: x * size - 9, top: y * size - 9, width: 18, height: 18, borderRadius: 9,
-          backgroundColor: PLAYER_COLORS[k % 6], borderWidth: 2, borderColor: color.white }} />;
+        return <View key={p.id} aria-hidden style={{ position: "absolute", left: x * size - 9, top: y * size - 9, width: 18, height: 18, borderRadius: 9,
+          backgroundColor: PLAYER_COLORS[k % 6], borderWidth: 2, borderColor: color.navy }} />;
       })}
     </View>
   );
@@ -50,7 +52,7 @@ function Blank({ p }: { p: any }) {
         <View style={{ marginTop: 8 }}>
           <Text style={s.h2}>{uz.game.exitTitle}</Text>
           {([["cash", uz.game.exitCash], ["flow", uz.game.exitFlow], ["debt", uz.game.exitDebt], ["partner", uz.game.exitPartner]] as const).map(([k, l]) => (
-            <Text key={k} style={{ color: e.checks[k] ? color.green : color.text2 }}>{e.checks[k] ? "✓" : "○"} {l}</Text>))}
+            <Text key={k} style={{ color: e.checks[k] ? GREEN_TEXT : color.text2 }}>{e.checks[k] ? "✓" : "○"} {l}</Text>))}
         </View>)}
     </View>
   );
@@ -64,6 +66,13 @@ function useCountdown(deadline: number | null) {
     tick(); const id = setInterval(tick, 500); return () => clearInterval(id);
   }, [deadline]);
   return left;
+}
+
+/** Karta ochilishi: yengil paydo bo'lish (~240 ms); harakatni kamaytirish yoqilgan bo'lsa — darhol. */
+function CardEnter({ children, id }: { children: React.ReactNode; id: string }) {
+  const reduced = useReducedMotion(); const v = React.useRef(new Animated.Value(0)).current;
+  useEffect(() => { v.setValue(0); Animated.timing(v, { toValue: 1, duration: animationMs(reduced), useNativeDriver: true }).start(); }, [id, reduced, v]);
+  return <Animated.View style={{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>{children}</Animated.View>;
 }
 
 function SharesInput({ card, onAct }: { card: any; onAct: (a: Record<string, unknown>) => void }) {
@@ -88,6 +97,7 @@ export function Game({ room, userId, onAct }: { room: RoomView; userId: string; 
     <ScrollView contentContainerStyle={[s.wrap, wide && { flexDirection: "row", alignItems: "flex-start" }]}>
       <View><Board room={room} size={boardSize} /></View>
       <View style={[{ gap: 12, flex: 1, minWidth: 280 }, wide && { maxWidth: 420 }]}>
+        <Text style={s.title} aria-level={1} accessibilityRole="header">{uz.app.name} · {room.code}</Text>
         <Text style={s.turn} accessibilityLiveRegion="polite">
           {state.winner ? `${uz.game.winner}: ${state.winner}` : mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${room.names?.[currentId(room)!]?.name ?? currentId(room)}`}
           {left > 0 && !state.winner ? ` · ${left} ${uz.game.seconds}` : ""}
@@ -95,14 +105,14 @@ export function Game({ room, userId, onAct }: { room: RoomView; userId: string; 
         {mine && <Blank p={mine} />}
         <Actions room={room} userId={userId} onAct={onAct} />
         {card && mineTurn && (
-          <View style={s.card} accessibilityRole="alert">
+          <CardEnter id={card.id}><View style={s.card} accessibilityRole="alert">
             <Text style={s.cardTag}>{card.mode === "mandatory" ? uz.game.mandatory : uz.game.optional}</Text>
             <Text style={s.cardText}>{card.text}</Text>
             {card.mode !== "mandatory" && card.effect?.kind === "buyShares" && <SharesInput card={card} onAct={onAct} />}
             {card.mode !== "mandatory" && card.effect?.kind !== "buyShares" && (<>
               <Button label={uz.game.accept} onPress={() => onAct({ type: "decide", accept: true, useBank: true })} />
               <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></>)}
-          </View>)}
+          </View></CardEnter>)}
         {!card && mineTurn && !state.winner && <Button label={uz.game.roll} onPress={() => onAct({ type: "roll" })} />}
         <Text style={s.log}>{state.log.slice(-3).join("\n")}</Text>
       </View>
@@ -110,7 +120,7 @@ export function Game({ room, userId, onAct }: { room: RoomView; userId: string; 
   );
 }
 const s = StyleSheet.create({
-  wrap: { padding: 16, gap: 16 }, turn: { fontSize: 18, fontWeight: "700", color: color.navy },
+  wrap: { padding: 16, gap: 16 }, title: { fontSize: 14, fontWeight: "800", color: color.text2, letterSpacing: 1 }, turn: { fontSize: 18, fontWeight: "700", color: color.navy },
   panel: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: color.line, gap: 4 },
   row: { flexDirection: "row", justifyContent: "space-between" }, l: { color: color.text2 }, v: { color: color.navy, fontWeight: "700" },
   h2: { fontWeight: "700", color: color.navy, marginBottom: 2 },

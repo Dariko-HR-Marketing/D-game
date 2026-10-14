@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { SafeAreaView, StyleSheet } from "react-native";
+import { SafeAreaView, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useFonts, Manrope_400Regular, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
 import { Connection, ConnState } from "./src/net/connection";
@@ -24,17 +24,20 @@ export default function App() {
   const http = useMemo(() => makeHttp(httpBase(SERVER), userId), [userId]);
   const [screen, setScreen] = useState<"home" | "profile" | "board">("home");
   useEffect(() => { const un = conn.subscribe(setSt); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
+  useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "POYGA"; } }, []);
   if (!fontsLoaded) return null;
   const room = st.room;
   return (
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
+      <View role="main" style={{ flex: 1 }}>
       {!room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); }} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} />
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} />}
+      </View>
     </SafeAreaView>
   );
 }

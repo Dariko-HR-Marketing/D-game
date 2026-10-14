@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
-import { color } from "../theme";
+import { color, GREEN_TEXT } from "../theme";
 import { bars, downsample } from "../analysisView";
 import type { Http } from "../net/http";
 
@@ -22,7 +22,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
   useEffect(() => { http.analysis(code).then(setA).catch(() => setErr(true)); }, [http, code]);
   return (
     <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={s.h} accessibilityRole="header">{uz.result.title}</Text>
+      <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.result.title}</Text>
       {a?.winner && <Text style={s.win}>{uz.result.winner}: {a.winner}</Text>}
       {!a && !err && <Text style={s.sub}>{uz.result.loading}</Text>}
       {err && <Text style={{ color: color.red }} accessibilityRole="alert">{uz.result.failed}</Text>}
@@ -40,7 +40,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
 }
 const s = StyleSheet.create({
   wrap: { padding: 20, gap: 12, maxWidth: 560, width: "100%", alignSelf: "center" }, h: { fontSize: 24, fontWeight: "800", color: color.navy }, h2: { fontSize: 18, fontWeight: "700", color: color.navy },
-  win: { fontSize: 20, fontWeight: "700", color: color.green }, sub: { color: color.text2 }, name: { fontWeight: "700", color: color.navy, fontSize: 16 },
+  win: { fontSize: 20, fontWeight: "700", color: GREEN_TEXT }, sub: { color: color.text2 }, name: { fontWeight: "700", color: color.navy, fontSize: 16 },
   card: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 2, borderColor: color.line, gap: 6 },
   chart: { flexDirection: "row", gap: 2 }, col: { flex: 1 }, bar: { width: "100%", borderRadius: 2 },
 });

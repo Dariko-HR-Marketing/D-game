@@ -27,3 +27,8 @@ Tekshiruvlar: `pnpm typecheck && pnpm test`. PostgreSQL testlari `TEST_DATABASE_
 - Mijozdan kelgan har bir xabar qat'iy sxema (`server/src/protocol.ts`) va qoidalar dvigateli tekshiruvidan o'tadi.
 - Matnlar kodda emas: `client/src/i18n/uz.ts`. Narxlar va ball qiymatlari konfiguratsiyada bo'sh (SPEC §2.4).
 - Kontent versiyalanadi; o'yin boshlanganda versiya qulflanadi.
+
+## Qulaylik (WCAG 2.2 AA, §10, §13)
+- Kontrast va tugma o'lchami birlik testlarda (`client/src/a11y.test.ts`); "harakatni kamaytirish" sozlamasiga bo'ysunadi (`client/src/motion.ts`).
+- Avtomatik brauzer tekshiruvi (axe-core, telefon/planshet/kompyuter, 7 ekran): `pnpm --filter @poyga/client export:web`, `cd client/dist && python3 -m http.server 8081`, keyin `cd server && pnpm a11y`. Oxirgi natija: buzilish yo'q.
+- Avtomatik tekshiruv hamma muammoni ushlamaydi: ekran o'quvchi (VoiceOver/TalkBack) va klaviatura bilan qo'lda sinov hali o'tkazilmagan.
