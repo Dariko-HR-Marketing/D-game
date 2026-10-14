@@ -28,7 +28,7 @@ export function publicState(st: GameState | null) {
   return { ...rest, deckCounts: Object.fromEntries(Object.entries(decks).map(([k, d]) => [k, { draw: d.draw.length, discard: d.discard.length }])) };
 }
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[] }
+export interface RoomView { marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; professions?: Record<string, string> }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -57,6 +57,7 @@ export class RoomManager {
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
     return { marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline,
+      professions: r.state ? Object.fromEntries(r.state.players.map((p) => [p.id, r.ctx.kasb[p.profession]?.name ?? ""])) : undefined,
       dreams: r.state?.phase === "dreams" ? r.ctx.dreams.map((d) => ({ name: d.name, price: d.price })) : undefined,
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
   }

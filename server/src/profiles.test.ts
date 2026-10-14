@@ -17,7 +17,7 @@ describe("profil tekshiruvi (§7)", () => {
     expect(isRestricted({ birthYear: 2010 }, Y)).toBe(false); // 16
     expect(isRestricted(undefined, Y)).toBe(false);
   });
-  it("daraja: har 100 ball (§5.9); ball qoidasi bo'sh", () => { expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS.win).toBeNull(); });
+  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toEqual({ win: 100, exitSmallCircle: 50 }); });
 });
 
 describe("tarix va reyting", () => {
@@ -27,7 +27,7 @@ describe("tarix va reyting", () => {
   it("statistika va reyting: g'alaba ko'p yuqorida, botlar reytingda yo'q", () => {
     const s = mk();
     s.record(res("a", [["a", false, "big"], ["b", false], ["bot-1", true]])); s.record(res("a", [["a", false, "big"], ["c", false]])); s.record(res("b", [["b", false, "big"], ["c", false]]));
-    expect(s.stats("a")).toMatchObject({ games: 2, wins: 2, reachedBig: 2, points: 0, level: 0 });
+    expect(s.stats("a")).toMatchObject({ games: 2, wins: 2, reachedBig: 2, points: 300, level: 3 });
     const lb = s.leaderboard();
     expect(lb.map((x) => [x.rank, x.name, x.wins])).toEqual([[1, "Ali", 2], [2, "Bobur", 1], [3, "Sara", 0]]);
     expect(JSON.stringify(lb)).not.toContain("userId"); // shaxsiy ID chiqmaydi

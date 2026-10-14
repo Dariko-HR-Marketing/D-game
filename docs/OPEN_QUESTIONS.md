@@ -1,6 +1,6 @@
 # Ochiq savollar va qabul qilingan taxminlar
 
-> Buyurtmachi qarorlari uchun qisqa va tartiblangan ro'yxat: [`DECISIONS_NEEDED.md`](DECISIONS_NEEDED.md). Katak qoidalari kodsiz, admin paneldagi `cellRules` orqali sozlanadi.
+> Qabul qilingan qarorlar jurnali: [`DECISIONS_NEEDED.md`](DECISIONS_NEEDED.md). Katak qoidalari kodsiz, admin paneldagi `cellRules` orqali sozlanadi.
 
 Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq kutilmoqda" qoidalari; 6 soatlik vaqt rejimi; V katagi (DICE); yurist masalalari; dizayner materiallari; muddat/byudjet; KV2-012 "ikki xonali"; korxona nomi.
 
@@ -66,3 +66,6 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 59. §5.10 yangi kartalar tuzatildi: (a) 6 karta avval hech qaysi dekada yo'q edi — endi o'z dekasida (kichik 84, bozor 100, xarajat 86, hod 10); (b) qarov kartalari: «qarov kartasi egasi»ga tegishlilar hamma egalarga, «faqat kartani olgan»lar faqat tortganga va faqat qarovi bo'lsa; (c) jahon inqirozi (hod #8) hamma o'yinchiga tegadi (9 aylana davomiyligi hali yo'q — D5); (d) «qarzga so'rayapti» qabul qilinsa berilgan summa naqddan ketadi, «qarz qaytdi» kartasi qarz bergan HAR BIR o'yinchiga 600 qaytaradi; (e) Xayriya: daromadning 10 % i to'lanadi, keyingi 3 navbatda 2 kubik (yig'indisi). Taxminlar: «Suv toshqini» faqat tortgan avtomobil egasiga (matn «avtomobilingiz»); «sug'urta» kartasi avtomobilsiz ham olinishi mumkin (matn «agar mashinangiz bo'lsa» — hozir tekshirilmaydi).
 60. Qabul qilingan standart qoidalar (K qayta boshlash; Q 2 navbat; Y oylik daromad ×1; V aktivni sotuvga qo'yish; 5-katak hod dekasi; 23 — hod #7 «75 000 to'la yoki eng kam daromadli biznesni yo'qot»; 33 daromadning 20 %; 47 — 1 000 000; aylana boshi — kxar; inqiroz 36 oy, savdo narxi ×0.5) `content/data/cell_rules.json` da; hammasi admin paneldan versiyali o'zgartiriladi. «?» real qiymatli aktivning bozor narxi sotib olish narxiga teng olinadi. Buyurtmachi tasdig'i kutiladi.
 61. Orzu tanlash bosqichi (§6.4, N09): o'yin boshida butun maydon ochiq, har kim o'z orzusini tanlaydi (takrorlanmaydi), muddat `RULES.dreamSeconds` = 60 s (SPEC muddat aytmaydi), tugasa tanlamaganlarga bo'sh orzulardan server tasodifiy beradi (jurnalga `dream_timeout` bilan yoziladi), botlar o'zi tanlaydi. Tanlovni almashtirish mumkin (hammasi tanlamaguncha).
+62. Qarz eslatmasi (`loan_remind`) va avto sug'urta cheklovi — qabul qilindi, `DECISIONS_NEEDED.md`.
+63. Ballar: g'alaba 100, kichik aylanadan chiqish 50 (`POINTS`); «Ishonchsiz» belgisi va yulduz/unvon moslashuvi hali kodlanmagan (qiymatlar SPEC'da yo'q).
+64. Sheriklik dividend davri (24 oy) kodlanmadi — hozirgi soddalashtirish `DECISIONS_NEEDED.md` da.

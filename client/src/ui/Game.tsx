@@ -38,12 +38,13 @@ function Board({ room, size, turns = 0 }: { room: RoomView; size: number; turns?
   );
 }
 
-function Blank({ p }: { p: any }) {
+function Blank({ p, profession }: { p: any; profession?: string }) {
   const e = exitProgress(p);
   const Row = ({ l, v, bad }: { l: string; v: string; bad?: boolean }) => <View style={s.row}><Text style={s.l}>{l}</Text><Text style={[s.v, bad && { color: color.red }]}>{v}</Text></View>;
   return (
     <View style={s.panel}>
       <Row l={uz.game.cash} v={money(p.cash)} />
+      {profession ? <Row l={uz.game.profession} v={profession} /> : null}
       <Row l={uz.game.salary} v={money(p.salary)} />
       <Row l={uz.game.passive} v={money(e.passive)} />
       <Row l={uz.game.expenses} v={money(e.expenses)} bad />
@@ -128,7 +129,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
           {state.winner ? `${uz.game.winner}: ${state.winner}` : mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${room.names?.[currentId(room)!]?.name ?? currentId(room)}`}
           {left > 0 && !state.winner ? ` · ${left} ${uz.game.seconds}` : ""}
         </Text>
-        {mine && <Blank p={mine} />}
+        {mine && <Blank p={mine} profession={room.professions?.[mine.id]} />}
         <Actions room={room} userId={userId} onAct={onAct} />
         {card && mineTurn && wide && <CardEnter id={card.id}><DecisionCard card={card} onAct={onAct} /></CardEnter>}
         {!card && mineTurn && !state.winner && <Button label={uz.game.roll} onPress={() => onAct({ type: "roll" })} />}

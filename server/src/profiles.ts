@@ -15,7 +15,7 @@ export interface ProfilePersist {
 export const PROFILE_COLORS = 6; // §7: fishka rangi (6 ta)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
-export const POINTS: { win: number | null; exitSmallCircle: number | null } = { win: null, exitSmallCircle: null };
+export const POINTS: { win: number | null; exitSmallCircle: number | null } = { win: 100, exitSmallCircle: 50 }; // qaror (#63): SPEC raqam bermaydi; 100 ball = 1 daraja
 
 export function validateProfile(i: any, year: number): { ok: true; value: Omit<Profile, "userId" | "updatedAt"> } | { ok: false; error: string } {
   const name = typeof i?.name === "string" ? i.name.trim().replace(/\s+/g, " ") : "";

@@ -77,6 +77,14 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
               onPress={() => { onAct({ type: "loan_request", giverId: giver, amount: Number(loanAmt), months: Number(months) }); setLoanAmt(""); }} /></>)}
         </Box>)}
 
+      {(() => {
+        const owed = (room.state.players as any[]).flatMap((q) => (q.handDebts ?? []).filter((d: any) => d.to === userId).map((d: any) => ({ ...d, debtor: q.id })));
+        return owed.length > 0 && (
+          <Box title={uz.coop.owed}>{owed.map((d: any) => (
+            <View key={d.id} style={s.row}><Text style={s.note}>{room.names?.[d.debtor]?.name ?? d.debtor}: {money(d.amount)}</Text>
+              <Button label={uz.coop.remind} kind="ghost" disabled={d.remindedRound === room.state.round} onPress={() => onAct({ type: "loan_remind", debtorId: d.debtor, debtId: d.id })} /></View>))}</Box>);
+      })()}
+
       {p.handDebts?.length > 0 && (
         <Box title={uz.coop.debts}>{p.handDebts.map((d: any) => (
           <View key={d.id} style={s.row}><Text style={s.note}>{d.to}: {money(d.amount)}</Text>

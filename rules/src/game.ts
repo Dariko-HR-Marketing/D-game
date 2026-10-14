@@ -32,7 +32,7 @@ export interface Ctx {
 export type DeckName = keyof Ctx["deckIds"];
 export interface DeckState { draw: string[]; discard: string[] }
 
-export interface HandDebt { id: number; to: string; amount: number; months: number }
+export interface HandDebt { id: number; to: string; amount: number; months: number; remindedRound?: number }
 export interface GamePlayer extends Player { skipTurns: number; handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean }
 export type Pending =
   | null
@@ -155,6 +155,7 @@ export type Action =
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
   | { type: "loan_accept"; playerId: string; proposalId: number }
   | { type: "loan_repay"; playerId: string; debtId: number; amount: number }
+  | { type: "loan_remind"; playerId: string; debtorId: string; debtId: number }
   | { type: "partner_offer"; playerId: string; partnerId: string }
   | { type: "partner_accept"; playerId: string; proposalId: number }
   | { type: "partner_buyout"; playerId: string; assetCode: string }
@@ -489,6 +490,13 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       setP(s, { ...giver, cash: giver.cash - pr.amount });
       setP(s, { ...rec, cash: rec.cash + pr.amount, handDebts: [...rec.handDebts, { id: pr.id, to: giver.id, amount: pr.amount, months: pr.months }] });
       s.proposals = s.proposals.filter((x) => x.id !== pr.id); return ok();
+    }
+    case "loan_remind": { // qarz beruvchi qarzdorga eslatma yuboradi: har bir qarz uchun raundda bir marta (qaror, #62)
+      const debtor = s.players.find((p) => p.id === a.debtorId); const d = debtor?.handDebts.find((x) => x.id === a.debtId);
+      if (!debtor || !d || d.to !== a.playerId) return err("no_debt");
+      if (d.remindedRound === s.round) return err("already_reminded");
+      setP(s, { ...debtor, handDebts: debtor.handDebts.map((x) => (x.id === d.id ? { ...x, remindedRound: s.round } : x)) });
+      notify(s, debtor.id, "loan_reminder", { from: a.playerId, amount: d.amount }); return ok();
     }
     case "loan_repay": { // foizsiz, to'lov ixtiyoriy
       const rec = P(a.playerId), d = rec.handDebts.find((x) => x.id === a.debtId);

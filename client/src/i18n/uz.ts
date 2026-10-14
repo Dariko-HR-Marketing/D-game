@@ -6,7 +6,7 @@ export const uz = {
   lobby: { title: "Xona", players: "O'yinchilar", start: "O'yinni boshlash", wait: "Xona egasi o'yinni boshlashini kuting", bot: "Bot", you: "Siz", offline: "oflayn", hint: "Odam yetmasa bot qo'shiladi" },
   game: {
     yourTurn: "Sizning navbatingiz", waitFor: "Navbat:", roll: "Kubik tashlash", accept: "Qabul qilaman", skip: "O'tkazaman",
-    cash: "Naqd", cashflow: "Pul oqimi", passive: "Passiv daromad", debt: "Qarz va kreditlar", salary: "Ish haqi", expenses: "Oylik xarajat",
+    cash: "Naqd", cashflow: "Pul oqimi", passive: "Passiv daromad", debt: "Qarz va kreditlar", profession: "Kasb", salary: "Ish haqi", expenses: "Oylik xarajat",
     mandatory: "Majburiy karta", optional: "Ixtiyoriy karta", seconds: "soniya", winner: "G'olib", round: "Aylana",
     exitTitle: "Kichik aylanadan chiqish", exitCash: "Naqd ≥ 1 000 000", exitFlow: "Passiv oqim ≥ 25 000", exitDebt: "Qarz yo'q", exitPartner: "Sheriklik yopilgan",
     before: "Oldin", after: "Keyin",
@@ -36,7 +36,7 @@ export const uz = {
     accepted: "Qabul qilingan kartalar", skipped: "O'tkazilgan kartalar", assets: "Aktivlar", round: "aylana", you: "Siz",
   },
   coop: {
-    bank: "Bank", bankHint: "Bank krediti (100 ga karrali)", bankRoom: "Bank limiti qoldig'i", take: "Kredit olish", amount: "Summa",
+    owed: "Menga qaytariladigan qarzlar", remind: "Eslatish", bank: "Bank", bankHint: "Bank krediti (100 ga karrali)", bankRoom: "Bank limiti qoldig'i", take: "Kredit olish", amount: "Summa",
     suyunchi: "Suyunchi", suyunchiFor: "farzand tug'ildi — suyunchi bering", give: "Berish", loan: "O'zaro qarz", loanAsk: "Qarz so'rash", giver: "Beruvchi", months: "Muddat (oy)", max: "Eng ko'pi",
     loanReq: "qarz so'rayapti", accept: "Qabul qilish", waiting: "Javob kutilmoqda", fewPlayers: "Qarz uchun kamida 5 o'yinchi kerak",
     partner: "Sheriklik", partnerOffer: "Sherik taklif qilish", partnerFrom: "sheriklik taklif qilmoqda", partnerBuyout: "Sherik ulushini sotib olish", chooseHint: "Tanlang…",
@@ -46,7 +46,7 @@ export const uz = {
     room_not_found: "Bunday xona topilmadi", room_full: "Xona to'la (6/6). Yangi xona yarating", already_in_game: "Siz boshqa o'yinda turibsiz",
     already_started: "O'yin allaqachon boshlangan", not_host: "Faqat xona egasi boshlay oladi", stale_seq: "Holat yangilandi. Qayta urinib ko'ring",
     bad_name: "Ism 2–24 belgi bo'lishi kerak", bad_color: "Rang noto'g'ri", bad_birth_year: "Tug'ilgan yil noto'g'ri", restricted_age: "16 yoshgacha bu amal yopiq", in_game: "Avval o'yindan chiqing", confirm_required: "Tasdiqlash so'zi noto'g'ri",
-    dream_taken: "Bu orzuni boshqa o'yinchi tanlagan", dreams_phase: "Avval orzular tanlansin", bad_dream: "Orzu noto'g'ri", not_dream_phase: "Orzu tanlash tugagan",
+    already_reminded: "Bu qarz uchun bu raundda eslatma yuborilgan", no_debt: "Qarz topilmadi", dream_taken: "Bu orzuni boshqa o'yinchi tanlagan", dreams_phase: "Avval orzular tanlansin", bad_dream: "Orzu noto'g'ri", not_dream_phase: "Orzu tanlash tugagan",
     already_sold: "Siz allaqachon sotgansiz", nothing_to_sell: "Sotiladigan mos aktiv yo'q",
     left_game: "Siz bu o'yindan chiqqansiz — qaytib kira olmaysiz", bad_reaction: "Bunday reaksiya yo'q",
     invalid_amount: "Summa noto'g'ri", bank_limit: "Bank limiti oshib ketadi", already_given: "Siz allaqachon bergansiz", small_circle_only: "Faqat kichik aylanada", not_needed: "Naqd yoki bank limiti yetadi",

@@ -123,7 +123,9 @@ export function applyEffect(p: Player, e: Effect): Result {
       const assets = p.assets.map((a, k) => (k === i ? { ...a, monthlyIncome: a.monthlyIncome + e.amount } : a));
       return { ok: true, player: { ...p, assets } };
     }
-    case "carInsurance": return pay(e.price, { ...p, insuredCar: true });
+    case "carInsurance": // faqat mashinasi borga (yo'q bo'lsa karta o'tkaziladi)
+      if (!p.assets.some((a) => a.kind === "car")) return { ok: false, reason: "not_applicable" };
+      return pay(e.price, { ...p, insuredCar: true });
     case "floodCarRepair":
       if (!p.assets.some((a) => a.kind === "car")) return { ok: false, reason: "not_applicable" };
       return p.insuredCar ? { ok: true, player: p } : pay(e.amount, p);
