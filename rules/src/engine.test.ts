@@ -104,3 +104,17 @@ describe("aktivlar", () => {
     const b = E.applyEffect({ ...P(), assets: [car], cash: 5000, insuredCar: true }, f); expect(b.ok && b.player.cash).toBe(5000);
   });
 });
+
+describe("bank krediti 36 oyda so'nadi (§5.3 formulasi)", () => {
+  it("oylik to'lov har oy bir xil, asosiy qarz summa/36 dan kamayadi, 36 oydan keyin qarz yo'q", () => {
+    let p = E.takeBankLoan(E.newPlayer("p", { ...k1, salary: 100_000, total: 0 } as any), 3600).player;
+    expect(E.monthlyExpenses(p)).toBeCloseTo(160); expect(p.bankDebt).toBe(3600);
+    p = E.passMonths(p, 1); expect(p.bankDebt).toBeCloseTo(3500); expect(E.monthlyExpenses(p)).toBeCloseTo(160);
+    p = E.passMonths(p, 35); expect(p.bankDebt).toBe(0); expect(p.bankLoans).toHaveLength(0); expect(E.monthlyExpenses(p)).toBe(0);
+  });
+  it("bir nechta kredit mustaqil muddat bilan", () => {
+    let p = E.newPlayer("p", { ...k1, salary: 1e6, total: 0 } as any);
+    p = E.takeBankLoan(p, 3600).player; p = E.passMonths(p, 18); p = E.takeBankLoan(p, 3600).player;
+    expect(E.monthlyExpenses(p)).toBeCloseTo(320); p = E.passMonths(p, 18); expect(p.bankLoans).toHaveLength(1); expect(p.bankDebt).toBeCloseTo(1800);
+  });
+});

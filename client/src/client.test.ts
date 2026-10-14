@@ -94,3 +94,15 @@ describe("profil yordamchilari", () => {
     expect(new HttpError(409, "in_game").code).toBe("in_game");
   });
 });
+
+import { marketOffers } from "./model";
+describe("bozor taklifi (mijoz)", () => {
+  it("faqat mos aktivi bor o'yinchiga, kreditdan keyingi sof summa bilan", () => {
+    const r: any = room(); r.state.players[0].assets = [{ kind: "apartment", code: "KV1", credit: 5000, price: 30000, monthlyIncome: 0, marketValue: 60000 }];
+    r.state.proposals = [{ id: 7, kind: "market", cardId: "x", sold: [] }];
+    r.marketCards = { 7: { text: "Xaridor", effect: { kind: "marketSale", targets: ["KV1"], amount: 20000 } } };
+    expect(marketOffers(r, "a")).toEqual([{ proposalId: 7, text: "Xaridor", assetCode: "KV1", price: 20000, net: 15000 }]);
+    expect(marketOffers(r, "b")).toEqual([]);
+    r.state.proposals[0].sold = ["a"]; expect(marketOffers(r, "a")).toEqual([]);
+  });
+});

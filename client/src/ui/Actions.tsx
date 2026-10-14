@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, MIN_TAP } from "../theme";
-import { bankRoom, canOfferPartner, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
+import { bankRoom, canOfferPartner, marketOffers, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
 import type { RoomView } from "../net/connection";
 
 const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -28,9 +28,16 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
   const gv = loanGivers(room, userId); const bounds = giver ? loanBounds(room, userId, giver) : null;
   const buy = canOfferPartner(room, userId);
   const partnered = myPartneredAssets(p);
+  const offers = marketOffers(room, userId);
 
   return (
     <View style={{ gap: 12 }}>
+      {offers.map((o) => (
+        <Box key={`${o.proposalId}${o.assetCode}`} title={`${uz.coop.market}: ${o.assetCode}`}>
+          <Text style={s.note}>{o.text}</Text>
+          <Text style={s.note}>{uz.coop.sellFor}: {money(o.price)} · {uz.coop.net}: {money(o.net)}</Text>
+          <Button label={`${uz.coop.sell} ${money(o.price)}`} onPress={() => onAct({ type: "market_sell", proposalId: o.proposalId, assetCode: o.assetCode })} />
+        </Box>))}
       {pr.suyunchi.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.suyunchi}: ${x.parent} ${uz.coop.suyunchiFor}`}>
           <Pick label={uz.coop.amount} options={suyunchiAmounts(p.cash).filter((a) => [10, 50, 100, 200, 500].includes(a)).map(String)} value={sAmt} onChange={setSAmt} />

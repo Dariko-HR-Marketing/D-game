@@ -15,7 +15,7 @@ export function exitProgress(p: any) {
   return { checks, passive, expenses: exp, cashflow: playerCashflow(p), debt, canExit: canExitSmallCircle({ cash: p.cash, salary: p.salary, passiveIncome: passive, expenses: exp, bankDebt: p.bankDebt, otherDebt: debt - p.bankDebt, openPartnerships: openPartnerships(p) }) };
 }
 
-import { RULES, mutualLoanLimit } from "@poyga/rules";
+import { RULES, mutualLoanLimit, assetMatches, marketPrice } from "@poyga/rules";
 
 export const bankRoom = (p: any) => Math.max(0, RULES.bankLimit - p.bankDebt);
 
@@ -63,3 +63,19 @@ export const loanGivers = (room: any, userId: string): string[] =>
 
 /** Mening ochiq sheriklik aktivlarim (sotib olish uchun). */
 export const myPartneredAssets = (p: any): any[] => p.assets.filter((a: any) => a.partnerId);
+
+/** Bozor taklifi: menda sotiladigan mos aktiv bormi va qanday narxda (hamma o'yinchiga ochiq, navbatdan mustaqil). */
+export function marketOffers(room: any, userId: string): { proposalId: number; text: string; assetCode: string; price: number; net: number }[] {
+  const p = me(room, userId), st = room?.state; if (!p || !st) return [];
+  const out: any[] = [];
+  for (const pr of st.proposals) {
+    if (pr.kind !== "market" || pr.sold.includes(userId)) continue;
+    const card = room.marketCards?.[pr.id]; const e = card?.effect; if (e?.kind !== "marketSale") continue;
+    for (const a of p.assets) {
+      if (a.partnerId || a.stakeOf || !assetMatches(e.targets, a)) continue;
+      const price = marketPrice(e.amount, a); if (price === null) continue;
+      out.push({ proposalId: pr.id, text: card.text, assetCode: a.code, price, net: price - a.credit }); break;
+    }
+  }
+  return out;
+}

@@ -3,8 +3,8 @@
 import type { CardEffect, Effect } from "@poyga/content/effects";
 import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
-  Player, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
-  passiveIncome, playerCashflow, sellAsset, smallCell, takeBankLoan, totalDebt, shuffle, rollDie, seededRng,
+  Player, assetMatches, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
+  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
 export const CONFIG = {
@@ -38,7 +38,8 @@ export type Pending =
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
   | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
-  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string };
+  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string }
+  | { id: number; kind: "market"; cardId: string; sold: string[] };
 
 export interface GameState {
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
@@ -84,7 +85,8 @@ function drawFrom(s: GameState, deck: DeckName): string {
 export const currentPlayer = (s: GameState) => s.players[s.turn % s.players.length];
 const idx = (s: GameState, id: string) => s.players.findIndex((p) => p.id === id);
 const setP = (s: GameState, p: GamePlayer) => { s.players[idx(s, p.id)] = p; };
-const logf = (s: GameState, m: string) => { s.log.push(m); };
+/** Jurnal chegaralangan (so'nggi 100): holat va snapshot hajmi cheksiz o'smasin. To'liq jurnal serverda (harakatlar ketma-ketligi). */
+const logf = (s: GameState, m: string) => { s.log.push(m); if (s.log.length > 100) s.log.splice(0, s.log.length - 100); };
 
 /** Yangi kasb bilan boshidan (§5.3): hamma aktiv va qarz yo'qoladi. */
 function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
@@ -112,6 +114,7 @@ export function chooseDream(s: GameState, playerId: string, dreamIdx: number): G
 export type Action =
   | { type: "roll"; playerId: string }
   | { type: "bank_loan"; playerId: string; amount: number }
+  | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
   | { type: "loan_accept"; playerId: string; proposalId: number }
@@ -170,7 +173,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   p = { ...p, pos };
   for (let m = 0; m < months; m++) {
     const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
-    p = { ...p, cash: p.cash + flow };
+    p = tickLoans({ ...p, cash: p.cash + flow });
   }
   if (p.cash < 0) { const debt = -p.cash; p = forcePay(s, ctx, { ...p, cash: 0 }, debt); }
   setP(s, p);
@@ -181,6 +184,9 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
   const id = drawFrom(s, deck);
   const ce = ctx.effects[id];
+  if (ce.effect.kind === "marketSale") { // hamma mos aktivli o'yinchiga taklif (§5.2 bozor); navbatni to'xtatmaydi
+    s.proposals.push({ id: s.nextProposal++, kind: "market", cardId: id, sold: [] }); logf(s, `bozor: ${ce.text ?? id}`); return;
+  }
   if (ce.mode === "mandatory") { s.pending = { type: "card", playerId: p.id, cardId: id, deck }; autoMandatory(s, ctx, p, ce); }
   else s.pending = { type: "card", playerId: p.id, cardId: id, deck };
 }
@@ -297,6 +303,19 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
   const ok = (): Outcome => ({ ok: true, state: s });
   const P = (id: string) => s.players[idx(s, id)];
   switch (a.type) {
+    case "market_sell": {
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "market") return err("no_proposal");
+      if (pr.sold.includes(a.playerId)) return err("already_sold");
+      const e = effectOf(ctx, pr.cardId).effect; if (e.kind !== "marketSale") return err("no_proposal");
+      const p = P(a.playerId);
+      const cands = p.assets.filter((x) => assetMatches(e.targets, x) && (a.assetCode === undefined || x.code === a.assetCode) && !x.partnerId && !x.stakeOf);
+      const asset = cands.map((x) => ({ x, price: marketPrice(e.amount, x) })).find((c) => c.price !== null);
+      if (!asset) return err("nothing_to_sell"); // ortiqcha: ulushli (sheriklik) aktivni sotib bo'lmaydi
+      const proceeds = asset.price! - asset.x.credit;
+      setP(s, { ...p, cash: p.cash + proceeds, assets: p.assets.filter((x) => x !== asset.x) });
+      pr.sold.push(p.id); logf(s, `${p.id}: ${asset.x.code} sotdi ${asset.price}`); return ok();
+    }
     case "bank_loan": { // §5.3: ixtiyoriy bank krediti, faqat o'z navbatida; 100 ga karrali; limit 10 000
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
       if (!posInt(a.amount) || a.amount % 100 !== 0) return err("invalid_amount");

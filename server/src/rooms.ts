@@ -19,7 +19,7 @@ export interface Room {
 }
 export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string };
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: GameState | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
+export interface RoomView { marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: GameState | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -44,7 +44,9 @@ export class RoomManager {
     const pc = r.state?.pending ? effectOf(r.ctx, r.state.pending.cardId) : null;
     const names: Record<string, { name: string; color: number }> = {};
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color }; }
-    return { names, code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline,
+    const marketCards: Record<number, { text: string; effect: unknown }> = {};
+    for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
+    return { marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline,
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
   }
 

@@ -52,33 +52,44 @@ export function move(pos: number, steps: number, size = 48, isD: (i: number) => 
 export interface Asset {
   kind: string; code: string; price: number; monthlyIncome: number; creditPayment: number; credit: number;
   shares?: number;
+  marketValue?: number | null; // kartadagi haqiqiy qiymat (bozor hodisalari uchun); null = noma'lum
   partnerId?: string; // egasi tomonda: sherik
   stakeOf?: string;   // sherik tomonda: biznes egasi
 }
+/** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
+export interface BankLoan { amount: number; left: number }
 export interface Player {
   id: string; pos: number; circle: "small" | "big"; profession: number;
   cash: number; salary: number; baseExpenses: number; childCost: number; children: number;
-  assets: Asset[]; bankDebt: number; qar: boolean; insuredCar: boolean; handLoans: number;
+  assets: Asset[]; bankDebt: number; bankLoans: BankLoan[]; qar: boolean; insuredCar: boolean; handLoans: number;
 }
 
 export function newPlayer(id: string, k: { n: number; salary: number; total: number; save: number; child: number }): Player {
   return { id, pos: 0, circle: "small", profession: k.n, cash: k.save, salary: k.salary, baseExpenses: k.total, childCost: k.child,
-    children: 0, assets: [], bankDebt: 0, qar: false, insuredCar: false, handLoans: 0 };
+    children: 0, assets: [], bankDebt: 0, bankLoans: [], qar: false, insuredCar: false, handLoans: 0 };
 }
 
 export const passiveIncome = (p: Player) => p.assets.reduce((s, a) => s + a.monthlyIncome, 0);
 export const monthlyExpenses = (p: Player) =>
   p.baseExpenses + p.children * p.childCost + p.assets.reduce((s, a) => s + a.creditPayment, 0) +
-  (p.bankDebt > 0 ? bankMonthlyPayment(p.bankDebt) : 0) + (p.qar ? RULES.qarMonthly : 0);
+  p.bankLoans.reduce((t, l) => t + bankMonthlyPayment(l.amount), 0) + (p.qar ? RULES.qarMonthly : 0);
 export const playerCashflow = (p: Player) => p.salary + passiveIncome(p) - monthlyExpenses(p);
 export const totalDebt = (p: Player) => p.bankDebt + p.assets.reduce((s, a) => s + a.credit, 0);
 
-export const passMonths = (p: Player, n: number): Player => ({ ...p, cash: p.cash + n * playerCashflow(p) });
+/** Bir oy o'tdi: kredit muddati qisqaradi, asosiy qarz (summa/36) kamayadi. */
+export function tickLoans<T extends Player>(p: T): T {
+  if (p.bankLoans.length === 0) return p;
+  const loans = p.bankLoans.map((l) => ({ ...l, left: l.left - 1 })).filter((l) => l.left > 0);
+  return { ...p, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + (l.amount * l.left) / RULES.bankTermMonths, 0) };
+}
+export const passMonths = (p: Player, n: number): Player => {
+  let q = p; for (let i = 0; i < n; i++) q = tickLoans({ ...q, cash: q.cash + playerCashflow(q) }); return q;
+};
 
 /** Bank krediti (§5.3). Limitdan oshsa — restart. */
 export function takeBankLoan(p: Player, amount: number): { player: Player; restart: boolean } {
   if (p.bankDebt + amount > RULES.bankLimit) return { player: p, restart: true };
-  return { player: { ...p, bankDebt: p.bankDebt + amount, cash: p.cash + amount }, restart: false };
+  return { player: { ...p, bankDebt: p.bankDebt + amount, bankLoans: [...p.bankLoans, { amount, left: RULES.bankTermMonths }], cash: p.cash + amount }, restart: false };
 }
 
 export type Result = { ok: true; player: Player } | { ok: false; reason: "insufficient_cash"; shortfall: number } | { ok: false; reason: "not_applicable" };
@@ -93,7 +104,7 @@ export function applyEffect(p: Player, e: Effect): Result {
     case "buy": {
       const upfront = e.down ?? e.price;
       return pay(upfront, { ...p, assets: [...p.assets, { kind: e.asset, code: e.code, price: e.price, monthlyIncome: e.monthlyIncome ?? 0,
-        creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0 }] });
+        creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0, marketValue: e.marketValue }] });
     }
     case "buyShares": return { ok: false, reason: "not_applicable" }; // miqdorni o'yinchi tanlaydi: buyShares()
     case "qarOffer": return { ok: true, player: { ...p, qar: true } };
@@ -130,4 +141,23 @@ export function sellAsset(p: Player, code: string, price: number): Result {
   const a = p.assets[i];
   const proceeds = price - a.credit;
   return { ok: true, player: { ...p, cash: p.cash + proceeds, assets: p.assets.filter((_, k) => k !== i) } };
+}
+
+// ---------- Bozor: sotish imkoniyatlari (hamma mos aktivli o'yinchiga) ----------
+const ALIAS: Record<string, string> = { mb: "kb", ye: "e", kch: "kch", d: "q" }; // bozor kodi → aktiv kodi
+const norm = (c: string) => ALIAS[c.toLowerCase()] ?? c.toLowerCase();
+export function assetMatches(targets: string[], a: Asset): boolean {
+  return targets.some((t) => (t === "KV*" ? a.kind === "apartment" : norm(t) === norm(a.code)));
+}
+type Sale = Extract<Effect, { kind: "marketSale" }>["amount"];
+/** Aktivni sotish narxi; qiymat noma'lum bo'lsa (real = "?") — null (sotib bo'lmaydi, OPEN_QUESTIONS #6). */
+export function marketPrice(amount: Sale, a: Asset): number | null {
+  const unit = (v: number | null) => (v === null ? null : a.shares ? v * a.shares : v);
+  if (typeof amount === "number") return unit(amount);
+  const room = /^KV(\d)/.exec(a.code)?.[1];
+  const o = amount as { addByType?: Record<string, number>; multiply?: number; percent?: number };
+  if (o.addByType) { const add = room ? o.addByType[`KV${room}`] : undefined; return a.marketValue == null || add === undefined ? null : a.marketValue + add; }
+  if (o.multiply !== undefined) return a.marketValue == null ? null : a.marketValue * o.multiply;
+  if (o.percent !== undefined) return a.marketValue == null ? null : a.marketValue * (1 + o.percent / 100);
+  const v = (amount as Record<string, number>)[a.code]; return v === undefined ? null : v;
 }

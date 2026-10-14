@@ -10,6 +10,7 @@ describe("protokol sxemasi", () => {
     expect(ok({ type: "act", seq: 0, action: { type: "roll" } }).ok).toBe(true);
     expect(ok({ type: "act", seq: 3, action: { type: "loan_request", giverId: "u1", amount: 100, months: 12 } }).ok).toBe(true);
     expect(ok({ type: "join", code: "ABC234" }).ok).toBe(true);
+    expect(ok({ type: "act", seq: 1, action: { type: "market_sell", proposalId: 3, assetCode: "KV1" } }).ok).toBe(true);
   });
   it.each([
     ["JSON emas", "{not json"], ["ortiqcha kalit (playerId yashirish)", JSON.stringify({ type: "act", seq: 0, action: { type: "roll", playerId: "victim" } })],
