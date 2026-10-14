@@ -79,8 +79,8 @@ import { CellRules } from "./cellrules";
 describe("katak qoidalari (cellRules)", () => {
   const raw = () => JSON.parse(JSON.stringify({ cards, bigBoard, dreams }));
   const withRules = (r: unknown) => { const x = raw(); x.cellRules = r; return x; };
-  it("bo'sh qoidalar yaroqli; cellRules yo'q (eski versiya) ham bo'sh deb olinadi", () => {
-    expect(validateBundle(parseBundle(raw()))).toEqual([]); expect(parseBundle(raw()).cellRules).toEqual({ small: {}, big: { byType: {}, byIndex: {} } });
+  it("paketdagi standart qoidalar yaroqli; cellRules yo'q (eski versiya) bo'sh deb olinadi", () => {
+    expect(validateBundle(parseBundle(raw()))).toEqual([]); expect(parseBundle({ cards, bigBoard, dreams }).cellRules).toEqual({ small: {}, big: { byType: {}, byIndex: {} } }); // cellRules yo'q → bo'sh
     expect(CellRules.parse({}).big.byIndex).toEqual({});
   });
   it("to'g'ri qoidalar qabul qilinadi", () => {

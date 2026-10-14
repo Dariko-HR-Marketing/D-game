@@ -65,8 +65,8 @@ describe("sozlangan katak ta'sirlari (kichik aylana)", () => {
   });
   it("drawDeck: hod dekasidan majburiy karta tortiladi va qo'llanadi", () => {
     const ctx = withRules({ small: { K: { kind: "drawDeck", deck: "hod" } } });
-    const s = landSmall(ctx, cellAt("K"), (g) => { g.players[0].cash = 1e9; });
-    expect(s.decks.hod.discard).toHaveLength(1); expect(s.players[0].cash).toBeLessThanOrEqual(1e9); expect(s.pending).toBeNull();
+    const s = landSmall(ctx, cellAt("K"), (g) => { g.players[0].cash = 1e9; g.decks.hod.draw = ["hod-1", ...g.decks.hod.draw.filter((x) => x !== "hod-1")]; });
+    expect(s.decks.hod.discard).toEqual(["hod-1"]); expect(s.players[0].cash).toBe(1e9 - 10_000); expect(s.pending).toBeNull(); // hod-1: bankka 10 000 (majburiy)
   });
 });
 

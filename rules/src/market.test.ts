@@ -20,11 +20,11 @@ describe("bozor narxi", () => {
     const m = { KV1s: 50000, KV2s: 70000 };
     expect(marketPrice(m as any, asset({ code: "KV1s" }))).toBe(50000); expect(marketPrice(m as any, asset({ code: "KV2s" }))).toBe(70000); expect(marketPrice(m as any, asset({ code: "KV3" }))).toBeNull();
   });
-  it("narx o'sishi haqiqiy qiymatdan: +50 %, ×2, +10 000…; qiymat noma'lum bo'lsa — sotib bo'lmaydi", () => {
+  it("narx o'sishi haqiqiy qiymatdan: +50 %, ×2, +10 000…; qiymat noma'lum (real = '?') bo'lsa sotib olish narxi asos", () => {
     expect(marketPrice({ percent: 50 }, asset({ marketValue: 60000 }))).toBe(90000);
     expect(marketPrice({ multiply: 2 }, asset({ marketValue: 60000 }))).toBe(120000);
     expect(marketPrice({ addByType: { KV1: 10000, KV2: 20000 } }, asset({ code: "KV2", marketValue: 65000 }))).toBe(85000);
-    expect(marketPrice({ multiply: 2 }, asset({ marketValue: null }))).toBeNull();
+    expect(marketPrice({ multiply: 2 }, asset({ marketValue: null, price: 30000 }))).toBe(60000);
   });
 });
 

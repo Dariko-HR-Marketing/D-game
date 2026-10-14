@@ -85,8 +85,8 @@ function DecisionCard({ card, onAct, sheet }: { card: any; onAct: (a: Record<str
       <Text style={s.cardText}>{card.text}</Text>
       {card.mode !== "mandatory" && card.effect?.kind === "buyShares" && <SharesInput card={card} onAct={onAct} />}
       {card.mode !== "mandatory" && card.effect?.kind !== "buyShares" && (<>
-        <Button label={uz.game.accept} onPress={() => onAct({ type: "decide", accept: true, useBank: true })} />
-        <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></>)}
+        <Button label={card.effect?.kind === "payOrLoseBusiness" ? uz.hod7.pay : uz.game.accept} onPress={() => onAct({ type: "decide", accept: true, useBank: true })} />
+        <Button label={card.effect?.kind === "payOrLoseBusiness" ? uz.hod7.lose : uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></>)}
     </View>
   );
 }
@@ -137,6 +137,10 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
         <View style={s.reactRow} accessibilityLabel={uz.react.label}>
           {REACTIONS.map((e) => <Button key={e} label={e} kind="ghost" onPress={() => onReact(e)} />)}
         </View>
+        <View accessibilityLiveRegion="polite" accessibilityRole="alert">
+          {(state.notices ?? []).filter((n: any) => n.to === "all" || n.to === userId).slice(-3).map((n: any) => (
+            <Text key={n.id} style={s.notice}>{n.key === "loan_reminder" ? `${room.names?.[n.from]?.name ?? n.from} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Text>))}
+        </View>
         <View accessibilityLiveRegion="polite">
           {reactions.map((r) => <Text key={r.id} style={s.log}>{room.names?.[r.from]?.name ?? (r.from === userId ? uz.result.you : r.from)}: {r.emoji}</Text>)}
         </View>
@@ -164,6 +168,6 @@ const s = StyleSheet.create({
   h2: { fontWeight: "700", color: color.navy, marginBottom: 2 },
   card: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 2, borderColor: color.gold, gap: 10 },
   cardTag: { color: color.text2, fontSize: 12, fontWeight: "700", textTransform: "uppercase" }, cardText: { color: color.navy, fontSize: 16, lineHeight: 22 },
-  log: { color: color.text2, fontSize: 12 }, reactRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  log: { color: color.text2, fontSize: 12 }, notice: { color: color.navy, fontSize: 13, backgroundColor: "#FFF6DD", borderRadius: 8, padding: 8, marginBottom: 4 }, reactRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   leaveBox: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 2, borderColor: color.red, gap: 10 },
 });

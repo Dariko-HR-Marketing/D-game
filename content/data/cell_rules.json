@@ -1,7 +1,47 @@
 {
- "small": {},
+ "small": {
+  "K": {
+   "kind": "restart"
+  },
+  "Q": {
+   "kind": "skipTurns",
+   "turns": 2
+  }
+ },
  "big": {
-  "byType": {},
-  "byIndex": {}
+  "byType": {
+   "Y": {
+    "kind": "payday",
+    "times": 1
+   },
+   "V": {
+    "kind": "offerCellAsset"
+   }
+  },
+  "byIndex": {
+   "5": {
+    "kind": "drawDeck",
+    "deck": "hod"
+   },
+   "23": {
+    "kind": "drawCard",
+    "cardId": "hod-7"
+   },
+   "33": {
+    "kind": "loseIncomeShare",
+    "share": 0.2
+   },
+   "34": {
+    "kind": "none"
+   },
+   "47": {
+    "kind": "payFixed",
+    "amount": 1000000
+   }
+  },
+  "onLap": {
+   "kind": "drawDeck",
+   "deck": "kxar"
+  }
  }
 }

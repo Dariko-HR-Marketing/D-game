@@ -39,7 +39,10 @@ export function validateBundle(b: Bundle): string[] {
   const acts: [string, { kind: string; deck?: string }][] = [...Object.entries(b.cellRules.small).map(([k, a]) => [`small.${k}`, a] as [string, any]),
     ...Object.entries(b.cellRules.big.byType).map(([k, a]) => [`big.byType.${k}`, a] as [string, any]), ...Object.entries(b.cellRules.big.byIndex).map(([k, a]) => [`big.byIndex.${k}`, a] as [string, any])];
   for (const [i] of Object.entries(b.cellRules.big.byIndex)) if (Number(i) >= b.bigBoard.length) problems.push(`cellRules.big.byIndex.${i}: bunday katak yo'q (0–${b.bigBoard.length - 1})`);
-  for (const [where, a] of acts) if (a?.kind === "drawDeck" && !(b.cards as any)[a.deck!]?.length) problems.push(`cellRules.${where}: "${a.deck}" dekasi bo'sh`);
+  const ids = new Set(deriveEffects(b.cards).map((e) => e.id));
+  const lap = b.cellRules.big.onLap ? ([["big.onLap", b.cellRules.big.onLap]] as [string, any][]) : [];
+  for (const [where, a] of [...acts, ...lap]) if (a?.kind === "drawCard" && !ids.has(a.cardId)) problems.push(`cellRules.${where}: "${a.cardId}" kartasi yo'q`);
+  for (const [where, a] of [...acts, ...lap]) if (a?.kind === "drawDeck" && !(b.cards as any)[a.deck!]?.length) problems.push(`cellRules.${where}: "${a.deck}" dekasi bo'sh`);
   for (const [i, a] of Object.entries(b.cellRules.big.byIndex)) if (a.kind === "offerCellAsset" && b.bigBoard[Number(i)]?.price == null) problems.push(`cellRules.big.byIndex.${i}: katakda narx yo'q (offerCellAsset mumkin emas)`);
   return problems;
 }

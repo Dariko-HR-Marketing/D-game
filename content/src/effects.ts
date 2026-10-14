@@ -16,6 +16,7 @@ export type Effect =
   | { kind: "marketSale"; targets: string[]; amount: number | Record<string, number> | { addByType: Record<string, number> } | { multiply: number } | { percent: number } }
   | { kind: "businessIncomeIncrease"; amount: number }
   | { kind: "marketCrash"; factor: 0.5 }
+  | { kind: "payOrLoseBusiness"; amount: number } // hod #7: pul to'lang YOKI kichik biznesingizdan birini qaytaring (tanlov)
   | { kind: "debtRepaid"; amount: number }
   | { kind: "courseSalaryPlus"; price: number; salaryPlus: number }
   | { kind: "charity"; incomeShare: 0.1; turns: 3; dice: 2 }
@@ -84,8 +85,12 @@ export function deriveEffects(c: Cards): CardEffect[] {
   c.bozor.forEach((b, i) => push("bozor", `bozor-${i + 1}`, b.file, b.kind === "Sotish imkoniyati" ? "optional" : "mandatory", bozorEffect(b)));
   c.xar.forEach((x) => push("xar", `xar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank" }));
   c.kxar.forEach((x) => push("kxar", `kxar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank" }));
-  c.hod.forEach((h) => push("hod", `hod-${h.n}`, h.file, "mandatory",
-    typeof h.amount === "number" ? { kind: "pay", amount: h.amount, to: "bank" } : h.n === 8 ? { kind: "marketCrash", factor: 0.5 } : { kind: "unresolved", reason: "hod summasi" }));
+  c.hod.forEach((h) => {
+    // «Aks holda KB laringizdan birini aylanaga qaytaring» — pul yoki biznes: o'yinchi tanlaydi (karta qaroriga aylanadi)
+    if (typeof h.amount === "number" && /Aks holda/.test(h.text)) return push("hod", `hod-${h.n}`, h.file, "optional", { kind: "payOrLoseBusiness", amount: h.amount });
+    return push("hod", `hod-${h.n}`, h.file, "mandatory",
+      typeof h.amount === "number" ? { kind: "pay", amount: h.amount, to: "bank" } : h.n === 8 ? { kind: "marketCrash", factor: 0.5 } : { kind: "unresolved", reason: "hod summasi" });
+  });
 
   // §5.10: 6 yangi karta — har biri o'z dekasiga qo'shiladi (`deck` maydoni: kichik/bozor/xar/hod). Aks holda hech qachon chiqmaydi.
   c.new.forEach((n) => {

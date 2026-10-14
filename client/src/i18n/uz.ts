@@ -17,6 +17,12 @@ export const uz = {
     consequences: "O'chirilganda: profil va sozlamalar o'chadi; o'yin natijalari ismsiz (anonim) saqlanadi; bu amalni qaytarib bo'lmaydi.",
     export: "Ma'lumotni yuklab olish", typeWord: "Tasdiqlash uchun «O'CHIRISH» deb yozing", deleteBtn: "Hisobni o'chirish", needProfile: "Profilni to'ldiring",
   },
+  notice: {
+    crisis_start: "Jahon moliyaviy inqirozi boshlandi: yer, dala-hovli, kvartira va aksiyalarning sotish va sotib olish narxi 2 baravar past (3 yil = 36 oy).",
+    crisis_end: "Moliyaviy inqiroz siz uchun tugadi: narxlar odatdagiga qaytdi.",
+    loan_reminder: "qarzni to'lash haqida eslatma yubordi",
+  },
+  hod7: { pay: "Pul to'layman", lose: "Biznesdan voz kechaman" },
   rules: { title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
   leave: {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",

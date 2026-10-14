@@ -44,7 +44,11 @@ export type Proposal =
   | { id: number; kind: "partner"; owner: string; partner: string; cardId: string }
   | { id: number; kind: "market"; cardId: string; sold: string[] };
 
+/** Xabarnoma (§5.7: inqiroz tugaganda aloqador o'yinchilarga; §5.6: qarz eslatmasi). `to`: o'yinchi ID yoki "all". */
+export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder"; round: number; from?: string; amount?: number }
+
 export interface GameState {
+  notices: Notice[]; nextNotice: number;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -63,7 +67,7 @@ const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
 export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = []): GameState {
-  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
+  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
     for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
@@ -89,6 +93,15 @@ export const currentPlayer = (s: GameState) => s.players[s.turn % s.players.leng
 const idx = (s: GameState, id: string) => s.players.findIndex((p) => p.id === id);
 const setP = (s: GameState, p: GamePlayer) => { s.players[idx(s, p.id)] = p; };
 /** Jurnal chegaralangan (so'nggi 100): holat va snapshot hajmi cheksiz o'smasin. To'liq jurnal serverda (harakatlar ketma-ketligi). */
+/** Inqiroz davomiyligi: 9 aylana × (aylanadagi «D» kataklari soni = 4 oy) = 36 oy = 3 yil (§5.7). */
+// (Lazy: engine ↔ index ↔ game aylana importi tufayli modul yuklanishida SMALL_BOARD hali tayyor emas.)
+export const monthsPerLap = () => [...SMALL_BOARD].filter((c) => c === "D").length;
+export const crisisMonths = () => RULES.crisisLaps * monthsPerLap();
+const CRISIS_KINDS = ["land", "dacha", "apartment", "shares"];
+function notify(s: GameState, to: string, key: Notice["key"], extra: Partial<Notice> = {}) {
+  s.notices ??= []; s.nextNotice ??= 1;
+  s.notices.push({ id: s.nextNotice++, to, key, round: s.round, ...extra }); if (s.notices.length > 20) s.notices.splice(0, s.notices.length - 20);
+}
 const logf = (s: GameState, m: string) => { s.log.push(m); if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
 
 /** Yangi kasb bilan boshidan (§5.3): hamma aktiv va qarz yo'qoladi. */
@@ -180,11 +193,17 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   for (let m = 0; m < months; m++) {
     const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
     p = tickLoans({ ...p, cash: p.cash + flow });
+    if ((p.crisisMonths ?? 0) > 0) { p = { ...p, crisisMonths: p.crisisMonths! - 1 }; if (p.crisisMonths === 0) notify(s, p.id, "crisis_end"); }
   }
   if (p.cash < 0) { const debt = -p.cash; p = forcePay(s, ctx, { ...p, cash: 0 }, debt); }
   setP(s, p);
-  if (p.circle === "small") smallLanding(s, ctx, p);
-  else bigLanding(s, ctx, p);
+  // Katta aylana: START dan har o'tishda (aylana boshi) sozlangan ta'sir (masalan kxar xarajat dekasi)
+  const lap = ctx.cellRules?.big?.onLap;
+  if (p.circle === "big" && months > 0 && lap) runCellAction(s, ctx, p, lap);
+  const q = s.players[idx(s, pid)];
+  if (s.pending) return;
+  if (q.circle === "small") smallLanding(s, ctx, q);
+  else bigLanding(s, ctx, q);
 }
 
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
@@ -226,8 +245,11 @@ function applyMandatory(s: GameState, ctx: Ctx, p: GamePlayer, e: Effect): GameP
     }
     case "businessIncomeIncrease": { const r = applyEffect(p, e); return r.ok ? ({ ...p, ...r.player } as GamePlayer) : p; }
     case "marketCrash": {
-      // Aktivlar narxi 2 baravar tushadi (hod #8); bu yerda faqat nominal narx yangilanadi.
-      return { ...p, assets: p.assets.map((a) => (["land", "dacha", "apartment", "shares"].includes(a.kind) ? { ...a, price: a.price / 2 } : a)) };
+      // §5.7: inqiroz 36 oy amal qiladi (har bir o'yinchining o'z oylarida): shu paytda yer, dala-hovli, kvartira va aksiyalar
+      // sotish VA sotib olish narxi 2 baravar past. Tugaganda o'yinchiga xabar yuboriladi.
+      const first = (p.crisisMonths ?? 0) === 0;
+      if (first) notify(s, p.id, "crisis_start");
+      return { ...p, crisisMonths: crisisMonths() };
     }
     case "tenantLeft": {
       const i = p.assets.findIndex((a) => ["apartment", "dacha", "land"].includes(a.kind) && a.monthlyIncome > 0);
@@ -289,16 +311,38 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
     case "payFixed": setP(s, forcePay(s, ctx, p, act.amount)); return;
     case "loseIncomeShare": setP(s, forcePay(s, ctx, p, Math.round(act.share * (p.salary + passiveIncome(p))))); return;
     case "drawDeck": offer(s, p, act.deck, ctx); return;
+    case "drawCard": forceCard(s, ctx, p, act.cardId); return;
     case "offerCellAsset":
       if (cell && cell.price !== null) s.pending = { type: "card", playerId: p.id, cardId: `big-${cell.i}`, deck: "kichik" };
       return;
   }
 }
 
+/** Aniq kartani dekadan chiqarib, o'yinchiga beradi (masalan Ajrashish katagi → hod-7). */
+function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
+  const ce = ctx.effects[id]; if (!ce) { logf(s, `karta topilmadi: ${id}`); return; }
+  const deck = ce.deck as DeckName;
+  if (s.decks[deck]) { const d = s.decks[deck]; d.draw = d.draw.filter((x) => x !== id); d.discard = d.discard.filter((x) => x !== id); d.discard.push(id); }
+  if (ce.mode === "mandatory") { autoMandatory(s, ctx, p, ce); return; }
+  s.pending = { type: "card", playerId: p.id, cardId: id, deck };
+}
+
 function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<Action, { type: "decide" }>) {
   let p = s.players[idx(s, pid)];
+  // hod #7: pul to'lash YOKI kichik biznesdan birini qaytarish (kamida daromadli tanlanadi — eng kam zarar). Biznes bo'lmasa — to'lov majburiy.
+  if (ce.effect.kind === "payOrLoseBusiness") {
+    const biz = p.assets.filter((x) => x.kind === "small_business" && !x.partnerId && !x.stakeOf).sort((x, y) => x.monthlyIncome - y.monthlyIncome);
+    if (a.accept || biz.length === 0) setP(s, forcePay(s, ctx, p, ce.effect.amount));
+    else { setP(s, { ...p, assets: p.assets.filter((x) => x !== biz[0]) }); logf(s, `${p.id}: ${biz[0].code} biznesini qaytardi`); }
+    return;
+  }
   if (!a.accept) return;
-  const e = ce.effect;
+  let e = ce.effect;
+  // Inqiroz (§5.7): yer/dala-hovli/kvartira/aksiya sotib olish narxi 2 baravar past
+  if ((p.crisisMonths ?? 0) > 0) {
+    if (e.kind === "buy" && ["land", "dacha", "apartment"].includes(e.asset)) e = { ...e, price: e.price / 2, down: e.down === undefined ? undefined : e.down / 2, credit: e.credit === undefined ? undefined : e.credit / 2, creditPayment: e.creditPayment === undefined ? undefined : e.creditPayment / 2 };
+    if (e.kind === "buyShares") e = { ...e, pricePerShare: e.pricePerShare / 2 };
+  }
   const fund = (need: number) => {
     // §5.3: avval bank (limit ichida)
     if (p.cash >= need || !a.useBank) return;
@@ -355,9 +399,10 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const cands = p.assets.filter((x) => assetMatches(e.targets, x) && (a.assetCode === undefined || x.code === a.assetCode) && !x.partnerId && !x.stakeOf);
       const asset = cands.map((x) => ({ x, price: marketPrice(e.amount, x) })).find((c) => c.price !== null);
       if (!asset) return err("nothing_to_sell"); // ortiqcha: ulushli (sheriklik) aktivni sotib bo'lmaydi
-      const proceeds = asset.price! - asset.x.credit;
+      const crisisCut = (p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(asset.x.kind) ? 0.5 : 1; // inqirozda sotish narxi 2 baravar past
+      const price = asset.price! * crisisCut; const proceeds = price - asset.x.credit;
       setP(s, { ...p, cash: p.cash + proceeds, assets: p.assets.filter((x) => x !== asset.x) });
-      pr.sold.push(p.id); logf(s, `${p.id}: ${asset.x.code} sotdi ${asset.price}`); return ok();
+      pr.sold.push(p.id); logf(s, `${p.id}: ${asset.x.code} sotdi ${price}`); return ok();
     }
     case "bank_loan": { // §5.3: ixtiyoriy bank krediti, faqat o'z navbatida; 100 ga karrali; limit 10 000
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");

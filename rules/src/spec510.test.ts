@@ -49,10 +49,11 @@ describe("«Barcha o'yinchilarga» / «egasiga» tegishli kartalar hammasiga ta'
     const none = landWith(base, "bozor", id, "B", (g) => { for (const p of g.players) p.cash = 10_000; });
     expect(none.players[0].cash).toBe(10_000); // qarovi yo'q — qariya yo'q, to'lov yo'q
   });
-  it("jahon inqirozi (hod #8): HAMMA o'yinchining ko'chmas mulk narxi tushadi", () => {
+  it("jahon inqirozi (hod #8): HAMMA o'yinchiga 36 oy (9 aylana × 4 oy) inqiroz boshlanadi", () => {
     const ctx: Ctx = { ...base, cellRules: CellRules.parse({ small: { K: { kind: "drawDeck", deck: "hod" } } }) };
     const s = landWith(ctx, "hod", idOf((_i, e) => e.kind === "marketCrash"), "K", (g) => { for (const p of g.players) p.assets = [{ ...flat }]; });
-    for (const p of s.players) expect(p.assets[0].price).toBe(20_000);
+    for (const p of s.players) expect(p.crisisMonths).toBe(36);
+    expect(s.notices.filter((n) => n.key === "crisis_start").map((n) => n.to).sort()).toEqual(["p0", "p1", "p2"]);
   });
 });
 

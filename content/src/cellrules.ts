@@ -11,6 +11,7 @@ export const CellAction = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("payFixed"), amount: z.number().int().positive().max(100_000_000) }).strict(), // aniq summa to'lanadi
   z.object({ kind: z.literal("loseIncomeShare"), share: z.number().gt(0).lte(1) }).strict(),    // oylik daromadning ulushi yo'qoladi (bir marta)
   z.object({ kind: z.literal("drawDeck"), deck: DeckRef }).strict(),                             // kartalar dekasidan karta tortiladi
+  z.object({ kind: z.literal("drawCard"), cardId: z.string().min(1).max(64) }).strict(),             // aniq karta (masalan hod-7) tortiladi
   z.object({ kind: z.literal("offerCellAsset") }).strict(),                                      // katakdagi biznes (narx/daromad) sotib olish taklifi
 ]);
 export type CellActionT = z.infer<typeof CellAction>;
@@ -20,6 +21,7 @@ export const CellRules = z.object({
   big: z.object({
     byType: z.object({ T: CellAction.optional(), V: CellAction.optional(), O: CellAction.optional(), X: CellAction.optional(), Y: CellAction.optional() }).strict().default({}),
     byIndex: z.record(z.string().regex(/^\d{1,2}$/), CellAction).default({}), // katak raqami → ta'sir (turdan ustun)
+    onLap: CellAction.optional(), // START dan o'tganda har aylanada
   }).strict().default({}),
 }).strict();
 export type CellRulesT = z.infer<typeof CellRules>;

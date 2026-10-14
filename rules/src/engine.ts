@@ -61,7 +61,8 @@ export interface BankLoan { amount: number; left: number }
 export interface Player {
   id: string; pos: number; circle: "small" | "big"; profession: number;
   cash: number; salary: number; baseExpenses: number; childCost: number; children: number;
-  assets: Asset[]; bankDebt: number; bankLoans: BankLoan[]; twoDice?: number; // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
+  assets: Asset[]; bankDebt: number; bankLoans: BankLoan[]; twoDice?: number; crisisMonths?: number; // inqiroz (§5.7): qolgan oylar (36 oy = 9 aylana × 4 oy)
+  // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
   qar: boolean; insuredCar: boolean; handLoans: number;
 }
 
@@ -157,14 +158,16 @@ export function assetMatches(targets: string[], a: Asset): boolean {
   return targets.some((t) => (t === "KV*" ? a.kind === "apartment" : norm(t) === norm(a.code)));
 }
 type Sale = Extract<Effect, { kind: "marketSale" }>["amount"];
-/** Aktivni sotish narxi; qiymat noma'lum bo'lsa (real = "?") — null (sotib bo'lmaydi, OPEN_QUESTIONS #6). */
+/** Aktivni sotish narxi. null — bu aktivga narx qo'llanmaydi. */
 export function marketPrice(amount: Sale, a: Asset): number | null {
   const unit = (v: number | null) => (v === null ? null : a.shares ? v * a.shares : v);
   if (typeof amount === "number") return unit(amount);
   const room = /^KV(\d)/.exec(a.code)?.[1];
+  // Haqiqiy qiymat noma'lum (real = "?") bo'lsa — sotib olish narxi asos qilib olinadi (qaror: OPEN_QUESTIONS #60)
+  const mv = a.marketValue ?? a.price;
   const o = amount as { addByType?: Record<string, number>; multiply?: number; percent?: number };
-  if (o.addByType) { const add = room ? o.addByType[`KV${room}`] : undefined; return a.marketValue == null || add === undefined ? null : a.marketValue + add; }
-  if (o.multiply !== undefined) return a.marketValue == null ? null : a.marketValue * o.multiply;
-  if (o.percent !== undefined) return a.marketValue == null ? null : a.marketValue * (1 + o.percent / 100);
+  if (o.addByType) { const add = room ? o.addByType[`KV${room}`] : undefined; return add === undefined ? null : mv + add; }
+  if (o.multiply !== undefined) return mv * o.multiply;
+  if (o.percent !== undefined) return mv * (1 + o.percent / 100);
   const v = (amount as Record<string, number>)[a.code]; return v === undefined ? null : v;
 }
