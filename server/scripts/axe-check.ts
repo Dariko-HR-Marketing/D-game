@@ -30,7 +30,8 @@ for (const [w, h] of [[390, 844], [1024, 768], [1440, 900]] as [number, number][
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.getByPlaceholder("Xona kodi").fill(code); await c.getByRole("button", { name: "Kod bilan qo'shilish" }).click(); await c.waitForSelector("text=Xona egasi");
   await scan(a, `xona ${tag}`);
-  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Naqd"); await scan(a, `o'yin ${tag}`);
+  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await scan(a, `orzu tanlash ${tag}`);
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await scan(a, `o'yin ${tag}`);
   const room = x.rooms.rooms.get(code)!;
   for (let i = 0; i < 300 && !room.state!.pending; i++) { const me = currentPlayer(room.state!).id; await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq); }
   if (room.state!.pending) { const me = currentPlayer(room.state!).id; const pg = me === "ua" + w ? a : c; await pg.waitForTimeout(600); await scan(pg, `o'yin+karta ${tag}`); }

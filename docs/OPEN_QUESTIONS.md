@@ -69,3 +69,4 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 62. Qarz eslatmasi (`loan_remind`) va avto sug'urta cheklovi — qabul qilindi, `DECISIONS_NEEDED.md`.
 63. Ballar: g'alaba 100, kichik aylanadan chiqish 50 (`POINTS`); «Ishonchsiz» belgisi va yulduz/unvon moslashuvi hali kodlanmagan (qiymatlar SPEC'da yo'q).
 64. Sheriklik dividend davri (24 oy) kodlanmadi — hozirgi soddalashtirish `DECISIONS_NEEDED.md` da.
+65. Orzu tanlash ekrani va barcha asosiy ekranlar uchun axe-core (WCAG 2.2 AA) tekshiruvi 390/1024/1440 px da qayta o'tkazildi: buzilish yo'q.
