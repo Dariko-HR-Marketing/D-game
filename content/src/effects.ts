@@ -12,7 +12,7 @@ export type Effect =
   | { kind: "pay"; amount: number; to: "bank" | "bank_insurable_car" }
   | { kind: "lendRequest"; amount: number; returnAmount: number }
   | { kind: "qarOffer"; monthlyExpense: number }
-  | { kind: "qarEvent"; payNow?: number; monthlyExpenseIncrease?: number; onlyQarHolders: boolean }
+  | { kind: "qarEvent"; payNow?: number; monthlyExpenseIncrease?: number; scope: "drawer" | "holders" } // drawer: faqat kartani olgan (qarovi bo'lsa); holders: qarov kartasi egalari hammasi
   | { kind: "marketSale"; targets: string[]; amount: number | Record<string, number> | { addByType: Record<string, number> } | { multiply: number } | { percent: number } }
   | { kind: "businessIncomeIncrease"; amount: number }
   | { kind: "marketCrash"; factor: 0.5 }
@@ -33,8 +33,8 @@ const real = (r: unknown) => (typeof r === "number" ? r : null);
 function bozorEffect(c: Cards["bozor"][number]): Effect {
   const t = c.code;
   if (c.kind === "Daromad oshadi") return { kind: "businessIncomeIncrease", amount: c.amount as number };
-  if (c.kind === "Majburiy to‘lov") return { kind: "qarEvent", payNow: c.amount as number, onlyQarHolders: c.who === "Qarov kartasi egasi" };
-  if (c.kind === "Xarajat oshadi") return { kind: "qarEvent", monthlyExpenseIncrease: c.amount as number, onlyQarHolders: true };
+  if (c.kind === "Majburiy to‘lov") return { kind: "qarEvent", payNow: c.amount as number, scope: c.who === "Qarov kartasi egasi" ? "holders" : "drawer" };
+  if (c.kind === "Xarajat oshadi") return { kind: "qarEvent", monthlyExpenseIncrease: c.amount as number, scope: c.who === "Qarov kartasi egasi" ? "holders" : "drawer" };
   if (c.kind !== "Sotish imkoniyati") return { kind: "unresolved", reason: `noma'lum bozor turi: ${c.kind}` };
   const a = c.amount;
   if (typeof a === "number") return { kind: "marketSale", targets: [t], amount: a };
@@ -87,8 +87,10 @@ export function deriveEffects(c: Cards): CardEffect[] {
   c.hod.forEach((h) => push("hod", `hod-${h.n}`, h.file, "mandatory",
     typeof h.amount === "number" ? { kind: "pay", amount: h.amount, to: "bank" } : h.n === 8 ? { kind: "marketCrash", factor: 0.5 } : { kind: "unresolved", reason: "hod summasi" }));
 
+  // §5.10: 6 yangi karta — har biri o'z dekasiga qo'shiladi (`deck` maydoni: kichik/bozor/xar/hod). Aks holda hech qachon chiqmaydi.
   c.new.forEach((n) => {
     const id = `new-${n.code}`;
+    const push = (_d: string, i: string, f: string, m: Mode, e: Effect) => out.push({ deck: n.deck, id: i, file: f, mode: m, effect: e, text: n.text });
     switch (n.code) {
       case "MO": return push("new", id, n.file, "optional", { kind: "courseSalaryPlus", price: n.price as number, salaryPlus: n.salary_plus! });
       case "XAY": return push("new", id, n.file, "optional", { kind: "charity", incomeShare: 0.1, turns: 3, dice: 2 });
@@ -105,6 +107,6 @@ export function deriveEffects(c: Cards): CardEffect[] {
     xar: c.xar.map((k) => k.text), kxar: c.kxar.map((k) => k.text), hod: c.hod.map((k) => k.text), new: c.new.map((k) => k.text),
   };
   const seen: Record<string, number> = {};
-  for (const e of out) { const i = (seen[e.deck] = (seen[e.deck] ?? -1) + 1); e.text = src[e.deck][i]; }
+  for (const e of out) { if (e.text !== undefined) continue; const i = (seen[e.deck] = (seen[e.deck] ?? -1) + 1); e.text = src[e.deck][i]; }
   return out;
 }

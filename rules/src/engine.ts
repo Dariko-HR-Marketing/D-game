@@ -61,7 +61,8 @@ export interface BankLoan { amount: number; left: number }
 export interface Player {
   id: string; pos: number; circle: "small" | "big"; profession: number;
   cash: number; salary: number; baseExpenses: number; childCost: number; children: number;
-  assets: Asset[]; bankDebt: number; bankLoans: BankLoan[]; qar: boolean; insuredCar: boolean; handLoans: number;
+  assets: Asset[]; bankDebt: number; bankLoans: BankLoan[]; twoDice?: number; // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
+  qar: boolean; insuredCar: boolean; handLoans: number;
 }
 
 export function newPlayer(id: string, k: { n: number; salary: number; total: number; save: number; child: number }): Player {
@@ -107,6 +108,12 @@ export function applyEffect(p: Player, e: Effect): Result {
         creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0, marketValue: e.marketValue }] });
     }
     case "buyShares": return { ok: false, reason: "not_applicable" }; // miqdorni o'yinchi tanlaydi: buyShares()
+    case "lendRequest": // «Do'stingiz qarzga so'rayapti»: bugun beriladi, keyin «qarz qaytdi» kartasi qaytaradi (§5.10)
+      return pay(e.amount, { ...p, handLoans: p.handLoans + 1 });
+    case "charity": { // Umumiy oylik daromadning 10 % i to'lanadi, keyingi 3 navbatda 2 kubik (§5.10)
+      const amt = Math.round(e.incomeShare * (p.salary + passiveIncome(p)));
+      return pay(amt, { ...p, twoDice: (p.twoDice ?? 0) + e.turns });
+    }
     case "qarOffer": return { ok: true, player: { ...p, qar: true } };
     case "courseSalaryPlus": return pay(e.price, { ...p, salary: p.salary + e.salaryPlus });
     case "businessIncomeIncrease": {

@@ -48,7 +48,8 @@ Ma'lum (maydon ma'lumotidan): **5 Bankrot** · **23 Ajrashish** · **33 Audit te
 ### D5. «Kutilmagan hodisa» dekasi (hod, 9 karta)
 - **Ma'lum:** matnlar katta biznes yo'qotishlari («Bankka 10 000…75 000 bering»), #8 jahon inqirozi, #7 ajralish. Summalar kichik aylana uchun juda katta (bank limiti 10 000), demak katta aylanaga tegishli. **Qachon tortilishi SPEC'da yo'q.**
 - **Savollar:** (1) qaysi katakda/hodisada tortiladi? (X kataklarida? aylana boshida?) (2) #8 inqiroz: §5.7 «9 aylana (3 yil) amal qiladi» — amal qilganda **narxlar ikki baravar tushadimi** (sotish va sotib olish)? Hozir kodda faqat bir marta nominal narx yarmiga tushadi, 9 aylana davomiyligi yo'q. (3) #7 muqobil (D4).
-- **Tavsiya:** hod dekasi X kataklarida (Bankrot) tortiladi; inqiroz — 9 aylana davomida sotish narxlari ×0.5.
+- **Hisob:** kichik aylanada 4 ta «D» katagi bor, ya'ni 1 aylana = 4 oy; 9 aylana = **36 oy = 3 yil** (§5.7 bilan mos). Savol: davomiylik **kimning** oyida o'lchanadi (inqirozni tortgan o'yinchining o'z oyida / hamma o'yinchilarning umumiy o'tgan oylarida)? Tugaganda «aloqador o'yinchilarga xabar» — aloqador = narxi tushgan aktivi borlar.
+- **Tavsiya:** hod dekasi X kataklarida (Bankrot) tortiladi; inqiroz — 36 oy davomida (har bir o'yinchining o'z oyida) sotish narxlari ×0.5.
 - **Javob:** D5 = ____
 
 ### D6. «Yana pullar» (Y) katagi — 4 ta (0, 15, 26, 42)

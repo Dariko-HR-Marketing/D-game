@@ -13,9 +13,11 @@ Simulyator `rules` dvigatelining o'zini ishlatadi (alohida nusxa yo'q). 2–6 o'
 |---|---|---|---|---|
 | passive | 0 % | 0 % | 3.24 | — |
 | naive | 0 % | 0 % | 0.26 | — |
-| smart | 88.1 % | 2.5 % | 0.05 | 384 / 439 |
+| smart | 88.1 % | 12.5 % | 0.05 | 380 / 450 |
 
 "Aylana" = bitta o'yinchining navbatlar soni. Median 384 — SPEC'dagi "taxminan 370 navbat" bilan bir tartibda (qog'oz sinovi bilan solishtirish buyurtmachida).
+
+> **Yangilanish (§5.10 tuzatishlaridan keyin):** 6 ta yangi karta dekalarga qo'shildi (avval hech qachon chiqmasdi) va qarov/inqiroz/qarz qaytishi qoidalari tuzatildi; «smart» qatori shu bilan qayta o'lchandi. G'olib bor o'yinlar ulushi (2.5 % → 12.5 %) 40 o'yinda 1 → 5 o'yin farqi: statistik jihatdan shovqin bo'lishi mumkin, aniq xulosa chiqarilmaydi.
 
 ## Xulosa va ogohlantirishlar
 1. **Mexanika ishlaydi:** o'ylab o'ynagan o'yinchi kichik aylanadan chiqa oladi; passiv o'yin chiqmaydi; kredit va bozor sotuvi natijaga ta'sir qiladi.

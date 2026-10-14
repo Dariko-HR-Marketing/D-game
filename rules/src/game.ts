@@ -142,7 +142,10 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
   if (a.type === "roll") {
     if (s.pending) return { ok: false, error: "decision_pending" };
-    const die = withRng(s, (r) => rollDie(r));
+    // Xayriya (§5.10): keyingi 3 navbatda 2 ta kubik (yig'indisi bo'yicha yuriladi)
+    const two = (cur.twoDice ?? 0) > 0;
+    const die = withRng(s, (r) => (two ? rollDie(r) + rollDie(r) : rollDie(r)));
+    if (two) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
     land(s, ctx, cur.id, die);
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s, die };
@@ -197,6 +200,13 @@ function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
 /** Majburiy karta darhol qo'llanadi (§5.2). */
 function autoMandatory(s: GameState, ctx: Ctx, p: GamePlayer, ce: CardEffect) {
   s.pending = null;
+  // Karta matni "barcha o'yinchilar" / "qarov kartasi egasi" / "qarz bergan o'yinchi" ga tegishli deb aytsa — hammasiga (faqat tortgan o'yinchiga emas)
+  const k = ce.effect.kind;
+  const allPlayers = k === "marketCrash" || k === "debtRepaid" || (ce.effect.kind === "qarEvent" && ce.effect.scope === "holders");
+  if (allPlayers) {
+    for (const q of [...s.players]) setP(s, applyMandatory(s, ctx, s.players[idx(s, q.id)], ce.effect));
+    return;
+  }
   setP(s, applyMandatory(s, ctx, s.players[idx(s, p.id)], ce.effect));
 }
 
@@ -209,7 +219,7 @@ function applyMandatory(s: GameState, ctx: Ctx, p: GamePlayer, e: Effect): GameP
       return r.reason === "insufficient_cash" ? forcePay(s, ctx, p, e.amount) : p;
     }
     case "qarEvent": {
-      if (!p.qar && e.onlyQarHolders) return p;
+      if (!p.qar) return p; // qarovsiz o'yinchida qariya yo'q — ta'sir qilmaydi
       if (e.payNow) return forcePay(s, ctx, p, e.payNow);
       if (e.monthlyExpenseIncrease) return { ...p, baseExpenses: p.baseExpenses + e.monthlyExpenseIncrease };
       return p;
@@ -224,7 +234,7 @@ function applyMandatory(s: GameState, ctx: Ctx, p: GamePlayer, e: Effect): GameP
       if (i < 0) return p;
       return { ...p, cash: p.cash - p.assets[i].monthlyIncome };
     }
-    case "debtRepaid": return p.handLoans > 0 ? { ...p, cash: p.cash + e.amount, handLoans: p.handLoans - 1 } : p;
+    case "debtRepaid": return p.handLoans > 0 ? { ...p, cash: p.cash + e.amount, handLoans: p.handLoans - 1 } : p; // faqat qarz bergan o'yinchilarga
     default: return p;
   }
 }
@@ -299,10 +309,9 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
   if (e.kind === "buyShares") {
     const qty = a.qty ?? e.min; fund(qty * e.pricePerShare);
     const r = buyShares(p, e, qty); if (r.ok) p = { ...p, ...r.player } as GamePlayer;
-  } else if (e.kind === "lendRequest") {
-    // O'zaro qarz qoidalari (§5.6) alohida modulda; bu yerda qabul qilinmaydi.
   } else {
-    const need = e.kind === "buy" ? (e.down ?? e.price) : e.kind === "courseSalaryPlus" || e.kind === "carInsurance" ? e.price : e.kind === "qarOffer" ? 0 : 0;
+    const need = e.kind === "buy" ? (e.down ?? e.price) : e.kind === "courseSalaryPlus" || e.kind === "carInsurance" ? e.price
+      : e.kind === "lendRequest" ? e.amount : e.kind === "charity" ? Math.round(e.incomeShare * (p.salary + passiveIncome(p))) : 0;
     fund(need);
     const r = applyEffect(p, e); if (r.ok) p = { ...p, ...r.player } as GamePlayer;
   }
