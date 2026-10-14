@@ -15,7 +15,8 @@ export interface Room {
   timer: unknown; deadline: number | null;
 }
 export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string };
-export interface RoomView { code: string; members: Member[]; state: GameState | null; seq: number; deadline: number | null }
+export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
+export interface RoomView { code: string; members: Member[]; state: GameState | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -32,7 +33,11 @@ export class RoomManager {
 
   on(f: (code: string, ev: RoomEvent) => void) { this.listeners.add(f); return () => this.listeners.delete(f); }
   private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); }
-  view(r: Room): RoomView { return { code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline }; }
+  view(r: Room): RoomView {
+    const pc = r.state?.pending ? effectOf(this.ctx, r.state.pending.cardId) : null;
+    return { code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline,
+      pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
+  }
 
   private newCode() {
     for (;;) {

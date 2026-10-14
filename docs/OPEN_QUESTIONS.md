@@ -25,3 +25,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 20. Sheriklik: "ulush qaytgach 24 oy dividend" tartibi SPEC'da noaniq — hozir faqat 50/50 foyda va egasi tomonidan sotib olish (to'liq narx + 1 oylik foyda) kodlangan; 24 oylik dividend davri va "bepul" variant kodlanmagan.
 21. Hamkorlik qarzi muddati (`months`) saqlanadi, lekin to'lov ixtiyoriy bo'lgani uchun jarima/eslatma avtomatikasi yo'q; "Ishonchsiz" belgisi va −50 ball ("tasdiq kutilmoqda") kodlanmagan.
 22. Katta aylana mulkiy sheriklik: faqat bir xil aylanadagi o'yinchilar o'rtasida ruxsat (§2.7).
+23. Mijoz (Expo, veb bundle ishlaydi): hozir 3 ta ekran (bosh sahifa, xona, o'yin). Prototipdagi 71 ekranning qolgani, 90° burilgan taxta (telefon), karta rasmlari (fayllar yo'q), hamkorlik/bank ekranlari, Google/Apple tugmalari — dizayner materiali va keyingi bosqichlar.
+24. iOS/Android qurilishi (EAS) va do'kon hisoblari sandboxda tekshirilmadi; faqat veb eksport va brauzer e2e tekshirildi.

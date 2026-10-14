@@ -1,6 +1,6 @@
 // O'yin darajasidagi holat mashinasi: navbat, katak, karta qarori, chiqish, g'alaba.
 // Hamma narsa sof va serializatsiya qilinadigan holat ustida; tasodifiylik holatdagi `rng` dan.
-import type { CardEffect, Effect } from "@poyga/content";
+import type { CardEffect, Effect } from "@poyga/content/effects";
 import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
@@ -147,7 +147,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
 export function effectOf(ctx: Ctx, id: string): CardEffect {
   if (id.startsWith("big-")) {
     const c = ctx.bigBoard[Number(id.slice(4))];
-    return { deck: "bigboard", id, file: "", mode: "optional", effect: { kind: "buy", asset: "business", code: id, price: c.price!, monthlyIncome: c.income! } };
+    return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "buy", asset: "business", code: id, price: c.price!, monthlyIncome: c.income! } };
   }
   return ctx.effects[id];
 }

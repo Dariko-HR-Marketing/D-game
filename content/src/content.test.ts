@@ -38,4 +38,8 @@ describe("kartalar ta'siri (100 %)", () => {
   it("yangi 6 karta: MO, XAY, IJR, TOSH, SUG, Q", () => {
     expect(cards.new.map((n) => n.code).sort()).toEqual(["IJR", "MO", "Q", "SUG", "TOSH", "XAY"]);
   });
+  it("har bir ta'sirda matn bor", () => {
+    expect(effects.every((e) => typeof e.text === "string" && e.text.length > 0)).toBe(true);
+    expect(effects.find((e) => e.id === "xar-1")!.text).toBe(cards.xar[0].text);
+  });
 });

@@ -24,7 +24,7 @@ export type Effect =
   | { kind: "floodCarRepair"; amount: number; exemptWithInsurance: true }
   | { kind: "unresolved"; reason: string };
 
-export interface CardEffect { deck: string; id: string; file: string; mode: Mode; effect: Effect }
+export interface CardEffect { deck: string; id: string; file: string; mode: Mode; effect: Effect; text?: string }
 
 const num = (s: string) => Number(s.replace(/[^\d.-]/g, ""));
 const assetOf = (code: string): "apartment" | "dacha" | "land" => (code === "DX" ? "dacha" : code === "E" ? "land" : "apartment");
@@ -99,5 +99,12 @@ export function deriveEffects(c: Cards): CardEffect[] {
       default: return push("new", id, n.file, "optional", { kind: "unresolved", reason: `new kod: ${n.code}` });
     }
   });
+  // Karta matni (UI uchun): har kolodada tartib manba massivi bilan bir xil.
+  const src: Record<string, string[]> = {
+    kasb: c.kasb.map((k) => k.name), kichik: c.kichik.map((k) => k.text), katta: c.katta.map((k) => k.text), bozor: c.bozor.map((k) => k.text),
+    xar: c.xar.map((k) => k.text), kxar: c.kxar.map((k) => k.text), hod: c.hod.map((k) => k.text), new: c.new.map((k) => k.text),
+  };
+  const seen: Record<string, number> = {};
+  for (const e of out) { const i = (seen[e.deck] = (seen[e.deck] ?? -1) + 1); e.text = src[e.deck][i]; }
   return out;
 }

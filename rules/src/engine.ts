@@ -1,5 +1,5 @@
 // O'yin holati va tranzitsiyalar (sof, deterministik). Tasodifiylik `Rng` orqali tashqaridan beriladi (SPEC §6.6).
-import type { Effect } from "@poyga/content";
+import type { Effect } from "@poyga/content/effects";
 import { RULES, bankMonthlyPayment } from "./index";
 
 export type Rng = () => number; // [0,1)
