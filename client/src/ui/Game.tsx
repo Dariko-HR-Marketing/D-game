@@ -14,7 +14,7 @@ import { Actions } from "./Actions";
 
 const CELL_COLOR: Record<string, string> = { S: color.navy, I: color.green, H: color.red, B: color.gold, D: "#2C6DB5", K: color.text2, Q: color.text2, O: "#7B4FA3" };
 
-function Board({ room, size }: { room: RoomView; size: number }) {
+function Board({ room, size, turns = 0 }: { room: RoomView; size: number; turns?: number }) {
   const players = room.state.players;
   const circle = players.find((p: any) => p.circle === "small") ? "small" : "big";
   const n = circle === "small" ? 48 : 53;
@@ -22,14 +22,14 @@ function Board({ room, size }: { room: RoomView; size: number }) {
   return (
     <View style={{ width: size, height: size }} role="img" aria-label={`Taxta. ${players.map((p: any) => `${room.names?.[p.id]?.name ?? p.id}: ${p.pos}-katak`).join("; ")}`}>
       {Array.from({ length: n }, (_, i) => {
-        const { x, y } = ringPosition(i, n);
+        const { x, y } = ringPosition(i, n, 0.44, turns);
         const t = circle === "small" ? SMALL_BOARD[i] : "";
         return <View key={i} aria-hidden style={{ position: "absolute", left: x * size - cell / 2, top: y * size - cell / 2, width: cell, height: cell, borderRadius: 4,
           backgroundColor: circle === "small" ? CELL_COLOR[t] : color.line, opacity: 0.9 }}>
           <Text style={{ color: readableOn(circle === "small" ? CELL_COLOR[t] : color.line), fontSize: cell * 0.5, textAlign: "center", fontWeight: "700" }}>{t}</Text></View>;
       })}
       {players.map((p: any, k: number) => {
-        const nn = p.circle === "small" ? 48 : 53, { x, y } = ringPosition(p.pos, nn, 0.34 + k * 0.025);
+        const nn = p.circle === "small" ? 48 : 53, { x, y } = ringPosition(p.pos, nn, 0.34 + k * 0.025, turns);
         return <View key={p.id} aria-hidden style={{ position: "absolute", left: x * size - 9, top: y * size - 9, width: 18, height: 18, borderRadius: 9,
           backgroundColor: PLAYER_COLORS[k % 6], borderWidth: 2, borderColor: color.navy }} />;
       })}
@@ -68,11 +68,24 @@ function useCountdown(deadline: number | null) {
   return left;
 }
 
+function DecisionCard({ card, onAct, sheet }: { card: any; onAct: (a: Record<string, unknown>) => void; sheet?: boolean }) {
+  return (
+    <View style={sheet ? undefined : s.card} accessibilityRole="alert">
+      <Text style={s.cardTag}>{card.mode === "mandatory" ? uz.game.mandatory : uz.game.optional}</Text>
+      <Text style={s.cardText}>{card.text}</Text>
+      {card.mode !== "mandatory" && card.effect?.kind === "buyShares" && <SharesInput card={card} onAct={onAct} />}
+      {card.mode !== "mandatory" && card.effect?.kind !== "buyShares" && (<>
+        <Button label={uz.game.accept} onPress={() => onAct({ type: "decide", accept: true, useBank: true })} />
+        <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></>)}
+    </View>
+  );
+}
+
 /** Karta ochilishi: yengil paydo bo'lish (~240 ms); harakatni kamaytirish yoqilgan bo'lsa — darhol. */
-function CardEnter({ children, id }: { children: React.ReactNode; id: string }) {
+function CardEnter({ children, id, from = 12 }: { children: React.ReactNode; id: string; from?: number }) {
   const reduced = useReducedMotion(); const v = React.useRef(new Animated.Value(0)).current;
   useEffect(() => { v.setValue(0); Animated.timing(v, { toValue: 1, duration: animationMs(reduced), useNativeDriver: true }).start(); }, [id, reduced, v]);
-  return <Animated.View style={{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>{children}</Animated.View>;
+  return <Animated.View style={{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [from, 0] }) }] }}>{children}</Animated.View>;
 }
 
 function SharesInput({ card, onAct }: { card: any; onAct: (a: Record<string, unknown>) => void }) {
@@ -94,9 +107,11 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions }: { roo
   const mine = me(room, userId), mineTurn = isMyTurn(room, userId), card = room.pendingCard;
   const state = room.state;
   const boardSize = wide ? Math.min(width * 0.5, 640) : Math.min(width - 32, 480);
+  const sheetOpen = !wide && !!card && mineTurn;
   return (
-    <ScrollView contentContainerStyle={[s.wrap, wide && { flexDirection: "row", alignItems: "flex-start" }]}>
-      <View><Board room={room} size={boardSize} /></View>
+    <View style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={[s.wrap, wide && { flexDirection: "row", alignItems: "flex-start" }, sheetOpen && { paddingBottom: 360 }]}>
+      <View><Board room={room} size={boardSize} turns={wide ? 0 : 3} /></View>
       <View style={[{ gap: 12, flex: 1, minWidth: 280 }, wide && { maxWidth: 420 }]}>
         <Text style={s.title} aria-level={1} accessibilityRole="header">{uz.app.name} · {room.code}</Text>
         <Text style={s.turn} accessibilityLiveRegion="polite">
@@ -105,15 +120,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions }: { roo
         </Text>
         {mine && <Blank p={mine} />}
         <Actions room={room} userId={userId} onAct={onAct} />
-        {card && mineTurn && (
-          <CardEnter id={card.id}><View style={s.card} accessibilityRole="alert">
-            <Text style={s.cardTag}>{card.mode === "mandatory" ? uz.game.mandatory : uz.game.optional}</Text>
-            <Text style={s.cardText}>{card.text}</Text>
-            {card.mode !== "mandatory" && card.effect?.kind === "buyShares" && <SharesInput card={card} onAct={onAct} />}
-            {card.mode !== "mandatory" && card.effect?.kind !== "buyShares" && (<>
-              <Button label={uz.game.accept} onPress={() => onAct({ type: "decide", accept: true, useBank: true })} />
-              <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></>)}
-          </View></CardEnter>)}
+        {card && mineTurn && wide && <CardEnter id={card.id}><DecisionCard card={card} onAct={onAct} /></CardEnter>}
         {!card && mineTurn && !state.winner && <Button label={uz.game.roll} onPress={() => onAct({ type: "roll" })} />}
         <Text style={s.log}>{state.log.slice(-3).join("\n")}</Text>
         <View style={s.reactRow} accessibilityLabel={uz.react.label}>
@@ -129,9 +136,16 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions }: { roo
           </View>))}
       </View>
     </ScrollView>
+    {/* §9: telefonda qaror pastki varaqda (bottom sheet) */}
+    {sheetOpen && (
+      <View style={s.sheet} accessibilityViewIsModal>
+        <CardEnter id={card!.id} from={48}><DecisionCard card={card} onAct={onAct} sheet /></CardEnter>
+      </View>)}
+    </View>
   );
 }
 const s = StyleSheet.create({
+  sheet: { position: "absolute", left: 0, right: 0, bottom: 0, maxHeight: "65%" as any, backgroundColor: color.white, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderTopWidth: 3, borderColor: color.gold, padding: 16, paddingBottom: 24, shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: -4 }, elevation: 12 },
   wrap: { padding: 16, gap: 16 }, title: { fontSize: 14, fontWeight: "800", color: color.text2, letterSpacing: 1 }, turn: { fontSize: 18, fontWeight: "700", color: color.navy },
   panel: { backgroundColor: color.white, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: color.line, gap: 4 },
   row: { flexDirection: "row", justifyContent: "space-between" }, l: { color: color.text2 }, v: { color: color.navy, fontWeight: "700" },

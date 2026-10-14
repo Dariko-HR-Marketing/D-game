@@ -163,3 +163,12 @@ describe("chiqqandan keyin tasodifiy holat xabari xonani qaytarmaydi", () => {
     c.join("abc234"); w.onmessage(st(3)); expect(c.state.room?.seq).toBe(3);
   });
 });
+
+describe("taxta burilishi (§9: telefonda 90°)", () => {
+  it("turns=0: START tepada; turns=3: START chapda; to'liq aylanish (4) asl holatga qaytadi", () => {
+    const top = ringPosition(0, 48), left = ringPosition(0, 48, 0.44, 3);
+    expect(top.x).toBeCloseTo(0.5); expect(top.y).toBeCloseTo(0.06);
+    expect(left.x).toBeCloseTo(0.06); expect(left.y).toBeCloseTo(0.5);
+    const full = ringPosition(7, 48, 0.44, 4), base = ringPosition(7, 48); expect(full.x).toBeCloseTo(base.x); expect(full.y).toBeCloseTo(base.y);
+  });
+});
