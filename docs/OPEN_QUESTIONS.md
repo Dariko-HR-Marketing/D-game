@@ -1,5 +1,7 @@
 # Ochiq savollar va qabul qilingan taxminlar
 
+> Buyurtmachi qarorlari uchun qisqa va tartiblangan ro'yxat: [`DECISIONS_NEEDED.md`](DECISIONS_NEEDED.md). Katak qoidalari kodsiz, admin paneldagi `cellRules` orqali sozlanadi.
+
 Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq kutilmoqda" qoidalari; 6 soatlik vaqt rejimi; V katagi (DICE); yurist masalalari; dizayner materiallari; muddat/byudjet; KV2-012 "ikki xonali"; korxona nomi.
 
 ## Muhandislik taxminlari (konfiguratsiyada, o'zgartirish oson)
@@ -60,3 +62,4 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 55. Xona sozlamalari ekrani: SPEC'da qaysi sozlamalar bo'lishi aytilmagan (vaqt rejimi §5.11 qoidasi ham ochiq), shuning uchun hozircha yo'q.
 56. Qoidalar ekrani (§15): matnlar SPEC §5 ni o'zbekcha qisqartirib bayon qiladi (raqamlar dvigatel konstantalaridan); rasmiy qoidalar matni (qo'llanma) buyurtmachidan kelishi va yurist/muharrir tekshirishi kerak. K/Q/V/X/Y kataklari va boshqa ochiq qoidalar ekranda yo'q (SPEC'da aniqlanmagan).
 57. Karta rasmlari (§2.5): kod tayyor (rasm bo'lsa ko'rsatiladi, bo'lmasa matn; `/cards/<fayl>` tekis papka, `deploy/vps/cards/`). Rasm fayllari buyurtmachidan kelishi kerak (hozir yo'q) va nomlari `file` maydoniga mos bo'lishi shart. Rasmlarni admin paneldan yuklash va rasmning o'zida karta ma'lumotini (matn) takrorlamaslik (dizayner) — ochiq. Real rasmlar bilan taxta/varaq maketini (balandlik 200 px) sinash kerak.
+58. Katak qoidalari mexanizmi (`content/src/cellrules.ts`): K, Q, V, X, Y kataklari ta'siri ma'lumot (JSON) bilan sozlanadi, versiyali va o'yin boshlanganda qulflanadi. Qoidalar bo'sh = eskicha (jurnalga yozish). Kontent to'g'riligi: mavjud bo'lmagan katak, bo'sh deka, narxsiz katakka `offerCellAsset` — nashrda rad etiladi.

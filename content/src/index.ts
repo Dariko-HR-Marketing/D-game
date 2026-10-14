@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { BigCell, Cards, Dream } from "./schema";
 import { deriveEffects } from "./effects";
+import { CellRules } from "./cellrules";
 
 export * from "./schema";
 export * from "./effects";
@@ -13,6 +14,7 @@ export function loadContent() {
     cards: Cards.parse(read("cards")),
     bigBoard: z.array(BigCell).length(53).parse(read("board_big")),
     dreams: z.array(Dream).parse(read("dreams")),
+    cellRules: CellRules.parse(read("cell_rules")),
   };
 }
 
@@ -20,8 +22,9 @@ export type Bundle = ReturnType<typeof loadContent>;
 
 /** Tashqaridan kelgan (admin) kontentni sxema bo'yicha tekshiradi. */
 export function parseBundle(raw: unknown): Bundle {
-  const r = raw as { cards: unknown; bigBoard: unknown; dreams: unknown };
-  return { cards: Cards.parse(r.cards), bigBoard: z.array(BigCell).length(53).parse(r.bigBoard), dreams: z.array(Dream).parse(r.dreams) };
+  const r = raw as { cards: unknown; bigBoard: unknown; dreams: unknown; cellRules?: unknown };
+  // cellRules ixtiyoriy: eski (saqlangan) versiyalarda yo'q — bo'sh qoidalar deb olinadi
+  return { cards: Cards.parse(r.cards), bigBoard: z.array(BigCell).length(53).parse(r.bigBoard), dreams: z.array(Dream).parse(r.dreams), cellRules: CellRules.parse(r.cellRules ?? {}) };
 }
 
 /** O'yinni buzadigan mantiqiy xatolar (sxemadan tashqari). Bo'sh ro'yxat = nashr qilish mumkin. */
@@ -32,6 +35,13 @@ export function validateBundle(b: Bundle): string[] {
   for (const d of b.dreams) if (!cells.has(d.name)) problems.push(`orzu "${d.name}" katta aylanada katak topilmadi`);
   if (b.bigBoard[34]?.name !== "Start") problems.push("katta aylana START (34) katagi o'zgargan");
   if (b.cards.kasb.length === 0) problems.push("kasblar yo'q");
+  // Katak qoidalari: mavjud bo'lmagan katak, bo'sh deka, narxsiz katakka sotib olish taklifi
+  const acts: [string, { kind: string; deck?: string }][] = [...Object.entries(b.cellRules.small).map(([k, a]) => [`small.${k}`, a] as [string, any]),
+    ...Object.entries(b.cellRules.big.byType).map(([k, a]) => [`big.byType.${k}`, a] as [string, any]), ...Object.entries(b.cellRules.big.byIndex).map(([k, a]) => [`big.byIndex.${k}`, a] as [string, any])];
+  for (const [i] of Object.entries(b.cellRules.big.byIndex)) if (Number(i) >= b.bigBoard.length) problems.push(`cellRules.big.byIndex.${i}: bunday katak yo'q (0–${b.bigBoard.length - 1})`);
+  for (const [where, a] of acts) if (a?.kind === "drawDeck" && !(b.cards as any)[a.deck!]?.length) problems.push(`cellRules.${where}: "${a.deck}" dekasi bo'sh`);
+  for (const [i, a] of Object.entries(b.cellRules.big.byIndex)) if (a.kind === "offerCellAsset" && b.bigBoard[Number(i)]?.price == null) problems.push(`cellRules.big.byIndex.${i}: katakda narx yo'q (offerCellAsset mumkin emas)`);
   return problems;
 }
 export * from "./cardfile";
+export * from "./cellrules";

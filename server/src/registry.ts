@@ -4,7 +4,7 @@ import type { Ctx } from "@poyga/rules";
 import { buildCtxFrom } from "./ctx";
 import { WriteQueue, type Persist } from "./persist";
 
-export type Part = "cards" | "bigBoard" | "dreams";
+export type Part = "cards" | "bigBoard" | "dreams" | "cellRules";
 export interface VersionInfo { version: number; part: Part | "initial"; note: string; author: string; at: number; published: boolean }
 
 export class ContentRegistry {

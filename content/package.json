@@ -18,6 +18,7 @@
  "exports": {
   ".": "./src/index.ts",
   "./effects": "./src/effects.ts",
-  "./cardfile": "./src/cardfile.ts"
+  "./cardfile": "./src/cardfile.ts",
+  "./cellrules": "./src/cellrules.ts"
  }
 }

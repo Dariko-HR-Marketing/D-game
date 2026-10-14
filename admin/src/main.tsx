@@ -38,7 +38,7 @@ function Content({ api }: { api: Api }) {
         {vs.data?.versions.map((v) => (<tr key={v.version}><td>v{v.version}</td><td>{v.part}</td><td>{v.note}</td><td>{vs.data!.active === v.version ? "✓" : ""}</td>
           <td>{vs.data!.active !== v.version && <button onClick={async () => { await api.post(`/admin/content/versions/${v.version}/publish`); vs.reload(); }}>{t.publish}</button>}</td></tr>))}
       </tbody></table></div>
-    <div className="card"><div className="row"><label>{t.part}<select value={part} onChange={(e) => setPart(e.target.value)}><option>dreams</option><option>bigBoard</option><option>cards</option></select></label>
+    <div className="card"><div className="row"><label>{t.part}<select value={part} onChange={(e) => setPart(e.target.value)}><option>cellRules</option><option>dreams</option><option>bigBoard</option><option>cards</option></select></label>
       <button onClick={load}>{t.load}</button></div>
       <label>JSON<textarea aria-label="JSON" value={text} onChange={(e) => setText(e.target.value)} /></label>
       <label>{t.note}<input value={note} onChange={(e) => setNote(e.target.value)} /></label>

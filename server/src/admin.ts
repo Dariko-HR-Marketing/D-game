@@ -76,7 +76,7 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
   }));
   app.post("/admin/content/:part/versions", guard("content.write", (req, who) => {
     const part = (req.params as any).part as Part; const body = (req.body ?? {}) as { data?: unknown; note?: string };
-    if (!["cards", "bigBoard", "dreams"].includes(part)) return { error: "no_part" };
+    if (!["cards", "bigBoard", "dreams", "cellRules"].includes(part)) return { error: "no_part" };
     return d.registry.createVersion(part, body.data, who.id, body.note ?? "");
   }, "content.create_version"));
   app.post("/admin/content/versions/:v/publish", guard("content.write", (req) => ({ ok: d.registry.publish(Number((req.params as any).v)) }), "content.publish"));

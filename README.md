@@ -1,6 +1,6 @@
 # POYGA onlayn
 
-Stol o'yinining onlayn versiyasi (moliyaviy savodxonlik). To'liq spetsifikatsiya: [`docs/SPEC.md`](docs/SPEC.md). Ochiq savollar va qabul qilingan taxminlar: [`docs/OPEN_QUESTIONS.md`](docs/OPEN_QUESTIONS.md).
+Stol o'yinining onlayn versiyasi (moliyaviy savodxonlik). To'liq spetsifikatsiya: [`docs/SPEC.md`](docs/SPEC.md). Ochiq savollar va qabul qilingan taxminlar: [`docs/OPEN_QUESTIONS.md`](docs/OPEN_QUESTIONS.md). **Buyurtmachidan kerak bo'lgan qarorlar (variantlar va tavsiyalar bilan): [`docs/DECISIONS_NEEDED.md`](docs/DECISIONS_NEEDED.md).**
 
 ## Tuzilma (pnpm monorepo, TypeScript)
 | Paket | Vazifa |

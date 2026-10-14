@@ -1,6 +1,7 @@
 // O'yin darajasidagi holat mashinasi: navbat, katak, karta qarori, chiqish, g'alaba.
 // Hamma narsa sof va serializatsiya qilinadigan holat ustida; tasodifiylik holatdagi `rng` dan.
 import type { CardEffect, Effect } from "@poyga/content/effects";
+import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
 import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
@@ -20,7 +21,9 @@ export interface Dream { name: string; price: number }
 /** O'zgarmas kontent: serverda yuklanadi, holatga kirmaydi. */
 export interface Ctx {
   effects: Record<string, CardEffect>;
-  deckIds: { kasb: string[]; kichik: string[]; katta: string[]; bozor: string[]; xar: string[]; kxar: string[] };
+  deckIds: { kasb: string[]; kichik: string[]; katta: string[]; bozor: string[]; xar: string[]; kxar: string[]; hod: string[] };
+  /** Ochiq kataklar qoidalari (content/cellrules.ts). Bo'sh/yo'q bo'lsa — katak ta'sirsiz va jurnalga yoziladi. */
+  cellRules?: CellRulesT;
   kasb: Record<number, Kasb>;
   bigBoard: BigCell[];
   dreams: Dream[];
@@ -30,7 +33,7 @@ export type DeckName = keyof Ctx["deckIds"];
 export interface DeckState { draw: string[]; discard: string[] }
 
 export interface HandDebt { id: number; to: string; amount: number; months: number }
-export interface GamePlayer extends Player { handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean }
+export interface GamePlayer extends Player { skipTurns: number; handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean }
 export type Pending =
   | null
   | { type: "card"; playerId: string; cardId: string; deck: DeckName };
@@ -68,7 +71,7 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: strin
   s.players = playerIds.map((id) => {
     const kid = drawFrom(s, "kasb");
     const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
-    return { ...newPlayer(id, k), handDebts: [], dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false };
+    return { ...newPlayer(id, k), skipTurns: 0, handDebts: [], dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false };
   });
   return s;
 }
@@ -93,7 +96,7 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false };
+  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false };
 }
 
 /** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */
@@ -156,7 +159,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
 export function effectOf(ctx: Ctx, id: string): CardEffect {
   if (id.startsWith("big-")) {
     const c = ctx.bigBoard[Number(id.slice(4))];
-    return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "buy", asset: "business", code: id, price: c.price!, monthlyIncome: c.income! } };
+    return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "buy", asset: "business", code: id, price: c.price!, monthlyIncome: c.income ?? 0 } };
   }
   return ctx.effects[id];
 }
@@ -237,7 +240,11 @@ function smallLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
       s.proposals.push({ id: s.nextProposal++, kind: "suyunchi", parent: p.id, given: [] }); return;
     }
     case "D": case "S": return;
-    case "K": case "Q": logf(s, `${p.id}: ${smallCell(p.pos)} katagi — qoida kutilmoqda (OPEN_QUESTIONS #8)`); return;
+    case "K": case "Q": {
+      const cell = smallCell(p.pos) as "K" | "Q"; const act = ctx.cellRules?.small?.[cell];
+      if (!act) { logf(s, `${p.id}: ${cell} katagi — qoida kutilmoqda (OPEN_QUESTIONS #8)`); return; }
+      return runCellAction(s, ctx, p, act);
+    }
   }
 }
 
@@ -249,11 +256,33 @@ function bigLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
       setP(s, { ...p, won: true, cash: p.cash - dream.price }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
     }
   }
+  const configured = ctx.cellRules?.big?.byIndex?.[String(cell.i)] ?? ctx.cellRules?.big?.byType?.[cell.t as "T" | "V" | "O" | "X" | "Y"];
+  if (configured) return runCellAction(s, ctx, p, configured, cell);
   if (cell.t === "T" && cell.price !== null && cell.income !== null) {
     s.pending = { type: "card", playerId: p.id, cardId: `big-${cell.i}`, deck: "kichik" };
   }
   // V, Y, X kataklari: SPEC'da qoida yo'q (OPEN_QUESTIONS #13) — jurnalga yoziladi.
   else if (!["O", "T"].includes(cell.t)) logf(s, `${p.id}: katta aylana ${cell.t}-katak "${cell.name}" — qoida kutilmoqda`);
+}
+
+/** Sozlangan katak ta'siri (ma'lumot asosida). Hamma ta'sir mavjud mexanizmlardan foydalanadi (forcePay, restart, offer). */
+function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT, cell?: BigCell) {
+  const p = s.players[idx(s, p0.id)];
+  switch (act.kind) {
+    case "none": return;
+    case "restart": setP(s, restart(s, ctx, p)); return;
+    case "skipTurns": setP(s, { ...p, skipTurns: (p.skipTurns ?? 0) + act.turns }); logf(s, `${p.id}: ${act.turns} navbat o'tkazadi`); return;
+    case "payday": {
+      const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
+      setP(s, { ...p, cash: p.cash + act.times * flow }); return;
+    }
+    case "payFixed": setP(s, forcePay(s, ctx, p, act.amount)); return;
+    case "loseIncomeShare": setP(s, forcePay(s, ctx, p, Math.round(act.share * (p.salary + passiveIncome(p))))); return;
+    case "drawDeck": offer(s, p, act.deck, ctx); return;
+    case "offerCellAsset":
+      if (cell && cell.price !== null) s.pending = { type: "card", playerId: p.id, cardId: `big-${cell.i}`, deck: "kichik" };
+      return;
+  }
 }
 
 function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<Action, { type: "decide" }>) {
@@ -289,9 +318,14 @@ function endTurn(s: GameState, ctx: Ctx) {
     setP(s, { ...p, circle: "big", pos: CONFIG.bigStart, lockedFlow: lock });
     logf(s, `${p.id}: kichik aylanadan chiqdi`);
   }
-  s.turn++;
-  if (s.turn % s.players.length === 0) s.round++;
+  advanceTurn(s);
+  // Navbat o'tkazishga mahkum o'yinchilar o'tkazib yuboriladi (N navbat)
+  for (let k = 0; k < s.players.length; k++) {
+    const q = currentPlayer(s);
+    if ((q.skipTurns ?? 0) > 0) { q.skipTurns--; logf(s, `${q.id}: navbat o'tkazildi`); advanceTurn(s); } else break;
+  }
 }
+function advanceTurn(s: GameState) { s.turn++; if (s.turn % s.players.length === 0) s.round++; }
 
 export const openPartnerships = (p: Player) => p.assets.filter((a) => a.partnerId || a.stakeOf).length;
 const humans = (s: GameState) => s.players.filter((p) => !s.bots.includes(p.id));

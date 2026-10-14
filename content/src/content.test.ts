@@ -74,3 +74,25 @@ describe("karta rasmi fayl nomlari (§2.5)", () => {
     for (const f of ["../x.png", "a/b.png", "x.svg", "x.png?a=1", "", "a b.png", "<i>.png"]) expect(cardFileUrl("/cards", f), f).toBeNull();
   });
 });
+
+import { CellRules } from "./cellrules";
+describe("katak qoidalari (cellRules)", () => {
+  const raw = () => JSON.parse(JSON.stringify({ cards, bigBoard, dreams }));
+  const withRules = (r: unknown) => { const x = raw(); x.cellRules = r; return x; };
+  it("bo'sh qoidalar yaroqli; cellRules yo'q (eski versiya) ham bo'sh deb olinadi", () => {
+    expect(validateBundle(parseBundle(raw()))).toEqual([]); expect(parseBundle(raw()).cellRules).toEqual({ small: {}, big: { byType: {}, byIndex: {} } });
+    expect(CellRules.parse({}).big.byIndex).toEqual({});
+  });
+  it("to'g'ri qoidalar qabul qilinadi", () => {
+    const b = parseBundle(withRules({ small: { K: { kind: "restart" }, Q: { kind: "skipTurns", turns: 2 } }, big: { byType: { Y: { kind: "payday", times: 1 } }, byIndex: { "5": { kind: "drawDeck", deck: "hod" }, "21": { kind: "offerCellAsset" } } } }));
+    expect(validateBundle(b)).toEqual([]);
+  });
+  it.each([
+    ["noma'lum turdagi ta'sir", { small: { K: { kind: "explode" } } }], ["ortiqcha kalit", { small: { K: { kind: "restart", extra: 1 } } }], ["manfiy/kasr navbat", { small: { Q: { kind: "skipTurns", turns: -1 } } }],
+    ["ulush > 1", { small: { Q: { kind: "loseIncomeShare", share: 1.5 } } }], ["noma'lum katak turi", { big: { byType: { Z: { kind: "none" } } } }], ["katak raqami matn emas", { big: { byIndex: { abc: { kind: "none" } } } }],
+  ])("sxema rad etadi: %s", (_n, r) => expect(() => parseBundle(withRules(r))).toThrow());
+  it("mantiqiy xatolar: mavjud bo'lmagan katak, narxsiz katakka taklif", () => {
+    expect(validateBundle(parseBundle(withRules({ big: { byIndex: { "60": { kind: "none" } } } }))).join()).toContain("bunday katak yo'q");
+    expect(validateBundle(parseBundle(withRules({ big: { byIndex: { "0": { kind: "offerCellAsset" } } } }))).join()).toContain("narx yo'q"); // 0 — «Yana pullar», narxsiz
+  });
+});

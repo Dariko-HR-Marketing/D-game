@@ -99,3 +99,17 @@ describe("foydalanuvchi, bloklash, shikoyat, jurnal, analitika", () => {
     const a = (await call(x, "GET", "/admin/analytics", "N")).json(); expect(a.rooms).toBe(1); expect(a.started).toBe(1);
   });
 });
+
+describe("katak qoidalari admin orqali (versiyali, qulflanadigan)", () => {
+  it("noto'g'ri qoida rad; to'g'risi versiya bo'ladi; yangi o'yin yangi qoidani oladi, eski o'yin eskisini saqlaydi", async () => {
+    const x = mk(); const r0 = x.rooms.create("a"); if (!r0.ok) throw 0; x.rooms.join(r0.code, "b"); await x.rooms.start(r0.code, "a", 1);
+    const bad = await call(x, "POST", "/admin/content/cellRules/versions", "E", { data: { small: { K: { kind: "explode" } } }, note: "x" });
+    expect(bad.json().ok).toBe(false);
+    const ok = await call(x, "POST", "/admin/content/cellRules/versions", "E", { data: { small: { K: { kind: "restart" } }, big: { byType: {}, byIndex: {} } }, note: "K = qayta boshlash" });
+    expect(ok.json()).toEqual({ ok: true, version: 2 });
+    await call(x, "POST", "/admin/content/versions/2/publish", "E");
+    const r1 = x.rooms.create("c"); if (!r1.ok) throw 0; x.rooms.join(r1.code, "d"); await x.rooms.start(r1.code, "c", 1);
+    expect(x.rooms.rooms.get(r1.code)!.ctx.cellRules?.small.K).toEqual({ kind: "restart" });
+    expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.K).toBeUndefined(); // boshlangan o'yin qulflangan (§11)
+  });
+});
