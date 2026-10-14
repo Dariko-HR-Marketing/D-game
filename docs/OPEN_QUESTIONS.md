@@ -10,3 +10,8 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 5. Kichik aylana `Q` kartasi "qarzga so'rayapti" — qarz so'rovi (qaytarish 600); boshqa ikkita `Q` — kolleksiya sotib olish.
 6. `real: "?"` (17 ta) — bozor qiymati noma'lum, `null` saqlanadi; shu mulk uchun bozor kartasi narxi ishlatiladi.
 7. Xarajat kartasidagi "A + B" yozuvi `amount` yig'indisi bilan tekshirildi (testda).
+8. Kichik aylana K ("O'yinni boshidan boshlang!") va Q ("Ishdan bo'shadingiz!") kataklari ta'siri SPEC'da yozilmagan — dvigatelda hali kodlanmagan, buyurtmachi qoidasi kerak.
+9. Imkoniyat (I) katagida kichik/katta sarmoya chegarasi: naqd 25 000 gacha — kichik (A ilova: "asl qoidada tekshirilsin").
+10. Ipoteka bilan sotib olishda kredit to'lovi (`interest`, manfiy) xarajat sifatida, `rent` passiv daromad sifatida hisoblanadi.
+11. Aksiyalar: `share` — bir aksiya narxi deb olindi; aksiya daromadi/narx o'zgarishi qoidasi SPEC'da yo'q (hozircha daromadsiz).
+12. Bozor sotish kartalari narxi: mulk kodi bo'yicha moslashtirish (KV1, KV2…), ko'p variantli kartalar (KV1s/KV2s, "Barcha kvartiralar") effektda tuzilmali saqlanadi, dvigatelda qo'llanishi keyingi bosqich.

@@ -29,6 +29,10 @@ importers:
         version: 2.1.9(@types/node@22.20.5)
 
   rules:
+    dependencies:
+      '@poyga/content':
+        specifier: workspace:*
+        version: link:../content
     devDependencies:
       typescript:
         specifier: ^5.6.0
