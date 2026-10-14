@@ -107,3 +107,4 @@ export const withQar = (monthlyExpenses: number) => monthlyExpenses + RULES.qarM
 export const levelFromPoints = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel);
 
 export * from "./engine";
+export * from "./game";

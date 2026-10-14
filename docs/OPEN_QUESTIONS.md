@@ -15,3 +15,8 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 10. Ipoteka bilan sotib olishda kredit to'lovi (`interest`, manfiy) xarajat sifatida, `rent` passiv daromad sifatida hisoblanadi.
 11. Aksiyalar: `share` — bir aksiya narxi deb olindi; aksiya daromadi/narx o'zgarishi qoidasi SPEC'da yo'q (hozircha daromadsiz).
 12. Bozor sotish kartalari narxi: mulk kodi bo'yicha moslashtirish (KV1, KV2…), ko'p variantli kartalar (KV1s/KV2s, "Barcha kvartiralar") effektda tuzilmali saqlanadi, dvigatelda qo'llanishi keyingi bosqich.
+13. Katta aylana: oy qachon o'tishi SPEC'da yo'q — START (34) dan o'tish = 1 oy deb olindi (`CONFIG.bigMonthOnStartPass`). V, X, Y kataklari va kxar dekasi qachon tortilishi yozilmagan — jurnalga "qoida kutilmoqda" yoziladi.
+14. "Ijarachi ketdi": bitta mulkning 1 oylik ijarasi naqddan ayriladi (keyingi oyda olinmagan daromad o'rniga).
+15. "Chiqib ketish" (hod, 9 karta) dekasi qaysi katakda tortilishi SPEC'da yo'q — dvigatelda hali dekaga ulanmagan.
+16. Majburiy to'lovda naqd yetmasa: avtomatik bank krediti (100 ga yaxlitlab), limitdan oshsa — yangi kasb (§5.3).
+17. Balans: oddiy bot 1500 navbatda kichik aylanadan chiqa olmadi (30 o'yin) — §5.11 va §13 "qog'oz sinovi" bilan tekshirilishi kerak.
