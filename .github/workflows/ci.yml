@@ -21,3 +21,13 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build:web
+  docker:
+    # Dockerfile'ni haqiqatan quradi va konteyner /ready ga javob berishini tekshiradi (sandboxda Docker daemon yo'q edi).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t poyga-server .
+      - run: |
+          docker run -d --name poyga -p 3000:3000 poyga-server
+          for i in $(seq 1 30); do curl -sf localhost:3000/ready && exit 0; sleep 1; done
+          docker logs poyga; exit 1
