@@ -119,3 +119,27 @@ describe("tahlil ko'rinishi", () => {
     expect(bars([0, 0]).every((x) => x.h === 0)).toBe(true);
   });
 });
+
+describe("eski holat (stale_seq) da avtomatik qayta urinish", () => {
+  const state = (seq: number) => JSON.stringify({ type: "state", room: { code: "ABC234", members: [], state: null, seq, deadline: null, pendingCard: null } });
+  const mk = () => { FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w = FakeWS.all[0]; w.onopen(); w.onmessage({ data: state(5) }); return { c, w }; };
+  it("xato ko'rsatilmaydi; yangi holat kelgach harakat yangi seq bilan bir marta qayta yuboriladi", () => {
+    const { c, w } = mk(); c.act({ type: "roll" });
+    w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) });
+    expect(c.state.error).toBeNull(); const before = w.sent.length;
+    w.onmessage({ data: state(6) });
+    expect(w.sent.length).toBe(before + 1); expect(JSON.parse(w.sent.at(-1)!)).toEqual({ type: "act", seq: 6, action: { type: "roll" } });
+  });
+  it("ikkinchi stale_seq da qayta urinmaydi (cheksiz tsikl yo'q) va xatoni ko'rsatadi", () => {
+    const { c, w } = mk(); c.act({ type: "roll" });
+    w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) }); w.onmessage({ data: state(6) });
+    const n = w.sent.length;
+    w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) }); expect(c.state.error).toBe("stale_seq");
+    w.onmessage({ data: state(7) }); expect(w.sent.length).toBe(n);
+  });
+  it("boshqa xatolar qayta uringa sabab bo'lmaydi; yangi harakat hisobni yangilaydi", () => {
+    const { c, w } = mk(); c.act({ type: "roll" });
+    w.onmessage({ data: JSON.stringify({ type: "error", error: "not_your_turn" }) }); expect(c.state.error).toBe("not_your_turn");
+    const n = w.sent.length; w.onmessage({ data: state(6) }); expect(w.sent.length).toBe(n);
+  });
+});

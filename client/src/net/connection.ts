@@ -13,6 +13,8 @@ export class Connection {
   private retry = 0;
   private closed = false;
   private rejoinCode: string | null = null;
+  private lastAct: { action: Record<string, unknown>; retried: boolean } | null = null;
+  private retryNext = false;
 
   constructor(private url: string, private token: string, private make: WSFactory, private setTimer: (f: () => void, ms: number) => unknown = setTimeout) {}
 
@@ -29,8 +31,14 @@ export class Connection {
     };
     ws.onmessage = (e) => {
       const m = JSON.parse(e.data);
-      if (m.type === "state") { this.rejoinCode = m.room.code; this.set({ room: m.room, error: null }); }
-      else if (m.type === "error") this.set({ error: m.error });
+      if (m.type === "state") {
+        this.rejoinCode = m.room.code; this.set({ room: m.room, error: null });
+        // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
+        if (this.retryNext && this.lastAct && !this.lastAct.retried) { this.retryNext = false; this.lastAct.retried = true; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
+      } else if (m.type === "error") {
+        if (m.error === "stale_seq" && this.lastAct && !this.lastAct.retried) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
+        else this.set({ error: m.error });
+      }
     };
     ws.onclose = () => {
       this.set({ status: "offline" });
@@ -47,5 +55,5 @@ export class Connection {
   start() { this.send({ type: "start" }); }
   leave() { this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null }); }
   /** Harakat: mijoz ko'rgan oxirgi `seq` bilan (eski holatdagi harakat serverda rad etiladi). */
-  act(action: Record<string, unknown>) { this.send({ type: "act", seq: this.state.room?.seq ?? 0, action }); }
+  act(action: Record<string, unknown>) { this.lastAct = { action, retried: false }; this.retryNext = false; this.send({ type: "act", seq: this.state.room?.seq ?? 0, action }); }
 }

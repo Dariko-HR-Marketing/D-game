@@ -19,5 +19,5 @@ Sun'iy mijozlar o'yinni haqiqiy o'ynaydi (kubik, qaror), `think` — o'yinchinin
 
 ## Qolgan cheklovlar
 - Bitta jarayon: gorizontal masshtablash uchun xona→jarayon biriktirish kerak (OPEN_QUESTIONS #46).
-- Haddan tashqari yuklamada `stale_seq` xatolari ko'payadi (mijoz keyingi holatni kutib qayta uradi) — normal xatti-harakat, lekin mijozda avtomatik qayta urinish hali yo'q.
+- Haddan tashqari yuklamada `stale_seq` xatolari ko'payadi (mijoz keyingi holatni kutib qayta uradi) — normal xatti-harakat, lekin mijoz harakatni yangi holat kelgach bir marta avtomatik qayta yuboradi ().
 - Holatning to'liq nusxasi (`structuredClone`) har harakatda olinadi — keyingi optimallashtirish nomzodi.
