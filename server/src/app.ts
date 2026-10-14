@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
+import { parseMessage } from "./protocol";
+import { Bucket, KeyedLimiter } from "./ratelimit";
 import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
@@ -11,7 +13,9 @@ export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
 export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService } = {}) {
-  const app = Fastify();
+  // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
+  if (process.env.NODE_ENV === "production" && !opts.auth) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
+  const app = Fastify({ bodyLimit: 64 * 1024 });
   const store = opts.store ?? new MemoryStore();
   const auth = opts.auth ?? devAuth;
   const registry = opts.registry ?? new ContentRegistry();
@@ -38,7 +42,15 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
       .header("access-control-allow-headers", "authorization,content-type").header("access-control-allow-methods", "GET,POST,PUT,DELETE,OPTIONS");
     if (req.method === "OPTIONS") return reply.code(204).send();
   });
-  app.register(websocket);
+  // Xavfsizlik sarlavhalari va HTTP tezlik cheklovi (IP bo'yicha; admin kirish urinishlari qattiqroq).
+  const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20);
+  app.addHook("onRequest", async (req, reply) => {
+    reply.header("x-content-type-options", "nosniff").header("x-frame-options", "DENY").header("referrer-policy", "no-referrer").header("cache-control", "no-store");
+    if (req.method === "OPTIONS" || req.url === "/health") return;
+    const lim = req.url.startsWith("/admin") ? adminLimit : httpLimit;
+    if (!lim.allow(req.ip)) return reply.code(429).send({ error: "rate_limited" });
+  });
+  app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   app.get("/health", async () => ({ ok: true }));
 
   app.register(async (f) => {
@@ -47,14 +59,16 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
       if (!userId) return socket.close(4401, "unauthorized");
       if (adminState.isBanned(userId)) return socket.close(4403, "banned");
       adminState.touch(userId, Date.now());
-      let code: string | null = null;
+      let code: string | null = null; const bucket = new Bucket(10, 30); let strikes = 0; // 10 xabar/s, burst 30
       const client = { userId, send: (s: string) => socket.send(s) };
       const reply = (o: unknown) => socket.send(JSON.stringify(o));
       const attach = (c: string) => { code = c; (sockets.get(c) ?? sockets.set(c, new Set()).get(c)!).add(client); };
 
       socket.on("message", async (raw: Buffer) => {
-        let m: any;
-        try { m = JSON.parse(raw.toString()); } catch { return reply({ type: "error", error: "bad_json" }); }
+        if (!bucket.take()) { reply({ type: "error", error: "rate_limited" }); if (++strikes > 5) socket.close(4429, "rate_limited"); return; }
+        const parsed = parseMessage(raw.toString());
+        if (!parsed.ok) return reply({ type: "error", error: parsed.error });
+        const m = parsed.msg;
         switch (m.type) {
           case "create": { const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error });
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }

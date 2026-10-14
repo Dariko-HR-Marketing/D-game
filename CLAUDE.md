@@ -35,3 +35,7 @@ To'liq spetsifikatsiya: `docs/SPEC.md` (A–D ilovalar ham shu yerda). Quyida §
 
 ## Texnologiya (tasdiqlangan)
 TypeScript monorepo (pnpm); `rules` — sof TS + Vitest; `server` — Node + Fastify + WebSocket + PostgreSQL; `client` — Expo (React Native + Web); `content` — JSON + Zod schema; `admin` — React veb.
+
+## Buyruqlar
+`pnpm typecheck` · `pnpm test` (PostgreSQL testlari uchun `TEST_DATABASE_URL`) · server: `cd server && npx tsx src/main.ts` · veb: `cd client && npx expo start --web` · admin: `cd admin && npx vite`.
+Holat: qoidalar dvigateli, kontent, server (xonalar, hamkorlik, saqlash, tiklash), admin, profil/reyting, mijoz (veb) tayyor. Ochiq masalalar: `docs/OPEN_QUESTIONS.md`.

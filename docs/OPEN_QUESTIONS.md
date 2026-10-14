@@ -39,3 +39,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 34. 16 yoshgacha: qarz/sheriklik serverda yopiq (testlangan). Ota-ona SMS tasdig'i, ota-ona sahifasi, erkin chat va reklama cheklovlari — 2-bosqich (to'lov) bilan birga; yosh tug'ilgan yil bo'yicha (yil − tug'ilgan yil < 16).
 35. Hisobni o'chirish: profil o'chadi, natijalarda ID "deleted" bo'ladi, ma'lumotni yuklab olish mavjud. Qancha muddat saqlash va yuridik talablar (O'zbekiston ma'lumot joylashuvi) — yurist.
 36. CORS: veb mijoz va admin originlari `CORS_ORIGINS` env orqali beriladi (standart: yopiq).
+37. Xavfsizlik (o'zim qilganlar): qat'iy WS sxemasi, kirish tekshiruvi dvigatelda (manfiy/kasr/NaN summalar rad), tezlik cheklovi (WS 10 xabar/s, HTTP 5/s, admin 1/s), maxPayload 16 KB, body 64 KB, xavfsizlik sarlavhalari, production'da devAuth taqiqi. Hali yo'q: TLS/ingress sozlamasi, tokenlarni aylantirish, SMS/OTP cheklovlari, mustaqil xavfsizlik sinovi (§13 — mustaqil jamoa o'tkazishi shart), monitoring/ogohlantirishlar (§11).
+38. CI (`.github/workflows/ci.yml`) va docker-compose yozilgan, lekin GitHub'da ishga tushirib tekshirilmagan (sandboxda GitHub Actions yo'q).

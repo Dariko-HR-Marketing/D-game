@@ -126,6 +126,10 @@ export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false
 
 export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (state.winner) return { ok: false, error: "game_over" };
+  // Kirish tekshiruvi (mijozga ishonib bo'lmaydi): ob'ekt, mavjud o'yinchi yoki server.
+  if (typeof a !== "object" || a === null || typeof a.playerId !== "string") return { ok: false, error: "bad_action" };
+  if (a.playerId !== "server" && !state.players.some((p) => p.id === a.playerId)) return { ok: false, error: "no_player" };
+  if (a.playerId === "server" && a.type !== "expire") return { ok: false, error: "bad_action" };
   const s = clone(state);
   const cur = currentPlayer(s);
   if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
@@ -286,6 +290,7 @@ function endTurn(s: GameState, ctx: Ctx) {
 export const openPartnerships = (p: Player) => p.assets.filter((a) => a.partnerId || a.stakeOf).length;
 const humans = (s: GameState) => s.players.filter((p) => !s.bots.includes(p.id));
 const err = (error: string): Outcome => ({ ok: false, error });
+const posInt = (x: unknown): x is number => Number.isSafeInteger(x) && (x as number) > 0;
 
 /** Hamkorlik (§5.6): navbatdan mustaqil harakatlar. */
 function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } | { type: "decide" }>): Outcome {
@@ -294,7 +299,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
   switch (a.type) {
     case "bank_loan": { // §5.3: ixtiyoriy bank krediti, faqat o'z navbatida; 100 ga karrali; limit 10 000
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
-      if (!Number.isInteger(a.amount) || a.amount <= 0 || a.amount % 100 !== 0) return err("invalid_amount");
+      if (!posInt(a.amount) || a.amount % 100 !== 0) return err("invalid_amount");
       const r = takeBankLoan(P(a.playerId), a.amount);
       if (r.restart) return err("bank_limit"); // o'yinchi o'zi yangi kasbga o'tishni tanlamaydi: faqat majburiy to'lovda
       setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: bank krediti ${a.amount}`); return ok();
@@ -315,6 +320,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
     }
 
     case "loan_request": { // oluvchi so'raydi, beruvchi qabul qiladi
+      if (!posInt(a.amount) || !posInt(a.months) || a.months > RULES.mutualMaxMonths) return err("invalid_amount");
       if (s.restricted.includes(a.playerId) || s.restricted.includes(a.giverId)) return err("restricted_age");
       const rec = P(a.playerId), giver = s.players.find((p) => p.id === a.giverId);
       if (!giver || giver.id === rec.id) return err("bad_giver");
@@ -343,7 +349,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
     case "loan_repay": { // foizsiz, to'lov ixtiyoriy
       const rec = P(a.playerId), d = rec.handDebts.find((x) => x.id === a.debtId);
       if (!d) return err("no_debt");
-      if (!Number.isInteger(a.amount) || a.amount <= 0 || a.amount > d.amount || a.amount > rec.cash) return err("invalid_amount");
+      if (!posInt(a.amount) || a.amount > d.amount || a.amount > rec.cash) return err("invalid_amount");
       const giver = P(d.to);
       setP(s, { ...giver, cash: giver.cash + a.amount });
       setP(s, { ...rec, cash: rec.cash - a.amount,
@@ -396,6 +402,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       setP(s, { ...partner, cash: partner.cash + price, assets: partner.assets.filter((x) => x !== stake) });
       return ok();
     }
+    default: return err("unknown_action");
   }
 }
 
