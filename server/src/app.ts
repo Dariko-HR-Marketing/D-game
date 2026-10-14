@@ -26,6 +26,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const cHttp = m.counter("poyga_http_requests_total", "HTTP so'rovlari (holat kodi bo'yicha)");
   const cLimited = m.counter("poyga_rate_limited_total", "Tezlik cheklovi tufayli rad etilganlar");
   const cWs = m.counter("poyga_ws_connections_total", "WebSocket ulanishlari");
+  const cErr = m.counter("poyga_room_errors_total", "Xona ichidagi xatolar (saqlash, taymer) — o'yin davom etadi");
   const cWsErr = m.counter("poyga_ws_errors_total", "Ichki xatolar (WebSocket)");
   const cActions = m.counter("poyga_actions_total", "O'yin harakatlari (tur va natija bo'yicha)");
   const cGames = m.counter("poyga_games_total", "O'yinlar (boshlandi/tugadi)");
@@ -42,6 +43,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     profile: (id) => profiles.get(id),
     onStart: () => cGames({ event: "started" }),
     onAbandon: () => cGames({ event: "abandoned" }),
+    onError: (where, e) => { cErr({ where }); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },
     onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
     onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });

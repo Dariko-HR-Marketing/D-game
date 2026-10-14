@@ -41,7 +41,7 @@ export class RoomManager {
 
   constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random,
     private hooks: { restricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number } | undefined;
-      onStart?: (code: string, r: Room) => void; onAbandon?: (code: string) => void; onApply?: (type: string, ok: boolean, ms: number, error?: string) => void } = {}) {}
+      onStart?: (code: string, r: Room) => void; onAbandon?: (code: string) => void; onError?: (where: string, e: unknown) => void; onApply?: (type: string, ok: boolean, ms: number, error?: string) => void } = {}) {}
   private activeCtx(): { version: number | null; ctx: Ctx } {
     return "active" in this.content ? this.content.active() : { version: null, ctx: this.content };
   }
@@ -146,9 +146,12 @@ export class RoomManager {
     if (!out.ok) return out;
     r.state = out.state; r.seq++;
     this.armProposals(r);
-    await this.store.append(r.code, { seq: r.seq, at: this.clock.now(), action: auto ? { type: "auto", reason: auto, action } : action });
-    await this.store.saveSnapshot(r.code, r.state, this.meta(r));
-    if (r.state.winner) this.finish(r); else this.arm(r);
+    // Saqlash xatosi o'yinni to'xtatmaydi (xotirada davom etadi, xato jurnal va ko'rsatkichga tushadi) — aks holda taymer va tarqatish to'xtab qolardi.
+    try {
+      await this.store.append(r.code, { seq: r.seq, at: this.clock.now(), action: auto ? { type: "auto", reason: auto, action } : action });
+      await this.store.saveSnapshot(r.code, r.state!, this.meta(r));
+    } catch (e) { this.hooks.onError?.("persist", e); }
+    if (r.state!.winner) this.finish(r); else this.arm(r);
     this.emit(r);
     return { ok: true };
   }
@@ -175,7 +178,7 @@ export class RoomManager {
     const m = r.members.find((x) => x.userId === cur.id)!;
     const delay = m.bot ? 0 : DECISION_MS;
     r.deadline = this.clock.now() + delay;
-    r.timer = this.clock.setTimeout(() => void this.autoMove(r), delay);
+    r.timer = this.clock.setTimeout(() => { this.autoMove(r).catch((e) => { this.hooks.onError?.("autoMove", e); if (r.state && !r.state.winner && !r.endedAt) this.arm(r); }); }, delay);
   }
 
   private async autoMove(r: Room) {

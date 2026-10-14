@@ -45,18 +45,23 @@ describe("jurnal maxfiyligi va chidamlilik", () => {
     const log = lines.join("\n"); expect(log).toContain("/leaderboard"); expect(log).not.toContain("SUPERSECRET123"); expect(log).not.toContain("authorization");
     for (const l of lines) JSON.parse(l); // tuzilgan JSON
   });
-  it("ichki xato (saqlagich yiqildi) jarayonni qulatmaydi: 'internal' xabari, ulanish ishlashda qoladi", async () => {
-    const st = new MemoryStore(); const { x, port } = await start({ store: st, metricsToken: "T" });
+  it("saqlagich yiqilsa o'yin to'xtamaydi: harakat qabul qilinadi, xato ko'rsatkichga tushadi, taymer davom etadi", async () => {
+    const st = new MemoryStore(); const { x, port } = await start({ store: st, metricsToken: "T", logger: { stream: { write() {} } } });
     const ws = new WebSocket(`ws://127.0.0.1:${port}/ws?token=u1`); const got: any[] = []; ws.on("message", (d) => got.push(JSON.parse(d.toString()))); await new Promise((r) => ws.on("open", r));
     ws.send(JSON.stringify({ type: "create" })); await new Promise((r) => setTimeout(r, 100)); ws.send(JSON.stringify({ type: "start" })); await new Promise((r) => setTimeout(r, 100));
-    st.append = async () => { throw new Error("disk full"); };
-    const room = x.rooms.rooms.values().next().value!;
-    expect(room.state!.players[0].id).toBe("u1"); // xona egasi birinchi yuradi
-    ws.send(JSON.stringify({ type: "act", seq: 0, action: { type: "roll" } })); await new Promise((r) => setTimeout(r, 150));
-    expect(got.some((g) => g.error === "internal")).toBe(true);
-    ws.send(JSON.stringify({ type: "leave" })); ws.send("garbage"); await new Promise((r) => setTimeout(r, 100));
-    expect(got.at(-1).error).toBe("bad_json"); // ulanish tirik
-    const met = await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer T" } }); expect(met.statusCode).toBe(200);
+    st.append = async () => { throw new Error("disk full"); }; st.saveSnapshot = async () => { throw new Error("disk full"); };
+    const room = x.rooms.rooms.values().next().value!; const seq0 = room.seq;
+    ws.send(JSON.stringify({ type: "act", seq: seq0, action: { type: "roll" } })); await new Promise((r) => setTimeout(r, 200));
+    expect(room.seq).toBeGreaterThan(seq0); expect(got.some((g) => g.error)).toBe(false); expect(room.timer).not.toBeNull(); // o'yin yuribdi va taymer o'rnatilgan
+    const met = await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer T" } }); expect(met.body).toContain('poyga_room_errors_total{where="persist"}');
+    ws.close(); await x.app.close();
+  });
+  it("kutilmagan ichki xato jarayonni qulatmaydi: 'internal' xabari, ulanish ishlashda qoladi", async () => {
+    const { x, port } = await start({ logger: { stream: { write() {} } } });
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/ws?token=u1`); const got: any[] = []; ws.on("message", (d) => got.push(JSON.parse(d.toString()))); await new Promise((r) => ws.on("open", r));
+    x.rooms.create = () => { throw new Error("boom"); };
+    ws.send(JSON.stringify({ type: "create" })); await new Promise((r) => setTimeout(r, 150)); expect(got.some((g) => g.error === "internal")).toBe(true);
+    ws.send("garbage"); await new Promise((r) => setTimeout(r, 100)); expect(got.at(-1).error).toBe("bad_json"); // ulanish tirik
     ws.close(); await x.app.close();
   });
 });
