@@ -14,7 +14,7 @@ Stol o'yinining onlayn versiyasi (moliyaviy savodxonlik). To'liq spetsifikatsiya
 ## Ishga tushirish
 ```bash
 pnpm install
-docker compose up -d db                      # yoki o'zingizning PostgreSQL
+docker compose up -d db                      # yoki o'zingizning PostgreSQL (mahalliy ishlab chiqish)
 cp .env.example .env                         # qiymatlarni to'ldiring
 cd server && DATABASE_URL=... npx tsx src/main.ts      # DATABASE_URL bo'lmasa xotira saqlagichi
 cd client && npx expo start --web            # veb mijoz
@@ -32,3 +32,6 @@ Tekshiruvlar: `pnpm typecheck && pnpm test`. PostgreSQL testlari `TEST_DATABASE_
 - Kontrast va tugma o'lchami birlik testlarda (`client/src/a11y.test.ts`); "harakatni kamaytirish" sozlamasiga bo'ysunadi (`client/src/motion.ts`).
 - Avtomatik brauzer tekshiruvi (axe-core, telefon/planshet/kompyuter, 7 ekran): `pnpm --filter @poyga/client export:web`, `cd client/dist && python3 -m http.server 8081`, keyin `cd server && pnpm a11y`. Oxirgi natija: buzilish yo'q.
 - Avtomatik tekshiruv hamma muammoni ushlamaydi: ekran o'quvchi (VoiceOver/TalkBack) va klaviatura bilan qo'lda sinov hali o'tkazilmagan.
+
+## Joylashtirish
+Bitta VPS'da Docker Compose: [`docs/SERVER.md`](docs/SERVER.md) (qanday server olish, o'rnatish, zaxira) va [`docs/DEPLOY.md`](docs/DEPLOY.md).

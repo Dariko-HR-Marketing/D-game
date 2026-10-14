@@ -1,4 +1,4 @@
-# VPS uchun to'liq to'plam: PostgreSQL + POYGA server + Caddy (avtomatik HTTPS, WebSocket qo'llab-quvvatlanadi).
+# Bitta VPS'da hammasi: PostgreSQL + POYGA server + veb mijoz + admin panel + Caddy (HTTPS).
 # Ishlatish: deploy/vps/ papkasida `cp .env.example .env`, qiymatlarni to'ldiring, so'ng `docker compose up -d --build`.
 services:
   db:
@@ -19,19 +19,28 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-staging}
       DATABASE_URL: postgres://poyga:${POSTGRES_PASSWORD}@db:5432/poyga
-      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS kerak}
+      CORS_ORIGINS: https://${APP_DOMAIN:?APP_DOMAIN kerak},https://${ADMIN_DOMAIN:?ADMIN_DOMAIN kerak}
       ADMIN_TOKENS: ${ADMIN_TOKENS:?ADMIN_TOKENS kerak}
       METRICS_TOKEN: ${METRICS_TOKEN:-}
       LOG_LEVEL: info
       PORT: "3000"
     # Tashqariga to'g'ridan-to'g'ri ochilmaydi — faqat Caddy orqali.
 
-  caddy:
-    image: caddy:2
+  web:
+    # Caddy + statik mijoz va admin (server manzili build vaqtida kiradi)
+    build:
+      context: ../..
+      dockerfile: deploy/vps/Dockerfile.web
+      args:
+        API_WS: wss://${API_DOMAIN:?API_DOMAIN kerak}
+        API_HTTP: https://${API_DOMAIN}
     restart: unless-stopped
     depends_on: [server]
     ports: ["80:80", "443:443"]
-    environment: { API_DOMAIN: "${API_DOMAIN:?API_DOMAIN kerak, masalan api.dariko.uz}" }
-    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy_data:/data", "caddy_config:/config"]
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+      APP_DOMAIN: ${APP_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    volumes: ["caddy_data:/data", "caddy_config:/config"]
 
 volumes: { pgdata: {}, caddy_data: {}, caddy_config: {} }

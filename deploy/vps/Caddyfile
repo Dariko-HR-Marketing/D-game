@@ -1,5 +1,39 @@
-# TLS sertifikatini Caddy o'zi oladi va yangilaydi (Let's Encrypt). WebSocket (wss) avtomatik proksilanadi.
+# Caddy: TLS sertifikatini o'zi oladi va yangilaydi (Let's Encrypt). WebSocket (wss) avtomatik proksilanadi.
+# Uchta manzil: API (server), APP (o'yin mijozi), ADMIN (admin panel).
+
+(security) {
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		Strict-Transport-Security "max-age=31536000"
+	}
+}
+
 {$API_DOMAIN} {
+	import security
 	encode zstd gzip
 	reverse_proxy server:3000
+}
+
+{$APP_DOMAIN} {
+	import security
+	encode zstd gzip
+	root * /srv/app
+	@hashed path /_expo/* /assets/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	header / Cache-Control "no-store"
+	try_files {path} /index.html
+	file_server
+}
+
+{$ADMIN_DOMAIN} {
+	import security
+	encode zstd gzip
+	root * /srv/admin
+	@hashed path /assets/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	header / Cache-Control "no-store"
+	try_files {path} /index.html
+	file_server
 }

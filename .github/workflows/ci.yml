@@ -32,3 +32,8 @@ jobs:
           docker run -d --name poyga -p 3000:3000 -e NODE_ENV=staging poyga-server
           for i in $(seq 1 30); do curl -sf localhost:3000/ready && exit 0; sleep 1; done
           docker logs poyga; exit 1
+      - name: Veb image (mijoz + admin + Caddy) va Caddyfile tekshiruvi
+        run: |
+          docker build -f deploy/vps/Dockerfile.web --build-arg API_WS=wss://api.example.uz --build-arg API_HTTP=https://api.example.uz -t poyga-web .
+          docker run --rm -e API_DOMAIN=api.example.uz -e APP_DOMAIN=game.example.uz -e ADMIN_DOMAIN=admin.example.uz poyga-web caddy validate --config /etc/caddy/Caddyfile
+          docker run --rm poyga-web sh -c 'test -f /srv/app/index.html && test -f /srv/admin/index.html'

@@ -3,5 +3,4 @@ dist/
 .env
 dist/
 .expo/
-dist-packages/
 deploy/vps/.env
