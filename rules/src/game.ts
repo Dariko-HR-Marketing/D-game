@@ -15,7 +15,7 @@ export const CONFIG = {
 } as const;
 
 export interface BigCell { i: number; t: string; name: string; income: number | null; price: number | null }
-export interface Kasb { n: number; salary: number; total: number; save: number; child: number }
+export interface Kasb { n: number; name?: string; salary: number; total: number; save: number; child: number }
 export interface Dream { name: string; price: number }
 
 /** O'zgarmas kontent: serverda yuklanadi, holatga kirmaydi. */
