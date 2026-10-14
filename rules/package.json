@@ -13,5 +13,6 @@
  },
  "dependencies": {
   "@poyga/content": "workspace:*"
- }
+ },
+ "main": "src/index.ts"
 }

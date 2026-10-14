@@ -20,3 +20,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 15. "Chiqib ketish" (hod, 9 karta) dekasi qaysi katakda tortilishi SPEC'da yo'q — dvigatelda hali dekaga ulanmagan.
 16. Majburiy to'lovda naqd yetmasa: avtomatik bank krediti (100 ga yaxlitlab), limitdan oshsa — yangi kasb (§5.3).
 17. Balans: oddiy bot 1500 navbatda kichik aylanadan chiqa olmadi (30 o'yin) — §5.11 va §13 "qog'oz sinovi" bilan tekshirilishi kerak.
+18. Kirish (SMS/Google/Apple): server `Authenticate` interfeysi orqali ulanadi; hozir faqat dev-token. Xizmat tanlovi va kalitlar buyurtmachidan.
+19. Bazaga yozish: `Store` interfeysi bor, MemoryStore ishlaydi; PostgreSQL implementatsiyasi (sxema/migratsiya) keyingi qadam.
