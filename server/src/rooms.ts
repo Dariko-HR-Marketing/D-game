@@ -2,6 +2,7 @@
 import { Action, Ctx, GameState, chooseDream, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
 import type { Store } from "./store";
+import type { ContentRegistry } from "./registry";
 
 export interface Clock { now(): number; setTimeout(f: () => void, ms: number): unknown; clearTimeout(h: unknown): void }
 export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (h) => clearTimeout(h as NodeJS.Timeout) };
@@ -13,6 +14,8 @@ export interface Member { userId: string; bot: boolean; online: boolean }
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null;
+  ctx: Ctx; contentVersion: number | null; // o'yin boshlanganda qulflanadi (§11)
+  createdAt: number; endedAt: number | null;
 }
 export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string };
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
@@ -29,12 +32,15 @@ export class RoomManager {
   activeRoomOf = new Map<string, string>(); // §7: bir hisob — bitta faol o'yin
   listeners = new Set<(code: string, ev: RoomEvent) => void>();
 
-  constructor(private ctx: Ctx, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random) {}
+  constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random) {}
+  private activeCtx(): { version: number | null; ctx: Ctx } {
+    return "active" in this.content ? this.content.active() : { version: null, ctx: this.content };
+  }
 
   on(f: (code: string, ev: RoomEvent) => void) { this.listeners.add(f); return () => this.listeners.delete(f); }
   private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); }
   view(r: Room): RoomView {
-    const pc = r.state?.pending ? effectOf(this.ctx, r.state.pending.cardId) : null;
+    const pc = r.state?.pending ? effectOf(r.ctx, r.state.pending.cardId) : null;
     return { code: r.code, members: r.members.map((m) => ({ ...m })), state: r.state, seq: r.seq, deadline: r.deadline,
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
   }
@@ -49,7 +55,8 @@ export class RoomManager {
   create(hostId: string): { ok: true; code: string } | { ok: false; error: Err } {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
     const code = this.newCode();
-    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null });
+    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null,
+      ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null });
     this.activeRoomOf.set(hostId, code);
     return { ok: true, code };
   }
@@ -75,8 +82,9 @@ export class RoomManager {
     if (r.state) return { ok: false, error: "already_started" };
     let b = 1;
     while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
-    let s = newGame(this.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId));
-    s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % this.ctx.dreams.length)));
+    const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
+    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId));
+    s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length)));
     r.state = s;
     await this.store.saveSnapshot(code, s);
     this.arm(r);
@@ -96,7 +104,7 @@ export class RoomManager {
   }
 
   private async apply(r: Room, action: Action, auto: string | null): Promise<{ ok: true } | { ok: false; error: Err }> {
-    const out = reduce(r.state!, this.ctx, action);
+    const out = reduce(r.state!, r.ctx, action);
     if (!out.ok) return out;
     r.state = out.state; r.seq++;
     this.armProposals(r);
@@ -139,7 +147,7 @@ export class RoomManager {
     const bot = r.members.find((x) => x.userId === cur.id)?.bot;
     if (!r.state.pending) return void (await this.apply(r, { type: "roll", playerId: cur.id }, bot ? "bot" : "timeout"));
     // Ixtiyoriy karta vaqt tugasa o'tkaziladi (§5.2). Bot: naqdi yetsa qabul qiladi; qarzda qatnashmaydi (§6.5).
-    const e = effectOf(this.ctx, r.state.pending.cardId).effect;
+    const e = effectOf(r.ctx, r.state.pending.cardId).effect;
     const affordable = e.kind === "buy" ? cur.cash >= (e.down ?? e.price) : e.kind !== "lendRequest";
     await this.apply(r, { type: "decide", playerId: cur.id, accept: !!bot && affordable }, bot ? "bot" : "timeout");
   }
@@ -169,7 +177,7 @@ export class RoomManager {
 
   private finish(r: Room) {
     if (r.timer) this.clock.clearTimeout(r.timer);
-    r.timer = null; r.deadline = null;
+    r.timer = null; r.deadline = null; r.endedAt = this.clock.now();
     for (const m of r.members) this.activeRoomOf.delete(m.userId);
   }
 }

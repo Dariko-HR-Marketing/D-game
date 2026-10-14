@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
-import { buildCtx } from "./ctx";
+import { ContentRegistry } from "./registry";
+import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
 
@@ -8,17 +9,29 @@ import { RoomManager } from "./rooms";
 export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry } = {}) {
   const app = Fastify();
   const store = opts.store ?? new MemoryStore();
   const auth = opts.auth ?? devAuth;
-  const rooms = new RoomManager(buildCtx(), store);
+  const registry = opts.registry ?? new ContentRegistry();
+  const adminState = new AdminState();
+  const rooms = new RoomManager(registry, store);
+  registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
     for (const c of sockets.get(code) ?? []) c.send(JSON.stringify(ev));
   });
 
+  // Admin veb-panel boshqa originda ishlaydi: faqat sozlangan origin(lar)ga CORS (standart: yopiq).
+  const origins = (process.env.ADMIN_ORIGINS ?? "").split(",").filter(Boolean);
+  app.addHook("onRequest", async (req, reply) => {
+    const o = req.headers.origin;
+    if (!o || !origins.includes(o)) return;
+    reply.header("access-control-allow-origin", o).header("vary", "origin")
+      .header("access-control-allow-headers", "authorization,content-type").header("access-control-allow-methods", "GET,POST,OPTIONS");
+    if (req.method === "OPTIONS") return reply.code(204).send();
+  });
   app.register(websocket);
   app.get("/health", async () => ({ ok: true }));
 
@@ -26,6 +39,8 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate } = {}) {
     f.get("/ws", { websocket: true }, (socket, req) => {
       const userId = auth(new URL(req.url, "http://x").searchParams.get("token") ?? undefined);
       if (!userId) return socket.close(4401, "unauthorized");
+      if (adminState.isBanned(userId)) return socket.close(4403, "banned");
+      adminState.touch(userId, Date.now());
       let code: string | null = null;
       const client = { userId, send: (s: string) => socket.send(s) };
       const reply = (o: unknown) => socket.send(JSON.stringify(o));
@@ -52,5 +67,13 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate } = {}) {
       socket.on("close", () => { if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
     });
   });
-  return { app, rooms, store };
+  // Shikoyat: foydalanuvchi tokeni bilan (kirish xizmati ulangach haqiqiy autentifikatsiya)
+  app.post("/complaints", async (req, reply) => {
+    const uid = auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined);
+    if (!uid) return reply.code(401).send({ error: "unauthorized" });
+    const b = (req.body ?? {}) as { against?: string; room?: string; text?: string };
+    if (!b.text || b.text.length > 2000) return reply.code(400).send({ error: "bad_text" });
+    return adminState.addComplaint({ from: uid, against: b.against ?? null, room: b.room ?? null, text: b.text, at: Date.now() });
+  });
+  return { app, rooms, store, registry, adminState };
 }

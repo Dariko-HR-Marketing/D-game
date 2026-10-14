@@ -43,3 +43,21 @@ describe("kartalar ta'siri (100 %)", () => {
     expect(effects.find((e) => e.id === "xar-1")!.text).toBe(cards.xar[0].text);
   });
 });
+
+import { parseBundle, validateBundle } from "./index";
+describe("admin kontentini tekshirish", () => {
+  const raw = () => JSON.parse(JSON.stringify({ cards, bigBoard, dreams }));
+  it("asl kontent nashrga yaroqli", () => expect(validateBundle(parseBundle(raw()))).toEqual([]));
+  it("sxemaga mos kelmasa rad (xarajat summasi manfiy)", () => {
+    const r = raw(); r.cards.xar[0].amount = -5;
+    expect(() => parseBundle(r)).toThrow();
+  });
+  it("orzu katagi topilmasa — muammo", () => {
+    const r = raw(); r.dreams[0].name = "yo'q orzu";
+    expect(validateBundle(parseBundle(r)).join()).toContain("orzu");
+  });
+  it("kasb jami xarajati noto'g'ri bo'lsa rad", () => {
+    const r = raw(); r.cards.kasb[0].total += 1;
+    expect(() => parseBundle(r)).toThrow();
+  });
+});
