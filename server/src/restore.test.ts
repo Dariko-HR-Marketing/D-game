@@ -22,7 +22,7 @@ describe("server qayta ishga tushganda o'yinni tiklash (§6.3)", () => {
   it("holat, a'zolar, seq va kontent versiyasi tiklanadi; o'yin davom etadi", async () => {
     const store = new MemoryStore(); const reg = new ContentRegistry(); const c1 = new FakeClock(); let k = 0;
     const a = new RoomManager(reg, store, c1, () => (k++ * 0.37) % 1);
-    const r = a.create("a"); if (!r.ok) throw 0; a.join(r.code, "b"); await a.start(r.code, "a", 11);
+    const r = a.create("a"); if (!r.ok) throw 0; a.join(r.code, "b"); await a.start(r.code, "a", 11, { dreams: false });
     await c1.advance(DECISION_MS * 3);
     const before = a.rooms.get(r.code)!;
     const seq = before.seq, snap = JSON.stringify(before.state);
@@ -41,7 +41,7 @@ describe("server qayta ishga tushganda o'yinni tiklash (§6.3)", () => {
   });
   it("tugagan o'yin tiklanmaydi; noma'lum kontent versiyasi — tiklanmaydi", async () => {
     const store = new MemoryStore(); const reg = new ContentRegistry(); const c = new FakeClock();
-    const a = new RoomManager(reg, store, c); const r = a.create("a"); if (!r.ok) throw 0; a.join(r.code, "b"); await a.start(r.code, "a", 1);
+    const a = new RoomManager(reg, store, c); const r = a.create("a"); if (!r.ok) throw 0; a.join(r.code, "b"); await a.start(r.code, "a", 1, { dreams: false });
     store.metas.get(r.code)!.contentVersion = 99;
     expect(await new RoomManager(reg, store, new FakeClock()).restore()).toBe(0);
   });
@@ -79,7 +79,7 @@ describe.skipIf(!url)("PostgreSQL: admin va kontent saqlanadi", () => {
   });
   it("PgStore: o'yin snapshoti + meta bilan tiklanadi", async () => {
     const reg = new ContentRegistry(); const c = new FakeClock(); const a = new RoomManager(reg, st, c); const r = a.create("a"); if (!r.ok) throw 0;
-    a.join(r.code, "b"); await a.start(r.code, "a", 5);
+    a.join(r.code, "b"); await a.start(r.code, "a", 5, { dreams: false });
     const b = new RoomManager(reg, st, new FakeClock()); expect(await b.restore()).toBeGreaterThanOrEqual(1);
     expect(b.rooms.get(r.code)!.state).toEqual(a.rooms.get(r.code)!.state);
   });
@@ -102,7 +102,7 @@ describe.skipIf(!url)("PostgreSQL: admin va kontent saqlanadi", () => {
   it("tugagan o'yin tahlili PostgreSQL'dan qayta tiklanadi; karta statistikasi saqlanadi", async () => {
     await pool.query("truncate card_stats");
     const reg = new ContentRegistry(); const rm = new RoomManager(reg, st, new FakeClock());
-    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 77);
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 77, { dreams: false });
     const room = rm.rooms.get(r.code)!;
     for (let i = 0; i < 40; i++) { const me = room.state!.players[room.state!.turn % 2].id; await rm.act(r.code, me, room.state!.pending ? { type: "decide", playerId: me, accept: false } : { type: "roll", playerId: me }, room.seq); }
     const w = new WriteQueue(); const svc = new AnalysisService(st, reg, w, persist);
@@ -113,7 +113,7 @@ describe.skipIf(!url)("PostgreSQL: admin va kontent saqlanadi", () => {
   });
   it("closeRoom: yopilgan xona qayta tiklanmaydi", async () => {
     const reg = new ContentRegistry(); const rm = new RoomManager(reg, st, new FakeClock());
-    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 9);
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 9, { dreams: false });
     expect((await st.loadActive()).some((x) => x.code === r.code)).toBe(true);
     await st.closeRoom(r.code); expect((await st.loadActive()).some((x) => x.code === r.code)).toBe(false);
   });
@@ -123,7 +123,7 @@ describe("tashlab ketilgan xonalarni yopish (sweep)", () => {
   const setup = async () => {
     const store = new MemoryStore(); const reg = new ContentRegistry(); const c = new FakeClock(); let k = 0;
     const rm = new RoomManager(reg, store, c, () => (k++ * 0.37) % 1);
-    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 3);
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 3, { dreams: false });
     return { rm, c, code: r.code, store };
   };
   const IDLE = 30 * 60_000;

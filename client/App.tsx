@@ -5,6 +5,7 @@ import { useFonts, Manrope_400Regular, Manrope_700Bold, Manrope_800ExtraBold } f
 import { Connection, ConnState } from "./src/net/connection";
 import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
+import { DreamPick } from "./src/ui/DreamPick";
 import { Game } from "./src/ui/Game";
 import { ProfileScreen } from "./src/ui/ProfileScreen";
 import { Result } from "./src/ui/Result";
@@ -38,6 +39,7 @@ export default function App() {
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onRules={() => setScreen("rules")} />
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
+        : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} />}
       </View>

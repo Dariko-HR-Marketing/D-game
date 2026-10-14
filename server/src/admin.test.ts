@@ -52,12 +52,12 @@ describe("kontent versiyalari", () => {
   it("o'yin boshlanganda versiya qulflanadi: keyingi nashr eski o'yinga tegmaydi (§11)", async () => {
     const x = mk(); const price0 = x.registry.bundle()!.dreams[0].price;
     const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b");
-    await x.rooms.start(r.code, "a", 1);
+    await x.rooms.start(r.code, "a", 1, { dreams: false });
     const dreams = bundle().dreams; dreams[0].price = price0 + 777;
     const v = x.registry.createVersion("dreams", dreams, "ed", "") as any; x.registry.publish(v.version);
     expect(x.rooms.rooms.get(r.code)!.contentVersion).toBe(1);
     expect(x.rooms.rooms.get(r.code)!.ctx.dreams[0].price).toBe(price0);
-    const r2 = x.rooms.create("c"); if (!r2.ok) throw 0; x.rooms.join(r2.code, "d"); await x.rooms.start(r2.code, "c", 1);
+    const r2 = x.rooms.create("c"); if (!r2.ok) throw 0; x.rooms.join(r2.code, "d"); await x.rooms.start(r2.code, "c", 1, { dreams: false });
     expect(x.rooms.rooms.get(r2.code)!.ctx.dreams[0].price).toBe(price0 + 777);
   });
   it("ContentRegistry: sxema xatosi aniq xabar beradi", () => {
@@ -70,7 +70,7 @@ describe("kontent versiyalari", () => {
 describe("foydalanuvchi, bloklash, shikoyat, jurnal, analitika", () => {
   it("bloklangan foydalanuvchi o'yindan chiqariladi va qayta ulana olmaydi", async () => {
     const x = mk(); x.adminState.touch("bad", 1);
-    const r = x.rooms.create("bad"); if (!r.ok) throw 0; x.rooms.join(r.code, "good"); await x.rooms.start(r.code, "bad", 1);
+    const r = x.rooms.create("bad"); if (!r.ok) throw 0; x.rooms.join(r.code, "good"); await x.rooms.start(r.code, "bad", 1, { dreams: false });
     expect((await call(x, "POST", "/admin/users/bad/ban", "S", { reason: "chat" })).json().ok).toBe(true);
     expect(x.rooms.rooms.get(r.code)!.members[0].bot).toBe(true);
     expect(x.adminState.isBanned("bad")).toBe(true);
@@ -89,7 +89,7 @@ describe("foydalanuvchi, bloklash, shikoyat, jurnal, analitika", () => {
   });
   it("o'yin jurnali admin uchun ochiq; analitik rol shaxssiz ko'radi", async () => {
     const x = mk();
-    const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 3);
+    const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 3, { dreams: false });
     const first = x.rooms.rooms.get(r.code)!.state!.players[0].id;
     await x.rooms.act(r.code, first, { type: "roll", playerId: first }, 0);
     const j = (await call(x, "GET", `/admin/rooms/${r.code}/journal`, "S")).json(); expect(j).toHaveLength(1);
@@ -102,14 +102,14 @@ describe("foydalanuvchi, bloklash, shikoyat, jurnal, analitika", () => {
 
 describe("katak qoidalari admin orqali (versiyali, qulflanadigan)", () => {
   it("noto'g'ri qoida rad; to'g'risi versiya bo'ladi; yangi o'yin yangi qoidani oladi, eski o'yin eskisini saqlaydi", async () => {
-    const x = mk(); const r0 = x.rooms.create("a"); if (!r0.ok) throw 0; x.rooms.join(r0.code, "b"); await x.rooms.start(r0.code, "a", 1);
+    const x = mk(); const r0 = x.rooms.create("a"); if (!r0.ok) throw 0; x.rooms.join(r0.code, "b"); await x.rooms.start(r0.code, "a", 1, { dreams: false });
     const bad = await call(x, "POST", "/admin/content/cellRules/versions", "E", { data: { small: { K: { kind: "explode" } } }, note: "x" });
     expect(bad.json().ok).toBe(false);
-    const ok = await call(x, "POST", "/admin/content/cellRules/versions", "E", { data: { small: { K: { kind: "restart" } }, big: { byType: {}, byIndex: {} } }, note: "K = qayta boshlash" });
+    const ok = await call(x, "POST", "/admin/content/cellRules/versions", "E", { data: { small: { K: { kind: "restart" }, Q: { kind: "skipTurns", turns: 3 } }, big: { byType: {}, byIndex: {} } }, note: "Q = 3 navbat" });
     expect(ok.json()).toEqual({ ok: true, version: 2 });
     await call(x, "POST", "/admin/content/versions/2/publish", "E");
-    const r1 = x.rooms.create("c"); if (!r1.ok) throw 0; x.rooms.join(r1.code, "d"); await x.rooms.start(r1.code, "c", 1);
-    expect(x.rooms.rooms.get(r1.code)!.ctx.cellRules?.small.K).toEqual({ kind: "restart" });
-    expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.K).toBeUndefined(); // boshlangan o'yin qulflangan (§11)
+    const r1 = x.rooms.create("c"); if (!r1.ok) throw 0; x.rooms.join(r1.code, "d"); await x.rooms.start(r1.code, "c", 1, { dreams: false });
+    expect(x.rooms.rooms.get(r1.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "skipTurns", turns: 3 });
+    expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "skipTurns", turns: 2 }); // boshlangan o'yin standart qoidada qulflangan (§11)
   });
 });

@@ -49,6 +49,8 @@ export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_
 
 export interface GameState {
   notices: Notice[]; nextNotice: number;
+  /** "dreams": orzu tanlash (butun maydon ochiq, §6.4); "play": o'yin. `dreamPhase`: o'yin orzu bosqichi bilan boshlangan (jurnaldan qayta o'ynash uchun). */
+  phase: "dreams" | "play"; dreamPhase: boolean;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -66,8 +68,8 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = []): GameState {
-  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean } = {}): GameState {
+  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
     for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
@@ -77,6 +79,11 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: strin
     const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
     return { ...newPlayer(id, k), skipTurns: 0, handDebts: [], dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false };
   });
+  if (opts.dreamPhase) { // orzu bosqichi: botlar o'zi tanlaydi, odamlar tanlaguncha o'yin boshlanmaydi
+    s.dreamPhase = true; s.phase = "dreams";
+    for (const p of s.players) if (bots.includes(p.id)) pickFreeDream(s, ctx, p.id);
+    finishDreamsIfDone(s);
+  }
   return s;
 }
 
@@ -122,6 +129,19 @@ function forcePay(s: GameState, ctx: Ctx, p: GamePlayer, amount: number): GamePl
   return { ...(player as GamePlayer), cash: player.cash - amount };
 }
 
+function freeDreams(s: GameState, ctx: Ctx): number[] {
+  const taken = new Set(s.players.map((p) => p.dreamIdx).filter((x): x is number => x !== null));
+  return ctx.dreams.map((_, i) => i).filter((i) => !taken.has(i));
+}
+function pickFreeDream(s: GameState, ctx: Ctx, pid: string) {
+  const free = freeDreams(s, ctx); if (!free.length) return;
+  const i = withRng(s, (r) => free[Math.floor(r() * free.length)]);
+  s.players[idx(s, pid)].dreamIdx = i;
+}
+function finishDreamsIfDone(s: GameState) {
+  if (s.phase === "dreams" && s.players.every((p) => p.dreamIdx !== null)) { s.phase = "play"; logf(s, "orzular tanlandi — o'yin boshlandi"); }
+}
+
 export function chooseDream(s: GameState, playerId: string, dreamIdx: number): GameState {
   const n = clone(s); const p = n.players[idx(n, playerId)];
   p.dreamIdx = dreamIdx; return n;
@@ -138,6 +158,8 @@ export type Action =
   | { type: "partner_offer"; playerId: string; partnerId: string }
   | { type: "partner_accept"; playerId: string; proposalId: number }
   | { type: "partner_buyout"; playerId: string; assetCode: string }
+  | { type: "choose_dream"; playerId: string; dreamIdx: number }
+  | { type: "auto_dreams"; playerId: "server" }
   | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean };
 
@@ -148,8 +170,11 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   // Kirish tekshiruvi (mijozga ishonib bo'lmaydi): ob'ekt, mavjud o'yinchi yoki server.
   if (typeof a !== "object" || a === null || typeof a.playerId !== "string") return { ok: false, error: "bad_action" };
   if (a.playerId !== "server" && !state.players.some((p) => p.id === a.playerId)) return { ok: false, error: "no_player" };
-  if (a.playerId === "server" && a.type !== "expire") return { ok: false, error: "bad_action" };
-  const s = clone(state);
+  if (a.playerId === "server" && a.type !== "expire" && a.type !== "auto_dreams") return { ok: false, error: "bad_action" };
+ const s = clone(state);
+  // Orzu bosqichi: faqat orzu tanlash (yoki serverning avtomatik tanlovi/taklif muddati)
+  if (s.phase === "dreams" && a.type !== "choose_dream" && a.type !== "auto_dreams" && a.type !== "expire") return { ok: false, error: "dreams_phase" };
+  if (a.type === "choose_dream" || a.type === "auto_dreams") return cooperate(s, ctx, a);
   const cur = currentPlayer(s);
   if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
@@ -410,6 +435,18 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const r = takeBankLoan(P(a.playerId), a.amount);
       if (r.restart) return err("bank_limit"); // o'yinchi o'zi yangi kasbga o'tishni tanlamaydi: faqat majburiy to'lovda
       setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: bank krediti ${a.amount}`); return ok();
+    }
+    case "choose_dream": { // §6.4/N09: har bir o'yinchi o'z orzusini tanlaydi; ikki o'yinchi bir orzuni tanlay olmaydi (qaror, #61)
+      if (s.phase !== "dreams") return err("not_dream_phase");
+      if (s.bots.includes(a.playerId)) return err("bot");
+      if (!Number.isInteger(a.dreamIdx) || a.dreamIdx < 0 || a.dreamIdx >= ctx.dreams.length) return err("bad_dream");
+      if (s.players.some((q) => q.id !== a.playerId && q.dreamIdx === a.dreamIdx)) return err("dream_taken");
+      P(a.playerId).dreamIdx = a.dreamIdx; finishDreamsIfDone(s); return ok();
+    }
+    case "auto_dreams": { // vaqt tugadi: tanlamaganlarga bo'sh orzulardan tasodifiy (serverning manbasi, jurnalga yoziladi)
+      if (s.phase !== "dreams") return err("not_dream_phase");
+      for (const q of s.players) if (q.dreamIdx === null) pickFreeDream(s, ctx, q.id);
+      finishDreamsIfDone(s); return ok();
     }
     case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();
 

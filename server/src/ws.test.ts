@@ -25,12 +25,21 @@ describe("WebSocket e2e", () => {
     await b.until((m) => m.type === "state" && m.room.members.length === 2);
     a.send({ type: "start" });
     const started = await b.until((m) => m.type === "state" && m.room.state);
-    const first = started.room.state.players[started.room.state.turn % 2].id;
-    const mover = first === "alice" ? a : b, other = first === "alice" ? b : a;
-    other.send({ type: "act", seq: 0, action: { type: "roll" } });
-    await other.until((m) => m.type === "error" && m.error === "not_member" || m.error === "not_your_turn");
-    mover.send({ type: "act", seq: 0, action: { type: "roll" } });
+    expect(started.room.state.phase).toBe("dreams");
+    a.send({ type: "act", seq: 0, action: { type: "roll" } });
+    await a.until((m) => m.type === "error" && m.error === "dreams_phase");
+    a.send({ type: "act", seq: 0, action: { type: "choose_dream", dreamIdx: 0 } });
     await b.until((m) => m.type === "state" && m.room.seq === 1);
+    b.send({ type: "act", seq: 1, action: { type: "choose_dream", dreamIdx: 0 } });
+    await b.until((m) => m.type === "error" && m.error === "dream_taken");
+    b.send({ type: "act", seq: 1, action: { type: "choose_dream", dreamIdx: 1 } });
+    const started2 = await b.until((m) => m.type === "state" && m.room.seq === 2 && m.room.state.phase === "play");
+    const first = started2.room.state.players[started.room.state.turn % 2].id;
+    const mover = first === "alice" ? a : b, other = first === "alice" ? b : a;
+    other.send({ type: "act", seq: 2, action: { type: "roll" } });
+    await other.until((m) => m.type === "error" && m.error === "not_member" || m.error === "not_your_turn");
+    mover.send({ type: "act", seq: 2, action: { type: "roll" } });
+    await b.until((m) => m.type === "state" && m.room.seq === 3);
     a.ws.close(); b.ws.close(); await app.close();
   });
   it("tokensiz ulanish rad etiladi", async () => {

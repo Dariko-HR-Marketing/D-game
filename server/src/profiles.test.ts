@@ -54,14 +54,14 @@ describe("HTTP: profil, eksport, o'chirish, reyting", () => {
     const x = buildApp(); const yr = new Date().getFullYear();
     for (const [id, by] of [["kid", yr - 12], ["p1", 1990], ["p2", 1990], ["p3", 1990], ["p4", 1990]] as [string, number][]) await x.app.inject({ method: "PUT", url: "/me/profile", headers: H(id), payload: { name: id + id, color: 0, birthYear: by } });
     const r = x.rooms.create("kid"); if (!r.ok) throw 0; for (const id of ["p1", "p2", "p3", "p4"]) x.rooms.join(r.code, id);
-    await x.rooms.start(r.code, "kid", 1);
+    await x.rooms.start(r.code, "kid", 1, { dreams: false });
     expect(x.rooms.rooms.get(r.code)!.state!.restricted).toEqual(["kid"]);
     expect(x.rooms.view(x.rooms.rooms.get(r.code)!).names.kid.name).toBe("kidkid");
   });
   it("o'yin tugaganda natija yoziladi va reytingda ko'rinadi", async () => {
     const x = buildApp();
     for (const id of ["a", "b"]) await x.app.inject({ method: "PUT", url: "/me/profile", headers: H(id), payload: { name: id.toUpperCase() + "x", color: 1, birthYear: 1990 } });
-    const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 1);
+    const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 1, { dreams: false });
     const room = x.rooms.rooms.get(r.code)!; room.state!.winner = "a"; room.state!.players[0].won = true; room.state!.players[0].circle = "big";
     (x.rooms as any).finish(room);
     const lb = (await x.app.inject({ method: "GET", url: "/leaderboard" })).json();

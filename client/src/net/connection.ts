@@ -3,7 +3,7 @@ export interface WS { send(s: string): void; close(): void; onopen: (() => void)
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
+export interface RoomView { marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[] }
 export interface Reaction { id: number; from: string; emoji: string; at: number }
 export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[] }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)

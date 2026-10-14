@@ -9,6 +9,7 @@ const money = int(1, 100_000_000);
 export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("roll") }).strict(),
   z.object({ type: z.literal("decide"), accept: z.boolean(), qty: int(1, 100_000).optional(), useBank: z.boolean().optional() }).strict(),
+  z.object({ type: z.literal("choose_dream"), dreamIdx: int(0, 999) }).strict(),
   z.object({ type: z.literal("bank_loan"), amount: money }).strict(),
   z.object({ type: z.literal("market_sell"), proposalId: int(1, 1e9), assetCode: z.string().min(1).max(64).optional() }).strict(),
   z.object({ type: z.literal("suyunchi"), proposalId: int(1, 1e9), amount: int(1, 100_000) }).strict(),

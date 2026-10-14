@@ -80,7 +80,7 @@ describe("WebSocket", () => {
 import { RoomManager, publicState } from "./rooms";
 describe("yashirin ma'lumot mijozga chiqmaydi (aldashga qarshi)", () => {
   it("holat ko'rinishida urug', RNG holati va deka tartibi yo'q; deka soni bor", async () => {
-    const x = buildApp(); const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 123456);
+    const x = buildApp(); const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 123456, { dreams: false });
     const v = x.rooms.view(x.rooms.rooms.get(r.code)!); const json = JSON.stringify(v);
     expect(json).not.toContain("rngState"); expect(json).not.toContain('"seed"'); expect(json).not.toContain('"decks"');
     expect((v.state as any).deckCounts.kichik.draw).toBeGreaterThan(0);

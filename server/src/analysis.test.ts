@@ -8,7 +8,7 @@ import { envAdminAuth } from "./admin";
 
 async function playRoom(x: ReturnType<typeof buildApp>, turns: number) {
   for (const id of ["alice", "bob"]) await x.app.inject({ method: "PUT", url: "/me/profile", headers: H(id), payload: { name: id === "alice" ? "Alisa" : "Bobur", color: 0, birthYear: 1990 } });
-  const r = x.rooms.create("alice"); if (!r.ok) throw 0; x.rooms.join(r.code, "bob"); await x.rooms.start(r.code, "alice", 31);
+  const r = x.rooms.create("alice"); if (!r.ok) throw 0; x.rooms.join(r.code, "bob"); await x.rooms.start(r.code, "alice", 31, { dreams: false });
   const room = x.rooms.rooms.get(r.code)!;
   for (let i = 0; i < turns && !room.state!.winner; i++) {
     const me = currentPlayer(room.state!).id;

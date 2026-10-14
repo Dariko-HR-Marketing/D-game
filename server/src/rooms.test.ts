@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { buildCtx } from "./ctx";
 import { MemoryStore } from "./store";
 import { Clock, RoomManager, DECISION_MS, publicState } from "./rooms";
-import { currentPlayer, newGame, reduce, chooseDream } from "@poyga/rules";
+import { currentPlayer, newGame, reduce, chooseDream, RULES } from "@poyga/rules";
 
 const ctx = buildCtx();
 
@@ -42,8 +42,8 @@ describe("xonalar (§6.1)", () => {
   it("faqat xona egasi boshlaydi; 1 odam bo'lsa bot qo'shiladi", async () => {
     const r = rm.create("u0"); if (!r.ok) throw 0;
     rm.join(r.code, "u1"); rm.leave(r.code, "u1");
-    expect(await rm.start(r.code, "u1", 1)).toEqual({ ok: false, error: "not_host" });
-    expect((await rm.start(r.code, "u0", 1)).ok).toBe(true);
+    expect(await rm.start(r.code, "u1", 1, { dreams: false })).toEqual({ ok: false, error: "not_host" });
+    expect((await rm.start(r.code, "u0", 1, { dreams: false })).ok).toBe(true);
     const room = rm.rooms.get(r.code)!;
     expect(room.members.map((m) => m.bot)).toEqual([false, true]);
   });
@@ -52,7 +52,7 @@ describe("xonalar (§6.1)", () => {
 describe("harakatlar (§6.2)", () => {
   it("eski/takroriy seq rad etiladi, jurnal ketma-ket", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 7);
+    await rm.start(r.code, "a", 7, { dreams: false });
     expect((await rm.act(r.code, "a", { type: "roll", playerId: "a" }, 0)).ok).toBe(true);
     expect(await rm.act(r.code, "a", { type: "roll", playerId: "a" }, 0)).toEqual({ ok: false, error: "stale_seq" });
     const j = await store.journal(r.code);
@@ -60,12 +60,12 @@ describe("harakatlar (§6.2)", () => {
   });
   it("boshqa o'yinchi nomidan harakat yo'q", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 7);
+    await rm.start(r.code, "a", 7, { dreams: false });
     expect((await rm.act(r.code, "b", { type: "roll", playerId: "a" }, 0)).ok).toBe(false);
   });
   it("jurnal + urug'dan holat to'liq qayta tiklanadi (nizo uchun)", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 99);
+    await rm.start(r.code, "a", 99, { dreams: false });
     await clock.advance(DECISION_MS * 40);
     const room = rm.rooms.get(r.code)!;
     let s = newGame(ctx, ["a", "b"], 99); s.players.forEach((p, i) => (s = chooseDream(s, p.id, i)));
@@ -80,7 +80,7 @@ describe("harakatlar (§6.2)", () => {
 describe("taymer va uzilish (§5.2, §6.3)", () => {
   it("30 s da harakat bo'lmasa avtomatik", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 3);
+    await rm.start(r.code, "a", 3, { dreams: false });
     await clock.advance(DECISION_MS - 1);
     expect(rm.rooms.get(r.code)!.seq).toBe(0);
     await clock.advance(1);
@@ -88,14 +88,14 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
   });
   it("vaqt tugasa ixtiyoriy karta o'tkaziladi (qabul qilinmaydi)", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 3);
+    await rm.start(r.code, "a", 3, { dreams: false });
     await clock.advance(DECISION_MS * 60);
     const auto = (await store.journal(r.code)).filter((e) => "reason" in e.action && e.action.action.type === "decide");
     for (const e of auto) if ("reason" in e.action && e.action.action.type === "decide") expect(e.action.action.accept).toBe(false);
   });
   it("uzilish va qayta ulanish: holat saqlanadi, o'yin davom etadi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 3);
+    await rm.start(r.code, "a", 3, { dreams: false });
     rm.disconnect(r.code, "a");
     await clock.advance(DECISION_MS * 3);
     const before = rm.rooms.get(r.code)!.seq;
@@ -106,7 +106,7 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
   });
   it("chiqib ketgan o'yinchi o'rniga bot o'ynaydi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 3);
+    await rm.start(r.code, "a", 3, { dreams: false });
     rm.leave(r.code, "a");
     await clock.advance(10);
     const room = rm.rooms.get(r.code)!;
@@ -119,7 +119,7 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
 describe("hamkorlik taymeri", () => {
   it("taklif 30 s da o'chadi va navbatni to'xtatmaydi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 3);
+    await rm.start(r.code, "a", 3, { dreams: false });
     const room = rm.rooms.get(r.code)!;
     // qo'lda taklif qo'shib, keyingi harakatda taymer o'rnatilishini tekshiramiz
     room.state!.proposals.push({ id: 77, kind: "suyunchi", parent: "a", given: [] });
@@ -131,7 +131,46 @@ describe("hamkorlik taymeri", () => {
   });
   it("mijoz 'expire' yubora olmaydi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
-    await rm.start(r.code, "a", 3);
+    await rm.start(r.code, "a", 3, { dreams: false });
     expect((await rm.act(r.code, "a", { type: "expire", playerId: "server", proposalId: 1 } as any, 0)).ok).toBe(false);
+  });
+});
+
+describe("orzu tanlash bosqichi (§6.4)", () => {
+  it("tanlangunicha o'yin yo'q; orzu takrorlanmaydi; hammasi tanlansa o'yin boshlanadi", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
+    await rm.start(r.code, "a", 3);
+    const room = rm.rooms.get(r.code)!;
+    expect(room.state!.phase).toBe("dreams");
+    expect(await rm.act(r.code, "a", { type: "roll", playerId: "a" }, 0)).toEqual({ ok: false, error: "dreams_phase" });
+    expect((await rm.act(r.code, "a", { type: "choose_dream", playerId: "a", dreamIdx: 2 }, 0)).ok).toBe(true);
+    expect(await rm.act(r.code, "b", { type: "choose_dream", playerId: "b", dreamIdx: 2 }, 1)).toEqual({ ok: false, error: "dream_taken" });
+    expect(await rm.act(r.code, "b", { type: "choose_dream", playerId: "b", dreamIdx: 999 }, 1)).toEqual({ ok: false, error: "bad_dream" });
+    expect((await rm.act(r.code, "b", { type: "choose_dream", playerId: "b", dreamIdx: 3 }, 1)).ok).toBe(true);
+    expect(room.state!.phase).toBe("play");
+    expect(room.state!.players.map((p) => p.dreamIdx)).toEqual([2, 3]);
+  });
+  it("vaqt tugasa tanlamaganlarga bo'sh orzular avtomatik beriladi (takrorlanmaydi); jurnaldan qayta o'ynaladi", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c");
+    await rm.start(r.code, "a", 5);
+    const room = rm.rooms.get(r.code)!;
+    await rm.act(r.code, "a", { type: "choose_dream", playerId: "a", dreamIdx: 0 }, 0);
+    await clock.advance(RULES.dreamSeconds * 1000 - 1);
+    expect(room.state!.phase).toBe("dreams");
+    await clock.advance(1);
+    expect(room.state!.phase).toBe("play");
+    const d = room.state!.players.map((p) => p.dreamIdx);
+    expect(d.every((x) => x !== null)).toBe(true); expect(new Set(d).size).toBe(3); expect(d[0]).toBe(0);
+    const j = await store.journal(r.code);
+    expect(j.some((e) => "reason" in e.action && e.action.reason === "dream_timeout")).toBe(true);
+  });
+  it("botlar orzuni o'zi tanlaydi; faqat bot qolsa darrov o'yin", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0;
+    await rm.start(r.code, "a", 9); // 1 odam + bot
+    const room = rm.rooms.get(r.code)!;
+    expect(room.state!.players.find((p) => p.id === "bot-1")!.dreamIdx).not.toBeNull();
+    expect(room.state!.phase).toBe("dreams");
+    await rm.act(r.code, "a", { type: "choose_dream", playerId: "a", dreamIdx: room.state!.players.find((p) => p.id === "bot-1")!.dreamIdx === 0 ? 1 : 0 }, 0);
+    expect(room.state!.phase).toBe("play");
   });
 });

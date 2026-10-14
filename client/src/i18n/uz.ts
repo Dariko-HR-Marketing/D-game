@@ -2,6 +2,7 @@
 export const uz = {
   app: { name: "POYGA" },
   home: { create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
+  dreams: { title: "Orzuingizni tanlang", hint: "Har bir o'yinchi o'z orzusini tanlaydi. Bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi.", taken: "band", yours: "Sizning tanlovingiz", waiting: "Boshqa o'yinchilar tanlashini kutyapmiz", timeLeft: "Qolgan vaqt", pick: "Tanlash", price: "narxi" },
   lobby: { title: "Xona", players: "O'yinchilar", start: "O'yinni boshlash", wait: "Xona egasi o'yinni boshlashini kuting", bot: "Bot", you: "Siz", offline: "oflayn", hint: "Odam yetmasa bot qo'shiladi" },
   game: {
     yourTurn: "Sizning navbatingiz", waitFor: "Navbat:", roll: "Kubik tashlash", accept: "Qabul qilaman", skip: "O'tkazaman",
@@ -45,6 +46,7 @@ export const uz = {
     room_not_found: "Bunday xona topilmadi", room_full: "Xona to'la (6/6). Yangi xona yarating", already_in_game: "Siz boshqa o'yinda turibsiz",
     already_started: "O'yin allaqachon boshlangan", not_host: "Faqat xona egasi boshlay oladi", stale_seq: "Holat yangilandi. Qayta urinib ko'ring",
     bad_name: "Ism 2–24 belgi bo'lishi kerak", bad_color: "Rang noto'g'ri", bad_birth_year: "Tug'ilgan yil noto'g'ri", restricted_age: "16 yoshgacha bu amal yopiq", in_game: "Avval o'yindan chiqing", confirm_required: "Tasdiqlash so'zi noto'g'ri",
+    dream_taken: "Bu orzuni boshqa o'yinchi tanlagan", dreams_phase: "Avval orzular tanlansin", bad_dream: "Orzu noto'g'ri", not_dream_phase: "Orzu tanlash tugagan",
     already_sold: "Siz allaqachon sotgansiz", nothing_to_sell: "Sotiladigan mos aktiv yo'q",
     left_game: "Siz bu o'yindan chiqqansiz — qaytib kira olmaysiz", bad_reaction: "Bunday reaksiya yo'q",
     invalid_amount: "Summa noto'g'ri", bank_limit: "Bank limiti oshib ketadi", already_given: "Siz allaqachon bergansiz", small_circle_only: "Faqat kichik aylanada", not_needed: "Naqd yoki bank limiti yetadi",

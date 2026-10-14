@@ -24,7 +24,7 @@ describe("/ready, /metrics", () => {
     expect((await buildApp().app.inject({ url: "/metrics" })).statusCode).toBe(404);
     const x = buildApp({ metricsToken: "S3CRET" });
     expect((await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer nope" } })).statusCode).toBe(401);
-    const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 5);
+    const r = x.rooms.create("a"); if (!r.ok) throw 0; x.rooms.join(r.code, "b"); await x.rooms.start(r.code, "a", 5, { dreams: false });
     const first = x.rooms.rooms.get(r.code)!.state!.players[0].id;
     await x.rooms.act(r.code, first, { type: "roll", playerId: first }, 0);
     await x.app.inject({ url: "/leaderboard" });
@@ -51,7 +51,8 @@ describe("jurnal maxfiyligi va chidamlilik", () => {
     ws.send(JSON.stringify({ type: "create" })); await new Promise((r) => setTimeout(r, 100)); ws.send(JSON.stringify({ type: "start" })); await new Promise((r) => setTimeout(r, 100));
     st.append = async () => { throw new Error("disk full"); }; st.saveSnapshot = async () => { throw new Error("disk full"); };
     const room = x.rooms.rooms.values().next().value!; const seq0 = room.seq;
-    ws.send(JSON.stringify({ type: "act", seq: seq0, action: { type: "roll" } })); await new Promise((r) => setTimeout(r, 200));
+    const free = [0, 1, 2, 3, 4, 5].find((i) => !room.state!.players.some((p) => p.dreamIdx === i))!;
+    ws.send(JSON.stringify({ type: "act", seq: seq0, action: { type: "choose_dream", dreamIdx: free } })); await new Promise((r) => setTimeout(r, 200));
     expect(room.seq).toBeGreaterThan(seq0); expect(got.some((g) => g.error)).toBe(false); expect(room.timer).not.toBeNull(); // o'yin yuribdi va taymer o'rnatilgan
     const met = await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer T" } }); expect(met.body).toContain('poyga_room_errors_total{where="persist"}');
     ws.close(); await x.app.close();

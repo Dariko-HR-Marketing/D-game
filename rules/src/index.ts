@@ -19,6 +19,7 @@ export const RULES = {
   pointsPerLevel: 100, // §5.9
   crisisLaps: 9, // §5.7
   cardDecisionSeconds: 30,
+  dreamSeconds: 60, // orzu tanlash bosqichi (§6.4, N09): SPEC muddat aytmaydi — qaror (OPEN_QUESTIONS #61)
 } as const;
 
 /** §5.3: oylik to'lov = summa / 36 + summa × 20 % / 12. Yaxlitlash qoidasi berilmagan (§16). */

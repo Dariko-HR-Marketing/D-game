@@ -28,7 +28,7 @@ export function publicState(st: GameState | null) {
   return { ...rest, deckCounts: Object.fromEntries(Object.entries(decks).map(([k, d]) => [k, { draw: d.draw.length, discard: d.discard.length }])) };
 }
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; pendingCard: PendingCardView | null }
+export interface RoomView { marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[] }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -57,6 +57,7 @@ export class RoomManager {
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
     return { marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline,
+      dreams: r.state?.phase === "dreams" ? r.ctx.dreams.map((d) => ({ name: d.name, price: d.price })) : undefined,
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: pc.effect, file: pc.file } : null };
   }
 
@@ -112,7 +113,7 @@ export class RoomManager {
   }
 
   /** §6.5: odam yetmasa bot qo'shiladi. */
-  async start(code: string, userId: string, seed: number): Promise<{ ok: true } | { ok: false; error: Err }> {
+  async start(code: string, userId: string, seed: number, opts: { dreams?: boolean } = {}): Promise<{ ok: true } | { ok: false; error: Err }> {
     const r = this.rooms.get(code);
     if (!r) return { ok: false, error: "room_not_found" };
     if (r.hostId !== userId) return { ok: false, error: "not_host" };
@@ -120,8 +121,8 @@ export class RoomManager {
     let b = 1;
     while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
-    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? []);
-    s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length)));
+    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
+    if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz
     r.state = s;
     await this.store.saveSnapshot(code, s, this.meta(r));
     this.hooks.onStart?.(code, r);
@@ -136,7 +137,7 @@ export class RoomManager {
     if (!r) return { ok: false, error: "room_not_found" };
     if (!r.state) return { ok: false, error: "not_started" };
     if (!r.members.some((m) => m.userId === userId)) return { ok: false, error: "not_member" };
-    if (action.playerId !== userId || (action as { type: string }).type === "expire") return { ok: false, error: "not_member" };
+    if (action.playerId !== userId || (action as { type: string }).type === "expire" || (action as { type: string }).type === "auto_dreams") return { ok: false, error: "not_member" };
     if (seq !== r.seq) return { ok: false, error: "stale_seq" };
     return this.apply(r, action, null);
   }
@@ -176,6 +177,12 @@ export class RoomManager {
   /** Navbat taymeri (§5.2, §6.3): 30 s ichida qaror bo'lmasa — avtomatik. Bot va oflayn o'yinchi ham shu yo'ldan. */
   private arm(r: Room) {
     if (r.timer) this.clock.clearTimeout(r.timer);
+    if (r.state!.phase === "dreams") { // orzu bosqichi: umumiy muddat, so'ng tanlamaganlarga avtomatik
+      const ms = RULES.dreamSeconds * 1000;
+      r.deadline = this.clock.now() + ms;
+      r.timer = this.clock.setTimeout(() => { r.timer = null; void this.apply(r, { type: "auto_dreams", playerId: "server" }, "dream_timeout").catch((e) => this.hooks.onError?.("autoMove", e)); }, ms);
+      return;
+    }
     const cur = currentPlayer(r.state!);
     const m = r.members.find((x) => x.userId === cur.id)!;
     const delay = m.bot ? 0 : DECISION_MS;
@@ -185,7 +192,7 @@ export class RoomManager {
 
   private async autoMove(r: Room) {
     r.timer = null;
-    if (!r.state || r.state.winner) return;
+    if (!r.state || r.state.winner || r.state.phase === "dreams") return;
     const cur = currentPlayer(r.state);
     const bot = r.members.find((x) => x.userId === cur.id)?.bot;
     if (!r.state.pending) return void (await this.apply(r, { type: "roll", playerId: cur.id }, bot ? "bot" : "timeout"));

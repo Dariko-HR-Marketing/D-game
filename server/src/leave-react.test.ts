@@ -10,7 +10,7 @@ class FakeClock implements Clock {
 }
 const setup = async () => {
   const store = new MemoryStore(); const rm = new RoomManager(new ContentRegistry(), store, new FakeClock(), (() => { let k = 0; return () => (k++ * 0.37) % 1; })());
-  const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c"); await rm.start(r.code, "a", 4);
+  const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c"); await rm.start(r.code, "a", 4, { dreams: false });
   return { rm, code: r.code, store };
 };
 
