@@ -108,3 +108,4 @@ export const levelFromPoints = (points: number) => Math.floor(Math.max(0, points
 
 export * from "./engine";
 export * from "./game";
+export * from "./analysis";

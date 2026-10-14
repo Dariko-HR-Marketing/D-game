@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
+import { AnalysisService, presentable } from "./analysis";
+import { WriteQueue } from "./persist";
 import { parseMessage } from "./protocol";
 import { Bucket, KeyedLimiter } from "./ratelimit";
 import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
@@ -12,7 +14,7 @@ import { RoomManager } from "./rooms";
 export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   const app = Fastify({ bodyLimit: 64 * 1024 });
@@ -21,12 +23,13 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const registry = opts.registry ?? new ContentRegistry();
   const adminState = opts.adminState ?? new AdminState();
   const profiles = opts.profiles ?? new ProfileService();
+  const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
   const rooms = new RoomManager(registry, store, undefined, undefined, {
     restricted: (ids) => profiles.restrictedOf(ids),               // §2.8: 16 yoshgacha — qarz/sheriklik yopiq
     profile: (id) => profiles.get(id),
-    onEnd: (code, r) => profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion),
+    onEnd: (code, r) => { profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });
-  registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store });
+  registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store, cards: () => analysis.topCards() });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -99,6 +102,13 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     const r = profiles.put(uid, req.body); if (!r.ok) return reply.code(400).send({ error: r.error });
     return { profile: r.profile, restricted: profiles.restrictedOf([uid]).length > 0, year: year() };
   }));
+  // O'yin tahlili (§5.9): faqat ishtirokchi; boshqa o'yinchilar ismi yoki "O'yinchi N" bilan.
+  app.get("/me/games/:code/analysis", secured(async (uid, req, reply) => {
+    const code = String((req.params as any).code).toUpperCase();
+    const r = await analysis.analyze(code); if (!r) return reply.code(404).send({ error: "no_game" });
+    if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
+    return presentable(r.analysis, (id) => profiles.get(id)?.name, uid);
+  }));
   app.get("/me/history", secured((uid) => profiles.history(uid)));
   app.get("/me/export", secured((uid) => ({ userId: uid, exportedAt: Date.now(), ...profiles.export(uid) })));
   app.delete("/me", secured((uid, req, reply) => {
@@ -117,5 +127,5 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!b.text || b.text.length > 2000) return reply.code(400).send({ error: "bad_text" });
     return adminState.addComplaint({ from: uid, against: b.against ?? null, room: b.room ?? null, text: b.text, at: Date.now() });
   });
-  return { app, rooms, store, registry, adminState, profiles };
+  return { app, rooms, store, registry, adminState, profiles, analysis };
 }

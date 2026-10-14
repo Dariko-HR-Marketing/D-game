@@ -106,3 +106,16 @@ describe("bozor taklifi (mijoz)", () => {
     r.state.proposals[0].sold = ["a"]; expect(marketOffers(r, "a")).toEqual([]);
   });
 });
+
+import { bars, downsample } from "./analysisView";
+describe("tahlil ko'rinishi", () => {
+  it("downsample: chegara, oxirgi nuqta saqlanadi, tartib", () => {
+    const xs = Array.from({ length: 100 }, (_, i) => i);
+    const d = downsample(xs, 10); expect(d).toHaveLength(10); expect(d[0]).toBe(0); expect(d.at(-1)).toBe(99); expect([...d].sort((a, b) => a - b)).toEqual(d);
+    expect(downsample([1, 2, 3], 10)).toEqual([1, 2, 3]);
+  });
+  it("ustunlar: manfiy qizil, nisbiy balandlik ≤ 1, hammasi nol bo'lsa ham xato yo'q", () => {
+    expect(bars([50, -100, 0])).toEqual([{ h: 0.5, neg: false }, { h: 1, neg: true }, { h: 0, neg: false }]);
+    expect(bars([0, 0]).every((x) => x.h === 0)).toBe(true);
+  });
+});

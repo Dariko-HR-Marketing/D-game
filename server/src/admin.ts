@@ -55,7 +55,7 @@ export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   return (t) => (t && Object.hasOwn(m, t) ? m[t] : null);
 };
 
-export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; now?: () => number }) {
+export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; now?: () => number }) {
   const now = d.now ?? Date.now;
   const guard = (perm: Perm, h: (req: FastifyRequest, who: { id: string; role: Role }) => Promise<unknown> | unknown, auditAction?: string) =>
     async (req: FastifyRequest, reply: any) => {
@@ -125,5 +125,6 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
       avgRounds: started.length ? started.reduce((s, r) => s + r.state!.round, 0) / started.length : 0,
       users: d.state.users.size, ...decisions };
   }));
+  app.get("/admin/analytics/cards", guard("analytics.read", () => d.cards?.() ?? [])); // karta bo'yicha qabul/o'tkazish (§12), shaxssiz
   app.get("/admin/audit", guard("audit.read", () => d.state.audit.slice(-500)));
 }

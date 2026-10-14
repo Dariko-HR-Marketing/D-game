@@ -17,6 +17,11 @@ export const uz = {
     consequences: "O'chirilganda: profil va sozlamalar o'chadi; o'yin natijalari ismsiz (anonim) saqlanadi; bu amalni qaytarib bo'lmaydi.",
     export: "Ma'lumotni yuklab olish", typeWord: "Tasdiqlash uchun «O'CHIRISH» deb yozing", deleteBtn: "Hisobni o'chirish", needProfile: "Profilni to'ldiring",
   },
+  result: {
+    title: "O'yin natijasi", winner: "G'olib", analysis: "O'yin tahlili", loading: "Tahlil tayyorlanmoqda…", failed: "Tahlilni yuklab bo'lmadi", home: "Bosh sahifa",
+    cashflowChart: "Pul oqimi (aylanalar bo'yicha)", exitRound: "Kichik aylanadan chiqdi", never: "chiqmadi", restarts: "Qayta boshlash", peakCash: "Eng ko'p naqd", peakFlow: "Eng yuqori pul oqimi",
+    accepted: "Qabul qilingan kartalar", skipped: "O'tkazilgan kartalar", assets: "Aktivlar", round: "aylana", you: "Siz",
+  },
   coop: {
     bank: "Bank", bankHint: "Bank krediti (100 ga karrali)", bankRoom: "Bank limiti qoldig'i", take: "Kredit olish", amount: "Summa",
     suyunchi: "Suyunchi", suyunchiFor: "farzand tug'ildi — suyunchi bering", give: "Berish", loan: "O'zaro qarz", loanAsk: "Qarz so'rash", giver: "Beruvchi", months: "Muddat (oy)", max: "Eng ko'pi",

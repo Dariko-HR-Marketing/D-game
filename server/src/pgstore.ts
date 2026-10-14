@@ -8,7 +8,7 @@ export class PgStore implements Store {
   static connect(url: string) { return new PgStore(new Pool({ connectionString: url })); }
 
   async migrate() {
-    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql"])
+    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql", "004_card_stats.sql"])
       await this.pool.query(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf-8"));
   }
   async saveSnapshot(code: string, s: GameState, meta?: RoomMeta) {
@@ -30,6 +30,10 @@ export class PgStore implements Store {
   async loadActive(): Promise<ActiveRoom[]> {
     const r = await this.pool.query("select s.room_code, s.state, s.meta from snapshots s join rooms r on r.code=s.room_code where r.ended_at is null and s.meta is not null");
     return r.rows.map((x) => ({ code: x.room_code, state: x.state, meta: x.meta }));
+  }
+  async loadRoom(code: string) {
+    const r = await this.pool.query("select state, meta from snapshots where room_code=$1", [code]);
+    return r.rows[0] ? { state: r.rows[0].state as GameState, meta: (r.rows[0].meta ?? null) as RoomMeta | null } : null;
   }
   async loadSnapshot(code: string): Promise<GameState | null> {
     const r = await this.pool.query("select state from snapshots where room_code=$1", [code]);

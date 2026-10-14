@@ -11,7 +11,7 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
   };
   return {
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number }) => call("PUT", "/me/profile", p),
-    history: () => call("GET", "/me/history"), leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
+    history: () => call("GET", "/me/history"), analysis: (code: string) => call("GET", `/me/games/${code}/analysis`), leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
     deleteAccount: (confirm: string) => call("DELETE", "/me", { confirm }),
   };
 }

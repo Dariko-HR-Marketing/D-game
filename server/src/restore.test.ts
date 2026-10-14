@@ -8,6 +8,8 @@ import { AdminState } from "./admin";
 import { PgPersist } from "./persist";
 import { PgStore } from "./pgstore";
 import { ProfileService } from "./profiles";
+import { AnalysisService } from "./analysis";
+import { WriteQueue } from "./persist";
 
 class FakeClock implements Clock {
   t = 0; q: { at: number; f: () => void; id: number }[] = []; n = 0;
@@ -96,5 +98,17 @@ describe.skipIf(!url)("PostgreSQL: admin va kontent saqlanadi", () => {
     const r2 = await ProfileService.restore(persist, () => 2026);
     expect(r2.get("a")).toBeUndefined(); expect(r2.results[0].winner).toBe("deleted");
     expect(r2.results[0].players.map((p) => p.id)).toEqual(["deleted", "b"]);
+  });
+  it("tugagan o'yin tahlili PostgreSQL'dan qayta tiklanadi; karta statistikasi saqlanadi", async () => {
+    await pool.query("truncate card_stats");
+    const reg = new ContentRegistry(); const rm = new RoomManager(reg, st, new FakeClock());
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 77);
+    const room = rm.rooms.get(r.code)!;
+    for (let i = 0; i < 40; i++) { const me = room.state!.players[room.state!.turn % 2].id; await rm.act(r.code, me, room.state!.pending ? { type: "decide", playerId: me, accept: false } : { type: "roll", playerId: me }, room.seq); }
+    const w = new WriteQueue(); const svc = new AnalysisService(st, reg, w, persist);
+    const res = await svc.analyze(r.code); expect(res!.state).toEqual(room.state);
+    await svc.recordGame(r.code); await w.flush(); expect(w.errors).toEqual([]);
+    const again = await AnalysisService.restore(st, reg, new WriteQueue(), persist);
+    expect(again.cardStats).toEqual(svc.cardStats);
   });
 });

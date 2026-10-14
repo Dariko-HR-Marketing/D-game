@@ -7,6 +7,7 @@ import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
 import { Game } from "./src/ui/Game";
 import { ProfileScreen } from "./src/ui/ProfileScreen";
+import { Result } from "./src/ui/Result";
 import { Leaderboard } from "./src/ui/Leaderboard";
 import { httpBase, makeHttp } from "./src/net/http";
 import { color } from "./src/theme";
@@ -32,6 +33,7 @@ export default function App() {
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} />
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
+        : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} />}
     </SafeAreaView>
   );

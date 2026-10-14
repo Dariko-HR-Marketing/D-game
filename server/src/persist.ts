@@ -4,6 +4,7 @@ import type { Bundle } from "@poyga/content";
 import type { AuditEntry, Complaint } from "./admin";
 import type { VersionInfo } from "./registry";
 import type { GameResult, Profile, ProfilePersist } from "./profiles";
+import type { CardStat, StatsPersist } from "./analysis";
 
 export interface UserRow { id: string; firstSeen: number; lastSeen: number; banned: boolean; banReason?: string }
 export interface Persist {
@@ -27,7 +28,7 @@ export class WriteQueue {
   flush() { return this.tail; }
 }
 
-export class PgPersist implements Persist, ProfilePersist {
+export class PgPersist implements Persist, ProfilePersist, StatsPersist {
   constructor(private pool: Pool) {}
   async loadVersions() {
     const r = await this.pool.query("select version, part, note, author, extract(epoch from at)*1000 as at, published, bundle from content_versions order by version");
@@ -88,5 +89,14 @@ export class PgPersist implements Persist, ProfilePersist {
     await this.pool.query(`update game_results set winner = case when winner=$1 then 'deleted' else winner end,
       players = (select jsonb_agg(case when p->>'id'=$1 then jsonb_set(p,'{id}','"deleted"') else p end) from jsonb_array_elements(players) p)
       where players @> $2::jsonb`, [userId, JSON.stringify([{ id: userId }])]);
+  }
+
+  async loadCardStats(): Promise<Record<string, CardStat>> {
+    const r = await this.pool.query("select card_id, shown, accepted, skipped from card_stats");
+    return Object.fromEntries(r.rows.map((x) => [x.card_id, { shown: x.shown, accepted: x.accepted, skipped: x.skipped }]));
+  }
+  async addCardStats(delta: Record<string, CardStat>) {
+    for (const [id, c] of Object.entries(delta))
+      await this.pool.query("insert into card_stats(card_id,shown,accepted,skipped) values($1,$2,$3,$4) on conflict (card_id) do update set shown=card_stats.shown+excluded.shown, accepted=card_stats.accepted+excluded.accepted, skipped=card_stats.skipped+excluded.skipped", [id, c.shown, c.accepted, c.skipped]);
   }
 }
