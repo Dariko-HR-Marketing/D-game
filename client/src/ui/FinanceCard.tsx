@@ -11,7 +11,7 @@ function Bar({ ratio, ok }: { ratio: number; ok: boolean }) {
 }
 
 /** Moliyaviy holat: katta raqamlar (naqd, oylik pul oqimi), tafsilot va kichik aylanadan chiqish shartlari (progress bilan). */
-export function FinanceCard({ p, profession }: { p: any; profession?: string }) {
+export function FinanceCard({ p, profession, dream }: { p: any; profession?: string; dream?: { name: string; price: number } | null }) {
   const e = exitProgress(p);
   const conds: { k: "cash" | "flow" | "debt" | "partner"; label: string; ratio: number | null; detail?: string }[] = [
     { k: "cash", label: uz.game.exitCash, ratio: p.cash / 1_000_000, detail: `${money(p.cash)} / ${money(1_000_000)}` },
@@ -21,6 +21,7 @@ export function FinanceCard({ p, profession }: { p: any; profession?: string }) 
   return (
     <Card label={uz.game.finance}>
       <SectionTitle right={profession ? <Pill label={profession} kind="info" /> : undefined}>{uz.game.finance}</SectionTitle>
+      {dream && <Text style={s.dream}>{uz.hud.dream}: {dream.name} · {money(dream.price)}</Text>}
       <View style={s.stats}>
         <Stat big label={uz.game.cash} value={money(p.cash)} />
         <Stat big label={uz.game.cashflow} value={`${e.cashflow > 0 ? "+" : ""}${money(e.cashflow)}`} kind={e.cashflow < 0 ? "bad" : "good"} />
@@ -42,6 +43,7 @@ export function FinanceCard({ p, profession }: { p: any; profession?: string }) 
   );
 }
 const s = StyleSheet.create({
+  dream: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   stats: { flexDirection: "row", gap: space.lg, flexWrap: "wrap" },
   exit: { gap: space.sm, marginTop: space.xs, paddingTop: space.md, borderTopWidth: 1, borderTopColor: color.line }, exitTitle: { color: color.navy, fontWeight: "800", fontSize: font.md },
   condRow: { flexDirection: "row", gap: space.sm, alignItems: "center" }, mark: { width: 16, fontWeight: "800" }, cond: { color: tone.muted, fontSize: font.md, flexShrink: 1 },

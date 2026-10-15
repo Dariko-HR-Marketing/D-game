@@ -5,13 +5,14 @@
 - **Hamma nima bo'lganini ko'radi:** oxirgi kubik (`state.lastRoll`) va tortilgan karta (`state.lastCard`) holatda saqlanadi; majburiy karta darhol qo'llansa ham xabar chiqadi (`CardToast`). Jurnal va ro'yxatlarda xom ID emas, ism.
 - **Rangga tayanmaslik:** fishka — rang + raqam + o'yinchilar ro'yxati; holatlar — rang + belgi/matn; fokus ramkasi to'q ko'k.
 - **Harakat kamaytirish:** kubik, fishka va karta animatsiyalari tizim sozlamasiga bo'ysunadi.
-- **Telefon avval:** taxta markazida «Kubik tashlash», qaror pastki varaqda; planshet/kompyuterda taxta chapda, panel o'ngda; kompyuterda probel — kubik.
+- **Telefon avval (maketlarga mos, `docs/DESIGN_MAP.md`):** tepada holat satri (naqd · pul oqimi · passiv), kvadrat taxta (ikonka + yozuv + rang), o'yinchilar lentasi (rasm, daraja nishoni, Navbatda/Onlayn/Oflayn), taymer halqasi va katta yashil «Kubikni tashlash»; pastki navigatsiya: Maydon / Blank / O'yinchilar / Qoidalar. Qaror — pastki varaqda (rangli sarlavha, «O'zgarishlar» oldin → keyin, muddat ogohlantirishi). Kompyuterda (≥ 900 px): chapda moliyaviy panel, markazda keng taxta; probel — kubik.
+- **Katta aylana:** 2 kubik yig'indisi; tavakkal biznes va birovning biznesi (A/B) alohida qaror kartalari; Imkoniyatda naqd 25 000 dan ko'p bo'lsa dekani tanlash.
 
 ## Tizim (`client/src/theme.ts`, `ui/kit.tsx`)
 Bo'shliq (4 px shkala), burchak, shrift o'lchamlari, soya, ma'no ranglari (yaxshi/yomon/diqqat — barchasi AA kontrastli, `a11y.test.ts` tekshiradi). Komponentlar: `Card`, `Pill`, `Stat`, `Row`, `Banner`, `Screen`, `Dice`, `Board`, `PlayerStrip`, `FinanceCard`, `DecisionCard`, `TurnPanel`, `CardToast`, `Onboarding`.
 
 ## Ekranlar
-Bosh sahifa · Kirish (SMS) · Xona · Orzu tanlash · O'yin (+ yo'riqnoma, karta oynasi, moliya amallari) · Natija va tahlil · Profil (yutuqlar, tarix, hisobni boshqarish) · Reyting · Qoidalar · Admin panel (kontent, xonalar, foydalanuvchilar, shikoyatlar, analitika, audit).
+Xush kelibsiz · Bosh sahifa (qatorlar, pastki navigatsiya) · Kirish (SMS) · Xona · Orzu tanlash · O'yin (+ yo'riqnoma, karta oynasi, moliya amallari) · Natija va tahlil · Profil (yutuqlar, tarix, hisobni boshqarish) · Reyting · Qoidalar · Admin panel (kontent, xonalar, foydalanuvchilar, shikoyatlar, analitika, audit).
 
 ## Tekshirish
 ```bash

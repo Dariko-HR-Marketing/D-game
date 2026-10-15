@@ -92,7 +92,9 @@ export class ProfileService {
   }
   restrictedOf(ids: string[]) { return ids.filter((id) => isRestricted(this.profiles.get(id), this.year())); }
 
-  record(r: GameResult) { this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
+  private lvl = new Map<string, number>(); /** Daraja keshi (har xona yangilanishida natijalarni qayta sanamaslik uchun); yangi natijada tozalanadi. */
+  levelCached(userId: string) { let v = this.lvl.get(userId); if (v === undefined) { v = this.stats(userId).level; this.lvl.set(userId, v); } return v; }
+  record(r: GameResult) { this.lvl.clear(); this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
   /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
   recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = []) {
     this.record({ room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
@@ -128,6 +130,7 @@ export class ProfileService {
   export(userId: string) { return { profile: this.profiles.get(userId) ?? null, stats: this.stats(userId), history: this.history(userId, 10_000) }; }
   /** Hisobni o'chirish: profil o'chadi, natijalardagi shaxsiy ID anonimlashadi (§7). */
   delete(userId: string) {
+    this.lvl.clear();
     this.profiles.delete(userId);
     for (const r of this.results) { if (r.winner === userId) r.winner = "deleted"; for (const p of r.players) if (p.id === userId) p.id = "deleted"; }
     this.writes.push(async () => { await this.persist?.deleteProfile(userId); await this.persist?.anonymizeResults(userId); });

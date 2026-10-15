@@ -13,7 +13,7 @@ function play(seed: number, n: number, maxTurns: number) {
     let r = reduce(s, ctx, { type: "roll", playerId: me });
     if (!r.ok) throw new Error(r.error);
     s = r.state;
-    if (s.pending) {
+    while (s.pending) {
       const e = effectOf(ctx, s.pending.cardId).effect;
       const r2 = reduce(s, ctx, { type: "decide", playerId: me, accept: e.kind !== "lendRequest", useBank: true });
       if (!r2.ok) throw new Error(r2.error);

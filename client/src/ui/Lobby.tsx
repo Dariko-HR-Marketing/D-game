@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, Pressable, Share, StyleSheet } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill } from "./kit";
+import { Avatar } from "./Avatar";
+import { Icon } from "./Icon";
 import { Screen } from "./Screen";
 import { uz, errText } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../theme";
@@ -29,12 +31,17 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       <Card>
         <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${MAX}`} kind={humans >= MIN ? "good" : "warn"} /></View>
         {room.members.map((m, i) => {
-          const hue = PLAYER_COLORS[(room.names?.[m.userId]?.color ?? i) % 6];
-          const label = m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? `${uz.lobby.playerN} ${i + 1}`;
-          return (<View key={m.userId} style={s.player} role="group" accessible aria-label={`${i + 1}. ${label}${m.userId === userId ? `, ${uz.lobby.you}` : ""}${i === 0 ? `, ${uz.lobby.hostWord}` : ""}${m.online ? "" : `, ${uz.lobby.offline}`}`}>
-            <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={{ color: readableOn(hue), fontWeight: "800", fontSize: 12 }}>{i + 1}</Text></View>
-            <Text style={s.name} aria-hidden>{label}{m.userId === userId ? ` · ${uz.lobby.you}` : ""}</Text>
-            <View style={{ flexDirection: "row", gap: space.xs }} aria-hidden>{i === 0 && <Pill label={uz.lobby.hostWord} kind="info" />}{!m.online && <Pill label={uz.lobby.offline} kind="warn" />}</View>
+          const label = m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? `${uz.lobby.playerN} ${i + 1}`; const lvl = room.names?.[m.userId]?.level; const stars = Math.min(5, lvl ?? 0);
+          return (<View key={m.userId} style={s.player} role="group" accessible aria-label={`${i + 1}. ${label}${m.userId === userId ? `, ${uz.lobby.you}` : ""}${lvl !== undefined ? `, ${lvl}-daraja` : ""}${i === 0 ? `, ${uz.lobby.hostWord}` : ""}${m.online ? "" : `, ${uz.lobby.offline}`}`}>
+            <Avatar name={label} colorIdx={room.names?.[m.userId]?.color ?? i} level={m.bot ? undefined : lvl} online={m.bot ? undefined : m.online} size={40} />
+            <View style={{ flex: 1, gap: 2 }} aria-hidden>
+              <Text style={s.name}>{label}{m.userId === userId ? ` (${uz.lobby.you})` : ""}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                {!m.bot && lvl !== undefined && <View style={{ flexDirection: "row", gap: 1 }}>{[0, 1, 2, 3, 4].map((k) => <Icon key={k} name="star" size={11} stroke={0} color="none" fill={k < stars ? "#F5B82E" : "#D5DEE4"} />)}</View>}
+                <Text style={s.emptyT}>{[lvl !== undefined && !m.bot ? `${lvl}-daraja` : null, i === 0 ? uz.lobby.hostWord : null].filter(Boolean).join(" · ")}</Text>
+              </View>
+            </View>
+            {!m.online && <Text style={{ color: tone.bad, fontWeight: "800", fontSize: font.sm }} aria-hidden>{uz.lobby.offline}</Text>}
           </View>);
         })}
         {Array.from({ length: Math.max(0, MIN - humans) }, (_, i) => (

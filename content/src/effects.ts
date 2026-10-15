@@ -23,6 +23,7 @@ export type Effect =
   | { kind: "tenantLeft" }
   | { kind: "carInsurance"; price: number }
   | { kind: "floodCarRepair"; amount: number; exemptWithInsurance: true }
+  | { kind: "deckChoice"; kichik: number; katta: number } // Imkoniyat, naqd > 25 000: kichik yoki katta sarmoya dekasini tanlash (qo'llanma §06)
   | { kind: "gamble"; price: number; faces: number[]; monthlyIncome?: number; lump?: number } // tavakkal biznes (qo'llanma §11): to'liq narx naqd + 1 kubik
   | { kind: "rentChoice"; cell: number; owner: string; income: number; buyPrice: number; mult: 2 | 3 } // birovning biznesi (§13): A — oylik daromadni to'lash; B — mult × narxda sotib olish
   | { kind: "unresolved"; reason: string };

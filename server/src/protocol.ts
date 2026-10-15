@@ -8,7 +8,7 @@ const money = int(1, 100_000_000);
 /** `playerId` mijozdan qabul qilinmaydi — server o'zi qo'yadi. */
 export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("roll") }).strict(),
-  z.object({ type: z.literal("decide"), accept: z.boolean(), qty: int(1, 100_000).optional(), useBank: z.boolean().optional() }).strict(),
+  z.object({ type: z.literal("decide"), accept: z.boolean(), qty: int(1, 100_000).optional(), useBank: z.boolean().optional(), deck: z.enum(["kichik", "katta"]).optional() }).strict(),
   z.object({ type: z.literal("choose_dream"), dreamIdx: int(0, 999) }).strict(),
   z.object({ type: z.literal("bank_loan"), amount: money }).strict(),
   z.object({ type: z.literal("bank_repay"), loanIdx: z.number().int().min(0).max(50) }).strict(),

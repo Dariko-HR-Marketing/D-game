@@ -38,7 +38,7 @@ describe("sozlangan katak ta'sirlari (kichik aylana)", () => {
     const turnsOf: string[] = [];
     for (let i = 0; i < 6; i++) { const me = currentPlayer(s).id; turnsOf.push(me);
       let r: any = reduce(s, ctx, { type: "roll", playerId: me }); s = r.state;
-      if (s.pending) { r = reduce(s, ctx, { type: "decide", playerId: me, accept: false }); s = r.state; } }
+      while (s.pending) { r = reduce(s, ctx, { type: "decide", playerId: me, accept: false }); s = r.state; } }
     expect(turnsOf.slice(0, 4)).toEqual(["p1", "p1", "p1", "p0"]); // p0 ikki navbatini o'tkazdi, p1 ketma-ket yurdi
     expect(s.players[0].skipTurns).toBe(0);
   });

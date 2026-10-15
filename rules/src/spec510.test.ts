@@ -86,7 +86,7 @@ describe("Xayriya: daromadning 10 % i, keyingi 3 navbatda 2 kubik", () => {
     for (let guard = 0; guard < 60 && dice.length < 5; guard++) {
       const me = currentPlayer(s).id; r = reduce(s, base, { type: "roll", playerId: me }); s = r.state;
       if (me === "p0") dice.push(r.die);
-      if (s.pending) { r = reduce(s, base, { type: "decide", playerId: me, accept: false }); s = r.state; }
+      while (s.pending) { r = reduce(s, base, { type: "decide", playerId: me, accept: false }); s = r.state; }
     }
     expect(s.players[0].twoDice).toBe(0); expect(dice.slice(0, 3).every((d) => d >= 2 && d <= 12)).toBe(true); expect(dice.slice(3).every((d) => d >= 1 && d <= 6)).toBe(true);
   });

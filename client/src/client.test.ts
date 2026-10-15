@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { money, sh } from "./format";
-import { ringPosition } from "./boardLayout";
+import { ringPosition, squareRing, pathIndex } from "./boardLayout";
 import { Connection, WS } from "./net/connection";
 import { errText, uz } from "./i18n/uz";
 
@@ -219,4 +219,20 @@ describe("xato kodlari o'zbekcha matnga ega", () => {
     const missing = [...codes].filter((c) => !(c in uzText.errors));
     expect(missing).toEqual([]); expect(codes.size).toBeGreaterThan(50);
   });
+});
+
+describe("kvadrat halqa (maket N11/N25/D1)", () => {
+  it.each([[48, 10, 360, 390, 46], [48, 16, 920, 570, 70], [53, 11, 360, 430, 46], [53, 17, 920, 640, 70]])("n=%i, %i ustun: katakning soni to'g'ri, ustma-ust tushmaydi, qo'shnilar tutashadi", (n, cols, W, H, c) => {
+    const t = squareRing(n, cols, W, H, c); expect(t).toHaveLength(n);
+    for (let i = 0; i < n; i++) { const a = t[i], b = t[(i + 1) % n]; expect(a.x).toBeGreaterThanOrEqual(-0.01); expect(a.x + a.w).toBeLessThanOrEqual(W + 0.01); expect(a.y + a.h).toBeLessThanOrEqual(H + 0.01);
+      const gapX = Math.max(a.x, b.x) - Math.min(a.x + a.w, b.x + b.w), gapY = Math.max(a.y, b.y) - Math.min(a.y + a.h, b.y + b.h); expect(Math.max(gapX, gapY)).toBeLessThan(1); } // tutashgan (<1 px)
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const a = t[i], b = t[j]; const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y); expect(ox > 0.5 && oy > 0.5).toBe(false); }
+  });
+  it("yo'l indeksi aylanadi", () => { expect(pathIndex(0, 48, 4)).toBe(4); expect(pathIndex(47, 48, 4)).toBe(3); expect(pathIndex(5, 53, -3)).toBe(2); });
+});
+
+import { BIG_CELLS } from "./bigBoard";
+import bigJson from "../../content/data/board_big.json";
+describe("katta aylana kataklari mijozda kontent bilan bir xil", () => {
+  it("tur va nom", () => { expect(BIG_CELLS).toEqual((bigJson as any[]).map((c) => ({ t: c.t, name: c.name }))); });
 });

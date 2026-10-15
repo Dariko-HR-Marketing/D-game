@@ -47,7 +47,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
   const rooms = new RoomManager(registry, store, undefined, undefined, {
     restricted: (ids) => profiles.restrictedOf(ids),               // §2.8: 16 yoshgacha — qarz/sheriklik yopiq
-    profile: (id) => profiles.get(id),
+    profile: (id) => { const p = profiles.get(id); return p ? { ...p, level: profiles.levelCached(id) } : undefined; },
     onStart: () => cGames({ event: "started" }),
     onAbandon: () => cGames({ event: "abandoned" }),
     onError: (where, e) => { cErr({ where }); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },

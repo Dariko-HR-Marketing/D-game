@@ -11,7 +11,7 @@ const PIPS: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0,
 export function Dice({ value, n, size = 64 }: { value: number | null; n?: number; size?: number }) {
   const reduced = useReducedMotion(); const a = useRef(new Animated.Value(1)).current;
   useEffect(() => { if (value === null) return; a.setValue(0); Animated.timing(a, { toValue: 1, duration: animationMs(reduced) * 1.6, useNativeDriver: true }).start(); }, [n, value, reduced, a]);
-  const pad = size * 0.14, cell = (size - pad * 2) / 3, dot = cell * 0.62;
+  const pad = size * 0.12, cell = Math.floor((size - 4 - pad * 2) / 3), dot = cell * 0.62; // 4 = ikki tomondagi ramka
   return (
     <Animated.View accessible accessibilityRole="image" accessibilityLabel={value === null ? uz.game.diceNone : `${uz.game.diceLabel}: ${value}`}
       style={{ width: size, height: size, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 2, borderColor: color.navy, padding: pad,

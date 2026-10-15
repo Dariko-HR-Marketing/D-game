@@ -24,13 +24,13 @@ const scan = async (p: any, name: string) => {
 for (const [w, h] of [[390, 844], [1024, 768], [1440, 900]] as [number, number][]) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ua" + w), c = await mk("ub" + w); const tag = `${w}px`;
-  await a.getByRole("button", { name: "Xona yaratish" }).waitFor({ timeout: 15000 }); await scan(a, `bosh sahifa ${tag}`);
-  await a.getByRole("button", { name: "Qoidalar" }).click(); await a.waitForSelector("text=O'yin qoidalari"); await scan(a, `qoidalar ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
-  await a.getByRole("button", { name: "Profil" }).click(); await a.getByLabel("Ism", { exact: true }).waitFor(); await scan(a, `profil ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
-  await a.getByRole("button", { name: "Reyting" }).click(); await a.waitForSelector("text=Reyting"); await scan(a, `reyting ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
-  await a.getByRole("button", { name: "Xona yaratish" }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await scan(a, `bosh sahifa ${tag}`);
+  await a.getByRole("button", { name: "Qoidalar", exact: true }).first().click(); await a.waitForSelector("text=O'yin qoidalari"); await scan(a, `qoidalar ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
+  await a.getByRole("button", { name: "Profil", exact: true }).first().click(); await a.getByLabel("Ism", { exact: true }).waitFor(); await scan(a, `profil ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
+  await a.getByRole("button", { name: "Reyting", exact: true }).first().click(); await a.waitForSelector("text=Reyting"); await scan(a, `reyting ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
+  await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByLabel("Xona kodi").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
   await scan(a, `xona ${tag}`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await scan(a, `orzu tanlash ${tag}`);
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await scan(a, `yo'riqnoma ${tag}`);

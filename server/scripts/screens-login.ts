@@ -17,11 +17,12 @@ const x = buildApp({ authSecret: "s".repeat(40), otp: new OtpService({ secret: "
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number, number][]) {
   const p = await (await b.newContext({ viewport: { width: w, height: h } })).newPage(); await p.goto(WEB);
+  await p.getByRole("button", { name: "Boshlash", exact: true }).waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-login-0-welcome.png` }); await scan(p, `xush kelibsiz ${tag}`); await p.getByRole("button", { name: "Boshlash", exact: true }).click();
   await p.getByLabel("Telefon raqami").waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-login-1.png` }); await scan(p, `kirish ${tag}`);
   await p.getByLabel("Telefon raqami").fill(tag === "n" ? "90 123 45 67" : "91 765 43 21"); await p.getByRole("button", { name: "Kod yuborish" }).click();
   await p.getByLabel("SMS kodi (6 raqam)").waitFor(); await p.getByLabel("SMS kodi (6 raqam)").fill("000000"); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.waitForTimeout(500);
   await p.screenshot({ path: `${OUT}/${tag}-login-2-error.png` }); await scan(p, `kod xato ${tag}`);
-  await p.getByLabel("SMS kodi (6 raqam)").fill(last); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.getByRole("button", { name: "Xona yaratish" }).waitFor();
+  await p.getByLabel("SMS kodi (6 raqam)").fill(last); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.getByRole("button", { name: "Yangi o'yin" }).waitFor();
   await p.screenshot({ path: `${OUT}/${tag}-login-3-home.png` });
 }
 await b.close(); await x.app.close(); console.log(total === 0 ? "AXE: buzilish yo'q" : `AXE: ${total} ta buzilish`); process.exit(total === 0 ? 0 : 1);

@@ -184,7 +184,7 @@ export type Action =
   | { type: "choose_dream"; playerId: string; dreamIdx: number }
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
-  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; auto?: true };
+  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; auto?: true };
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
@@ -205,16 +205,22 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (a.type === "roll") {
     if (s.pending) return { ok: false, error: "decision_pending" };
     // Xayriya (§5.10): keyingi 3 navbatda 2 ta kubik (yig'indisi bo'yicha yuriladi)
-    const two = (cur.twoDice ?? 0) > 0;
+    const two = cur.circle === "big" || (cur.twoDice ?? 0) > 0; // katta aylanada 2 kubik (qo'llanma §04); xayriya — kichik aylanada 3 navbat 2 kubik
     const die = withRng(s, (r) => (two ? rollDie(r) + rollDie(r) : rollDie(r)));
-    if (two) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
+    if (two && (cur.twoDice ?? 0) > 0) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
     s.lastRoll = { playerId: cur.id, die, n: (s.lastRoll?.n ?? 0) + 1 };
     land(s, ctx, cur.id, die);
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s, die };
   }
   if (!s.pending) return { ok: false, error: "nothing_pending" };
-  const pend = s.pending; s.pending = null;
+  const pend = s.pending;
+  if (pend.cardId === "choose-opp") { // dekani tanlash: noto'g'ri yoki bo'sh (vaqt tugadi) — «Kichik sarmoyalar»
+    s.pending = null; offer(s, s.players[idx(s, cur.id)], a.deck === "katta" ? "katta" : "kichik", ctx);
+    if (!s.pending) endTurn(s, ctx);
+    return { ok: true, state: s };
+  }
+  s.pending = null;
   const ce = effectOf(ctx, pend.cardId, pend);
   decide(s, ctx, cur.id, ce, a, pend);
   endTurn(s, ctx);
@@ -223,6 +229,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
 
 /** Katta aylana T-kataklari kartasiz: katakdan sintez qilinadi. */
 export function effectOf(ctx: Ctx, id: string, pend?: Pending | null): CardEffect {
+  if (id === "choose-opp") return { deck: "choice", id, file: "", mode: "optional", text: "Qaysi dekadan karta olasiz?", effect: { kind: "deckChoice", kichik: ctx.deckIds.kichik.length, katta: ctx.deckIds.katta.length } };
   if (id.startsWith("rent-")) {
     const c = ctx.bigBoard[Number(id.slice(5))]; const r = pend && pend.type === "card" && pend.cardId === id ? pend.rent : undefined;
     return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "rentChoice", cell: c.i, owner: r?.owner ?? "", income: r?.income ?? 0, buyPrice: r?.buyPrice ?? 0, mult: r?.mult ?? 2 } };
@@ -383,7 +390,10 @@ function applyMandatory(s: GameState, ctx: Ctx, p: GamePlayer, e: Effect): GameP
 
 function smallLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
   switch (smallCell(p.pos)) {
-    case "I": return offer(s, p, p.cash <= CONFIG.smallOpportunityBigFrom ? "kichik" : "katta", ctx);
+    case "I": { // naqd 25 000 dan kam — «Kichik sarmoya» majburiy; ko'p bo'lsa kichik yoki katta dekani o'zi tanlaydi (qo'llanma §06)
+      if (p.cash <= CONFIG.smallOpportunityBigFrom) return offer(s, p, "kichik", ctx);
+      s.pending = { type: "card", playerId: p.id, cardId: "choose-opp", deck: "kichik" }; return;
+    }
     case "H": return offer(s, p, "xar", ctx);
     case "B": return offer(s, p, "bozor", ctx);
     case "O": { // farzand: bank 500 beradi (§5.6)

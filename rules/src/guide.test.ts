@@ -212,7 +212,7 @@ describe("katta aylana: tasodifiy o'yinlar xatosiz va sonlar chekli (fuzz)", () 
       s.players.forEach((p, i) => Object.assign(p, { circle: "big", pos: 34, lockedFlow: 20_000 + (seed % 5) * 20_000, cash: 200_000 + (seed * 7919) % 3_000_000, dreamIdx: i }));
       for (let t = 0; t < 600 && !s.winner; t++) {
         const me = s.players[s.turn % s.players.length].id; const r: any = reduce(s, ctx, { type: "roll", playerId: me }); expect(r.ok, r.error).toBe(true); s = r.state;
-        if (s.pending) { const k = (base.effects[s.pending.cardId]?.effect as any)?.kind; const d: any = reduce(s, ctx, { type: "decide", playerId: me, accept: k === "buy" || seed % 2 === 0 }); expect(d.ok, d.error).toBe(true); s = d.state; }
+        while (s.pending) { const k = (base.effects[s.pending.cardId]?.effect as any)?.kind; const d: any = reduce(s, ctx, { type: "decide", playerId: me, accept: k === "buy" || seed % 2 === 0 }); expect(d.ok, d.error).toBe(true); s = d.state; }
         s.proposals = [];
         for (const p of s.players) for (const v of [p.cash, p.bigDebt ?? 0, p.lockedFlow]) expect(Number.isFinite(v)).toBe(true);
       }
@@ -233,5 +233,31 @@ describe("Qarz (owe) — kichik aylana (qo'llanma §09)", () => {
   it("kichik aylanadan chiqish qarz bilan mumkin emas", () => {
     const s = mk(); Object.assign(s.players[0], { cash: 2_000_000, owe: 10, salary: 0, assets: [biz("A", 30_000)] });
     const r: any = reduce(s, ctx, { type: "roll", playerId: "p0" }); expect(r.state.players[0].circle).toBe("small");
+  });
+});
+
+describe("Imkoniyat: naqd 25 000 dan ko'p bo'lsa dekani tanlash (qo'llanma §06)", () => {
+  const I = cellOf("I");
+  it("naqd kam — «Kichik sarmoya» darhol", () => {
+    const s = land("small", I, (g) => { g.players[0].cash = 1000; }); expect(s.lastCard?.cardId.startsWith("kichik-")).toBe(true); expect(s.pending?.cardId).not.toBe("choose-opp");
+  });
+  it("naqd ko'p — avval tanlov, so'ng tanlangan dekadan karta", () => {
+    const s = land("small", I, (g) => { g.players[0].cash = 60_000; }); expect(s.pending?.cardId).toBe("choose-opp");
+    expect(ctx.effects["choose-opp"]).toBeUndefined();
+    const k: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false, deck: "katta" }); expect(k.ok).toBe(true);
+    expect(k.state.lastCard?.cardId.startsWith("katta-")).toBe(true); expect(k.state.turn).toBe(s.turn); // karta hali hal qilinmagan, navbat o'tmagan
+    const d: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false }); expect(d.state.lastCard?.cardId.startsWith("kichik-")).toBe(true); // vaqt tugadi → kichik
+  });
+});
+
+describe("Kubik: kichik aylanada 1 ta, katta aylanada 2 ta (qo'llanma §04)", () => {
+  it("kichik 1–6; katta 2–12 va 6 dan kattasi ham tushadi", () => {
+    const seen = { small: new Set<number>(), big: new Set<number>() };
+    for (let seed = 1; seed <= 300; seed++) for (const circle of ["small", "big"] as const) {
+      const g = mk(); Object.assign(g.players[0], { circle, pos: circle === "big" ? 34 : 0, cash: 5_000_000, lockedFlow: 1 }); g.rngState = seed;
+      const r: any = reduce(g, ctx, { type: "roll", playerId: "p0" }); expect(r.ok).toBe(true); seen[circle].add(r.die);
+    }
+    expect(Math.min(...seen.small)).toBe(1); expect(Math.max(...seen.small)).toBe(6);
+    expect(Math.min(...seen.big)).toBe(2); expect(Math.max(...seen.big)).toBeGreaterThan(6);
   });
 });

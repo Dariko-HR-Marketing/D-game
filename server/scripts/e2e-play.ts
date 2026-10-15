@@ -14,16 +14,19 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), "e2e-" + tag);
   const p = await c.newPage(); const errors: string[] = [];
   p.on("pageerror", (e) => errors.push("pageerror: " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
-  await p.goto(WEB); await p.getByRole("button", { name: "Xona yaratish" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
+  await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
   await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd");
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   let rolls = 0, accepted = 0, skipped = 0, idle = 0;
   for (let i = 0; i < 400 && rolls < 60; i++) {
-    const roll = p.getByRole("button", { name: "Kubik tashlash" }), accept = p.getByRole("button", { name: /^Qabul qilaman/ }), no = p.getByRole("button", { name: "O'tkazaman" });
+    const roll = p.getByRole("button", { name: /^Kubik(ni|larni) tashlash/ }), accept = p.getByRole("button", { name: /sh\.b\. olish$|^Qabul qilaman/ }), no = p.getByRole("button", { name: "O'tkazaman" });
+    const deck = p.getByRole("button", { name: /^Kichik sarmoyalar, / }), rentA = p.getByRole("button", { name: /^A · Oylik daromadni/ });
     const pay = p.getByRole("button", { name: /^To'layman|^Pul to'layman/ });
-    if (await accept.count()) { if ((rolls + accepted) % 3 === 0) { if (await tryClick(accept)) accepted++; } else { if (await tryClick(no)) skipped++; } idle = 0; }
+    if (await deck.count()) { if (await tryClick(deck)) idle = 0; }
+    else if (await rentA.count()) { if (await tryClick(rentA)) idle = 0; }
+    else if (await accept.count()) { if ((rolls + accepted) % 3 === 0 && await accept.first().isEnabled()) { if (await tryClick(accept)) accepted++; } else { if (await tryClick(no)) skipped++; } idle = 0; }
     else if (await roll.count()) { if (await tryClick(roll)) rolls++; idle = 0; }
-    else { await p.waitForTimeout(150); if (++idle > 120) { fail(`${tag}: o'yin qotib qoldi (rolls=${rolls})`); break; } }
+    else { await p.waitForTimeout(150); if (idle === 40) { await p.screenshot({ path: `/tmp/stall-${tag}.png` }); console.log(`${tag}: kutilmoqda, tugmalar:`, await p.getByRole('button').evaluateAll((es) => es.map((e) => e.getAttribute('aria-label')).filter(Boolean).slice(0, 12))); } if (++idle > 120) { fail(`${tag}: o'yin qotib qoldi (rolls=${rolls})`); break; } }
     if (await p.getByText("O'yin natijasi").count()) break;
     void pay;
   }
