@@ -113,3 +113,15 @@ describe("katak qoidalari admin orqali (versiyali, qulflanadigan)", () => {
     expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "skipTurns", turns: 2 }); // boshlangan o'yin standart qoidada qulflangan (§11)
   });
 });
+
+describe("voronka (§12)", () => {
+  it("ro'yxatdan o'tish → profil → o'yin → g'alaba, shaxssiz; faqat analitik roli", async () => {
+    const x = mk(); x.profiles.put("a", { name: "Ali", color: 0, birthYear: 1990 });
+    x.profiles.record({ room: "R", finishedAt: 1, durationMs: 1, rounds: 1, winner: "a", contentVersion: 1, players: [{ id: "a", bot: false, circle: "big", restarts: 0, won: true }, { id: "bot-1", bot: true, circle: "small", restarts: 0, won: false }] });
+    x.adminState.touch("a", 1); x.adminState.touch("b", 1);
+    const r = await x.app.inject({ url: "/admin/analytics/funnel", headers: { authorization: "Bearer N" } });
+    expect(r.statusCode).toBe(200); expect(r.json()).toMatchObject({ registered: 2, withProfile: 1, playedFirstGame: 1, playedThreeOrMore: 0, wonAtLeastOnce: 1, gamesFinished: 1, winShare: 1 });
+    expect(JSON.stringify(r.json())).not.toContain("Ali");
+    expect((await x.app.inject({ url: "/admin/analytics/funnel", headers: { authorization: "Bearer E" } })).statusCode).toBe(403);
+  });
+});

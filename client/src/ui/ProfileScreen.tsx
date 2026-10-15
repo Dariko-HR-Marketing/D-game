@@ -29,6 +29,14 @@ export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack:
   return (
     <ScrollView contentContainerStyle={s.wrap}>
       <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.profile.title}</Text>
+      {stats?.achievements && (
+        <View role="list" style={{ gap: 6 }}>
+          <Text style={s.sub} aria-level={2} accessibilityRole="header">{uz.profile.achievements}: {stats.achievements.length}/{Object.keys(uz.achievements).length}</Text>
+          {Object.entries(uz.achievements).map(([k, a]) => { const on = stats.achievements.includes(k); return (
+            <View key={k} role="listitem" aria-label={`${a.name}: ${on ? uz.profile.earned : uz.profile.locked}. ${a.desc}`} style={{ flexDirection: "row", gap: 8, opacity: on ? 1 : 0.6 }}>
+              <Text aria-hidden>{on ? "★" : "☆"}</Text><View style={{ flex: 1 }}><Text style={{ fontWeight: "700", color: "#082238" }}>{a.name}</Text><Text style={s.sub}>{a.desc}</Text></View>
+            </View>); })}
+        </View>)}
       {stats && <Text style={s.sub}>{uz.profile.level}: {stats.level} · {"★".repeat(stats.stars)}{stats.title ? ` ${uz.profile.titles[stats.title as "employee" | "investor"]}` : ""} · {uz.profile.games}: {stats.games} · {uz.profile.wins}: {stats.wins} · {uz.profile.big}: {stats.reachedBig}{stats.unreliable > 0 ? ` · ${uz.profile.unreliable}: ${stats.unreliable}` : ""}</Text>}
       <Text style={s.l}>{uz.profile.name}</Text>
       <TextInput accessibilityLabel={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} />

@@ -376,7 +376,7 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
 }
 
 /** Aniq kartani dekadan chiqarib, o'yinchiga beradi (masalan Ajrashish katagi → hod-7). */
-function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
+export function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
   const ce = ctx.effects[id]; if (!ce) { logf(s, `karta topilmadi: ${id}`); return; }
   const deck = ce.deck as DeckName;
   if (s.decks[deck]) { const d = s.decks[deck]; d.draw = d.draw.filter((x) => x !== id); d.discard = d.discard.filter((x) => x !== id); d.discard.push(id); }

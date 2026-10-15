@@ -56,7 +56,7 @@ export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   return (t) => (t && Object.hasOwn(m, t) ? m[t] : null);
 };
 
-export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; now?: () => number }) {
+export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; funnel?: (registered: number) => unknown; now?: () => number }) {
   const now = d.now ?? Date.now;
   const guard = (perm: Perm, h: (req: FastifyRequest, who: { id: string; role: Role }) => Promise<unknown> | unknown, auditAction?: string) =>
     async (req: FastifyRequest, reply: any) => {
@@ -125,11 +125,12 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
     const rs = [...d.rooms.rooms.values()];
     const started = rs.filter((r) => r.state), ended = rs.filter((r) => r.endedAt);
     const decisions = { accepted: 0, skipped: 0 };
-    return { rooms: rs.length, started: started.length, finished: ended.length, winShare: started.length ? ended.length / started.length : 0,
+    return { rooms: rs.length, started: started.length, finished: ended.length, finishedShare: started.length ? ended.length / started.length : 0, // tugatilgan / boshlangan (g'alaba ulushi — /analytics/funnel)
       avgDurationSec: ended.length ? ended.reduce((s, r) => s + (r.endedAt! - r.createdAt), 0) / ended.length / 1000 : 0,
       avgRounds: started.length ? started.reduce((s, r) => s + r.state!.round, 0) / started.length : 0,
       users: d.state.users.size, ...decisions };
   }));
+  app.get("/admin/analytics/funnel", guard("analytics.read", () => d.funnel?.(d.state.users.size) ?? {})); // ro'yxatdan o'tish → birinchi o'yin → g'alaba (§12), shaxssiz
   app.get("/admin/analytics/cards", guard("analytics.read", () => d.cards?.() ?? [])); // karta bo'yicha qabul/o'tkazish (§12), shaxssiz
   app.get("/admin/audit", guard("audit.read", () => d.state.audit.slice(-500)));
 }

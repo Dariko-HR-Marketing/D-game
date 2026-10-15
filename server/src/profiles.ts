@@ -31,7 +31,24 @@ export const isRestricted = (p: Pick<Profile, "birthYear"> | undefined, year: nu
 /** §5.9: 5 yulduz — «Yollanma ishchi → Sarmoyador». Qaror #69: yulduz = daraja (ko'pi bilan 5); oraliq unvon nomlari SPEC'da yo'q, shuning uchun faqat ikki chekka nomlanadi. */
 export const starsOf = (level: number) => Math.min(5, Math.max(0, level));
 export const titleOf = (stars: number): "employee" | "investor" | null => (stars >= 5 ? "investor" : stars === 0 ? "employee" : null);
-export interface Stats { stars: number; title: "employee" | "investor" | null; unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
+/** Yutuqlar (§5.9): faqat o'yin natijalaridan hisoblanadi (alohida holat saqlanmaydi). Chegaralar — qaror (OPEN_QUESTIONS #76), SPEC raqam bermaydi. */
+export const ACHIEVEMENTS = ["first_game", "first_win", "first_big", "no_restart_win", "comeback_win", "full_table", "games_10", "wins_5"] as const;
+export type Achievement = (typeof ACHIEVEMENTS)[number];
+export function achievementsOf(results: GameResult[], userId: string): Achievement[] {
+  const mine = results.map((r) => ({ r, p: r.players.find((x) => x.id === userId) })).filter((x): x is { r: GameResult; p: ResultPlayer } => !!x.p && !x.p.bot);
+  const wins = mine.filter((x) => x.p.won);
+  const got = new Set<Achievement>();
+  if (mine.length >= 1) got.add("first_game");
+  if (wins.length >= 1) got.add("first_win");
+  if (mine.some((x) => x.p.circle === "big")) got.add("first_big");
+  if (wins.some((x) => x.p.restarts === 0)) got.add("no_restart_win");        // yangi kasbga o'tmasdan g'alaba
+  if (wins.some((x) => x.p.restarts > 0)) got.add("comeback_win");           // qayta boshlab ham g'alaba
+  if (mine.some((x) => x.r.players.length >= 6)) got.add("full_table");      // 6 kishilik stol
+  if (mine.length >= 10) got.add("games_10");
+  if (wins.length >= 5) got.add("wins_5");
+  return ACHIEVEMENTS.filter((a) => got.has(a));
+}
+export interface Stats { achievements: Achievement[]; stars: number; title: "employee" | "investor" | null; unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
 export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel); // §5.9
 
 export class ProfileService {
@@ -65,7 +82,16 @@ export class ProfileService {
     let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
     for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p?.unreliable) { unreliable++; points += POINTS.unreliable; } if (!p || p.bot) continue; // bot (yoki chiqib ketgan) hisobga olinmaydi
       games++; if (p.won) { wins++; points += POINTS.win ?? 0; } if (p.circle === "big") { reachedBig++; points += POINTS.exitSmallCircle ?? 0; } }
-    const level = levelOf(points); return { stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
+    const level = levelOf(points); return { achievements: achievementsOf(this.results, userId), stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
+  }
+  /** Shaxssiz voronka (§12): ro'yxatdan o'tish → profil → birinchi o'yin → qaytib kelish → g'alaba. */
+  funnel(registered: number) {
+    const games = new Map<string, { n: number; w: number }>();
+    for (const r of this.results) for (const p of r.players) if (!p.bot) { const g = games.get(p.id) ?? { n: 0, w: 0 }; g.n++; if (p.won) g.w++; games.set(p.id, g); }
+    const v = [...games.values()];
+    const finished = this.results.length, withWinner = this.results.filter((r) => r.winner).length;
+    return { registered, withProfile: this.profiles.size, playedFirstGame: v.length, playedThreeOrMore: v.filter((g) => g.n >= 3).length, wonAtLeastOnce: v.filter((g) => g.w > 0).length,
+      gamesFinished: finished, gamesWithWinner: withWinner, winShare: finished ? withWinner / finished : 0 };
   }
   history(userId: string, limit = 50) {
     return this.results.filter((r) => r.players.some((p) => p.id === userId && !p.bot)).slice(-limit).reverse()

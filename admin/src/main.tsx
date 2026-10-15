@@ -70,10 +70,17 @@ function Complaints({ api }: { api: Api }) {
   return (<div className="card"><h2>{t.complaints}</h2><Err e={l.err} /><table><thead><tr><th>№</th><th>Kim</th><th>Matn</th><th>Amal</th></tr></thead><tbody>{l.data?.map((c) => (<tr key={c.id}><td>#{c.id}</td><td>{c.from} → {c.against ?? "—"}</td><td>{c.text}</td>
     <td>{c.status === "open" ? <button onClick={async () => { await api.post(`/admin/complaints/${c.id}/resolve`, { resolution: "ko'rib chiqildi" }); l.reload(); }}>{t.resolve}</button> : t.resolved}</td></tr>))}</tbody></table></div>);
 }
+function Funnel({ api }: { api: Api }) {
+  const l = useLoad<any>(api, "/admin/analytics/funnel");
+  const d = l.data; const steps: [string, number][] = d ? [["Kirgan", d.registered], ["Profil to'ldirgan", d.withProfile], ["Birinchi o'yin", d.playedFirstGame], ["3 va undan ko'p o'yin", d.playedThreeOrMore], ["Kamida bir g'alaba", d.wonAtLeastOnce]] : [];
+  return (<div className="card"><h2>Voronka</h2><Err e={l.err} />
+    <table><thead><tr><th>Bosqich</th><th>Soni</th><th>Kirganlardan</th></tr></thead><tbody>{steps.map(([k, v]) => (<tr key={k}><td>{k}</td><td>{v}</td><td>{d.registered ? Math.round((100 * v) / d.registered) + " %" : "—"}</td></tr>))}</tbody></table>
+    {d && <p>Tugagan o'yinlar: {d.gamesFinished} · g'alabali: {Math.round(100 * d.winShare)} %</p>}</div>);
+}
 function Analytics({ api }: { api: Api }) {
   const l = useLoad<any>(api, "/admin/analytics");
-  const items: [string, string][] = l.data ? [["Xonalar", l.data.rooms], ["Boshlangan", l.data.started], ["Tugagan", l.data.finished], ["G'alaba ulushi", `${Math.round(l.data.winShare * 100)} %`], ["O'rtacha davomiylik (s)", Math.round(l.data.avgDurationSec)], ["O'rtacha aylana", l.data.avgRounds.toFixed(1)], ["Foydalanuvchilar", l.data.users]] : [];
-  return (<div className="card"><h2>{t.analytics}</h2><Err e={l.err} />{items.map(([k, v]) => <span className="stat" key={k}>{k}<b>{v}</b></span>)}</div>);
+  const items: [string, string][] = l.data ? [["Xonalar", l.data.rooms], ["Boshlangan", l.data.started], ["Tugagan", l.data.finished], ["Tugatilgan ulush", `${Math.round(l.data.finishedShare * 100)} %`], ["O'rtacha davomiylik (s)", Math.round(l.data.avgDurationSec)], ["O'rtacha aylana", l.data.avgRounds.toFixed(1)], ["Foydalanuvchilar", l.data.users]] : [];
+  return (<><div className="card"><h2>{t.analytics}</h2><Err e={l.err} />{items.map(([k, v]) => <span className="stat" key={k}>{k}<b>{v}</b></span>)}</div><Funnel api={api} /></>);
 }
 function Audit({ api }: { api: Api }) {
   const l = useLoad<any[]>(api, "/admin/audit");

@@ -85,3 +85,24 @@ describe("HTTP: profil, eksport, o'chirish, reyting", () => {
     expect((await x.app.inject({ method: "GET", url: "/me/profile", headers: H("u") })).json().profile).toBeNull();
   });
 });
+
+import { achievementsOf, ACHIEVEMENTS } from "./profiles";
+describe("yutuqlar (§5.9)", () => {
+  const R = (players: any[], extra = {}) => ({ room: "R", finishedAt: 1, durationMs: 1, rounds: 1, winner: null, contentVersion: 1, players, ...extra }) as any;
+  const P = (id: string, o: any = {}) => ({ id, bot: false, circle: "small", restarts: 0, won: false, ...o });
+  it("hech narsa o'ynamagan — yutuq yo'q; botlar hisobga olinmaydi", () => {
+    expect(achievementsOf([], "a")).toEqual([]); expect(achievementsOf([R([P("a", { bot: true })])], "a")).toEqual([]);
+  });
+  it("birinchi o'yin / katta aylana / g'alaba turlari", () => {
+    expect(achievementsOf([R([P("a"), P("b")])], "a")).toEqual(["first_game"]);
+    expect(achievementsOf([R([P("a", { circle: "big" })])], "a")).toEqual(["first_game", "first_big"]);
+    expect(achievementsOf([R([P("a", { circle: "big", won: true })])], "a")).toEqual(["first_game", "first_win", "first_big", "no_restart_win"]);
+    expect(achievementsOf([R([P("a", { circle: "big", won: true, restarts: 2 })])], "a")).toEqual(["first_game", "first_win", "first_big", "comeback_win"]);
+  });
+  it("to'la stol, 10 o'yin, 5 g'alaba", () => {
+    expect(achievementsOf([R(["a", "b", "c", "d", "e", "f"].map((i) => P(i)))], "a")).toContain("full_table");
+    expect(achievementsOf(Array.from({ length: 10 }, () => R([P("a")])), "a")).toContain("games_10");
+    const w = achievementsOf(Array.from({ length: 5 }, () => R([P("a", { won: true })])), "a"); expect(w).toContain("wins_5"); expect(new Set(w).size).toBe(w.length);
+    expect(ACHIEVEMENTS).toHaveLength(8);
+  });
+});
