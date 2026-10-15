@@ -9,6 +9,7 @@ import { FinanceCard } from "./FinanceCard";
 import { TurnPanel } from "./TurnPanel";
 import { DecisionCard } from "./DecisionCard";
 import { CardToast } from "./CardToast";
+import { Onboarding } from "./Onboarding";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -61,6 +62,12 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
   const log: string[] = state.log.slice(-6).reverse().map((l: string) => humanize(room, l));
   const bank = mine ? bankRoom(mine) : 0;
+  const canRoll = mineTurn && !card && !state.winner;
+  useEffect(() => { // kompyuterda probel — kubik tashlash (tugma/matn maydoni fokusda bo'lmasa)
+    const doc = (globalThis as any).document; if (!doc?.addEventListener || !canRoll) return;
+    const h = (e: any) => { const tag = (e.target?.tagName ?? "").toLowerCase(); if (e.code === "Space" && !["input", "textarea", "button", "select", "a"].includes(tag) && !e.repeat) { e.preventDefault(); onAct({ type: "roll" }); } };
+    doc.addEventListener("keydown", h); return () => doc.removeEventListener("keydown", h);
+  }, [canRoll, onAct]);
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!card} left={left} onRoll={() => onAct({ type: "roll" })} compact={!wide && boardSize < 400} />;
 
   const side = (
@@ -88,6 +95,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   return (
     <View style={{ flex: 1 }}>
       <CardToast room={room} userId={userId} />
+      <Onboarding onRules={onRules} />
       <ScrollView contentContainerStyle={[s.wrap, sheetOpen && { paddingBottom: 420 }]}>
         {status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}
         {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}

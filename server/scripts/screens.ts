@@ -6,6 +6,7 @@ import { currentPlayer } from "@poyga/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/shots";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
+const onboard = async (p: any) => { const b = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await b.count()) await b.click(); };
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium", args: ["--no-sandbox"] });
 const sizes: [string, number, number][] = [["n", 390, 844], ["t", 1024, 768], ["d", 1440, 900]];
@@ -22,7 +23,7 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   await c.getByLabel("Xona kodi").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
   await shot(a, "05-lobby");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await shot(a, "06-dreams");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await shot(a, "06b-onboarding"); await onboard(a); await c.waitForSelector("text=Naqd"); await onboard(c);
   const room = x.rooms.rooms.get(code)!;
   await shot(a, "07-game-start");
   await a.getByRole("button", { name: /Moliya amallari/ }).click(); await a.waitForTimeout(300); await a.evaluate(() => window.scrollTo(0, 99999)); await shot(a, "07b-actions");
