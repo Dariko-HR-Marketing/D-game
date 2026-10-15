@@ -79,3 +79,4 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 72. Ma'lumot qabul qilish vositalari tayyor: kasb importi (CSV, total/cf avtomatik), karta rasmlari tekshiruvi (418 ta kutiladi), VPS o'rnatish/zaxira/tiklash skriptlari — `docs/DATA_INTAKE.md`.
 73. Maxfiylik siyosati va foydalanish shartlari qoralamalari (`docs/legal/`) tayyor — advokat ko'rib chiqishi shart; ilovada rozilik ekrani tasdiqlangan matn kelgach.
 74. Google/Apple: server tomoni (ID token tekshiruvi, `/auth/google`, `/auth/apple`) tayyor va sinalgan; mijoz tugmalari va client ID'lar provayder konsolidan kelgach.
+75. Kirish kodi mustaqil xavfsizlik ko'rigidan o'tkazildi va tuzatildi (parallel SMS, raqam bo'yicha blok, sessiya bekor qilish, IPv6/LRU, JWKS cheklovi); qolgan qabul qilingan xavflar `docs/AUTH.md` da.

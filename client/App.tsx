@@ -39,7 +39,7 @@ export default function App() {
     (async () => {
       try {
         const cfg = await auth.config(); if (off) return;
-        if (cfg.dev) setSess({ token: devUser(), userId: devUser() });
+        if (cfg.dev) { const u = devUser(); setSess({ token: u, userId: u }); }
         else if (saved) { try { const j = JSON.parse(saved) as Sess; setSess(j.token && j.userId ? j : null); } catch { setSess(null); } }
         else setSess(null);
       } catch { if (!off) { setLoginErr(true); setSess(null); } }
@@ -52,7 +52,7 @@ export default function App() {
       <Login auth={auth} onDone={(x) => { store.set("poyga-session", JSON.stringify(x)); setSess(x); }} />
       {loginErr && <Text style={{ color: color.red, textAlign: "center" }} accessibilityRole="alert">{errText("network")}</Text>}
     </View></SafeAreaView>);
-  return <Game_ session={sess} onLogout={() => { store.set("poyga-session", null); setSess(null); }} />;
+  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("poyga-session", null); setSess(null); }} />;
 }
 
 function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {

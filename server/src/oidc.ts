@@ -15,10 +15,16 @@ const dec = (s: string) => JSON.parse(Buffer.from(s, "base64url").toString("utf-
 export class OidcVerifier {
   private cache = new Map<string, { keys: Jwk[]; at: number }>();
   constructor(private p: OidcProvider, private fetchJwks: FetchJwks = defaultFetch, private now: () => number = Date.now, private ttlMs = 3_600_000) {}
-  private async keys(force = false) {
-    const c = this.cache.get(this.p.jwksUrl);
-    if (!force && c && this.now() - c.at < this.ttlMs) return c.keys;
-    const j = await this.fetchJwks(this.p.jwksUrl); this.cache.set(this.p.jwksUrl, { keys: j.keys, at: this.now() }); return j.keys;
+  private inflight: Promise<Jwk[]> | null = null; private lastForce = -Infinity;
+  /** Kalitlar: 1 soat kesh. Noma'lum `kid` bilan majburiy yangilash — daqiqasiga bir martadan ko'p emas; bir vaqtdagi so'rovlar birlashtiriladi; yuklab bo'lmasa eski kesh ishlatiladi. */
+  private async keys(force = false): Promise<Jwk[]> {
+    const c = this.cache.get(this.p.jwksUrl); const t = this.now();
+    if (c && !force && t - c.at < this.ttlMs) return c.keys;
+    if (force && t - this.lastForce < 60_000) return c?.keys ?? [];
+    if (force) this.lastForce = t;
+    this.inflight ??= this.fetchJwks(this.p.jwksUrl).then((j) => { this.cache.set(this.p.jwksUrl, { keys: j.keys, at: this.now() }); return j.keys; })
+      .catch(() => c?.keys ?? []).finally(() => { this.inflight = null; });
+    return this.inflight;
   }
   /** Muvaffaqiyatda foydalanuvchining barqaror `sub` qiymati; aks holda null. Imzo, muddat, emitent va auditoriya tekshiriladi. */
   async verify(idToken: unknown): Promise<{ sub: string } | null> {
@@ -26,6 +32,7 @@ export class OidcVerifier {
     const parts = idToken.split("."); if (parts.length !== 3) return null;
     let header: any, claims: any;
     try { header = dec(parts[0]); claims = dec(parts[1]); } catch { return null; }
+    if (!header || typeof header !== "object" || !claims || typeof claims !== "object") return null;
     if (header.alg !== "RS256" || typeof header.kid !== "string") return null; // "none" va HS* hujumlari rad etiladi
     let jwk = (await this.keys().catch(() => [] as Jwk[])).find((k) => k.kid === header.kid);
     if (!jwk) jwk = (await this.keys(true).catch(() => [] as Jwk[])).find((k) => k.kid === header.kid); // kalit aylantirilgan bo'lishi mumkin

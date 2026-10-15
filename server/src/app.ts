@@ -1,4 +1,4 @@
-import { OtpService, normalizePhone, verifyToken, signToken, userIdOfSub } from "./auth";
+import { OtpService, normalizePhone, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
 import type { OidcVerifier } from "./oidc";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
@@ -8,7 +8,7 @@ import { AnalysisService, presentable } from "./analysis";
 import { Metrics } from "./metrics";
 import { WriteQueue } from "./persist";
 import { parseMessage } from "./protocol";
-import { Bucket, KeyedLimiter } from "./ratelimit";
+import { Bucket, KeyedLimiter, ipKey } from "./ratelimit";
 import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
@@ -26,7 +26,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
   const serializers = { req: (r: any) => ({ method: r.method, path: String(r.url).split("?")[0], id: r.id }), res: (r: any) => ({ status: r.statusCode }) };
   const logger = opts.logger ? { level: "info", ...(opts.logger === true ? {} : opts.logger), serializers } : false;
-  const app = Fastify({ bodyLimit: 64 * 1024, logger, trustProxy: process.env.TRUST_PROXY === "1" }); // Caddy ortida TRUST_PROXY=1: aks holda hamma mijoz bitta IP bo'lib qoladi
+  const app = Fastify({ bodyLimit: 64 * 1024, logger, trustProxy: process.env.TRUST_PROXY === "1" ? "loopback,linklocal,uniquelocal" : false }); // Caddy ortida TRUST_PROXY=1: aks holda hamma mijoz bitta IP bo'lib qoladi
   const m = new Metrics();
   const cHttp = m.counter("poyga_http_requests_total", "HTTP so'rovlari (holat kodi bo'yicha)");
   const cLimited = m.counter("poyga_rate_limited_total", "Tezlik cheklovi tufayli rad etilganlar");
@@ -39,7 +39,8 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   let openSockets = 0;
   const store: Store = opts.store ?? new MemoryStore();
   // Haqiqiy rejim: imzolangan sessiya tokeni (authSecret). Aks holda (faqat ishlab chiqish/staging) sinov tokeni = foydalanuvchi ID.
-  const auth: Authenticate = opts.auth ?? (opts.authSecret ? (t) => verifyToken(opts.authSecret!, t) : devAuth);
+  const revocations = new Revocations();
+  const auth: Authenticate = opts.auth ?? (opts.authSecret ? (t) => verifyToken(opts.authSecret!, t, Date.now(), revocations) : devAuth);
   const registry = opts.registry ?? new ContentRegistry();
   const adminState = opts.adminState ?? new AdminState();
   const profiles = opts.profiles ?? new ProfileService();
@@ -97,7 +98,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     reply.header("x-content-type-options", "nosniff").header("x-frame-options", "DENY").header("referrer-policy", "no-referrer").header("cache-control", "no-store");
     if (req.method === "OPTIONS" || req.url === "/health") return;
     const lim = req.url.startsWith("/admin") ? adminLimit : req.url.startsWith("/ws") ? wsConnLimit : httpLimit;
-    if (!lim.allow(req.ip)) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
+    if (!lim.allow(ipKey(req.ip))) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
   });
   app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   app.get("/health", async () => ({ ok: true }));
@@ -106,21 +107,25 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   app.get("/auth/config", async () => ({ sms: !!opts.otp, google: !!opts.oidc?.google, apple: !!opts.oidc?.apple, dev: !opts.otp && !opts.authSecret && !opts.oidc }));
   for (const prov of ["google", "apple"] as const) app.post(`/auth/${prov}`, async (req, reply) => {
     const v = opts.oidc?.[prov]; if (!v || !opts.authSecret) return reply.code(404).send({ error: "not_enabled" });
-    if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
     const r = await v.verify((req.body as any)?.idToken); if (!r) return reply.code(401).send({ error: "bad_token" });
-    const userId = userIdOfSub(opts.authSecret, prov, r.sub);
-    return { token: signToken(opts.authSecret, userId, Date.now() + 30 * 86_400_000), userId };
+    return issueSession(opts.authSecret, userIdOfSub(opts.authSecret, prov, r.sub));
+  });
+  app.post("/auth/logout", async (req, reply) => { // sessiyani serverda bekor qiladi (shu vaqtgacha berilgan barcha tokenlar)
+    if (!opts.authSecret) return reply.code(404).send({ error: "not_enabled" });
+    const t = parseToken(opts.authSecret, (req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined); if (!t) return reply.code(401).send({ error: "unauthorized" });
+    revocations.revoke(t.userId); return { ok: true };
   });
   app.post("/auth/sms/request", async (req, reply) => {
     if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
-    if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
     const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
     const r = await opts.otp.request(phone); if (!r.ok) return reply.code(r.error === "rate_limited" ? 429 : 502).send({ error: r.error });
     return { ok: true };
   });
   app.post("/auth/sms/verify", async (req, reply) => {
     if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
-    if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
     const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
     const r = opts.otp.verify(phone, (req.body as any)?.code); if (!r.ok) return reply.code(401).send({ error: r.error });
     return { token: r.token, userId: r.userId };
@@ -195,7 +200,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   app.delete("/me", secured((uid, req, reply) => {
     if (normalizeWord((req.body as any)?.confirm) !== normalizeWord("O'CHIRISH")) return reply.code(400).send({ error: "confirm_required" });
     if (rooms.activeRoomOf.has(uid)) return reply.code(409).send({ error: "in_game" });
-    profiles.delete(uid); adminState.users.delete(uid);
+    profiles.delete(uid); adminState.users.delete(uid); revocations.revoke(uid); // o'chirilgan hisobning eski tokenlari yaroqsiz
     return { ok: true };
   }));
   app.get("/leaderboard", async (req) => profiles.leaderboard(Math.max(1, Math.min(100, Math.floor(Number((req.query as any).limit)) || 20))));
