@@ -56,7 +56,7 @@ export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   return (t) => (t && Object.hasOwn(m, t) ? m[t] : null);
 };
 
-export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; funnel?: (registered: number) => unknown; now?: () => number }) {
+export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; nameOf?: (id: string) => string | undefined; funnel?: (registered: number) => unknown; now?: () => number }) {
   const now = d.now ?? Date.now;
   const guard = (perm: Perm, h: (req: FastifyRequest, who: { id: string; role: Role }) => Promise<unknown> | unknown, auditAction?: string) =>
     async (req: FastifyRequest, reply: any) => {
@@ -92,14 +92,14 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
     return [...d.rooms.rooms.values()].filter((r) => !q || r.code.startsWith(q) || r.members.some((m) => m.userId.toUpperCase().includes(q)))
       .slice(0, 100).map((r) => ({ code: r.code, started: !!r.state, ended: r.endedAt !== null, contentVersion: r.contentVersion, round: r.state?.round ?? null,
         // analitik rol shaxsiy ma'lumotni ko'rmaydi
-        members: who.role === "analyst" ? r.members.length : r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online })) }));
+        members: who.role === "analyst" ? r.members.length : r.members.map((m) => ({ userId: m.userId, name: d.nameOf?.(m.userId), bot: m.bot, online: m.online })) }));
   }));
   app.get("/admin/rooms/:id/journal", guard("journal.read", async (req) => d.store.journal((req.params as any).id), "journal.read"));
 
   // --- foydalanuvchilar ---
   app.get("/admin/users", guard("users.read", (req) => {
     const q = String((req.query as any).q ?? "").toLowerCase();
-    return [...d.state.users.values()].filter((u) => !q || u.id.toLowerCase().includes(q)).slice(0, 100);
+    return [...d.state.users.values()].map((u) => ({ ...u, name: d.nameOf?.(u.id) ?? null })).filter((u) => !q || u.id.toLowerCase().includes(q) || (u.name ?? "").toLowerCase().includes(q)).sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 100);
   }));
   app.post("/admin/users/:id/ban", guard("users.ban", (req) => {
     const id = (req.params as any).id as string; const u = d.state.users.get(id);
