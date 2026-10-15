@@ -1,5 +1,5 @@
 // Mijoz ulanishi: holat serverdan keladi (yagona manba), harakatlar `seq` bilan yuboriladi, uzilsa qayta ulanadi (§6.3).
-export interface WS { readyState?: number; send(s: string): void; close(): void; onopen: (() => void) | null; onclose: (() => void) | null; onmessage: ((e: { data: string }) => void) | null }
+export interface WS { readyState?: number; send(s: string): void; close(): void; onopen: (() => void) | null; onclose: ((e?: { code?: number }) => void) | null; onmessage: ((e: { data: string }) => void) | null }
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
@@ -47,7 +47,8 @@ export class Connection {
         else this.set({ error: m.error });
       }
     };
-    ws.onclose = () => {
+    ws.onclose = (e) => {
+      if (e?.code === 4401) { this.closed = true; this.set({ status: "offline", error: "unauthorized" }); return; } // token eskirgan/yaroqsiz: qayta ulanish foydasiz, qayta kirish kerak
       this.set({ status: "offline" });
       if (this.closed) return;
       const delay = Math.min(10_000, 500 * 2 ** this.retry++);

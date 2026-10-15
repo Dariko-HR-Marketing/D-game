@@ -1,3 +1,4 @@
+import { OtpService, normalizePhone, verifyToken } from "./auth";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
@@ -18,9 +19,9 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 /** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
-  if (process.env.NODE_ENV === "production" && !opts.auth) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
+  if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
   const serializers = { req: (r: any) => ({ method: r.method, path: String(r.url).split("?")[0], id: r.id }), res: (r: any) => ({ status: r.statusCode }) };
   const logger = opts.logger ? { level: "info", ...(opts.logger === true ? {} : opts.logger), serializers } : false;
@@ -36,7 +37,8 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const hAction = m.histogram("poyga_action_seconds", "Harakatni dvigatel bilan hisoblash vaqti", [0.001, 0.005, 0.01, 0.05, 0.1, 0.5]);
   let openSockets = 0;
   const store: Store = opts.store ?? new MemoryStore();
-  const auth = opts.auth ?? devAuth;
+  // Haqiqiy rejim: imzolangan sessiya tokeni (authSecret). Aks holda (faqat ishlab chiqish/staging) sinov tokeni = foydalanuvchi ID.
+  const auth: Authenticate = opts.auth ?? (opts.authSecret ? (t) => verifyToken(opts.authSecret!, t) : devAuth);
   const registry = opts.registry ?? new ContentRegistry();
   const adminState = opts.adminState ?? new AdminState();
   const profiles = opts.profiles ?? new ProfileService();
@@ -98,6 +100,23 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   });
   app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   app.get("/health", async () => ({ ok: true }));
+  // --- kirish (SMS bir martalik kod) ---
+  const authLimit = new KeyedLimiter(10 / 60, 10); // IP bo'yicha ~10 so'rov/daqiqa
+  app.get("/auth/config", async () => ({ sms: !!opts.otp, dev: !opts.otp && !opts.authSecret }));
+  app.post("/auth/sms/request", async (req, reply) => {
+    if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
+    if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
+    const r = await opts.otp.request(phone); if (!r.ok) return reply.code(r.error === "rate_limited" ? 429 : 502).send({ error: r.error });
+    return { ok: true };
+  });
+  app.post("/auth/sms/verify", async (req, reply) => {
+    if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
+    if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
+    const r = opts.otp.verify(phone, (req.body as any)?.code); if (!r.ok) return reply.code(401).send({ error: r.error });
+    return { token: r.token, userId: r.userId };
+  });
 
   app.register(async (f) => {
     f.get("/ws", { websocket: true }, (socket, req) => {

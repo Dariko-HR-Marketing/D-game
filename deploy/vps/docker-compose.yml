@@ -22,6 +22,11 @@ services:
       CORS_ORIGINS: https://${APP_DOMAIN:?APP_DOMAIN kerak},https://${ADMIN_DOMAIN:?ADMIN_DOMAIN kerak}
       ADMIN_TOKENS: ${ADMIN_TOKENS:?ADMIN_TOKENS kerak}
       METRICS_TOKEN: ${METRICS_TOKEN:-}
+      # Kirish (SMS). AUTH_SECRET bo'lsa haqiqiy rejim; SMS_HTTP_URL — SMS shlyuz manzili (POST {to,text}, Bearer SMS_HTTP_TOKEN)
+      AUTH_SECRET: ${AUTH_SECRET:-}
+      SMS_HTTP_URL: ${SMS_HTTP_URL:-}
+      SMS_HTTP_TOKEN: ${SMS_HTTP_TOKEN:-}
+      SMS_PROVIDER: ${SMS_PROVIDER:-}
       LOG_LEVEL: info
       PORT: "3000"
       TRUST_PROXY: "1" # Caddy ortida: haqiqiy mijoz IP (tezlik cheklovi uchun)

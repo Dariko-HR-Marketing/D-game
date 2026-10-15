@@ -191,3 +191,18 @@ describe("o'chirish so'zi", () => {
     expect(sameWord("OCHIRISH")).toBe(false);
   });
 });
+
+import { validPhone, validCode, makeAuth } from "./net/http";
+describe("kirish (SMS)", () => {
+  it("telefon va kod tekshiruvi", () => {
+    for (const p of ["90 123 45 67", "+998901234567", "(90)123-45-67"]) expect(validPhone(p)).toBe(true);
+    for (const p of ["", "12", "abc", "+99890"]) expect(validPhone(p)).toBe(false);
+    expect(validCode("123456")).toBe(true); expect(validCode("12345")).toBe(false); expect(validCode("12a456")).toBe(false);
+  });
+  it("makeAuth: so'rov shakli va xato kodi", async () => {
+    const calls: any[] = []; const f: any = async (u: string, i?: any) => { calls.push([u, i]); return u.endsWith("/verify") ? { ok: false, status: 401, json: async () => ({ error: "bad_code" }) } : { ok: true, status: 200, json: async () => ({ sms: true, dev: false }) }; };
+    const a = makeAuth("http://x", f); expect(await a.config()).toEqual({ sms: true, dev: false });
+    await a.request("+998901234567"); expect(JSON.parse(calls[1][1].body)).toEqual({ phone: "+998901234567" });
+    await expect(a.verify("+998901234567", "000000")).rejects.toMatchObject({ code: "bad_code", status: 401 });
+  });
+});

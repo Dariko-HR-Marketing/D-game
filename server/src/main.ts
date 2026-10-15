@@ -8,6 +8,7 @@ import { AdminState } from "./admin";
 import { ProfileService } from "./profiles";
 import { AnalysisService } from "./analysis";
 import { WriteQueue } from "./persist";
+import { ConsoleSms, HttpSms, OtpService } from "./auth";
 
 const url = process.env.DATABASE_URL;
 const analysisWrites = new WriteQueue();
@@ -21,7 +22,18 @@ if (url) {
   profiles = await ProfileService.restore(persist);
   analysis = await AnalysisService.restore(store, registry, analysisWrites, persist);
 } else { console.warn("DATABASE_URL yo'q: xotira saqlagichi (faqat ishlab chiqish uchun)"); store = new MemoryStore(); }
-const { app, rooms } = buildApp({ store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
+// Kirish: AUTH_SECRET berilsa — haqiqiy rejim. SMS_HTTP_URL/SMS_HTTP_TOKEN bo'lsa SMS orqali; SMS_PROVIDER=console faqat staging uchun.
+const authSecret = process.env.AUTH_SECRET;
+if (authSecret && authSecret.length < 32) throw new Error("AUTH_SECRET kamida 32 belgi bo'lishi kerak");
+let otp: OtpService | undefined;
+if (authSecret) {
+  const sms = process.env.SMS_HTTP_URL ? new HttpSms(process.env.SMS_HTTP_URL, process.env.SMS_HTTP_TOKEN ?? "")
+    : process.env.SMS_PROVIDER === "console" && process.env.NODE_ENV !== "production" ? new ConsoleSms() : null;
+  if (!sms) throw new Error("AUTH_SECRET berilgan, lekin SMS yuboruvchi sozlanmagan (SMS_HTTP_URL yoki staging uchun SMS_PROVIDER=console)");
+  otp = new OtpService({ secret: authSecret, sms });
+  setInterval(() => otp!.sweep(), 60_000).unref();
+}
+const { app, rooms } = buildApp({ otp, authSecret, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
 process.on("unhandledRejection", (e) => app.log.error({ err: String((e as Error)?.message ?? e) }, "unhandledRejection"));
 process.on("uncaughtException", (e) => { app.log.fatal({ err: e.message }, "uncaughtException"); process.exit(1); });
 for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, async () => { app.log.info({ sig }, "to'xtatilmoqda"); await app.close(); await Promise.race([Promise.all([adminState?.writes.flush(), profiles?.writes.flush(), registry?.writes.flush(), analysisWrites.flush()]), new Promise((r) => setTimeout(r, 8000))]); process.exit(0); }); // navbatdagi yozuvlar (taqiq, audit, natija) yo'qolmasin
