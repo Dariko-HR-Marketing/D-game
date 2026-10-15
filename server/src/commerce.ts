@@ -36,8 +36,8 @@ export interface CatalogConfig { plusMonthly: number | null; plusYearly: number 
 export const DEFAULT_CONFIG: CatalogConfig = { plusMonthly: null, plusYearly: null, items: {}, freeRoomsPerDay: 5, freeHistory: 10 };
 
 export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
-export type OrderStatus = "pending_parent" | "pending_payment" | "paid" | "cancelled" | "rejected";
-export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string }
+export type OrderStatus = "pending_parent" | "pending_payment" | "paid" | "cancelled" | "rejected" | "refunded";
+export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string; refundedAt?: number; note?: string }
 
 export interface PaymentProvider { id: string; channels: ("web" | "store")[]; checkout(o: Order): Promise<{ ref: string; url?: string }> }
 /** Sinov provayderi (faqat production'dan tashqarida): to'lov oynasiz, `/dev/pay/:id` bilan tasdiqlanadi. */
@@ -167,6 +167,29 @@ export class Commerce {
     const e = this.ent(uid); this.ents.set(uid, { ...e, plusUntil: until, plusPlan: plan, owned: [...new Set([...e.owned.filter((x) => owned.has(x)), ...owned])] });
     return this.catalog(uid);
   }
+  // --- admin amallari (sabab va auditga yozilishi marshrut tomonida majburiy) ---
+  adminConfirm(id: string, by: string): { ok: true; order: Order } | { ok: false; error: OrderErr } {
+    const o = this.orders.get(id); if (!o) return { ok: false, error: "not_found" }; if (o.status !== "pending_payment") return { ok: false, error: "not_pending" };
+    const n = this.orders.set(id, { ...o, status: "paid", paidAt: this.now(), ref: `manual:${by}` }); this.grant(n); return { ok: true, order: n };
+  }
+  adminCancel(id: string): { ok: true } | { ok: false; error: OrderErr } {
+    const o = this.orders.get(id); if (!o) return { ok: false, error: "not_found" }; if (o.status !== "pending_payment" && o.status !== "pending_parent") return { ok: false, error: "not_pending" };
+    if (o.consentId) this.d.consents?.cancel(o.consentId, o.userId); this.orders.set(id, { ...o, status: "cancelled" }); return { ok: true };
+  }
+  /** Qaytarish: buyurtma `refunded` bo'ladi, berilgan huquq olinadi. Pulni to'lov provayderi kabinetida alohida qaytarish kerak. */
+  refund(id: string, note: string): { ok: true } | { ok: false; error: OrderErr } {
+    const o = this.orders.get(id); if (!o) return { ok: false, error: "not_found" }; if (o.status !== "paid") return { ok: false, error: "not_pending" };
+    this.orders.set(id, { ...o, status: "refunded", refundedAt: this.now(), note });
+    if (o.sku.startsWith("plus:")) this.restore(o.userId);
+    else { const e = this.ent(o.userId), item = o.sku.slice(5); const eq = { ...e.equipped }; for (const k of ["pawn", "frame", "avatar"] as const) if (eq[k] === item) delete eq[k]; this.ents.set(o.userId, { ...e, owned: e.owned.filter((x) => x !== item), equipped: eq }); }
+    return { ok: true };
+  }
+  /** Qo'lda Plus berish: 0 so'mlik «to'langan» buyurtma sifatida yoziladi — xaridni tiklash ham to'g'ri hisoblaydi. */
+  grantManual(uid: string, plan: "monthly" | "yearly", by: string, note: string): Order {
+    const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku: `plus:${plan}`, title: `POYGA Plus (${plan === "yearly" ? "yillik" : "oylik"}) — qo'lda`, amount: 0, channel: "web", status: "paid", createdAt: this.now(), paidAt: this.now(), ref: `manual:${by}`, note };
+    this.orders.set(o.id, o); this.grant(o); return o;
+  }
+  revokePlus(uid: string, note: string): number { let n = 0; for (const o of this.ordersOf(uid)) if (o.status === "paid" && o.sku.startsWith("plus:")) { this.orders.set(o.id, { ...o, status: "refunded", refundedAt: this.now(), note }); n++; } this.restore(uid); return n; }
   cancelPlus(uid: string) { const e = this.ent(uid); if (this.isPlus(uid)) this.ents.set(uid, { ...e, plusCancelled: true }); return this.catalog(uid); }
 
   equip(uid: string, id: string | null, kind: "pawn" | "frame" | "avatar"): { ok: true } | { ok: false; error: OrderErr } {

@@ -75,6 +75,8 @@ export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULE
 export class ProfileService {
   profiles = new Map<string, Profile>();
   results: GameResult[] = [];
+  /** Admin «ishonchsiz» belgisini olib tashlagan o'yinchilar (ballga ham, hisobga ham ta'sir qilmaydi). */
+  cleared = new Set<string>();
   readonly writes = new WriteQueue();
   constructor(private persist?: ProfilePersist, private year: () => number = () => new Date().getFullYear(), private now: () => number = Date.now) {}
 
@@ -85,6 +87,8 @@ export class ProfileService {
   }
 
   get(userId: string) { return this.profiles.get(userId); }
+  invalidate() { this.lvl.clear(); }
+  allProfiles() { return [...this.profiles.entries()]; }
   put(userId: string, input: unknown) {
     const v = validateProfile(input, this.year()); if (!v.ok) return v;
     const p: Profile = { userId, ...v.value, updatedAt: this.now() }; this.profiles.set(userId, p);
@@ -104,7 +108,7 @@ export class ProfileService {
 
   stats(userId: string): Stats {
     let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
-    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p && r.tag?.kind !== "tournament") points += gamePoints(p); /* turnir ballari alohida: umumiy ball o'zgarmaydi */ if (p?.unreliable) unreliable++; if (!p || p.bot) continue; // bot (yoki chiqib ketgan) statistikaga kirmaydi
+    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p && r.tag?.kind !== "tournament") points += gamePoints(this.cleared.has(userId) ? { ...p, unreliable: false } : p); /* turnir ballari alohida: umumiy ball o'zgarmaydi */ if (p?.unreliable && !this.cleared.has(userId)) unreliable++; if (!p || p.bot) continue; // bot (yoki chiqib ketgan) statistikaga kirmaydi
       games++; if (p.won) wins++; if (p.circle === "big") reachedBig++; }
     const level = levelOf(points); return { achievements: achievementsOf(this.results, userId), stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
   }

@@ -1,0 +1,27 @@
+import React, { useState } from "react";
+import type { Api } from "./api";
+import { Empty, Err, FormDialog, PageHead, Pill, errText, fmtTime, useLoad } from "./lib";
+import { t } from "./uz";
+
+const ROLE_NOTE: Record<string, string> = { administrator: "Hamma narsa", content_editor: "Kontent tayyorlaydi (nashr qilmaydi)", support: "Foydalanuvchi va shikoyat", moderator: "Support + xonani yopish", analyst: "Shaxssiz analitika", finance: "Do'kon, buyurtma, moliya", edu_manager: "Ta'lim va e'lonlar", tournament_manager: "Turnirlar va e'lonlar" };
+export function Accounts({ api, myId }: { api: Api; myId: string }) {
+  const l = useLoad<{ accounts: any[]; roles: string[]; sessions: number }>(api, "/admin/accounts"); const ss = useLoad<{ sessions: any[] }>(api, "/admin/sessions");
+  const [dlg, setDlg] = useState<null | { k: "new" | "role" | "pw" | "del" | "totp"; a?: any }>(null); const [err, setErr] = useState<string | null>(null);
+  const roleOpts = (l.data?.roles ?? []).map((r) => [r, `${t.roles[r] ?? r} — ${ROLE_NOTE[r] ?? ""}`] as [string, string]);
+  const call = async (p: Promise<any>) => { const r = await p; if (r.error) throw new Error(r.error); setDlg(null); l.reload(); ss.reload(); };
+  const safe = async (p: Promise<any>) => { setErr(null); try { await call(p); } catch (e) { setErr(errText(e)); l.reload(); } };
+  return (<>
+    <PageHead title={t.accounts}><button className="p" onClick={() => setDlg({ k: "new" })}>Yangi admin</button></PageHead>
+    <Err e={l.err || err} />
+    <section className="card"><h2>Hisoblar</h2>{!l.data?.accounts.length ? <Empty loading={l.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Hisoblar jadvali"><table><thead><tr><th>Ism</th><th>Login</th><th>Rol</th><th>2FA</th><th>Oxirgi kirish</th><th>Holat</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{l.data.accounts.map((a) => (
+      <tr key={a.id}><td><b>{a.name}</b>{a.id === myId && <> <Pill kind="info">Siz</Pill></>}</td><td className="mono">{a.login}</td><td>{t.roles[a.role] ?? a.role}</td><td>{a.totpEnabled ? <Pill kind="good">Yoqilgan</Pill> : <Pill kind="warn">Yo'q</Pill>}</td><td className="muted">{fmtTime(a.lastLogin)}</td>
+        <td>{a.disabled ? <Pill kind="bad">O'chirilgan</Pill> : a.mustChange ? <Pill kind="warn">Parol almashtirilmagan</Pill> : <Pill kind="good">Faol</Pill>}</td>
+        <td><div className="row">{a.id !== myId && <><button className="sm" onClick={() => setDlg({ k: "role", a })}>Rol</button><button className="sm" onClick={() => safe(api.post(`/admin/accounts/${a.id}`, { disabled: !a.disabled }))}>{a.disabled ? "Yoqish" : "O'chirib qo'yish"}</button></>}<button className="sm" onClick={() => setDlg({ k: "pw", a })}>Parol</button>{a.totpEnabled && a.id !== myId && <button className="sm" onClick={() => setDlg({ k: "totp", a })}>2FA tiklash</button>}{a.id !== myId && <button className="sm d" onClick={() => setDlg({ k: "del", a })}>O'chirish</button>}</div></td></tr>))}</tbody></table></div>}</section>
+    <section className="card"><h2>Faol sessiyalar ({ss.data?.sessions.length ?? 0})</h2>{!ss.data?.sessions.length ? <Empty loading={ss.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Sessiyalar jadvali"><table><thead><tr><th>Admin</th><th>Boshlangan</th><th>Oxirgi harakat</th><th>IP</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{ss.data.sessions.map((s) => <tr key={s.id}><td className="mono">{s.admin}</td><td>{fmtTime(s.createdAt)}</td><td>{fmtTime(s.lastSeen)}</td><td className="mono">{s.ip}</td><td><button className="sm" onClick={() => safe(api.delete(`/admin/sessions/${s.id}`))}>Yopish</button></td></tr>)}</tbody></table></div>}</section>
+    <FormDialog open={dlg?.k === "new"} title="Yangi admin hisobi" body="Birinchi kirishda parolni almashtirish majburiy bo'ladi." fields={[{ key: "name", label: "Ism", required: true }, { key: "login", label: "Login", required: true, hint: "kichik harf, raqam, . _ -" }, { key: "role", label: "Rol", type: "select", options: roleOpts }, { key: "password", label: "Vaqtinchalik parol", type: "password", required: true, hint: "Kamida 10 belgi, harf va raqam" }]} onClose={() => setDlg(null)} onOk={(v) => call(api.post("/admin/accounts", v))} />
+    <FormDialog open={dlg?.k === "role"} title={`Rolni o'zgartirish: ${dlg?.a?.name ?? ""}`} body="Faol sessiyalari yopiladi." fields={[{ key: "role", label: "Rol", type: "select", options: roleOpts, init: dlg?.a?.role }]} onClose={() => setDlg(null)} onOk={(v) => call(api.post(`/admin/accounts/${dlg!.a.id}`, { role: v.role }))} />
+    <FormDialog open={dlg?.k === "pw"} title={`Parolni tiklash: ${dlg?.a?.name ?? ""}`} body="Yangi vaqtinchalik parol beriladi; foydalanuvchi birinchi kirishda uni almashtiradi. Sessiyalar yopiladi." fields={[{ key: "password", label: "Vaqtinchalik parol", type: "password", required: true }]} onClose={() => setDlg(null)} onOk={(v) => call(api.post(`/admin/accounts/${dlg!.a.id}/password`, v))} />
+    <FormDialog open={dlg?.k === "totp"} danger title="2FA ni tiklash" body="Autentifikator o'chiriladi, foydalanuvchi qayta sozlaydi." fields={[]} onClose={() => setDlg(null)} onOk={() => call(api.post(`/admin/accounts/${dlg!.a.id}/totp-reset`))} />
+    <FormDialog open={dlg?.k === "del"} danger title={`Hisobni o'chirish: ${dlg?.a?.name ?? ""}`} body="Audit yozuvlari saqlanadi." fields={[]} onClose={() => setDlg(null)} onOk={() => call(api.delete(`/admin/accounts/${dlg!.a.id}`))} />
+  </>);
+}

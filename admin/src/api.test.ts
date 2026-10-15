@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { makeApi, ApiError, SECTIONS } from "./api";
+import { makeApi, ApiError, sectionsFor } from "./api";
 
 describe("admin API mijozi", () => {
   it("Bearer token yuboradi, xatoni ApiError qiladi", async () => {
@@ -11,9 +11,11 @@ describe("admin API mijozi", () => {
     await expect(api.post("/b", { q: 1 })).rejects.toBeInstanceOf(ApiError);
     expect(calls[1][1].body).toBe('{"q":1}');
   });
-  it("bo'limlar roli bo'yicha: muharrir faqat kontent, analitik shaxsiy ma'lumotsiz", () => {
-    expect(SECTIONS.content_editor).toEqual(["content"]);
-    expect(SECTIONS.analyst).not.toContain("users");
-    expect(SECTIONS.support).not.toContain("content");
+  it("bo'limlar ruxsat bo'yicha: muharrir faqat kontent, tahlilchi shaxsiy ma'lumotsiz, moliyachi do'kon", () => {
+    const keys = (p: string[]) => sectionsFor(p).map((n) => n.key);
+    expect(keys(["content.read", "content.write"])).toEqual(["content"]);
+    expect(keys(["analytics.read", "rooms.read"])).not.toContain("users");
+    expect(keys(["commerce.read", "analytics.read"])).toContain("shop");
+    expect(keys(["users.read"])).toEqual(["users"]);
   });
 });

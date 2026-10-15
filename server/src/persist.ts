@@ -72,11 +72,11 @@ export class PgPersist implements Persist, ProfilePersist, StatsPersist {
     await this.pool.query("select setval(pg_get_serial_sequence('complaints','id'), greatest((select max(id) from complaints),1))");
   }
   async loadAudit() {
-    const r = await this.pool.query("select extract(epoch from at)*1000 as at, admin, role, action, target, detail from audit_log order by id desc limit 500");
-    return r.rows.reverse().map((x) => ({ at: Number(x.at), admin: x.admin, role: x.role, action: x.action, target: x.target ?? undefined, detail: x.detail ?? undefined }) as AuditEntry);
+    const r = await this.pool.query("select extract(epoch from at)*1000 as at, admin, role, action, target, detail, ip from audit_log order by id desc limit 500");
+    return r.rows.reverse().map((x) => ({ at: Number(x.at), admin: x.admin, role: x.role, action: x.action, target: x.target ?? undefined, detail: x.detail ?? undefined, ip: x.ip ?? undefined }) as AuditEntry);
   }
   async appendAudit(a: AuditEntry) {
-    await this.pool.query("insert into audit_log(at,admin,role,action,target,detail) values(to_timestamp($1/1000.0),$2,$3,$4,$5,$6)", [a.at, a.admin, a.role, a.action, a.target ?? null, a.detail === undefined ? null : JSON.stringify(a.detail)]);
+    await this.pool.query("insert into audit_log(at,admin,role,action,target,detail,ip) values(to_timestamp($1/1000.0),$2,$3,$4,$5,$6,$7)", [a.at, a.admin, a.role, a.action, a.target ?? null, a.detail === undefined ? null : JSON.stringify(a.detail), a.ip ?? null]);
   }
 
   async loadProfiles(): Promise<Profile[]> {

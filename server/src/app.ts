@@ -16,6 +16,9 @@ import { Commerce, DevProvider, type PaymentProvider } from "./commerce";
 import { ParentConsents } from "./parents";
 import { PhoneLinks } from "./phones";
 import { registerShop } from "./shop-routes";
+import { AdminAccounts } from "./adminAccounts";
+import { Ops } from "./ops";
+import { registerAdminAuth, registerAdminCore } from "./admin-core";
 import { Edu } from "./edu";
 import { Tournaments } from "./tournaments";
 import { registerBiz, registerBizAdmin } from "./biz-routes";
@@ -29,7 +32,7 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 /** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments; ops?: Ops; accounts?: AdminAccounts } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
@@ -60,6 +63,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const commerce = opts.commerce ?? new Commerce({ docs: opts.docs, providers: opts.providers ?? (process.env.NODE_ENV === "production" ? [] : [new DevProvider()]), consents,
     phoneOk: (uid) => dev || phones.isVerified(uid), ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; },
     achievements: (uid) => profiles.stats(uid).achievements, phoneHashOf: (uid) => phones.hashFor(uid), hashOf: (p) => phones.hashOf(p) });
+  const ops = opts.ops ?? new Ops(opts.docs); const accounts = opts.accounts ?? new AdminAccounts(opts.docs);
   const edu = opts.edu ?? new Edu(opts.docs); const tournaments = opts.tournaments ?? new Tournaments(opts.docs);
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
   const rooms = new RoomManager(registry, store, undefined, undefined, {
@@ -68,7 +72,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     canJoin: (tag, uid) => (tag.kind === "class" ? edu.canJoinRoom(tag.id, uid) : tournaments.canJoinRoom(tag.id, uid)), // sinf/turnir xonasi — faqat a'zolar
     onStart: () => cGames({ event: "started" }),
     onAbandon: () => cGames({ event: "abandoned" }),
-    onError: (where, e) => { cErr({ where }); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },
+    onError: (where, e) => { cErr({ where }); ops.logError(where, e); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },
     onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
     onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId), r.members.filter((m) => m.unreliable).map((m) => m.userId), r.tag); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });
@@ -88,7 +92,10 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!metricsToken || (req.headers.authorization ?? "") !== `Bearer ${metricsToken}`) return reply.code(metricsToken ? 401 : 404).send({ error: "unauthorized" });
     return reply.header("content-type", "text/plain; version=0.0.4").send(m.render());
   });
-  registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => registerBizAdmin(guard, app, { edu, tournaments, commerce, nameOf: (id) => profiles.get(id)?.name }) });
+  function eraseUser(uid: string) { profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); adminState.banUntil.delete(uid); revocations.revoke(uid); }
+  const legacyAuth = envAdminAuth();
+  registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth });
+  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerBizAdmin(guard, app, { edu, tournaments, commerce, nameOf: (id) => profiles.get(id)?.name }) } });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -174,9 +181,9 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
-          case "join": { const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
+          case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
           case "start": { if (!code) return reply({ type: "error", error: "no_room" });
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
@@ -221,7 +228,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   app.delete("/me", secured((uid, req, reply) => {
     if (normalizeWord((req.body as any)?.confirm) !== normalizeWord("O'CHIRISH")) return reply.code(400).send({ error: "confirm_required" });
     if (rooms.activeRoomOf.has(uid)) return reply.code(409).send({ error: "in_game" });
-    profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); revocations.revoke(uid); // o'chirilgan hisobning eski tokenlari yaroqsiz
+    eraseUser(uid); // o'chirilgan hisobning eski tokenlari yaroqsiz
     return { ok: true };
   }));
   app.get("/leaderboard", async (req) => profiles.leaderboard(Math.max(1, Math.min(100, Math.floor(Number((req.query as any).limit)) || 20))));
@@ -239,10 +246,16 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!complaintLimit.allow(uid)) return reply.code(429).send({ error: "rate_limited" }); // bir hisobdan ko'p yuborilmasin
     return adminState.addComplaint({ from: uid, against, room, text: b.text, at: Date.now() });
   });
-  registerShop({ app, commerce, phones, consents, otp: opts.otp, dev, webhookSecret: opts.webhookSecret ?? process.env.PAYMENT_WEBHOOK_SECRET, onTournamentConsent: (id, ok) => tournaments.onConsent(id, ok), devPay: dev && process.env.NODE_ENV !== "production", secured, ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; }, nameOf: (id) => profiles.get(id)?.name, limited: (scope) => cLimited({ scope }) });
+  registerShop({ app, commerce, phones, consents, otp: opts.otp, dev, webhookSecret: opts.webhookSecret ?? process.env.PAYMENT_WEBHOOK_SECRET, onTournamentConsent: (id, ok) => tournaments.onConsent(id, ok), salesPaused: () => ops.flags().salesPaused || ops.flags().maintenance, payEvent: (o, a, ok, e) => ops.payEvent(o, a, ok, e), devPay: dev && process.env.NODE_ENV !== "production", secured, ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; }, nameOf: (id) => profiles.get(id)?.name, limited: (scope) => cLimited({ scope }) });
   const ageOf = (uid: string) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; };
-  registerBiz({ app, edu, tournaments, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev });
-  const ready = Promise.all([phones.load(), consents.load(), commerce.load(), edu.load(), tournaments.load()]).then(() => undefined); // docs jadvalidan tiklash
-  const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush()]);
-  return { app, rooms, store, registry, adminState, profiles, analysis, commerce, phones, consents, edu, tournaments, ready, flush };
+  registerBiz({ app, edu, tournaments, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
+  app.addHook("onResponse", async (req, rep) => { if (rep.statusCode >= 500) ops.logError(`${req.method} ${req.routeOptions?.url ?? req.url}`, `HTTP ${rep.statusCode}`); });
+  app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "" }; });
+  const ready = Promise.all([phones.load(), consents.load(), commerce.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
+    for (const b of ops.bans.values()) if (b.until) adminState.banUntil.set(b.id, b.until);
+    for (const c of ops.cleared.values()) profiles.cleared.add(c.id);
+    accounts.bootstrap(process.env.ADMIN_BOOTSTRAP_LOGIN, process.env.ADMIN_BOOTSTRAP_PASSWORD);
+  }); // docs jadvalidan tiklash
+  const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush(), accounts.queue.flush(), ops.queue.flush()]);
+  return { app, rooms, store, registry, adminState, profiles, analysis, commerce, phones, consents, edu, tournaments, accounts, ops, ready, flush };
 }

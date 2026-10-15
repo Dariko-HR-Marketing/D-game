@@ -42,7 +42,7 @@ describe("kontent versiyalari", () => {
     const ok = await call(x, "POST", "/admin/content/dreams/versions", "E", { data: dreams, note: "narx" });
     expect(ok.json()).toEqual({ ok: true, version: 2 });
     expect(x.registry.activeVersion).toBe(1); // nashr qilinmaguncha faol emas
-    expect((await call(x, "POST", "/admin/content/versions/2/publish", "E")).json().ok).toBe(true);
+    expect((await call(x, "POST", "/admin/content/versions/2/publish", "A")).json().ok).toBe(true);
     expect(x.registry.activeVersion).toBe(2);
     const audit = (await call(x, "GET", "/admin/audit", "A")).json();
     // rad etilgan urinish ham auditga yoziladi
@@ -74,8 +74,8 @@ describe("foydalanuvchi, bloklash, shikoyat, jurnal, analitika", () => {
     expect((await call(x, "POST", "/admin/users/bad/ban", "S", { reason: "chat" })).json().ok).toBe(true);
     expect(x.rooms.rooms.get(r.code)!.members[0].bot).toBe(true);
     expect(x.adminState.isBanned("bad")).toBe(true);
-    expect((await call(x, "GET", "/admin/users?q=ba", "S")).json()[0].banned).toBe(true);
-    expect((await call(x, "POST", "/admin/users/bad/unban", "S")).json().ok).toBe(true);
+    expect((await call(x, "GET", "/admin/users?q=ba", "S")).json().users[0].banned).toBe(true);
+    expect((await call(x, "POST", "/admin/users/bad/unban", "S", { reason: "kechirildi" })).json().ok).toBe(true);
     expect(x.adminState.isBanned("bad")).toBe(false);
   });
   it("shikoyat: foydalanuvchi yuboradi, qo'llab-quvvatlash hal qiladi", async () => {
@@ -107,7 +107,7 @@ describe("katak qoidalari admin orqali (versiyali, qulflanadigan)", () => {
     expect(bad.json().ok).toBe(false);
     const ok = await call(x, "POST", "/admin/content/cellRules/versions", "E", { data: { small: { K: { kind: "restart" }, Q: { kind: "skipTurns", turns: 3 } }, big: { byType: {}, byIndex: {} } }, note: "Q = 3 navbat" });
     expect(ok.json()).toEqual({ ok: true, version: 2 });
-    await call(x, "POST", "/admin/content/versions/2/publish", "E");
+    await call(x, "POST", "/admin/content/versions/2/publish", "A");
     const r1 = x.rooms.create("c"); if (!r1.ok) throw 0; x.rooms.join(r1.code, "d"); await x.rooms.start(r1.code, "c", 1, { dreams: false });
     expect(x.rooms.rooms.get(r1.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "skipTurns", turns: 3 });
     expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "noSalary", months: 4 }); // boshlangan o'yin standart qoidada qulflangan (§11)

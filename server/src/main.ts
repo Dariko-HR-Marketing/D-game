@@ -10,6 +10,7 @@ import { AnalysisService } from "./analysis";
 import { WriteQueue } from "./persist";
 import { ConsoleSms, HttpSms, OtpService, type SmsSender } from "./auth";
 import { PgDocs } from "./docs";
+import { Ops } from "./ops";
 import { APPLE, GOOGLE, OidcVerifier } from "./oidc";
 
 const url = process.env.DATABASE_URL;
@@ -27,20 +28,21 @@ if (url) {
 // Kirish: AUTH_SECRET berilsa — haqiqiy rejim. SMS_HTTP_URL/SMS_HTTP_TOKEN bo'lsa SMS orqali; SMS_PROVIDER=console faqat staging uchun.
 const authSecret = process.env.AUTH_SECRET;
 if (authSecret && authSecret.length < 32) throw new Error("AUTH_SECRET kamida 32 belgi bo'lishi kerak");
+const ops = new Ops(docs);
 let otp: OtpService | undefined; let smsSender: SmsSender | undefined;
 if (authSecret) {
   const sms = process.env.SMS_HTTP_URL ? new HttpSms(process.env.SMS_HTTP_URL, process.env.SMS_HTTP_TOKEN ?? "")
     : process.env.SMS_PROVIDER === "console" && process.env.NODE_ENV !== "production" ? new ConsoleSms() : null;
   const anyOidc = [process.env.GOOGLE_CLIENT_IDS, process.env.APPLE_CLIENT_ID].some((v) => (v ?? "").trim());
   if (!sms && !anyOidc) throw new Error("AUTH_SECRET berilgan, lekin kirish usuli yo'q: SMS_HTTP_URL, GOOGLE_CLIENT_IDS yoki APPLE_CLIENT_ID (staging uchun SMS_PROVIDER=console)");
-  smsSender = sms ?? undefined;
-  if (sms) { otp = new OtpService({ secret: authSecret, sms }); setInterval(() => otp!.sweep(), 60_000).unref(); }
+  smsSender = sms ? ops.wrapSms(sms) : undefined; // SMS holati admin panelda ko'rinadi
+  if (smsSender) { otp = new OtpService({ secret: authSecret, sms: smsSender }); setInterval(() => otp!.sweep(), 60_000).unref(); }
 }
 const ids = (v?: string) => (v ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 const oidc: Partial<Record<"google" | "apple", OidcVerifier>> = {};
 if (authSecret && ids(process.env.GOOGLE_CLIENT_IDS).length) oidc.google = new OidcVerifier(GOOGLE(ids(process.env.GOOGLE_CLIENT_IDS)));
 if (authSecret && ids(process.env.APPLE_CLIENT_ID).length) oidc.apple = new OidcVerifier(APPLE(ids(process.env.APPLE_CLIENT_ID)));
-const { app, rooms, ready, flush } = buildApp({ docs, sms: smsSender, publicUrl: process.env.PUBLIC_URL, webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET, otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
+const { app, rooms, ready, flush } = buildApp({ docs, ops, sms: smsSender, publicUrl: process.env.PUBLIC_URL, webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET, otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
 await ready;
 process.on("unhandledRejection", (e) => app.log.error({ err: String((e as Error)?.message ?? e) }, "unhandledRejection"));
 process.on("uncaughtException", (e) => { app.log.fatal({ err: e.message }, "uncaughtException"); process.exit(1); });

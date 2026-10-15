@@ -5,18 +5,24 @@ import type { Store } from "./store";
 import type { ContentRegistry, Part } from "./registry";
 import { WriteQueue, type Persist } from "./persist";
 
-export type Role = "administrator" | "content_editor" | "support" | "analyst";
-export type Perm = "content.read" | "content.write" | "users.read" | "users.ban" | "rooms.read" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read" | "commerce.manage";
+export type Role = "administrator" | "content_editor" | "support" | "analyst" | "moderator" | "finance" | "edu_manager" | "tournament_manager";
+export type Perm = "content.read" | "content.write" | "content.publish" | "users.read" | "users.ban" | "users.manage" | "rooms.read" | "rooms.close" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read"
+  | "commerce.read" | "commerce.manage" | "commerce.refund" | "accounts.manage" | "flags.manage" | "announce.manage" | "system.read" | "edu.manage" | "tournaments.manage";
 
 export const PERMS: Record<Role, readonly Perm[]> = {
-  administrator: ["content.read", "content.write", "users.read", "users.ban", "rooms.read", "journal.read", "complaints.manage", "analytics.read", "audit.read", "commerce.manage"],
-  content_editor: ["content.read", "content.write"],
+  administrator: ["content.read", "content.write", "content.publish", "users.read", "users.ban", "users.manage", "rooms.read", "rooms.close", "journal.read", "complaints.manage", "analytics.read", "audit.read",
+    "commerce.read", "commerce.manage", "commerce.refund", "accounts.manage", "flags.manage", "announce.manage", "system.read", "edu.manage", "tournaments.manage"],
+  content_editor: ["content.read", "content.write"], // tayyorlaydi; nashr — faqat administrator (to'rt ko'z printsipi)
   support: ["users.read", "users.ban", "rooms.read", "journal.read", "complaints.manage"],
+  moderator: ["users.read", "users.ban", "rooms.read", "rooms.close", "journal.read", "complaints.manage"],
   analyst: ["analytics.read", "rooms.read"], // shaxssiz ma'lumot
+  finance: ["commerce.read", "commerce.manage", "analytics.read"],
+  edu_manager: ["edu.manage", "rooms.read", "announce.manage"],
+  tournament_manager: ["tournaments.manage", "rooms.read", "announce.manage"],
 };
 export const can = (role: Role, p: Perm) => PERMS[role].includes(p);
 
-export interface AuditEntry { at: number; admin: string; role: Role; action: string; target?: string; detail?: unknown }
+export interface AuditEntry { at: number; ip?: string; admin: string; role: Role; action: string; target?: string; detail?: unknown }
 export interface Complaint { id: number; from: string; against: string | null; room: string | null; text: string; at: number; status: "open" | "resolved"; resolution?: string; resolvedBy?: string }
 
 /** Admin ma'lumotlari. Ishlab chiqarishda PostgreSQL implementatsiyasi shu interfeysni bajaradi. */
@@ -44,11 +50,13 @@ export class AdminState {
   saveUser(id: string, at = Date.now()) { const u = this.users.get(id); if (!u) return; this.lastSaved.set(id, at); const c = { ...u }; this.writes.push(async () => this.persist?.saveUser(c)); }
   saveComplaint(c: Complaint) { const x = { ...c }; this.writes.push(async () => this.persist?.saveComplaint(x)); }
   record(a: AuditEntry) { this.audit.push(a); this.writes.push(async () => this.persist?.appendAudit(a)); }
-  isBanned(id: string) { return this.users.get(id)?.banned ?? false; }
+  /** Muddatli ban (`banUntil`) o'tgach o'zi tugaydi. */
+  banUntil = new Map<string, number>();
+  isBanned(id: string) { const u = this.users.get(id); if (!u?.banned) return false; const t = this.banUntil.get(id); return !(t && t <= Date.now()); }
   addComplaint(c: Omit<Complaint, "id" | "status">) { const x: Complaint = { ...c, id: this.cid++, status: "open" }; this.complaints.push(x); this.saveComplaint(x); return x; }
 }
 
-export type AdminAuth = (token: string | undefined) => { id: string; role: Role } | null;
+export type AdminAuth = (token: string | undefined) => { id: string; role: Role; sid?: string; restricted?: "change_password" | "setup_2fa" } | null;
 /** ADMIN_TOKENS='{"tok1":{"id":"a","role":"administrator"}}' — vaqtinchalik; keyin SSO/2FA ulanadi. */
 export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   const m: Record<string, { id: string; role: Role }> = raw ? JSON.parse(raw) : {};
@@ -56,17 +64,20 @@ export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   return (t) => (t && Object.hasOwn(m, t) ? m[t] : null);
 };
 
-export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; nameOf?: (id: string) => string | undefined; funnel?: (registered: number) => unknown; now?: () => number; extend?: (guard: (perm: Perm, h: (req: any, who: { id: string; role: Role }) => unknown, auditAction?: string) => any) => void }) {
+export type Guard = (perm: Perm | Perm[], h: (req: any, who: { id: string; role: Role; sid?: string }) => unknown, auditAction?: string, o?: { reason?: boolean }) => any;
+export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; nameOf?: (id: string) => string | undefined; funnel?: (registered: number) => unknown; now?: () => number; extend?: (guard: Guard) => void }) {
   const now = d.now ?? Date.now;
-  const guard = (perm: Perm, h: (req: FastifyRequest, who: { id: string; role: Role }) => Promise<unknown> | unknown, auditAction?: string) =>
+  const guard: Guard = (perm, h, auditAction, o) =>
     async (req: FastifyRequest, reply: any) => {
       const tok = (req.headers.authorization ?? "").replace(/^Bearer /, "");
       const who = d.auth(tok || undefined);
       if (!who) return reply.code(401).send({ error: "unauthorized" });
-      if (!can(who.role, perm)) return reply.code(403).send({ error: "forbidden" });
-      // Audit: muvaffaqiyatsiz urinish ham yoziladi (":failed"); tafsilot qisqartiriladi (kontent matni jurnalni shishirmasin)
-      const detail = (() => { const j = JSON.stringify(req.body ?? null); return j.length > 2000 ? { truncated: true, size: j.length } : req.body; })();
-      const rec = (suffix: string) => auditAction && d.state.record({ at: now(), admin: who.id, role: who.role, action: auditAction + suffix, target: (req.params as any)?.id ?? (req.params as any)?.v, detail });
+      if (who.restricted) return reply.code(403).send({ error: who.restricted }); // parolni almashtirmaguncha / 2FA yoqmaguncha boshqa amal yo'q
+      if (!(Array.isArray(perm) ? perm : [perm]).some((x) => can(who.role, x))) return reply.code(403).send({ error: "forbidden" });
+      if (o?.reason) { const r = (req.body as any)?.reason; if (typeof r !== "string" || r.trim().length < 3 || r.length > 300) return reply.code(400).send({ error: "reason_required" }); } // xavfli amal: sabab majburiy
+      // Audit: muvaffaqiyatsiz urinish ham yoziladi (":failed"); tafsilot qisqartiriladi (kontent matni jurnalni shishirmasin); parol/kodlar yozilmaydi
+      const detail = (() => { const body = req.body && typeof req.body === "object" ? Object.fromEntries(Object.entries(req.body as object).filter(([k]) => !/pass|token|secret|code$/i.test(k))) : req.body ?? null; const j = JSON.stringify(body); return j && j.length > 2000 ? { truncated: true, size: j.length } : body; })();
+      const rec = (suffix: string) => auditAction && d.state.record({ at: now(), ip: req.ip, admin: who.id, role: who.role, action: auditAction + suffix, target: (req.params as any)?.id ?? (req.params as any)?.v, detail });
       let out: unknown;
       try { out = await h(req, who); } catch (e) { rec(":failed"); throw e; }
       rec((out as { error?: unknown } | null)?.error ? ":failed" : "");
@@ -86,7 +97,7 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
     if (!["cards", "bigBoard", "dreams", "cellRules"].includes(part)) return { error: "no_part" };
     return d.registry.createVersion(part, body.data, who.id, body.note ?? "");
   }, "content.create_version"));
-  app.post("/admin/content/versions/:v/publish", guard("content.write", (req) => ({ ok: d.registry.publish(Number((req.params as any).v)) }), "content.publish"));
+  app.post("/admin/content/versions/:v/publish", guard("content.publish", (req) => ({ ok: d.registry.publish(Number((req.params as any).v)) }), "content.publish"));
 
   // --- xonalar va jurnal ---
   app.get("/admin/rooms", guard("rooms.read", (req, who) => {
@@ -98,29 +109,7 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
   }));
   app.get("/admin/rooms/:id/journal", guard("journal.read", async (req) => d.store.journal((req.params as any).id), "journal.read"));
 
-  // --- foydalanuvchilar ---
-  app.get("/admin/users", guard("users.read", (req) => {
-    const q = String((req.query as any).q ?? "").toLowerCase();
-    return [...d.state.users.values()].map((u) => ({ ...u, name: d.nameOf?.(u.id) ?? null })).filter((u) => !q || u.id.toLowerCase().includes(q) || (u.name ?? "").toLowerCase().includes(q)).sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 100);
-  }));
-  app.post("/admin/users/:id/ban", guard("users.ban", (req) => {
-    const id = (req.params as any).id as string; const u = d.state.users.get(id);
-    if (!u) return { error: "no_user" };
-    u.banned = true; u.banReason = String((req.body as any)?.reason ?? ""); d.state.saveUser(id);
-    for (const [code, r] of d.rooms.rooms) if (r.members.some((m) => m.userId === id && !m.bot)) d.rooms.leave(code, id); // o'yindan chiqariladi, o'rniga bot
-    return { ok: true };
-  }, "user.ban"));
-  app.post("/admin/users/:id/unban", guard("users.ban", (req) => {
-    const u = d.state.users.get((req.params as any).id); if (!u) return { error: "no_user" };
-    u.banned = false; u.banReason = undefined; d.state.saveUser(u.id); return { ok: true };
-  }, "user.unban"));
-
-  // --- shikoyatlar ---
-  app.get("/admin/complaints", guard("complaints.manage", () => d.state.complaints));
-  app.post("/admin/complaints/:id/resolve", guard("complaints.manage", (req, who) => {
-    const c = d.state.complaints.find((x) => x.id === Number((req.params as any).id)); if (!c) return { error: "no_complaint" };
-    c.status = "resolved"; c.resolution = String((req.body as any)?.resolution ?? ""); c.resolvedBy = who.id; d.state.saveComplaint(c); return { ok: true };
-  }, "complaint.resolve"));
+  // Foydalanuvchilar va shikoyatlar: admin-core.ts
 
   // --- analitika (shaxssiz, §12) ---
   app.get("/admin/analytics", guard("analytics.read", () => {
