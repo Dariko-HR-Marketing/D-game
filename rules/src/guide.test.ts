@@ -202,3 +202,18 @@ describe("Avtomatik qarorlar hisoblanadi (ball −2)", () => {
     const b: any = reduce(mk(), ctx, { type: "roll", playerId: "p0" }); expect(b.state.players[0].autos ?? 0).toBe(0);
   });
 });
+
+describe("katta aylana: tasodifiy o'yinlar xatosiz va sonlar chekli (fuzz)", () => {
+  it("60 ta o'yin, har biri ≤ 600 navbat", () => {
+    for (let seed = 1; seed <= 60; seed++) {
+      let s = newGame(ctx, ["a", "b", "c"], seed, [], [], { dreamPhase: false });
+      s.players.forEach((p, i) => Object.assign(p, { circle: "big", pos: 34, lockedFlow: 20_000 + (seed % 5) * 20_000, cash: 200_000 + (seed * 7919) % 3_000_000, dreamIdx: i }));
+      for (let t = 0; t < 600 && !s.winner; t++) {
+        const me = s.players[s.turn % s.players.length].id; const r: any = reduce(s, ctx, { type: "roll", playerId: me }); expect(r.ok, r.error).toBe(true); s = r.state;
+        if (s.pending) { const k = (base.effects[s.pending.cardId]?.effect as any)?.kind; const d: any = reduce(s, ctx, { type: "decide", playerId: me, accept: k === "buy" || seed % 2 === 0 }); expect(d.ok, d.error).toBe(true); s = d.state; }
+        s.proposals = [];
+        for (const p of s.players) for (const v of [p.cash, p.bigDebt ?? 0, p.lockedFlow]) expect(Number.isFinite(v)).toBe(true);
+      }
+    }
+  }, 60_000);
+});
