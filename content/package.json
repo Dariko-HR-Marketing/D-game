@@ -5,7 +5,9 @@
  "type": "module",
  "scripts": {
   "test": "vitest run",
-  "typecheck": "tsc --noEmit"
+  "typecheck": "tsc --noEmit",
+  "import:kasb": "tsx scripts/import-kasb.ts",
+  "check:cards": "tsx scripts/check-cards.ts"
  },
  "dependencies": {
   "zod": "^3.23.8"
@@ -13,7 +15,8 @@
  "devDependencies": {
   "typescript": "^5.6.0",
   "vitest": "^2.1.0",
-  "@types/node": "^22.0.0"
+  "@types/node": "^22.0.0",
+  "tsx": "^4.19.0"
  },
  "exports": {
   ".": "./src/index.ts",
