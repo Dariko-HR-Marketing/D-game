@@ -21,7 +21,7 @@ function Row({ icon, title, sub, onPress, disabled }: { icon: IconName; title: s
 }
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
-export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules }: { status: string; error: string | null; http?: Http; onCreate: () => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void }) {
+export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: () => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
   const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false);
   const [me, setMe] = useState<{ name: string; color: number; level: number } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0 }); }).catch(() => {}); return () => { off = true; }; }, [http]);
@@ -51,6 +51,9 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
               </View>)}
             <Row icon="book" title={uz.home.rulesRow} sub={uz.home.rulesSub} onPress={onRules} />
             <Row icon="trophy" title={uz.profile.leaderboard} sub={uz.home.boardSub} onPress={onLeaderboard} />
+            {onTournaments && <Row icon="trophy" title="Turnirlar" sub="Homiylar bilan musobaqalar" onPress={onTournaments} />}
+            {onClass && <Row icon="people" title="Sinf" sub="Maktab: sinfga qo'shilish yoki o'qituvchi paneli" onPress={onClass} />}
+            {onShop && <Row icon="plus" title="Do'kon va Plus" sub="Ko'rinish uchun narsalar, cheklovsiz xonalar" onPress={onShop} />}
           </View>
           <View style={s.how}>
             <Text style={s.howT} aria-level={2} accessibilityRole="header">{uz.home.howTitle}</Text>

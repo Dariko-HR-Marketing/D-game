@@ -8,12 +8,12 @@ export function makeApi(token: string, base = API, f: typeof fetch = fetch) {
     if (!r.ok) throw new ApiError(r.status, j);
     return j;
   };
-  return { get: (p: string) => call("GET", p), post: (p: string, b?: unknown) => call("POST", p, b ?? {}) };
+  return { get: (p: string) => call("GET", p), post: (p: string, b?: unknown) => call("POST", p, b ?? {}), delete: (p: string) => call("DELETE", p) };
 }
 export type Api = ReturnType<typeof makeApi>;
 
 /** Rol bo'yicha ko'rinadigan bo'limlar (server baribir tekshiradi; bu faqat UX). */
 export const SECTIONS: Record<string, string[]> = {
-  administrator: ["content", "rooms", "users", "complaints", "analytics", "audit"],
+  administrator: ["content", "rooms", "users", "complaints", "analytics", "audit", "shop", "edu", "tournaments"],
   content_editor: ["content"], support: ["rooms", "users", "complaints"], analyst: ["analytics", "rooms"],
 };

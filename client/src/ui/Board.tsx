@@ -63,7 +63,7 @@ export function Board({ room, width, wide, currentId, children }: { room: RoomVi
   // Aralash o'yin: katta aylana o'yinchilari uchun ichki halqa (kichik nuqtalar)
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
   const innerTiles = mixed ? squareRing(53, Math.max(8, Math.round(iW / (ic * 1.6))), iW, iH, ic) : [];
-  const hue = (p: any, k: number) => PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6];
+  const hue = (p: any, k: number) => room.names?.[p.id]?.cos?.pawn ?? PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6]; // do'kon kosmetikasi: faqat rang
   const pawn = wide ? 28 : 22;
   const curP = players.find((p) => p.id === currentId);
   const where = (p: any): { x: number; y: number } => {

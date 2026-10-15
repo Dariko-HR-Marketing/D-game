@@ -10,11 +10,11 @@ const hash = (s: string) => { let x = 7; for (const c of s) x = (x * 31 + c.char
 
 /** Foydalanuvchi belgisi: ismdan deterministik chizilgan sodda portret; yuqorida daraja nishoni, pastda onlayn/oflayn nuqtasi.
  *  Jins ko'rsatilmaydi (profilda yo'q): soch uslubi faqat ismdan tanlanadi. Ma'no matnda (aria-label tashqarida beriladi). */
-export function Avatar({ name, colorIdx = 0, level, online, size = 40 }: { name: string; colorIdx?: number; level?: number; online?: boolean; size?: number }) {
-  const k = hash(name || "?"), skin = SKIN[k % 5], hair = HAIR[(k >> 3) % 5], bg = BG[(k >> 5) % 5], long = ((k >> 7) & 1) === 1, shirt = PLAYER_COLORS[colorIdx % 6];
+export function Avatar({ name, colorIdx = 0, level, online, size = 40, frame, bgColor }: { name: string; colorIdx?: number; level?: number; online?: boolean; size?: number; frame?: string; bgColor?: string }) {
+  const k = hash(name || "?"), skin = SKIN[k % 5], hair = HAIR[(k >> 3) % 5], bg = bgColor ?? BG[(k >> 5) % 5], long = ((k >> 7) & 1) === 1, shirt = PLAYER_COLORS[colorIdx % 6];
   const badge = Math.max(14, size * 0.4), dot = Math.max(8, size * 0.25);
   return (
-    <View aria-hidden style={{ width: size, height: size }}>
+    <View aria-hidden style={[{ width: size, height: size }, frame ? { borderRadius: size / 2, borderWidth: 3, borderColor: frame, boxSizing: "content-box" as any } : null]}>
       {hasDom && h("svg", { viewBox: "0 0 40 40", width: size, height: size, style: { display: "block", borderRadius: size / 2 } },
         h("rect", { width: 40, height: 40, fill: bg }), long && h("path", { d: "M9.5 33c-.5-12 2-24 10.5-24S31 21 30.5 33z", fill: hair }),
         h("path", { d: "M5 41c1.6-8.4 7.6-12 15-12s13.4 3.6 15 12z", fill: shirt }), h("rect", { x: 17, y: 23, width: 6, height: 7, rx: 2.5, fill: skin }), h("circle", { cx: 20, cy: 17.5, r: 7.8, fill: skin }),

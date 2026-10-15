@@ -25,3 +25,11 @@ Konteyner sog'liq tekshiruvi: `GET /ready` (200 = server va baza ishlayapti).
 2. Mustaqil xavfsizlik sinovi, yuridik masalalar (16 yosh, ma'lumot joylashuvi, o'chirish).
 3. Prototipning qolgan ekranlari, karta rasmlari, ochiq qoidalar (`docs/OPEN_QUESTIONS.md`).
 4. Monitoring: `docs/ops/alerts.yml`, `docs/ops/RUNBOOK.md`.
+
+## Do'kon, ta'lim va turnirlar (qo'shimcha sozlamalar)
+
+- `PUBLIC_URL` — ota-ona SMS havolalari uchun asosiy manzil (masalan `https://poyga.example`).
+- `PAYMENT_WEBHOOK_SECRET` — `/pay/confirm` imzosi (HMAC-SHA256, sarlavha `x-signature`). Bo'sh bo'lsa marshrut yopiq.
+- To'lov provayderi ulanmaguncha xaridlar `payments_unavailable` qaytaradi — bu kutilgan holat.
+- Narxlar va bepul tarif chegaralari admin panelda «Do'kon va Plus» bo'limida kiritiladi; bo'sh narx = sotuv yopiq.
+- Migratsiya `005_docs.sql` avtomatik qo'llanadi.

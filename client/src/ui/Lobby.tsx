@@ -33,7 +33,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
         {room.members.map((m, i) => {
           const label = m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? `${uz.lobby.playerN} ${i + 1}`; const lvl = room.names?.[m.userId]?.level; const stars = Math.min(5, lvl ?? 0);
           return (<View key={m.userId} style={s.player} role="group" accessible aria-label={`${i + 1}. ${label}${m.userId === userId ? `, ${uz.lobby.you}` : ""}${lvl !== undefined ? `, ${lvl}-daraja` : ""}${i === 0 ? `, ${uz.lobby.hostWord}` : ""}${m.online ? "" : `, ${uz.lobby.offline}`}`}>
-            <Avatar name={label} colorIdx={room.names?.[m.userId]?.color ?? i} level={m.bot ? undefined : lvl} online={m.bot ? undefined : m.online} size={40} />
+            <Avatar name={label} colorIdx={room.names?.[m.userId]?.color ?? i} level={m.bot ? undefined : lvl} online={m.bot ? undefined : m.online} size={40} frame={room.names?.[m.userId]?.cos?.frame} bgColor={room.names?.[m.userId]?.cos?.avatar} />
             <View style={{ flex: 1, gap: 2 }} aria-hidden>
               <Text style={s.name}>{label}{m.userId === userId ? ` (${uz.lobby.you})` : ""}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -69,5 +69,5 @@ const s = StyleSheet.create({
   dot: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, name: { flex: 1, color: color.navy, fontSize: font.lg, fontWeight: "700" },
   switchRow: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48 },
   track: { width: 52, height: 30, borderRadius: 15, backgroundColor: tone.muted, padding: 3, justifyContent: "center" }, knob: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#fff", alignSelf: "flex-start" },
-  empty: { opacity: 0.8 }, emptyT: { color: tone.muted, fontSize: font.md },
+  empty: {}, emptyT: { color: tone.muted, fontSize: font.md },
 });

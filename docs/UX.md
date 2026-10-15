@@ -27,3 +27,7 @@ OUT=/tmp/shots pnpm tsx scripts/screens-admin.ts   # admin: rasmlar + axe
 
 ## Hali odam ko'zi bilan sinalmagan
 Ekranlar avtomatik rasm va axe bilan tekshirilgan, lekin haqiqiy telefon/planshetda, haqiqiy foydalanuvchilar bilan sinov (o'qish tezligi, tugmalar joyi, 30 soniyalik qaror yetarlimi) o'tkazilmagan. Dizayner tasdig'i (prototip bilan solishtirish, SPEC §16) ham kutilmoqda.
+
+## Do'kon, sinf, turnir ekranlari
+
+Bosh sahifada uchta yangi qator: «Turnirlar», «Sinf», «Do'kon va Plus» (`ui/Biz.tsx`). Do'kon: telefon tasdig'i bloki, Plus kartasi (narx belgilanmagan bo'lsa tugma o'chiq), kutilayotgan buyurtma (ota-ona kutish / to'lov), fishka-ramka-fon tablari. Sinf: kod bilan qo'shilish, sinf xonasiga kirish, o'qituvchi paneli (sinflar, xona, topshiriqlar, o'quvchilar hisoboti, CSV). Turnir: shartlar, ro'yxatdan o'tish (16 yoshgacha ota-ona telefoni), xona, reyting. Kosmetika taxtadagi fishka rangi, avatar ramkasi va foniga ta'sir qiladi. Axe: `server/scripts/axe-biz.ts` — 390 va 1440 px da buzilish yo'q.

@@ -12,6 +12,16 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
   return {
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number }) => call("PUT", "/me/profile", p),
     history: () => call("GET", "/me/history"), analysis: (code: string) => call("GET", `/me/games/${code}/analysis`), leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
+    account: () => call("GET", "/me/account"), phoneRequest: (phone: string) => call("POST", "/me/phone/request", { phone }), phoneVerify: (phone: string, code: string) => call("POST", "/me/phone/verify", { phone, code }),
+    shop: () => call("GET", "/shop"), order: (sku: string, parentPhone?: string) => call("POST", "/shop/order", { sku, channel: "web", ...(parentPhone ? { parentPhone } : {}) }), orderGet: (id: string) => call("GET", `/shop/orders/${id}`),
+    orderCancel: (id: string) => call("POST", `/shop/orders/${id}/cancel`, {}), orderResend: (id: string) => call("POST", `/shop/orders/${id}/resend`, {}), devPay: (id: string) => call("POST", `/dev/pay/${id}`, {}),
+    equip: (kind: string, itemId: string | null) => call("POST", "/shop/equip", { kind, itemId }), claimMonthly: (itemId: string) => call("POST", "/shop/plus/claim", { itemId }), cancelPlus: () => call("POST", "/shop/plus/cancel", {}), restore: () => call("POST", "/shop/restore", {}),
+    eduMe: () => call("GET", "/edu/me"), eduRedeem: (code: string) => call("POST", "/edu/redeem", { code }), eduJoin: (code: string) => call("POST", "/edu/join", { code }), eduLeave: (id: string) => call("POST", `/edu/classes/${id}/leave`, {}),
+    classes: () => call("GET", "/edu/classes"), classCreate: (name: string) => call("POST", "/edu/classes", { name }), classGet: (id: string) => call("GET", `/edu/classes/${id}`), classCode: (id: string) => call("POST", `/edu/classes/${id}/code`, {}),
+    classRoom: (id: string) => call("POST", `/edu/classes/${id}/room`, {}), classConsent: (id: string, uid: string, consent: boolean) => call("POST", `/edu/classes/${id}/students/${uid}/consent`, { consent }),
+    classKick: (id: string, uid: string) => call("DELETE", `/edu/classes/${id}/students/${uid}`), assignAdd: (id: string, a: { title: string; kind: string; target: number }) => call("POST", `/edu/classes/${id}/assignments`, a), assignDel: (id: string, aid: string) => call("DELETE", `/edu/classes/${id}/assignments/${aid}`),
+    classCsv: async (id: string) => { const r = await f(base + `/edu/classes/${id}/report.csv`, { headers: { authorization: `Bearer ${token}` } }); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.text(); },
+    tournaments: () => call("GET", "/tournaments"), tournament: (id: string) => call("GET", `/tournaments/${id}`), tRegister: (id: string, parentPhone?: string) => call("POST", `/tournaments/${id}/register`, parentPhone ? { parentPhone } : {}), tUnregister: (id: string) => call("POST", `/tournaments/${id}/unregister`, {}), tRoom: (id: string) => call("POST", `/tournaments/${id}/room`, {}),
     deleteAccount: (confirm: string) => call("DELETE", "/me", { confirm }),
   };
 }
