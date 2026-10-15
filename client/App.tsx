@@ -10,6 +10,8 @@ import { Game } from "./src/ui/Game";
 import { ProfileScreen } from "./src/ui/ProfileScreen";
 import { Result } from "./src/ui/Result";
 import { RulesScreen } from "./src/ui/RulesScreen";
+import { Screen } from "./src/ui/Screen";
+import { Banner } from "./src/ui/kit";
 import { Leaderboard } from "./src/ui/Leaderboard";
 import { ShopScreen, ClassScreen, TournamentScreen } from "./src/ui/Biz";
 import { httpBase, makeHttp, makeAuth } from "./src/net/http";
@@ -82,6 +84,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} />{session.token !== session.userId && <View style={{ padding: 12, alignItems: "center" }}><Button label={uz.login.logout} kind="ghost" onPress={onLogout} /></View>}</>
+        : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />

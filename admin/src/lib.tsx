@@ -113,3 +113,14 @@ export function FormDialog({ open, title, body, fields, danger, submit = t.confi
     </dialog>
   );
 }
+
+/** Chiziqli diagramma (SVG): bir nechta qator, `cursor` — tanlangan indeks. */
+export function Lines({ series, label, cursor, height = 140 }: { series: { name: string; values: number[]; color: string }[]; label: string; cursor?: number; height?: number }) {
+  const n = Math.max(2, ...series.map((s) => s.values.length)); const all = series.flatMap((s) => s.values); const lo = Math.min(0, ...all), hi = Math.max(1, ...all);
+  const X = (i: number) => (i / (n - 1)) * 100, Y = (v: number) => height - 4 - ((v - lo) / (hi - lo || 1)) * (height - 8);
+  return (<svg role="img" aria-label={`${label}: ${series.map((s) => `${s.name} ${s.values[s.values.length - 1] ?? 0}`).join(", ")}`} viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
+    <line x1="0" x2="100" y1={Y(0)} y2={Y(0)} stroke="#DCE3E8" strokeWidth="0.4" vectorEffect="non-scaling-stroke" />
+    {series.map((s) => <polyline key={s.name} fill="none" stroke={s.color} strokeWidth="2" vectorEffect="non-scaling-stroke" points={s.values.map((v, i) => `${X(i)},${Y(v)}`).join(" ")} />)}
+    {cursor !== undefined && <line x1={X(cursor)} x2={X(cursor)} y1="0" y2={height} stroke="#082238" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />}
+  </svg>);
+}

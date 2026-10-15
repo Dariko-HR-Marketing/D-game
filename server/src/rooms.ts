@@ -18,6 +18,7 @@ export interface Room {
   createdAt: number; endedAt: number | null;
   offlineSince: number | null; // hamma odam oflayn bo'lgan vaqt (tashlab ketilgan xonani yopish uchun)
   tag?: RoomTag;
+  closed?: string; // administrator majburan yopgan (sabab xona a'zolariga ko'rinadi)
 }
 /** §6.7: reaksiyalar ochiq. Ruxsat etilgan to'plam kichik va neytral (SPEC to'plamni aytmaydi — OPEN_QUESTIONS #52). */
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const;
@@ -29,7 +30,7 @@ export function publicState(st: GameState | null) {
   return { ...rest, deckCounts: Object.fromEntries(Object.entries(decks).map(([k, d]) => [k, { draw: d.draw.length, discard: d.discard.length }])) };
 }
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
+export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -57,7 +58,7 @@ export class RoomManager {
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color, level: pf.level, cos: pf.cos }; }
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
-    return { tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline,
+    return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: ce.effect, mode: ce.mode, file: ce.file }; })() : null,
       professions: r.state ? Object.fromEntries(r.state.players.map((p) => [p.id, r.ctx.kasb[p.profession]?.name ?? ""])) : undefined,
       dreams: r.state?.phase === "dreams" ? r.ctx.dreams.map((d) => ({ name: d.name, price: d.price })) : undefined,
@@ -266,6 +267,16 @@ export class RoomManager {
       await this.store.closeRoom(code); this.hooks.onAbandon?.(code); n++;
     }
     return n;
+  }
+
+  /** Administrator majburan yopadi: taymerlar to'xtaydi, a'zolar bo'shatiladi, natija yozilmaydi (abandon kabi). */
+  async forceClose(code: string, reason: string): Promise<boolean> {
+    const r = this.rooms.get(code); if (!r || r.endedAt) return false;
+    if (r.timer) this.clock.clearTimeout(r.timer);
+    for (const [k, h] of this.proposalTimers) if (k.startsWith(`${code}:`)) { this.clock.clearTimeout(h); this.proposalTimers.delete(k); }
+    r.timer = null; r.deadline = null; r.endedAt = this.clock.now(); r.closed = reason.slice(0, 200);
+    for (const m of r.members) this.activeRoomOf.delete(m.userId);
+    await this.store.closeRoom(code); this.hooks.onAbandon?.(code); this.emit(r); return true;
   }
 
   private finish(r: Room) {

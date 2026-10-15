@@ -39,7 +39,7 @@ export class ContentRegistry {
   createVersion(part: Part, data: unknown, author: string, note: string): { ok: true; version: number } | { ok: false; problems: string[] } {
     const base = this.bundles.get(this.activeVersion)!;
     let candidate: Bundle;
-    try { candidate = parseBundle({ cards: base.cards, bigBoard: base.bigBoard, dreams: base.dreams, [part]: data }); }
+    try { candidate = parseBundle({ cards: base.cards, bigBoard: base.bigBoard, dreams: base.dreams, cellRules: base.cellRules, [part]: data }); }
     catch (e: any) { return { ok: false, problems: (e.issues ?? [{ message: String(e.message) }]).slice(0, 20).map((i: any) => `${(i.path ?? []).join(".")}: ${i.message}`) }; }
     const problems = validateBundle(candidate);
     if (problems.length) return { ok: false, problems };

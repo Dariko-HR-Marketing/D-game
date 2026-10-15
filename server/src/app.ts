@@ -19,6 +19,7 @@ import { registerShop } from "./shop-routes";
 import { AdminAccounts } from "./adminAccounts";
 import { Ops } from "./ops";
 import { registerAdminAuth, registerAdminCore } from "./admin-core";
+import { registerAdminGames } from "./admin-games";
 import { Edu } from "./edu";
 import { Tournaments } from "./tournaments";
 import { registerBiz, registerBizAdmin } from "./biz-routes";
@@ -95,7 +96,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   function eraseUser(uid: string) { profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); adminState.banUntil.delete(uid); revocations.revoke(uid); }
   const legacyAuth = envAdminAuth();
   registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth });
-  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerBizAdmin(guard, app, { edu, tournaments, commerce, nameOf: (id) => profiles.get(id)?.name }) } });
+  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerBizAdmin(guard, app, { edu, tournaments, commerce, nameOf: (id) => profiles.get(id)?.name }) } });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -118,7 +119,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const complaintLimit = new KeyedLimiter(1 / 60, 3); // ~1 shikoyat/daqiqa, burst 3
   const reactLimit = new KeyedLimiter(0.7, 3); // ~1 reaksiya / 1.5 s, burst 3
   const wsPingMs = Number(process.env.WS_PING_MS ?? 25_000);
-  const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
+  const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(3, 60), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
   app.addHook("onRequest", async (req, reply) => {
     reply.header("x-content-type-options", "nosniff").header("x-frame-options", "DENY").header("referrer-policy", "no-referrer").header("cache-control", "no-store");
     if (req.method === "OPTIONS" || req.url === "/health") return;

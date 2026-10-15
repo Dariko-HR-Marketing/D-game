@@ -29,6 +29,12 @@ for (const [tag, w, h] of [["d", 1440, 900], ["n", 390, 844]] as [string, number
   await p.getByRole("navigation").waitFor({ timeout: 15000 });
   const names = await p.getByRole("navigation").getByRole("button").allTextContents();
   for (const [i, name] of names.entries()) { await p.getByRole("navigation").getByRole("button", { name, exact: true }).click(); await p.waitForTimeout(500); await p.screenshot({ path: `${OUT}/${tag}-${String(i + 2).padStart(2, "0")}-${name.replace(/[^a-zA-Z0-9]+/g, "_")}.png`, fullPage: true }); await scan(p, `${name} ${tag}`); }
+  const nav = (n: string) => p.getByRole("navigation").getByRole("button", { name: n, exact: true }).click();
+  await nav("Kontent"); await p.getByRole("tab", { name: "Muharrir" }).click(); await p.waitForTimeout(500); await scan(p, `kontent muharriri ${tag}`);
+  await p.getByRole("tab", { name: "Versiyalar" }).click(); await p.getByRole("button", { name: "Tekshiruv" }).first().click(); await p.waitForTimeout(400); await scan(p, `kontent tekshiruvi ${tag}`);
+  await nav("Xonalar"); for (const [tb, nm] of [["Tugagan", "tugagan"], ["Shubhali", "shubhali"]]) { await p.getByRole("tab", { name: tb }).click(); await p.waitForTimeout(400); await scan(p, `xonalar ${nm} ${tag}`); }
+  await p.getByRole("tab", { name: "Jonli" }).click(); await p.waitForTimeout(400); await p.getByRole("button", { name: "Qayta o'ynatish" }).first().click(); await p.getByText("Naqd pul dinamikasi").waitFor().catch(async (e: Error) => { console.log("MAIN:", (await p.locator("main").innerText()).slice(0, 600)); throw e; }); await p.screenshot({ path: `${OUT}/${tag}-80-replay.png`, fullPage: true }); await scan(p, `qayta o'ynatish ${tag}`);
+  await p.getByRole("button", { name: "← Orqaga" }).click();
   await p.getByRole("button", { name: "Mening hisobim" }).click(); await p.waitForTimeout(400); await scan(p, `hisobim ${tag}`);
   await p.getByRole("navigation").getByRole("button", { name: "Foydalanuvchilar", exact: true }).click(); await p.getByRole("button", { name: "Karta" }).first().click(); await p.getByText("Amallar").waitFor(); await p.screenshot({ path: `${OUT}/${tag}-90-karta.png`, fullPage: true }); await scan(p, `foydalanuvchi kartasi ${tag}`);
   await p.getByRole("button", { name: "Bloklash" }).first().click(); await p.waitForTimeout(300); await p.screenshot({ path: `${OUT}/${tag}-91-dialog.png` }); await scan(p, `dialog ${tag}`);

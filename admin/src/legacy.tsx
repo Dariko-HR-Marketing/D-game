@@ -3,53 +3,6 @@ import { Api, ApiError } from "./api";
 import { t } from "./uz";
 import { Banner, Confirm, Empty, Err, PageHead, Pill, errText, fmtDur, fmtTime, num, useLoad } from "./lib";
 
-export function Content({ api }: { api: Api }) {
-  const vs = useLoad<{ active: number; versions: any[] }>(api, "/admin/content/versions");
-  const [part, setPart] = useState("cellRules"); const [text, setText] = useState(""); const [orig, setOrig] = useState(""); const [note, setNote] = useState("");
-  const [msg, setMsg] = useState<{ kind: "good" | "bad"; lines: string[] } | null>(null); const [pub, setPub] = useState<number | null>(null); const [loadErr, setLoadErr] = useState<string | null>(null);
-  const lseq = useRef(0); const [loadedPart, setLoadedPart] = useState<string | null>(null); const [pendingPart, setPendingPart] = useState<string | null>(null); const [busy, setBusy] = useState(false);
-  const load = useCallback(async (p: string) => { // kechikkan eski javob yangi tanlovni bosib ketmasin
-    const my = ++lseq.current; setLoadErr(null); setLoadedPart(null);
-    try { const r = await api.get(`/admin/content/${p}`); if (my !== lseq.current) return; const s = JSON.stringify(r.data, null, 1); setText(s); setOrig(s); setMsg(null); setLoadedPart(p); } catch (e) { if (my === lseq.current) setLoadErr(errText(e)); }
-  }, [api]);
-  useEffect(() => { void load(part); }, [part, load]);
-  let parsed: { ok: true } | { ok: false; error: string } = { ok: true }; try { JSON.parse(text || "null"); } catch (e) { parsed = { ok: false, error: (e as Error).message }; }
-  const changed = text !== orig;
-  const create = async () => {
-    if (busy || loadedPart !== part) return; setBusy(true);
-    try {
-      const r = await api.post(`/admin/content/${part}/versions`, { data: JSON.parse(text), note });
-      if (r.ok) { setMsg({ kind: "good", lines: [`${t.saved}: v${r.version}. «${t.publish}» tugmasi bilan yoqing.`] }); setNote(""); setOrig(text); vs.reload(); } else setMsg({ kind: "bad", lines: r.problems ?? [r.error] });
-    } catch (e) { setMsg({ kind: "bad", lines: [errText(e)] }); } finally { setBusy(false); }
-  };
-  return (<>
-    <PageHead title={t.content} />
-    <section className="card" aria-labelledby="vh"><h2 id="vh">Versiyalar</h2><Err e={vs.err} />
-      <div className="tw" tabIndex={0} role="region" aria-label="Jadval"><table><thead><tr><th>{t.version}</th><th>{t.part}</th><th>{t.note}</th><th>Muallif</th><th>Sana</th><th>Holat</th><th><span className="sr">Amal</span></th></tr></thead><tbody>
-        {vs.data?.versions.slice().reverse().map((v) => { const on = vs.data!.active === v.version; return (
-          <tr key={v.version}><td><b>v{v.version}</b></td><td>{t.parts[v.part]?.[0] ?? v.part}</td><td>{v.note || "—"}</td><td className="mono">{v.author}</td><td className="muted">{fmtTime(v.at)}</td>
-            <td>{on ? <Pill kind="good">{t.active}</Pill> : v.published ? <Pill kind="info">Eski</Pill> : <Pill kind="warn">Qoralama</Pill>}</td>
-            <td>{!on && <button className="sm" onClick={() => setPub(v.version)}>{t.publish}</button>}</td></tr>); })}
-      </tbody></table></div>{!vs.data && <Empty loading={vs.loading} />}</section>
-
-    <section className="card" aria-labelledby="eh"><h2 id="eh">Tahrirlash</h2>
-      <div className="stack">
-        <div className="row"><label className="grow">{t.part}<select value={part} onChange={(e) => (changed ? setPendingPart(e.target.value) : setPart(e.target.value))}>{Object.entries(t.parts).map(([k, [n]]) => <option key={k} value={k}>{n}</option>)}</select></label>
-          <button onClick={() => load(part)} disabled={!changed}>Asl holatga qaytarish</button></div>
-        <p className="muted" style={{ margin: 0 }}>{t.parts[part]?.[1]}</p>
-        <Err e={loadErr} />
-        <label>JSON<textarea aria-describedby="jstat" spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} /></label>
-        <div id="jstat" role="status" className="muted">{parsed.ok ? (changed ? <Pill kind="warn">O'zgartirilgan</Pill> : <Pill kind="info">O'zgarishsiz</Pill>) : <Banner kind="bad">JSON xato: {parsed.error}</Banner>}</div>
-        <label>{t.note}<input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} /></label>
-        <div><button className="p" onClick={create} disabled={!text || !parsed.ok || !changed || busy || loadedPart !== part}>{t.create}</button></div>
-        {msg && <Banner kind={msg.kind}>{msg.kind === "bad" ? <><b>{t.problems}:</b><ul>{msg.lines.map((m, i) => <li key={i}>{m}</li>)}</ul></> : msg.lines[0]}</Banner>}
-      </div>
-    </section>
-    <Confirm open={pendingPart !== null} danger title="Saqlanmagan o'zgarishlar bor" body="Boshqa qismni tanlasangiz, shu qismdagi tahrirlar yo'qoladi." onClose={() => setPendingPart(null)} onOk={() => { setPart(pendingPart!); setPendingPart(null); }} />
-    <Confirm open={pub !== null} title={`v${pub} ni nashr qilish`} body={t.publishWarn} onClose={() => setPub(null)} onOk={async () => { await api.post(`/admin/content/versions/${pub}/publish`); setPub(null); vs.reload(); }} />
-  </>);
-}
-
 export function Journal({ api, code, onClose }: { api: Api; code: string; onClose: () => void }) {
   const l = useLoad<any[]>(api, `/admin/rooms/${code}/journal`);
   const label = (a: any) => (a.action?.type === "auto" ? `auto (${a.action.reason}): ${a.action.action?.type}` : a.action?.type);
@@ -59,19 +12,6 @@ export function Journal({ api, code, onClose }: { api: Api; code: string; onClos
         {l.data.slice(0, 300).map((e) => (<tr key={e.seq}><td className="num">{e.seq}</td><td className="muted">{fmtTime(e.at)}</td><td>{label(e)}</td><td className="mono">{e.action?.playerId ?? e.action?.action?.playerId ?? "server"}</td></tr>))}</tbody></table></div>}
       {l.data && l.data.length > 300 && <p className="muted">Birinchi 300 ta yozuv ko'rsatildi (jami {l.data.length}).</p>}</section>
   );
-}
-
-export function Rooms({ api }: { api: Api }) {
-  const [q, setQ] = useState(""); const l = useLoad<any[]>(api, `/admin/rooms?q=${encodeURIComponent(q)}`); const [j, setJ] = useState<string | null>(null);
-  const status = (r: any) => (r.ended ? <Pill kind="info">Tugagan</Pill> : r.started ? <Pill kind="good">O'yinda</Pill> : <Pill kind="warn">Kutmoqda</Pill>);
-  return (<>
-    <PageHead title={t.rooms}><label style={{ minWidth: 260 }}><span className="sr">{t.search}</span><input type="search" aria-label={t.search} placeholder="Kod yoki o'yinchi" value={q} onChange={(e) => setQ(e.target.value)} /></label></PageHead>
-    <section className="card"><Err e={l.err} />{!l.data?.length ? <Empty loading={l.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Jadval"><table><thead><tr><th>Kod</th><th>Holat</th><th>Kontent</th><th>Aylana</th><th>O'yinchilar</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{l.data.map((r) => (
-      <tr key={r.code}><td><b className="mono" style={{ fontSize: 14 }}>{r.code}</b></td><td>{status(r)}</td><td>v{r.contentVersion ?? "—"}</td><td className="num">{r.round ?? "—"}</td>
-        <td>{Array.isArray(r.members) ? r.members.map((m: any) => (m.bot ? "Bot" : m.name ?? m.userId) + (m.online || m.bot ? "" : " (oflayn)")).join(", ") : `${r.members} ta`}</td>
-        <td><button className="sm" onClick={() => setJ(r.code)}>{t.journal}</button></td></tr>))}</tbody></table></div>}</section>
-    {j && <Journal api={api} code={j} onClose={() => setJ(null)} />}
-  </>);
 }
 
 export function Analytics({ api }: { api: Api }) {

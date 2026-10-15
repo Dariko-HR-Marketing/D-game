@@ -102,8 +102,9 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
   // --- xonalar va jurnal ---
   app.get("/admin/rooms", guard("rooms.read", (req, who) => {
     const q = String((req.query as any).q ?? "").toUpperCase();
-    return [...d.rooms.rooms.values()].filter((r) => !q || r.code.startsWith(q) || r.members.some((m) => m.userId.toUpperCase().includes(q)))
-      .slice(0, 100).map((r) => ({ code: r.code, started: !!r.state, ended: r.endedAt !== null, contentVersion: r.contentVersion, round: r.state?.round ?? null,
+    const tag = String((req.query as any).tag ?? "");
+    return [...d.rooms.rooms.values()].filter((r) => !tag || (tag === "none" ? !r.tag : r.tag?.kind === tag)).filter((r) => !q || r.code.startsWith(q) || r.members.some((m) => m.userId.toUpperCase().includes(q)))
+      .slice(0, 100).map((r) => ({ code: r.code, started: !!r.state, ended: r.endedAt !== null, closed: r.closed ?? null, tag: r.tag ?? null, createdAt: r.createdAt, contentVersion: r.contentVersion, round: r.state?.round ?? null,
         // analitik rol shaxsiy ma'lumotni ko'rmaydi
         members: who.role === "analyst" ? r.members.length : r.members.map((m) => ({ userId: m.userId, name: d.nameOf?.(m.userId), bot: m.bot, online: m.online })) }));
   }));
