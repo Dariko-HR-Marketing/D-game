@@ -25,3 +25,5 @@ Simulyator `rules` dvigatelining o'zini ishlatadi (alohida nusxa yo'q). 2–6 o'
 3. **Mening taxminlarim natijaga ta'sir qiladi:** bank krediti 36 oyda so'nadi (aks holda qarz hech qachon 0 bo'lmaydi va chiqish mumkin emas); bozor sotuvi har bir o'yinchiga bir marta, mulk `real` qiymati ma'lum bo'lsa; K/Q kataklari ta'sirsiz. Qoidalar aniqlangach qayta o'lchash kerak.
 4. **§13 "balans" mezoni** — davomiylik va g'alaba ulushini buyurtmachi qog'oz va ilova sinovi bilan tasdiqlaydi; bu hisobot faqat boshlang'ich nuqta.
 5. Bot siyosati oddiy; haqiqiy o'yinchilar strategiyasi (hamkorlik, sheriklik, qarz) hisobga olinmagan.
+
+> **Qayta o'lchash (standart katak qoidalari, 36 oylik inqiroz, sheriklik dividendi, orzu bosqichidan keyin, commit `9f72f04`):** natijalar deyarli o'zgarmadi — passive 0 % / 3.23, naive 0 % / 0.29, smart 88.1 % chiqdi, 12.5 % g'olib, chiqish aylanasi 380 / 450. Simulyator botlari sheriklik va orzu tanlashdan foydalanmaydi, shuning uchun bu yangiliklar balansga bu o'lchovda ta'sir qilmaydi; odam o'yinchilar bilan qog'oz sinovi buyurtmachida.
