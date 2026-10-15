@@ -57,6 +57,7 @@ export interface Asset {
   stakeOf?: string;   // sherik tomonda: biznes egasi
   recouped?: number;     // sherik tomonda: ulushdan shu paytgacha olingan foyda
   dividendLeft?: number; // sherik tomonda: ulush qaytgach qolgan dividend oylari (qaror #64)
+  tokens?: number;       // katta aylana biznesi: egalik fishkalari (2 bo'lsa keyingi sotib olish 3× narxda, qo'llanma §13)
 }
 /** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
 export interface BankLoan { amount: number; left: number }

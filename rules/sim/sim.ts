@@ -61,7 +61,7 @@ export function run(games: number, policy: Policy, maxTurns: number, seed0 = 1):
       s.proposals = []; // serverda 30 soniyada o'chadi; simulyatsiyada — keyingi navbat boshigacha (sotishga ulgurishadi)
       const o = reduce(s, ctx, { type: "roll", playerId: me }); if (!o.ok) throw new Error(o.error); s = o.state;
       if (s.pending) {
-        const cur = s.players.find((p) => p.id === me)!; const e = effectOf(ctx, s.pending.cardId).effect;
+        const cur = s.players.find((p) => p.id === me)!; const e = effectOf(ctx, s.pending.cardId, s.pending).effect;
         const d = decide(s, policy, cur, e);
         const o2 = reduce(s, ctx, { type: "decide", playerId: me, ...d }); if (!o2.ok) throw new Error(o2.error); s = o2.state;
       }

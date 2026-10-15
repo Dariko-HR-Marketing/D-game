@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const file = z.string().regex(/\.png$/i);
+const file = z.string().regex(/\.(png|webp)$/i);
 const money = z.number().int().nonnegative();
 
 export const Kasb = z.object({
@@ -43,4 +43,6 @@ export const EXPECTED_COUNTS = { kasb: 28, kichik: 82, katta: 85, bozor: 98, xar
 
 export const Dream = z.object({ name: z.string().min(1), price: money });
 export const BigCell = z.object({ i: z.number().int(), t: z.enum(["T", "V", "O", "X", "Y"]), name: z.string(),
-  income: money.nullable(), price: money.nullable(), note: z.string() });
+  income: money.nullable(), price: money.nullable(), note: z.string(),
+  faces: z.array(z.number().int().min(1).max(6)).min(1).max(6).optional(), // tavakkal (V): yutuqli kubik qirralari
+  lump: money.optional() });                                                // tavakkal (V): bir martalik natija (oylik daromad o'rniga)

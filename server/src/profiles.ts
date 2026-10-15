@@ -1,10 +1,13 @@
 // Profil, o'yin tarixi, reyting va hisobni boshqarish (SPEC §5.9, §7).
 import type { GamePlayer } from "@poyga/rules";
-import { RULES } from "@poyga/rules";
+import { RULES, POINTS } from "@poyga/rules";
 import { WriteQueue } from "./persist";
 
 export interface Profile { userId: string; name: string; color: number; birthYear: number; updatedAt: number }
-export interface ResultPlayer { id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean }
+export interface ResultPlayer {
+  id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean;
+  left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
+}
 export interface GameResult { room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
 
 export interface ProfilePersist {
@@ -15,7 +18,17 @@ export interface ProfilePersist {
 export const PROFILE_COLORS = 6; // §7: fishka rangi (6 ta)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
-export const POINTS: { win: number | null; exitSmallCircle: number | null; unreliable: number } = { win: 100, exitSmallCircle: 50, unreliable: -50 }; // qaror (#63): SPEC raqam bermaydi; 100 ball = 1 daraja
+/** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */
+export { POINTS };
+/** Bitta o'yin uchun ball. Tashlab ketgan — faqat −20 (+ ishonchsizlik −50); oxirigacha o'ynagan — qolgan hamma bandlar. */
+export function gamePoints(p: ResultPlayer): number {
+  let n = p.unreliable ? POINTS.unreliable : 0;
+  if (p.left) return n + POINTS.abandon;
+  if (p.bot) return n;
+  n += POINTS.finish + POINTS.asset * (p.assets ?? 0) + (p.quitJob ? POINTS.quitJob : 0) + (p.circle === "big" ? POINTS.exitSmallCircle : 0) + POINTS.auto * (p.autos ?? 0);
+  if (p.won) n += POINTS.win; else if (p.place === 2) n += POINTS.second; else if (p.place === 3) n += POINTS.third;
+  return n;
+}
 
 export function validateProfile(i: any, year: number): { ok: true; value: Omit<Profile, "userId" | "updatedAt"> } | { ok: false; error: string } {
   const name = typeof i?.name === "string" ? i.name.trim().replace(/\s+/g, " ") : "";
@@ -48,6 +61,14 @@ export function achievementsOf(results: GameResult[], userId: string): Achieveme
   if (wins.length >= 5) got.add("wins_5");
   return ACHIEVEMENTS.filter((a) => got.has(a));
 }
+/** O'rin (faqat g'olibli o'yinda, faqat odamlar orasida): g'olib 1; qolganlar katta aylana → passiv daromad → naqd bo'yicha (taxmin, hujjat OPEN_QUESTIONS). */
+function placeOf(st: { players: GamePlayer[]; winner: string | null; bots: string[] }, id: string, leftIds: string[]): number | undefined {
+  if (!st.winner) return undefined;
+  const humans = st.players.filter((p) => !st.bots.includes(p.id) && !leftIds.includes(p.id));
+  const key = (p: GamePlayer) => [p.won ? 1 : 0, p.circle === "big" ? 1 : 0, (p.assets ?? []).reduce((s, a) => s + a.monthlyIncome, 0), p.cash];
+  const sorted = [...humans].sort((a, b) => { const x = key(a), y = key(b); for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return y[i] - x[i]; return 0; });
+  const i = sorted.findIndex((p) => p.id === id); return i < 0 ? undefined : i + 1;
+}
 export interface Stats { achievements: Achievement[]; stars: number; title: "employee" | "investor" | null; unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
 export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel); // §5.9
 
@@ -75,13 +96,14 @@ export class ProfileService {
   /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
   recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = []) {
     this.record({ room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
-      players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined })) });
+      players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined,
+        left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds) })) });
   }
 
   stats(userId: string): Stats {
     let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
-    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p?.unreliable) { unreliable++; points += POINTS.unreliable; } if (!p || p.bot) continue; // bot (yoki chiqib ketgan) hisobga olinmaydi
-      games++; if (p.won) { wins++; points += POINTS.win ?? 0; } if (p.circle === "big") { reachedBig++; points += POINTS.exitSmallCircle ?? 0; } }
+    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p) points += gamePoints(p); if (p?.unreliable) unreliable++; if (!p || p.bot) continue; // bot (yoki chiqib ketgan) statistikaga kirmaydi
+      games++; if (p.won) wins++; if (p.circle === "big") reachedBig++; }
     const level = levelOf(points); return { achievements: achievementsOf(this.results, userId), stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
   }
   /** Shaxssiz voronka (§12): ro'yxatdan o'tish → profil → birinchi o'yin → qaytib kelish → g'alaba. */

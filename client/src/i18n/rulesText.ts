@@ -1,5 +1,6 @@
 // §15: qoidalar ilovada manbasi (SPEC bo'limi) bilan ko'rinadi. Raqamlar dvigatelning RULES konstantalaridan olinadi — qo'lda yozilmaydi.
 import type { RULES } from "@poyga/rules";
+import { POINTS } from "@poyga/rules";
 import { money } from "../format";
 
 export interface RuleItem { id: string; title: string; text: string; source: string }
@@ -31,7 +32,15 @@ export function ruleItems(r: R): RuleItem[] {
     { id: "qar", title: "Qarov (QAR)", source: "SPEC §5.8",
       text: `Oyiga ${m(r.qarMonthly)} sh.b. to'laysiz (oylik xarajat + ${m(r.qarMonthly)}).` },
     { id: "level", title: "Ball va daraja", source: "SPEC §5.9",
-      text: `Har ${m(r.pointsPerLevel)} ball — bitta daraja.` },
+      text: `Har ${m(r.pointsPerLevel)} ball — bitta daraja. O'yinni oxirigacha o'ynash +${POINTS.finish}, har bir aktiv +${POINTS.asset}, ishdan bo'shash +${POINTS.quitJob}, katta aylanaga chiqish +${POINTS.exitSmallCircle}, g'alaba +${POINTS.win}, 2-o'rin +${POINTS.second}, 3-o'rin +${POINTS.third}. Avtomatik qaror ${POINTS.auto}, o'yinni tashlab ketish ${POINTS.abandon}, qaytarilmagan o'zaro qarz ${POINTS.unreliable}.` },
+    { id: "smallcells", title: "Kichik aylana kataklari", source: "Qo'llanma §06",
+      text: "Imkoniyat — kichik yoki katta sarmoya kartasi (naqd 25 000 dan ko'p bo'lsa tanlaysiz). Bozor — karta hammaga tegishli bo'lishi mumkin. Xarajatlar — to'lanadi. Daromad — pul oqimi. «Siz ota bo'ldingiz» — suyunchi. «Ishdan bo'shadingiz» — bir aylana (4 oy) maosh yo'q, xarajat to'lanadi. «Boshidan boshlang» — xona egasi yoqsa «Kutilmagan hodisa» kartasi; o'chirilgan bo'lsa oddiy katak." },
+    { id: "job", title: "Ishdan bo'shash", source: "Qo'llanma §09",
+      text: "Uchinchi kichik yoki birinchi katta biznesni sotib olganingizda ishdan bo'shaysiz: maosh to'xtaydi, faqat biznes daromadi qoladi." },
+    { id: "bigcells", title: "Katta aylana kataklari", source: "Qo'llanma §11",
+      text: "Yana pullar — o'tganda ham, tushganda ham bir oy: pul oqimi, qarz bo'lsa darhol yopiladi. Turg'un biznes — faqat naqd. Tavakkal biznes — to'liq narx naqd + bitta kubik: yutuqli son tushsa biznes sizniki (yoki bir martalik pul), aks holda pul qaytmaydi. Orzu — o'z orzuingiz bo'lsa va shartlar bajarilsa g'alaba, aks holda katta aylana xarajat kartasi. Audit — naqdning 20 %, Ajrashish — 50 %, Bankrot — eng kam daromadli biznesni yo'qotish, Nohalol biznes — 1-marta 1 000 000, 2-marta naqdning 20 %, 3-marta ta'sirsiz." },
+    { id: "rent", title: "Birovning biznesiga tushsangiz", source: "Qo'llanma §13",
+      text: "O'zingizniki bo'lsa e'tibor bermang. Boshqaniki bo'lsa: A — oylik daromadni egasiga to'laysiz; B — darhol 2× narxda sotib olasiz (egasi sotishga majbur, biznesga 2 ta egalik fishkasi qo'yiladi; keyingi safar faqat 3× narxda). Pul yetmasa qarz yoziladi va «Yana pullar» katagida yopiladi, bir aylanada yopilmasa biznes bankka sotiladi." },
     { id: "under16", title: "16 yoshgacha", source: "SPEC §2.8",
       text: "O'zaro qarz va sheriklik yopiq, erkin chat yo'q, reklama yo'q; to'lov ota-ona tasdig'i bilan." },
     { id: "circles", title: "Aylanalar o'rtasida", source: "SPEC §2.7",

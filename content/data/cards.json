@@ -22,7 +22,7 @@
    "car": 17000,
    "child": 200,
    "flags": [],
-   "file": "01_BEGONA_FIRMA_DIREKTORI.png"
+   "file": "01_BEGONA_FIRMA_DIREKTORI.webp"
   },
   {
    "n": 2,
@@ -46,7 +46,7 @@
    "car": 0,
    "child": 50,
    "flags": [],
-   "file": "02_DAN_SERJANTI.png"
+   "file": "02_DAN_SERJANTI.webp"
   },
   {
    "n": 3,
@@ -70,7 +70,7 @@
    "car": 0,
    "child": 50,
    "flags": [],
-   "file": "03_TRAMVAY_HAYDOVCHISI.png"
+   "file": "03_TRAMVAY_HAYDOVCHISI.webp"
   },
   {
    "n": 4,
@@ -94,7 +94,7 @@
    "car": 0,
    "child": 100,
    "flags": [],
-   "file": "04_HUQUQSHUNOS_MASLAHATCHI.png"
+   "file": "04_HUQUQSHUNOS_MASLAHATCHI.webp"
   },
   {
    "n": 5,
@@ -118,7 +118,7 @@
    "car": 0,
    "child": 60,
    "flags": [],
-   "file": "05_BOSH_HISOBCHI.png"
+   "file": "05_BOSH_HISOBCHI.webp"
   },
   {
    "n": 6,
@@ -142,7 +142,7 @@
    "car": 0,
    "child": 60,
    "flags": [],
-   "file": "06_GAZETA_BOSH_MUHARRIRI.png"
+   "file": "06_GAZETA_BOSH_MUHARRIRI.webp"
   },
   {
    "n": 7,
@@ -166,7 +166,7 @@
    "car": 0,
    "child": 60,
    "flags": [],
-   "file": "07_OMBORCHI.png"
+   "file": "07_OMBORCHI.webp"
   },
   {
    "n": 8,
@@ -190,7 +190,7 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "08_ISH_BOSHQARUVCHI.png"
+   "file": "08_ISH_BOSHQARUVCHI.webp"
   },
   {
    "n": 9,
@@ -214,7 +214,7 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "09_KRANCHI.png"
+   "file": "09_KRANCHI.webp"
   },
   {
    "n": 10,
@@ -238,7 +238,7 @@
    "car": 0,
    "child": 60,
    "flags": [],
-   "file": "10_PLITACHI_-_ISHCHI.png"
+   "file": "10_PLITACHI_-_ISHCHI.webp"
   },
   {
    "n": 11,
@@ -262,7 +262,7 @@
    "car": 0,
    "child": 50,
    "flags": [],
-   "file": "11_G'AZNACHI.png"
+   "file": "11_GAZNACHI.webp"
   },
   {
    "n": 12,
@@ -286,7 +286,7 @@
    "car": 9000,
    "child": 300,
    "flags": [],
-   "file": "12_TAKSICHI.png"
+   "file": "12_TAKSICHI.webp"
   },
   {
    "n": 13,
@@ -310,7 +310,7 @@
    "car": 20000,
    "child": 150,
    "flags": [],
-   "file": "13_TERGOVCHI.png"
+   "file": "13_TERGOVCHI.webp"
   },
   {
    "n": 14,
@@ -334,7 +334,7 @@
    "car": 0,
    "child": 100,
    "flags": [],
-   "file": "14_SOLIQ_INSPEKTORI.png"
+   "file": "14_SOLIQ_INSPEKTORI.webp"
   },
   {
    "n": 15,
@@ -358,7 +358,7 @@
    "car": 0,
    "child": 60,
    "flags": [],
-   "file": "15_BO'LIM_RAHBARI.png"
+   "file": "15_BOLIM_RAHBARI.webp"
   },
   {
    "n": 16,
@@ -382,7 +382,7 @@
    "car": 30000,
    "child": 100,
    "flags": [],
-   "file": "16_DAN_KAPITANI.png"
+   "file": "16_DAN_KAPITANI.webp"
   },
   {
    "n": 17,
@@ -406,7 +406,7 @@
    "car": 20000,
    "child": 300,
    "flags": [],
-   "file": "17_ADVOKAT.png"
+   "file": "17_ADVOKAT.webp"
   },
   {
    "n": 18,
@@ -430,7 +430,7 @@
    "car": 0,
    "child": 50,
    "flags": [],
-   "file": "18_UCHASTKA_MILITSIONERI.png"
+   "file": "18_UCHASTKA_MILITSIONERI.webp"
   },
   {
    "n": 19,
@@ -454,7 +454,7 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "19_REKLAMA_AGENTI.png"
+   "file": "19_REKLAMA_AGENTI.webp"
   },
   {
    "n": 20,
@@ -478,7 +478,7 @@
    "car": 0,
    "child": 40,
    "flags": [],
-   "file": "20_MUXBIR.png"
+   "file": "20_MUXBIR.webp"
   },
   {
    "n": 21,
@@ -502,7 +502,7 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "21_UZOQ_YO'LGA_YURADIGAN_HAYDOVCHI.png"
+   "file": "21_UZOQ_YOLGA_YURADIGAN_HAYDOVCHI.webp"
   },
   {
    "n": 22,
@@ -526,7 +526,7 @@
    "car": 20000,
    "child": 150,
    "flags": [],
-   "file": "22_DEPUTAT_YORDAMCHISI.png"
+   "file": "22_DEPUTAT_YORDAMCHISI.webp"
   },
   {
    "n": 23,
@@ -550,7 +550,7 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "23_KOTIBA.png"
+   "file": "23_KOTIBA.webp"
   },
   {
    "n": 24,
@@ -574,7 +574,7 @@
    "car": 0,
    "child": 40,
    "flags": [],
-   "file": "24_DO'KON_SOTUVCHISI.png"
+   "file": "24_DOKON_SOTUVCHISI.webp"
   },
   {
    "n": 25,
@@ -598,7 +598,7 @@
    "car": 17000,
    "child": 250,
    "flags": [],
-   "file": "25_XALQARO_KOMPANIYA_TOP_MENEJERI.png"
+   "file": "25_XALQARO_KOMPANIYA_TOP_MENEJERI.webp"
   },
   {
    "n": 26,
@@ -622,7 +622,7 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "26_SOTUVCHI-KONSULTANT.png"
+   "file": "26_SOTUVCHI-KONSULTANT.webp"
   },
   {
    "n": 27,
@@ -646,7 +646,7 @@
    "car": 0,
    "child": 200,
    "flags": [],
-   "file": "27_JARROH.png"
+   "file": "27_JARROH.webp"
   },
   {
    "n": 28,
@@ -670,12 +670,12 @@
    "car": 0,
    "child": 70,
    "flags": [],
-   "file": "28_DIZAYNER-MAKETCHI.png"
+   "file": "28_DIZAYNER-MAKETCHI.webp"
   }
  ],
  "kichik": [
   {
-   "file": "KB_001.png",
+   "file": "KB_001.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Mahallangizda elchixona ochilmoqda. Yaqinda notarius va institut bor. Nusxa ko‘chirish hamda Paynet xizmatlarini yo‘lga qo‘ying.",
@@ -683,7 +683,7 @@
    "income": 100
   },
   {
-   "file": "KB_002.png",
+   "file": "KB_002.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Qarindoshlaringiz dala hovlisida chiroyli gullar yetishtiradi. Gul sotish rastasini oching.",
@@ -691,7 +691,7 @@
    "income": 300
   },
   {
-   "file": "KB_003.png",
+   "file": "KB_003.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Siz sochni yaxshi olasiz. Uyda sartaroshxona oching.",
@@ -699,7 +699,7 @@
    "income": 200
   },
   {
-   "file": "KB_004.png",
+   "file": "KB_004.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Qozog‘istonda meva va sabzavotlar narxi O‘zbekistondagiga nisbatan ikki barobar qimmat. Eksportni yo‘lga qo‘ying.",
@@ -707,7 +707,7 @@
    "income": 200
   },
   {
-   "file": "KB_005.png",
+   "file": "KB_005.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Kompyuterlarni ta’mirlashni bilasiz. Xizmatlaringiz haqida e’lon berib, pul ishlashni boshlang.",
@@ -715,7 +715,7 @@
    "income": 100
   },
   {
-   "file": "KB_006.png",
+   "file": "KB_006.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Kompyuter uchun pult yasash g‘oyangizni sotish imkoniyati mavjud.",
@@ -723,7 +723,7 @@
    "income": 100
   },
   {
-   "file": "KB_007.png",
+   "file": "KB_007.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Siz “O‘zexpomarkaz”dagi mebel yarmarkasida bo‘ldingiz. To‘qilgan stol va stullarni olib, mebel salonlariga taklif qiling.",
@@ -731,7 +731,7 @@
    "income": 700
   },
   {
-   "file": "KB_008.png",
+   "file": "KB_008.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Birlashgan Arab Amirliklaridan bir chamadon mandarin olib keldingiz. Ulgurji savdoni yo‘lga qo‘ying.",
@@ -739,7 +739,7 @@
    "income": 500
   },
   {
-   "file": "KB_009.png",
+   "file": "KB_009.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Tanishlaringiz erkaklar kostyumlarini tikadi. Yaqinda savdo shoxobchalari ochilmoqda. Kostyumlar savdosini yo‘lga qo‘ying.",
@@ -747,7 +747,7 @@
    "income": 300
   },
   {
-   "file": "KB_010.png",
+   "file": "KB_010.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Qarindoshlaringiz Surxondaryodan xurmo va anor olib keladi. Farhod bozorida ularning ulgurji savdosini yo‘lga qo‘ying.",
@@ -755,7 +755,7 @@
    "income": 500
   },
   {
-   "file": "KB_011.png",
+   "file": "KB_011.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Uyingiz notarius, soliq inspeksiyasi va FHDYO o‘rtasida joylashgan. Kseroks xizmatini oching.",
@@ -763,7 +763,7 @@
    "income": 100
   },
   {
-   "file": "KB_012.png",
+   "file": "KB_012.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Mahalliy plyajda kesib tashlangan daraxtlarning quruq o‘tinini sotib olib, savdosini yo‘lga qo‘ying.",
@@ -771,7 +771,7 @@
    "income": 100
   },
   {
-   "file": "KB_013.png",
+   "file": "KB_013.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Rafiqangiz soch olish va manikyur qilishga usta. Sartaroshxona oching.",
@@ -779,7 +779,7 @@
    "income": 200
   },
   {
-   "file": "KB_014.png",
+   "file": "KB_014.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Did bilan ta’mirlangan uyingiz mehmonlarni hayratga solmoqda. Interyer dizayni studiyasini oching.",
@@ -787,7 +787,7 @@
    "income": 200
   },
   {
-   "file": "KB_015.png",
+   "file": "KB_015.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Mahalliy plyajda bolalar limonad va suv sotmoqda. Muzlatkichli sumkalar olib, ular bilan sheriklik qiling.",
@@ -795,7 +795,7 @@
    "income": 100
   },
   {
-   "file": "KB_016.png",
+   "file": "KB_016.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Oloy bozorida qo‘y go‘shtini sotishda qiynalayotgan fermerlar bor. Go‘sht savdosini yo‘lga qo‘ying.",
@@ -803,7 +803,7 @@
    "income": 300
   },
   {
-   "file": "KB_017.png",
+   "file": "KB_017.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Rafiqangiz ajoyib tikuvchi. Ayollar kiyimini tikish sexini oching.",
@@ -811,7 +811,7 @@
    "income": 300
   },
   {
-   "file": "KB_018.png",
+   "file": "KB_018.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Mahalliy oziq-ovqat do‘konida savdo joylari sotilmoqda. Qo‘shnilaringiz orasida dehqonchilik bilan shug‘ullanuvchi tanishlaringiz bor.",
@@ -819,7 +819,7 @@
    "income": 300
   },
   {
-   "file": "KB_019.png",
+   "file": "KB_019.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Parafinni qayta ishlash texnologiyasini o‘rgandingiz. Ishlab chiqarishni yo‘lga qo‘ying.",
@@ -827,7 +827,7 @@
    "income": 200
   },
   {
-   "file": "KB_020.png",
+   "file": "KB_020.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Sizda ajoyib g‘oya paydo bo‘ldi: fotoapparat, kompyuter va rangli printer yordamida fotostudiya oching.",
@@ -835,7 +835,7 @@
    "income": 400
   },
   {
-   "file": "KB_021.png",
+   "file": "KB_021.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Tanishlaringiz choyshab tikish sexini ochmoqchi. Tikuv mashinasi va mato sotib olishga yordam bering.",
@@ -843,7 +843,7 @@
    "income": 700
   },
   {
-   "file": "KB_022.png",
+   "file": "KB_022.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Chorvoqda mahalliy aholi ortiqcha sutini sotayotganini ko‘rdingiz. Sut savdosini yo‘lga qo‘ying.",
@@ -851,7 +851,7 @@
    "income": 600
   },
   {
-   "file": "KB_023.png",
+   "file": "KB_023.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Kvartirangizni ajoyib did bilan bezatdingiz. Interyer dizayni studiyasini oching.",
@@ -859,7 +859,7 @@
    "income": 200
   },
   {
-   "file": "KB_024.png",
+   "file": "KB_024.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "O‘zingiz ajoyib tikuvchisiz. Uyingizda tikuvchilik sexini oching.",
@@ -867,7 +867,7 @@
    "income": 300
   },
   {
-   "file": "KB_025.png",
+   "file": "KB_025.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Uyingiz oldida poyafzal ta’mirlaydigan ustaxona oching.",
@@ -875,7 +875,7 @@
    "income": 400
   },
   {
-   "file": "KB_026.png",
+   "file": "KB_026.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Raqamli fotoapparatingiz, kompyuteringiz va rangli printeringiz bor. “1 daqiqada surat” fotostudiyasini oching.",
@@ -883,7 +883,7 @@
    "income": 500
   },
   {
-   "file": "KB_027.png",
+   "file": "KB_027.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Oyoq kiyim ta’mirlash ustaxonasini oching.",
@@ -891,7 +891,7 @@
    "income": 500
   },
   {
-   "file": "KB_028.png",
+   "file": "KB_028.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Kalit yasaydigan kiosk oching.",
@@ -899,7 +899,7 @@
    "income": 300
   },
   {
-   "file": "KB_029.png",
+   "file": "KB_029.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Bekatda gazeta kioski oching.",
@@ -907,7 +907,7 @@
    "income": 300
   },
   {
-   "file": "KB_030.png",
+   "file": "KB_030.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Kalit yasovchi ustaxona oching.",
@@ -915,7 +915,7 @@
    "income": 400
   },
   {
-   "file": "KB_031.png",
+   "file": "KB_031.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "“Paxtakor” metro bekatida noz-ne’matlar rastasini oching.",
@@ -923,7 +923,7 @@
    "income": 300
   },
   {
-   "file": "KB_032.png",
+   "file": "KB_032.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Mebel yarmarkasida bo‘ldingiz. To‘qilgan stol-stullarni sotish uchun mebel saloni oching.",
@@ -931,7 +931,7 @@
    "income": 500
   },
   {
-   "file": "KB_033.png",
+   "file": "KB_033.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Ippodromda savdo rastalari sotilmoqda. Erkaklar kiyimini tikadigan do‘stingiz bilan savdoni boshlang.",
@@ -939,7 +939,7 @@
    "income": 300
   },
   {
-   "file": "KB_034.png",
+   "file": "KB_034.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Sutni Chirchiqdagi sut zavodiga olib borish uchun avtomobil sotib olib, tashishni yo‘lga qo‘ying.",
@@ -947,7 +947,7 @@
    "income": 700
   },
   {
-   "file": "KB_035.png",
+   "file": "KB_035.webp",
    "code": "KB",
    "type": "Kichik biznes",
    "text": "Kompyuterda uzoq ishlaganingizdan so‘ng belingiz og‘riydi. Qulay kompyuter stolini ishlab chiqarishni boshlang.",
@@ -955,140 +955,140 @@
    "income": 300
   },
   {
-   "file": "TD_001.png",
+   "file": "TD_001.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Qo‘shni zavod ma’muriyati Navro‘z bayrami uchun bino fasadini bo‘yaydigan alpinistlarni qidirmoqda. Yordam bering.",
    "amount": 300
   },
   {
-   "file": "TD_002.png",
+   "file": "TD_002.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Bojangiz nomzodlik dissertatsiyasini himoya qilmoqchi. Matnni tayyorlashda adabiy iste’dodingiz bilan yordam bering.",
    "amount": 100
   },
   {
-   "file": "TD_003.png",
+   "file": "TD_003.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Keksa qo‘shningiz uyini ta’mirlamoqchi. Unga yordam bering.",
    "amount": 300
   },
   {
-   "file": "TD_004.png",
+   "file": "TD_004.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Andijonga ketayotganingizda buzilib qolgan avtomobilni ko‘rdingiz. Haydovchiga yordam bering.",
    "amount": 100
   },
   {
-   "file": "TD_005.png",
+   "file": "TD_005.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Boshlig‘ingiz chet ellik hamkorlar bilan muzokara olib bormoqda. Ingliz tilida tarjimonlik qiling.",
    "amount": 200
   },
   {
-   "file": "TD_006.png",
+   "file": "TD_006.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Tanishlaringiz Qozog‘iston chegarasida tez buziladigan yuk bilan turib qolishdi. Ularga yordam bering.",
    "amount": 500
   },
   {
-   "file": "TD_007.png",
+   "file": "TD_007.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Qo‘shningiz elektron signalizatsiya tizimini tushunmayapti. Unga yordam bering.",
    "amount": 30
   },
   {
-   "file": "TD_008.png",
+   "file": "TD_008.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Tarmoqli kompaniyaga dam olish kunlari hududda e’lonlar yopishtirishda yordam bering.",
    "amount": 50
   },
   {
-   "file": "TD_009.png",
+   "file": "TD_009.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Tug‘ilgan kuningizga kelgan mehmonlar vannaxonangizdagi plitkalarga qoyil qolishdi. Ularga plitka o‘rnatishda yordam bering.",
    "amount": 300
   },
   {
-   "file": "TD_010.png",
+   "file": "TD_010.webp",
    "code": "TD",
    "type": "Foydali ish (bir martalik daromad)",
    "text": "Yangi yil yaqinlashmoqda. Qorbobo bo‘lib pul ishlang.",
    "amount": 300
   },
   {
-   "file": "AV_001.png",
+   "file": "AV_001.webp",
    "code": "AV",
    "type": "Avtomobil taklifi",
    "text": "Do‘stingiz Koreyadan keltirilgan sakkiz yillik “Neksiya” avtomobilini sotmoqda.",
    "amount": 2500
   },
   {
-   "file": "AV_002.png",
+   "file": "AV_002.webp",
    "code": "AV",
    "type": "Avtomobil taklifi",
    "text": "Qo‘shningiz “Reno-Megan” avtomobilini sotmoqda.",
    "amount": 5000
   },
   {
-   "file": "AV_003.png",
+   "file": "AV_003.webp",
    "code": "AV",
    "type": "Avtomobil taklifi",
    "text": "AQShga ketayotgan sherigingiz yetti yillik “Volga VAZ-2410” avtomobilini sotmoqda.",
    "amount": 3500
   },
   {
-   "file": "AV_004.png",
+   "file": "AV_004.webp",
    "code": "AV",
    "type": "Avtomobil taklifi",
    "text": "Do‘stingiz BAAdan keltirilgan besh yillik “RAV4” avtomobilini sotmoqda.",
    "amount": 12000
   },
   {
-   "file": "AV_005.png",
+   "file": "AV_005.webp",
    "code": "AV",
    "type": "Avtomobil taklifi",
    "text": "Zavoddagi eski “Volga VAZ-2410” avtomobilini sotib olish imkoni bor.",
    "amount": 1500
   },
   {
-   "file": "AV_006.png",
+   "file": "AV_006.webp",
    "code": "AV",
    "type": "Avtomobil taklifi",
    "text": "Mahallangizda VAZ 2115 avtomobili arzon narxda sotilmoqda.",
    "amount": 3000
   },
   {
-   "file": "Q_001.png",
+   "file": "Q_001.webp",
    "code": "Q",
    "type": "Moliyaviy taklif",
    "text": "Do‘stingiz qarzga 300 sh.b. so‘rayapti. 600 sh.b. qilib qaytarishga va’da bermoqda.",
    "amount": 300
   },
   {
-   "file": "Q_002.png",
+   "file": "Q_002.webp",
    "code": "Q",
    "type": "Moliyaviy taklif",
    "text": "Qo‘shningiz eski markalar kolleksiyasini sotmoqda.",
    "amount": 10
   },
   {
-   "file": "Q_003.png",
+   "file": "Q_003.webp",
    "code": "Q",
    "type": "Moliyaviy taklif",
    "text": "Sherigingiz tangalar kolleksiyasini sotmoqda.",
    "amount": 100
   },
   {
-   "file": "QAR_001.png",
+   "file": "QAR_001.webp",
    "code": "QAR",
    "type": "Qarov taklifi",
    "text": "Pod’ezdingizda yolg‘iz yashaydigan qariyaga qarash uchun har oy 100 sh.b. to‘lash taklif qilinmoqda.",
@@ -1096,14 +1096,14 @@
    "note": "Qaror: o‘yinchi har oy 100 sh.b. to‘laydi (oylik xarajat +100)"
   },
   {
-   "file": "QAR_002.png",
+   "file": "QAR_002.webp",
    "code": "QAR",
    "type": "Qarov taklifi",
    "text": "Pod’ezdingizda yashovchi kampirga qarash evaziga uning uyini meros qilib olish taklif qilinmoqda. Har oy 100 sh.b. xarajat talab etiladi.",
    "amount": 100
   },
   {
-   "file": "E_001.png",
+   "file": "E_001.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Shahardan uncha uzoq bo‘lmagan qishloqda 20 sotix yer sotilmoqda.",
@@ -1115,7 +1115,7 @@
    "real": "?"
   },
   {
-   "file": "E_002.png",
+   "file": "E_002.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Uzumchilik-bog‘dorchilik uyushmasi 6 sotix yerni taklif qilmoqda.",
@@ -1127,7 +1127,7 @@
    "real": "?"
   },
   {
-   "file": "E_003.png",
+   "file": "E_003.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Shahardan uncha uzoq bo‘lmagan joyda qariya uy bilan 12 sotix yer sotmoqda.",
@@ -1139,7 +1139,7 @@
    "real": "?"
   },
   {
-   "file": "E_004.png",
+   "file": "E_004.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Shahardan uncha uzoq bo‘lmagan joyda kampir uy bilan 20 sotix yer sotmoqda.",
@@ -1151,7 +1151,7 @@
    "real": "?"
   },
   {
-   "file": "E_005.png",
+   "file": "E_005.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Shaharchada qariya 6 sotix yerini sotmoqda.",
@@ -1163,7 +1163,7 @@
    "real": "?"
   },
   {
-   "file": "E_006.png",
+   "file": "E_006.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Uzumchilik-bog‘dorchilik uyushmasi 6 sotix yerni taklif qilmoqda.",
@@ -1175,7 +1175,7 @@
    "real": "?"
   },
   {
-   "file": "E_007.png",
+   "file": "E_007.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Tanishlaringiz tashlandiq dachani 20 sotix yeri bilan sotmoqda.",
@@ -1187,7 +1187,7 @@
    "real": "?"
   },
   {
-   "file": "E_008.png",
+   "file": "E_008.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Katta yo‘l bo‘yida 20 sotix yer arzon narxda sotilmoqda.",
@@ -1199,7 +1199,7 @@
    "real": "?"
   },
   {
-   "file": "E_009.png",
+   "file": "E_009.webp",
    "code": "E",
    "type": "Ko‘chmas mulk (yer)",
    "text": "Toshkentdan tashqarida 6 sotix yer sotilmoqda.",
@@ -1211,7 +1211,7 @@
    "real": "?"
   },
   {
-   "file": "TAPOiCh_001.png",
+   "file": "TAPOiCh_001.webp",
    "code": "TAPOiCh",
    "type": "Aksiya · TAPOiCh",
    "text": "“TAPOiCh” OAJda xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1220,7 +1220,7 @@
    "max": 1000
   },
   {
-   "file": "TAPOiCh_002.png",
+   "file": "TAPOiCh_002.webp",
    "code": "TAPOiCh",
    "type": "Aksiya · TAPOiCh",
    "text": "“TAPOiCh” OAJda xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1229,7 +1229,7 @@
    "max": 100
   },
   {
-   "file": "TAPOiCh_003.png",
+   "file": "TAPOiCh_003.webp",
    "code": "TAPOiCh",
    "type": "Aksiya · TAPOiCh",
    "text": "“TAPOiCh” OAJda xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1238,7 +1238,7 @@
    "max": 1000
   },
   {
-   "file": "TAPOiCh_004.png",
+   "file": "TAPOiCh_004.webp",
    "code": "TAPOiCh",
    "type": "Aksiya · TAPOiCh",
    "text": "“TAPOiCh” OAJda xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1247,7 +1247,7 @@
    "max": 1000
   },
   {
-   "file": "UTK_005.png",
+   "file": "UTK_005.webp",
    "code": "UTK",
    "type": "Aksiya · O‘zbektelekom",
    "text": "“O‘zbektelekom” korxonasining aksiyalarini sotib olish imkoniyati mavjud. Aksiyalar narxi oshishi mumkin.",
@@ -1256,7 +1256,7 @@
    "max": 1000
   },
   {
-   "file": "UTK_006.png",
+   "file": "UTK_006.webp",
    "code": "UTK",
    "type": "Aksiya · O‘zbektelekom",
    "text": "“O‘zbektelekom” korxonasining aksiyalarini sotib olish imkoniyati mavjud. Aksiyalar narxi oshishi mumkin.",
@@ -1265,7 +1265,7 @@
    "max": 1000
   },
   {
-   "file": "UTK_007.png",
+   "file": "UTK_007.webp",
    "code": "UTK",
    "type": "Aksiya · O‘zbektelekom",
    "text": "“O‘zbektelekom” korxonasining aksiyalarini sotib olish imkoniyati mavjud. Aksiyalar narxi oshishi mumkin.",
@@ -1274,7 +1274,7 @@
    "max": 1000
   },
   {
-   "file": "UTK_008.png",
+   "file": "UTK_008.webp",
    "code": "UTK",
    "type": "Aksiya · O‘zbektelekom",
    "text": "“O‘zbektelekom” korxonasining aksiyalarini sotib olish imkoniyati mavjud. Aksiyalar narxi oshishi mumkin.",
@@ -1283,7 +1283,7 @@
    "max": 5000
   },
   {
-   "file": "KCH_009.png",
+   "file": "KCH_009.webp",
    "code": "KCH",
    "type": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” ochiq konida xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1292,7 +1292,7 @@
    "max": 1000
   },
   {
-   "file": "KCH_010.png",
+   "file": "KCH_010.webp",
    "code": "KCH",
    "type": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” ochiq konida xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1301,7 +1301,7 @@
    "max": 100
   },
   {
-   "file": "KCH_011.png",
+   "file": "KCH_011.webp",
    "code": "KCH",
    "type": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” ochiq konida xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1310,7 +1310,7 @@
    "max": 500
   },
   {
-   "file": "ZA_012.png",
+   "file": "ZA_012.webp",
    "code": "ZA",
    "type": "Aksiya · “Algoritm” zavodi",
    "text": "“Algoritm” zavodida xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1319,7 +1319,7 @@
    "max": 1000
   },
   {
-   "file": "ZA_013.png",
+   "file": "ZA_013.webp",
    "code": "ZA",
    "type": "Aksiya · “Algoritm” zavodi",
    "text": "“Algoritm” zavodida xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1328,7 +1328,7 @@
    "max": 100
   },
   {
-   "file": "ZA_014.png",
+   "file": "ZA_014.webp",
    "code": "ZA",
    "type": "Aksiya · “Algoritm” zavodi",
    "text": "“Algoritm” zavodida xususiylashtirish boshlandi. Ishchilarning aksiyalarini sotib olish imkoniyati mavjud.",
@@ -1337,7 +1337,7 @@
    "max": 1000
   },
   {
-   "file": "GZ_015.png",
+   "file": "GZ_015.webp",
    "code": "GZ",
    "type": "Aksiya · Gaz quvuri",
    "text": "Gaz quvuri qurilishiga qo‘shimcha sarmoya jalb qilish uchun aksiyalar sotilmoqda.",
@@ -1346,7 +1346,7 @@
    "max": 1000
   },
   {
-   "file": "GZ_016.png",
+   "file": "GZ_016.webp",
    "code": "GZ",
    "type": "Aksiya · Gaz quvuri",
    "text": "Gaz quvuri qurilishiga qo‘shimcha sarmoya jalb qilish uchun aksiyalar sotilmoqda.",
@@ -1355,7 +1355,7 @@
    "max": 1000
   },
   {
-   "file": "GZ_017.png",
+   "file": "GZ_017.webp",
    "code": "GZ",
    "type": "Aksiya · Gaz quvuri",
    "text": "Gaz quvuri qurilishiga qo‘shimcha sarmoya jalb qilish uchun aksiyalar sotilmoqda.",
@@ -1366,7 +1366,7 @@
  ],
  "katta": [
   {
-   "file": "KS-001.png",
+   "file": "KS-001.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Mebel saloni",
@@ -1374,7 +1374,7 @@
    "income": 6000
   },
   {
-   "file": "KS-002.png",
+   "file": "KS-002.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "AYOQSH",
@@ -1382,7 +1382,7 @@
    "income": 45000
   },
   {
-   "file": "KS-003.png",
+   "file": "KS-003.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Sushi-bar restorani",
@@ -1390,7 +1390,7 @@
    "income": 9000
   },
   {
-   "file": "KS-004.png",
+   "file": "KS-004.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Kichik kimyoviy tozalash shoxobchasi",
@@ -1398,7 +1398,7 @@
    "income": 7000
   },
   {
-   "file": "KS-005.png",
+   "file": "KS-005.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Tennis klubi",
@@ -1406,7 +1406,7 @@
    "income": 7000
   },
   {
-   "file": "KS-006.png",
+   "file": "KS-006.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Mehmonxona",
@@ -1414,7 +1414,7 @@
    "income": 50000
   },
   {
-   "file": "KS-007.png",
+   "file": "KS-007.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Shahar markazidagi kafe",
@@ -1422,7 +1422,7 @@
    "income": 4500
   },
   {
-   "file": "KS-008.png",
+   "file": "KS-008.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Lombard",
@@ -1430,7 +1430,7 @@
    "income": 5000
   },
   {
-   "file": "KS-009.png",
+   "file": "KS-009.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Toshkent markazida sport poyabzali do‘koni",
@@ -1438,7 +1438,7 @@
    "income": 4000
   },
   {
-   "file": "KS-010.png",
+   "file": "KS-010.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Uz Daewoo avtomobillarini ta’mirlash stansiyasi",
@@ -1446,7 +1446,7 @@
    "income": 12000
   },
   {
-   "file": "KS-011.png",
+   "file": "KS-011.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Go‘zallik saloni",
@@ -1454,7 +1454,7 @@
    "income": 7000
   },
   {
-   "file": "KS-012.png",
+   "file": "KS-012.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Metro yaqinidagi kiyim do‘koni",
@@ -1462,7 +1462,7 @@
    "income": 11000
   },
   {
-   "file": "KS-013.png",
+   "file": "KS-013.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Ulgurji bozor",
@@ -1470,7 +1470,7 @@
    "income": 17000
   },
   {
-   "file": "KS-014.png",
+   "file": "KS-014.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Chirchiqdagi ofset bosmaxona",
@@ -1478,7 +1478,7 @@
    "income": 12000
   },
   {
-   "file": "KS-015.png",
+   "file": "KS-015.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Uyali aloqa saloni",
@@ -1486,7 +1486,7 @@
    "income": 2500
   },
   {
-   "file": "KS-016.png",
+   "file": "KS-016.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Avtomobil saloni",
@@ -1494,7 +1494,7 @@
    "income": 40000
   },
   {
-   "file": "KS-017.png",
+   "file": "KS-017.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Limuzin biznesi",
@@ -1502,7 +1502,7 @@
    "income": 3500
   },
   {
-   "file": "KS-018.png",
+   "file": "KS-018.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Meva va sabzavotlarni ulgurji sotish firmasi",
@@ -1510,7 +1510,7 @@
    "income": 8700
   },
   {
-   "file": "KS-019.png",
+   "file": "KS-019.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "To‘yxona",
@@ -1518,7 +1518,7 @@
    "income": 11000
   },
   {
-   "file": "KS-020.png",
+   "file": "KS-020.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Boy oilalar farzandlari uchun bolalar bog‘chasi",
@@ -1526,7 +1526,7 @@
    "income": 8000
   },
   {
-   "file": "KS-021.png",
+   "file": "KS-021.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Kitob do‘koni",
@@ -1534,7 +1534,7 @@
    "income": 1000
   },
   {
-   "file": "KS-022.png",
+   "file": "KS-022.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Erkaklar va ayollar nemis poyabzali do‘koni",
@@ -1542,7 +1542,7 @@
    "income": 4000
   },
   {
-   "file": "KS-023.png",
+   "file": "KS-023.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Kun-u tun ishlaydigan mini-market",
@@ -1550,7 +1550,7 @@
    "income": 11000
   },
   {
-   "file": "KS-024.png",
+   "file": "KS-024.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Shahar markazidagi zamonaviy restoran",
@@ -1558,7 +1558,7 @@
    "income": 70000
   },
   {
-   "file": "KS-025.png",
+   "file": "KS-025.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Toshkentdagi avtobus marshruti",
@@ -1566,7 +1566,7 @@
    "income": 14000
   },
   {
-   "file": "KS-026.png",
+   "file": "KS-026.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Dorixonalar tarmog‘i",
@@ -1574,7 +1574,7 @@
    "income": 12000
   },
   {
-   "file": "KS-027.png",
+   "file": "KS-027.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Bovling klubi",
@@ -1582,7 +1582,7 @@
    "income": 27000
   },
   {
-   "file": "KS-028.png",
+   "file": "KS-028.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Shahar markazidagi to‘yxona-restoran",
@@ -1590,7 +1590,7 @@
    "income": 25000
   },
   {
-   "file": "KS-029.png",
+   "file": "KS-029.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Supermarket",
@@ -1598,7 +1598,7 @@
    "income": 55000
   },
   {
-   "file": "KS-030.png",
+   "file": "KS-030.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Birjadagi brokerlik idorasi",
@@ -1606,7 +1606,7 @@
    "income": 7000
   },
   {
-   "file": "KS-031.png",
+   "file": "KS-031.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Avtomobil yuvish joyi",
@@ -1614,7 +1614,7 @@
    "income": 4000
   },
   {
-   "file": "KS-032.png",
+   "file": "KS-032.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Serqatnov trassadagi kafe",
@@ -1622,7 +1622,7 @@
    "income": 2500
   },
   {
-   "file": "KS-033.png",
+   "file": "KS-033.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Qishloq xo‘jaligi texnikasini ulgurji sotish kompaniyasi",
@@ -1630,7 +1630,7 @@
    "income": 17000
   },
   {
-   "file": "KS-034.png",
+   "file": "KS-034.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Kseroks markazi",
@@ -1638,7 +1638,7 @@
    "income": 1200
   },
   {
-   "file": "KS-035.png",
+   "file": "KS-035.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Ko‘chmas mulk agentligi",
@@ -1646,7 +1646,7 @@
    "income": 7000
   },
   {
-   "file": "KS-036.png",
+   "file": "KS-036.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Nashriyot uyi",
@@ -1654,7 +1654,7 @@
    "income": 5000
   },
   {
-   "file": "KS-037.png",
+   "file": "KS-037.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "O‘yin avtomatlari saloni",
@@ -1662,7 +1662,7 @@
    "income": 12000
   },
   {
-   "file": "KS-038.png",
+   "file": "KS-038.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Shaxsiy stomatologiya klinikasi",
@@ -1670,7 +1670,7 @@
    "income": 7000
   },
   {
-   "file": "KS-039.png",
+   "file": "KS-039.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Shahar markazidagi avtomobil qo‘yish joyi",
@@ -1678,7 +1678,7 @@
    "income": 5500
   },
   {
-   "file": "KS-040.png",
+   "file": "KS-040.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Mebel sexi",
@@ -1686,7 +1686,7 @@
    "income": 6000
   },
   {
-   "file": "KS-041.png",
+   "file": "KS-041.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Turistik byuro",
@@ -1694,7 +1694,7 @@
    "income": 3500
   },
   {
-   "file": "KS-042.png",
+   "file": "KS-042.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "O‘yin avtomatlari saloni",
@@ -1702,7 +1702,7 @@
    "income": 7000
   },
   {
-   "file": "KS-043.png",
+   "file": "KS-043.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Choyshab tikish sexi",
@@ -1710,7 +1710,7 @@
    "income": 3000
   },
   {
-   "file": "KS-044.png",
+   "file": "KS-044.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Internet kafelari tarmog‘i",
@@ -1718,7 +1718,7 @@
    "income": 5000
   },
   {
-   "file": "KS-045.png",
+   "file": "KS-045.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Xo‘jalik do‘koni",
@@ -1726,7 +1726,7 @@
    "income": 12000
   },
   {
-   "file": "KS-046.png",
+   "file": "KS-046.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Beshag‘ochdagi sartaroshxona",
@@ -1734,7 +1734,7 @@
    "income": 4000
   },
   {
-   "file": "KS-047.png",
+   "file": "KS-047.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Fotosalon",
@@ -1742,7 +1742,7 @@
    "income": 6500
   },
   {
-   "file": "KS-048.png",
+   "file": "KS-048.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Kompyuter sotish do‘koni",
@@ -1750,7 +1750,7 @@
    "income": 6000
   },
   {
-   "file": "KS-049.png",
+   "file": "KS-049.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "SPA markazi",
@@ -1758,7 +1758,7 @@
    "income": 5500
   },
   {
-   "file": "KS-050.png",
+   "file": "KS-050.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Chilonzordagi kichik kir yuvish shoxobchalari tarmog‘i",
@@ -1766,7 +1766,7 @@
    "income": 9000
   },
   {
-   "file": "KS-051.png",
+   "file": "KS-051.webp",
    "code": "KS",
    "group": "Biznes",
    "text": "Internet kafe",
@@ -1774,7 +1774,7 @@
    "income": 1100
   },
   {
-   "file": "KV2s-001.png",
+   "file": "KV2s-001.webp",
    "code": "KV2s",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Qo‘shni binodagi ikki xonali kvartira. Rekonstruksiya rejasiga ko‘ra, uylar buzilganda tovon puli to‘lanadi.",
@@ -1786,7 +1786,7 @@
    "real": 60000
   },
   {
-   "file": "KV3o-002.png",
+   "file": "KV3o-002.webp",
    "code": "KV3o",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Uch xonali uyni tanishingizdan arzonroq sotib olish",
@@ -1798,7 +1798,7 @@
    "real": 100000
   },
   {
-   "file": "KV2-003.png",
+   "file": "KV2-003.webp",
    "code": "KV2",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Qarindoshlaringizning ikki xonali uyini arzon narxda sotib olish",
@@ -1810,7 +1810,7 @@
    "real": 80000
   },
   {
-   "file": "KV1o-004.png",
+   "file": "KV1o-004.webp",
    "code": "KV1o",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Birinchi qavatdagi bir xonali kvartira. Ofis uchun qulay.",
@@ -1822,7 +1822,7 @@
    "real": 65000
   },
   {
-   "file": "KV2s-005.png",
+   "file": "KV2s-005.webp",
    "code": "KV2s",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Qo‘shni binodagi ikki xonali kvartira. Rekonstruksiya rejasiga ko‘ra tovon puli to‘lanadi.",
@@ -1834,7 +1834,7 @@
    "real": 90000
   },
   {
-   "file": "KV4-006.png",
+   "file": "KV4-006.webp",
    "code": "KV4",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan to‘rt xonali kvartirani arzonroq sotib olish",
@@ -1847,7 +1847,7 @@
    "decided": "Foydalanuvchi qarori: narx 100 000, to‘lov 20 000, kredit 80 000"
   },
   {
-   "file": "KV1-007.png",
+   "file": "KV1-007.webp",
    "code": "KV1",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan bir xonali kvartirani arzonroq sotib olish",
@@ -1859,7 +1859,7 @@
    "real": 50000
   },
   {
-   "file": "KV1-008.png",
+   "file": "KV1-008.webp",
    "code": "KV1",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan bir xonali kvartirani arzonroq sotib olish",
@@ -1871,7 +1871,7 @@
    "real": 45000
   },
   {
-   "file": "KV1-009.png",
+   "file": "KV1-009.webp",
    "code": "KV1",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Voyaga yetmagan o‘g‘li bor qarindoshlaringiz bir xonali kvartirani sotmoqda",
@@ -1883,7 +1883,7 @@
    "real": 50000
   },
   {
-   "file": "KV1s-010.png",
+   "file": "KV1s-010.webp",
    "code": "KV1s",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Qo‘shni binodagi bir xonali kvartira. Rekonstruksiya rejasiga ko‘ra tovon puli to‘lanadi.",
@@ -1895,7 +1895,7 @@
    "real": 45000
   },
   {
-   "file": "KV1-011.png",
+   "file": "KV1-011.webp",
    "code": "KV1",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Chet elga ketayotgan tanishlaringiz bir xonali uyni sotmoqda",
@@ -1907,7 +1907,7 @@
    "real": 60000
   },
   {
-   "file": "KV2-012.png",
+   "file": "KV2-012.webp",
    "code": "KV2",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan ikki xonali uyni arzonroq sotib olish",
@@ -1920,7 +1920,7 @@
    "note": "Matn kodga moslandi (qaror)"
   },
   {
-   "file": "KV1s-013.png",
+   "file": "KV1s-013.webp",
    "code": "KV1s",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Qo‘shni binodagi bir xonali kvartira. Rekonstruksiya rejasiga ko‘ra tovon puli to‘lanadi.",
@@ -1932,7 +1932,7 @@
    "real": 50000
   },
   {
-   "file": "KV3-014.png",
+   "file": "KV3-014.webp",
    "code": "KV3",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Chet elga ketayotgan tanishlaringiz uch xonali uyni sotmoqda",
@@ -1944,7 +1944,7 @@
    "real": 70000
   },
   {
-   "file": "KV3-015.png",
+   "file": "KV3-015.webp",
    "code": "KV3",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan uch xonali uyni arzonroq sotib olish",
@@ -1956,7 +1956,7 @@
    "real": 90000
   },
   {
-   "file": "KV4-016.png",
+   "file": "KV4-016.webp",
    "code": "KV4",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan to‘rt xonali uyni arzonroq sotib olish",
@@ -1968,7 +1968,7 @@
    "real": 150000
   },
   {
-   "file": "KV4-017.png",
+   "file": "KV4-017.webp",
    "code": "KV4",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan to‘rt xonali kvartirani arzonroq sotib olish",
@@ -1980,7 +1980,7 @@
    "real": 200000
   },
   {
-   "file": "KV4-018.png",
+   "file": "KV4-018.webp",
    "code": "KV4",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan to‘rt xonali kvartirani arzonroq sotib olish",
@@ -1992,7 +1992,7 @@
    "real": 250000
   },
   {
-   "file": "KV1o-019.png",
+   "file": "KV1o-019.webp",
    "code": "KV1o",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Birinchi qavatdagi bir xonali kvartira. Ofis uchun qulay.",
@@ -2004,7 +2004,7 @@
    "real": 75000
   },
   {
-   "file": "KV3-020.png",
+   "file": "KV3-020.webp",
    "code": "KV3",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Chet elga ketayotgan tanishlaringiz uch xonali uyni sotmoqda",
@@ -2016,7 +2016,7 @@
    "real": 60000
   },
   {
-   "file": "KV2o-021.png",
+   "file": "KV2o-021.webp",
    "code": "KV2o",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Birinchi qavatdagi ikki xonali kvartira. Ofisga ijaraga berish mumkin.",
@@ -2028,7 +2028,7 @@
    "real": 85000
   },
   {
-   "file": "KV2o-022.png",
+   "file": "KV2o-022.webp",
    "code": "KV2o",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Birinchi qavatdagi ikki xonali kvartira. Ofisga ijaraga berish yoki sotish mumkin.",
@@ -2040,7 +2040,7 @@
    "real": 80000
   },
   {
-   "file": "KV3-023.png",
+   "file": "KV3-023.webp",
    "code": "KV3",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringizdan uch xonali uyni arzonroq sotib olish",
@@ -2052,7 +2052,7 @@
    "real": 80000
   },
   {
-   "file": "KV2-024.png",
+   "file": "KV2-024.webp",
    "code": "KV2",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Ikki xonali uyni bozor narxidan arzonroq sotib olish",
@@ -2064,7 +2064,7 @@
    "real": 75000
   },
   {
-   "file": "KV2-025.png",
+   "file": "KV2-025.webp",
    "code": "KV2",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Tanishlaringiz chet elga ketmoqda. Ikki xonali uyni sotmoqda.",
@@ -2076,7 +2076,7 @@
    "real": 65000
   },
   {
-   "file": "KV2-026.png",
+   "file": "KV2-026.webp",
    "code": "KV2",
    "group": "Ko‘chmas mulk (kvartira)",
    "text": "Birinchi qavatdagi ikki xonali kvartira. Ijaraga berish yoki sotish mumkin.",
@@ -2088,7 +2088,7 @@
    "real": 75000
   },
   {
-   "file": "DX-001.png",
+   "file": "DX-001.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Shahardan 30 km uzoqlikdagi dala hovli sotilmoqda",
@@ -2100,7 +2100,7 @@
    "real": "?"
   },
   {
-   "file": "DX-002.png",
+   "file": "DX-002.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Qo‘shningiz Toshkent tashqarisidagi dala hovlisini sotmoqda. Uzoqda joylashgan, mashinada yurmaydi.",
@@ -2112,7 +2112,7 @@
    "real": "?"
   },
   {
-   "file": "DX-003.png",
+   "file": "DX-003.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Shaharga ko‘chayotgan do‘stingiz dala hovlisini sotmoqda",
@@ -2124,7 +2124,7 @@
    "real": "?"
   },
   {
-   "file": "DX-004.png",
+   "file": "DX-004.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Toshkent tashqarisidagi kichik dala hovli sotilmoqda",
@@ -2136,7 +2136,7 @@
    "real": "?"
   },
   {
-   "file": "DX-005.png",
+   "file": "DX-005.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Kichkina dala hovlisi bilan yer sotilmoqda",
@@ -2149,7 +2149,7 @@
    "decided": "Foydalanuvchi qarori: 15 000 to‘liq naqd"
   },
   {
-   "file": "DX-006.png",
+   "file": "DX-006.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Qaynotangiz Toshkent tashqarisidagi dala hovlisini sotmoqda",
@@ -2161,7 +2161,7 @@
    "real": "?"
   },
   {
-   "file": "DX-007.png",
+   "file": "DX-007.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Toshkent tashqarisida dala hovli sotib olish imkoniyati",
@@ -2173,7 +2173,7 @@
    "real": "?"
   },
   {
-   "file": "DX-008.png",
+   "file": "DX-008.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Parkentdagi dacha sotilmoqda",
@@ -2187,7 +2187,7 @@
  ],
  "bozor": [
   {
-   "file": "001_KV1.png",
+   "file": "001_KV1.webp",
    "code": "KV1",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanidan bir xonali kvartira qidirmoqda. U 20000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2197,7 +2197,7 @@
    "note": ""
   },
   {
-   "file": "002_KV1.png",
+   "file": "002_KV1.webp",
    "code": "KV1",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanidan bir xonali kvartira qidirmoqda. U 35000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2207,7 +2207,7 @@
    "note": ""
   },
   {
-   "file": "003_KV1.png",
+   "file": "003_KV1.webp",
    "code": "KV1",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanidan bir xonali kvartira qidirmoqda. U 50000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2217,7 +2217,7 @@
    "note": ""
   },
   {
-   "file": "004_KV1.png",
+   "file": "004_KV1.webp",
    "code": "KV1",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanidan bir xonali kvartira qidirmoqda. U 60000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2227,7 +2227,7 @@
    "note": ""
   },
   {
-   "file": "005_KV1o.png",
+   "file": "005_KV1o.webp",
    "code": "KV1o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun bir xonali kvartira qidirmoqda. U 35000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2237,7 +2237,7 @@
    "note": ""
   },
   {
-   "file": "006_KV1o.png",
+   "file": "006_KV1o.webp",
    "code": "KV1o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun bir xonali kvartira qidirmoqda. U 55000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2247,7 +2247,7 @@
    "note": ""
   },
   {
-   "file": "007_KV1o.png",
+   "file": "007_KV1o.webp",
    "code": "KV1o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun bir xonali kvartira qidirmoqda. U 65000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2257,7 +2257,7 @@
    "note": ""
   },
   {
-   "file": "008_KV1o.png",
+   "file": "008_KV1o.webp",
    "code": "KV1o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun bir xonali kvartira qidirmoqda. U 75000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2267,7 +2267,7 @@
    "note": ""
   },
   {
-   "file": "009_KV2.png",
+   "file": "009_KV2.webp",
    "code": "KV2",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida ikki xonali kvartira qidirmoqda. U 35000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2277,7 +2277,7 @@
    "note": ""
   },
   {
-   "file": "010_KV2.png",
+   "file": "010_KV2.webp",
    "code": "KV2",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida ikki xonali kvartira qidirmoqda. U 40000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2287,7 +2287,7 @@
    "note": ""
   },
   {
-   "file": "011_KV2.png",
+   "file": "011_KV2.webp",
    "code": "KV2",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida ikki xonali kvartira qidirmoqda. U 50000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2297,7 +2297,7 @@
    "note": ""
   },
   {
-   "file": "012_KV2.png",
+   "file": "012_KV2.webp",
    "code": "KV2",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida ikki xonali kvartira qidirmoqda. U 80000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2307,7 +2307,7 @@
    "note": ""
   },
   {
-   "file": "013_KV2o.png",
+   "file": "013_KV2o.webp",
    "code": "KV2o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun ikki xonali kvartira qqidirmoqda. U 50000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2317,7 +2317,7 @@
    "note": ""
   },
   {
-   "file": "014_KV2o.png",
+   "file": "014_KV2o.webp",
    "code": "KV2o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun ikki xonali kvartira qidirmoqda. U 70000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2327,7 +2327,7 @@
    "note": ""
   },
   {
-   "file": "015_KV2o.png",
+   "file": "015_KV2o.webp",
    "code": "KV2o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor ofis uchun ikki xonali kvartira qidirmoqda. U 85000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2337,7 +2337,7 @@
    "note": ""
   },
   {
-   "file": "016_KV3.png",
+   "file": "016_KV3.webp",
    "code": "KV3",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida uch xonali kvartira qidirmoqda. U 60000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2347,7 +2347,7 @@
    "note": ""
   },
   {
-   "file": "017_KV3.png",
+   "file": "017_KV3.webp",
    "code": "KV3",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida uch xonali kvartira qidirmoqda. U 70000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2357,7 +2357,7 @@
    "note": ""
   },
   {
-   "file": "018_KV3.png",
+   "file": "018_KV3.webp",
    "code": "KV3",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida uch xonali kvartira qidirmoqda. U 80000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2367,7 +2367,7 @@
    "note": ""
   },
   {
-   "file": "019_KV3.png",
+   "file": "019_KV3.webp",
    "code": "KV3",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida uch xonali kvartira qidirmoqda. U 90000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2377,7 +2377,7 @@
    "note": ""
   },
   {
-   "file": "020_KV3o.png",
+   "file": "020_KV3o.webp",
    "code": "KV3o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor shahar markazidan ofis uchun uch xonali kvartira qidirmoqda. U 80000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2387,7 +2387,7 @@
    "note": ""
   },
   {
-   "file": "021_KV3o.png",
+   "file": "021_KV3o.webp",
    "code": "KV3o",
    "group": "Uy-joy (ofis uchun)",
    "text": "Xaridor shahar markazidan ofis uchun uch xonali kvartira qidirmoqda. U 100000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2397,7 +2397,7 @@
    "note": ""
   },
   {
-   "file": "022_KV4.png",
+   "file": "022_KV4.webp",
    "code": "KV4",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida to‘rt xonali kvartira qidirmoqda. U 150000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2407,7 +2407,7 @@
    "note": ""
   },
   {
-   "file": "023_KV4.png",
+   "file": "023_KV4.webp",
    "code": "KV4",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida to‘rt xonali kvartira qidirmoqda. U 200000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2417,7 +2417,7 @@
    "note": ""
   },
   {
-   "file": "024_KV4.png",
+   "file": "024_KV4.webp",
    "code": "KV4",
    "group": "Uy-joy",
    "text": "Xaridor shaharning istalgan tumanida to‘rt xonali kvartira qidirmoqda. U 250000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2427,7 +2427,7 @@
    "note": ""
   },
   {
-   "file": "025_DX.png",
+   "file": "025_DX.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Poytaxtda aholi ko‘payib ketgan! Puldor insonlar Toshkent atrofidan uy qidirmoqda. Toshkent tashqarisidagi dala hovlingizni 30000 sh.b.ga sotishingiz mumkin. Dala hovlisi bor har qanday kishi shu narxda sotishi mumkin.",
@@ -2437,7 +2437,7 @@
    "note": ""
   },
   {
-   "file": "026_DX.png",
+   "file": "026_DX.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Poytaxtda aholi ko‘payib ketgan! Puldor insonlar Toshkent atrofidan uy qidirmoqda. Toshkent tashqarisidagi dala hovlingizni 50000 sh.b.ga sotishingiz mumkin. Dala hovlisi bor har qanday kishi shu narxda sotishi mumkin.",
@@ -2447,7 +2447,7 @@
    "note": ""
   },
   {
-   "file": "027_DX.png",
+   "file": "027_DX.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Poytaxtda aholi ko‘payib ketgan! Puldor insonlar Toshkent atrofidan uy qidirmoqda. Toshkent tashqarisidagi dala hovlingizni 55000 sh.b.ga sotishingiz mumkin. Dala hovlisi bor har qanday kishi shu narxda sotishi mumkin.",
@@ -2457,7 +2457,7 @@
    "note": ""
   },
   {
-   "file": "028_DX.png",
+   "file": "028_DX.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Poytaxtda aholi ko‘payib ketgan! Puldor insonlar Toshkent atrofidan uy qidirmoqda. Toshkent tashqarisidagi dala hovlingizni 60000 sh.b.ga sotishingiz mumkin. Dala hovlisi bor har qanday kishi shu narxda sotishi mumkin.",
@@ -2467,7 +2467,7 @@
    "note": ""
   },
   {
-   "file": "029_DX.png",
+   "file": "029_DX.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Poytaxtda aholi ko‘payib ketgan! Puldor insonlar Toshkent atrofidan uy qidirmoqda. Toshkent tashqarisidagi dala hovlingizni 70000 sh.b.ga sotishingiz mumkin. Dala hovlisi bor har qanday kishi shu narxda sotishi mumkin.",
@@ -2477,7 +2477,7 @@
    "note": ""
   },
   {
-   "file": "030_DX.png",
+   "file": "030_DX.webp",
    "code": "DX",
    "group": "Dala hovli",
    "text": "Poytaxtda aholi ko‘payib ketgan! Puldor insonlar Toshkent atrofidan uy qidirmoqda. Toshkent tashqarisidagi dala hovlingizni 80000 sh.b.ga sotishingiz mumkin. Dala hovlisi bor har qanday kishi shu narxda sotishi mumkin.",
@@ -2487,7 +2487,7 @@
    "note": ""
   },
   {
-   "file": "031_Ye.png",
+   "file": "031_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 500 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2497,7 +2497,7 @@
    "note": ""
   },
   {
-   "file": "032_Ye.png",
+   "file": "032_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 700 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2507,7 +2507,7 @@
    "note": ""
   },
   {
-   "file": "033_Ye.png",
+   "file": "033_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 800 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2517,7 +2517,7 @@
    "note": ""
   },
   {
-   "file": "034_Ye.png",
+   "file": "034_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 1000 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2527,7 +2527,7 @@
    "note": ""
   },
   {
-   "file": "035_Ye.png",
+   "file": "035_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 1500 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2537,7 +2537,7 @@
    "note": ""
   },
   {
-   "file": "036_Ye.png",
+   "file": "036_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 2500 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2547,7 +2547,7 @@
    "note": ""
   },
   {
-   "file": "037_Ye.png",
+   "file": "037_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 3000 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2557,7 +2557,7 @@
    "note": ""
   },
   {
-   "file": "038_Ye.png",
+   "file": "038_Ye.webp",
    "code": "Ye",
    "group": "Yer (sotixiga)",
    "text": "Shahar chegaralari kengaymoqda. Puldor insonlar Toshkent atrofidagi yerlarni sotixiga 5000 sh.b. narxda sotib olmoqda. Yerga ega har qanday kishi shu narxda sotishi mumkin.",
@@ -2567,7 +2567,7 @@
    "note": ""
   },
   {
-   "file": "039_MB.png",
+   "file": "039_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 100 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2577,7 +2577,7 @@
    "note": ""
   },
   {
-   "file": "040_MB.png",
+   "file": "040_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 150 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2587,7 +2587,7 @@
    "note": ""
   },
   {
-   "file": "041_MB.png",
+   "file": "041_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 200 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2597,7 +2597,7 @@
    "note": ""
   },
   {
-   "file": "042_MB.png",
+   "file": "042_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 250 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2607,7 +2607,7 @@
    "note": ""
   },
   {
-   "file": "043_MB.png",
+   "file": "043_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 300 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2617,7 +2617,7 @@
    "note": ""
   },
   {
-   "file": "044_MB.png",
+   "file": "044_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 400 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2627,7 +2627,7 @@
    "note": ""
   },
   {
-   "file": "045_MB.png",
+   "file": "045_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 500 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2637,7 +2637,7 @@
    "note": ""
   },
   {
-   "file": "046_MB.png",
+   "file": "046_MB.webp",
    "code": "MB",
    "group": "Kichik biznes",
    "text": "Kichik bizneslaringizdan birini kengaytirdingiz. Agar siz kichik biznes egasi bo‘lsangiz, uning daromadliligini 600 sh.b.ga oshiring. Kartochka faqat sizga tegishli.",
@@ -2647,7 +2647,7 @@
    "note": ""
   },
   {
-   "file": "047_UTK.png",
+   "file": "047_UTK.webp",
    "code": "UTK",
    "group": "Aksiya · O‘zbektelekom",
    "text": "Qimmatbaho qog‘ozlar bozorida ajiotaj yuz berdi. “O‘zbektelekom” korxonasi aksiyalari donasi 50 sh.b.dan sotilmoqda. Har bir aksioner uni shu narxda sotishi mumkin.",
@@ -2657,7 +2657,7 @@
    "note": ""
   },
   {
-   "file": "048_UTK.png",
+   "file": "048_UTK.webp",
    "code": "UTK",
    "group": "Aksiya · O‘zbektelekom",
    "text": "Qimmatbaho qog‘ozlar bozorida ajiotaj yuz berdi. “O‘zbektelekom” korxonasi aksiyalari donasi 100 sh.b.dan sotilmoqda. Har bir aksioner uni shu narxda sotishi mumkin.",
@@ -2667,7 +2667,7 @@
    "note": ""
   },
   {
-   "file": "049_UTK.png",
+   "file": "049_UTK.webp",
    "code": "UTK",
    "group": "Aksiya · O‘zbektelekom",
    "text": "Dunyoda ro‘y bergan inqiroz tufayli “O‘zbektelekom” aksiyalari narxi tushib ketdi. Bu siz uchun aksiyalaringizni 5 sh.b.ga sotish uchun so‘nggi imkoniyat, aks holda ular bekor bo‘ladi.",
@@ -2677,7 +2677,7 @@
    "note": ""
   },
   {
-   "file": "050_UTK.png",
+   "file": "050_UTK.webp",
    "code": "UTK",
    "group": "Aksiya · O‘zbektelekom",
    "text": "“O‘zbektelekom” korxonasi sotilmoqda. Har bir aksiya uchun sizga 30 sh.b. taklif etishmoqda. Barcha aksiyadorlar uni shu narxda sotishlari mumkin.",
@@ -2687,7 +2687,7 @@
    "note": ""
   },
   {
-   "file": "051_UTK.png",
+   "file": "051_UTK.webp",
    "code": "UTK",
    "group": "Aksiya · O‘zbektelekom",
    "text": "“O‘zbektelekom” korxonasini nemis aloqa mobil operatori sotib olmoqda. Shartnoma summasi 1 000 000 000 sh.b. Endi har bir aksiya 200 sh.b. turadi. Barcha aksiyadorlar uni shu narxda sotishlari mumkin.",
@@ -2697,7 +2697,7 @@
    "note": ""
   },
   {
-   "file": "052_ZA.png",
+   "file": "052_ZA.webp",
    "code": "ZA",
    "group": "Aksiya · “Algoritm”",
    "text": "“Algoritm” zavodi xususiylashtirildi. Manfaatdor xaridorlar aksiyalarni 40 sh.b.ga sotib olishga tayyor. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2707,7 +2707,7 @@
    "note": ""
   },
   {
-   "file": "053_ZA.png",
+   "file": "053_ZA.webp",
    "code": "ZA",
    "group": "Aksiya · “Algoritm”",
    "text": "“Algoritm” zavodi xususiylashtirildi. Qiziquvchilar aksiyalarni donasini 20 sh.b.dan sotib olishga tayyor. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2717,7 +2717,7 @@
    "note": ""
   },
   {
-   "file": "054_ZA.png",
+   "file": "054_ZA.webp",
    "code": "ZA",
    "group": "Aksiya · “Algoritm”",
    "text": "“Algoritm” zavodi xususiylashtirildi. Uning haqiqiy bahosi 40 000 000 sh.b. Korxonada sizning ham ulushingiz bor. Sizning har bir aksiyangiz 80 sh.b. turadi. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2727,7 +2727,7 @@
    "note": ""
   },
   {
-   "file": "055_ZA.png",
+   "file": "055_ZA.webp",
    "code": "ZA",
    "group": "Aksiya · “Algoritm”",
    "text": "Dunyoda ro‘y bergan inqiroz tufayli “Algoritm” aksiyalari narxi tushib ketdi. Bu siz uchun aksiyalaringizni 5 sh.b.ga sotish uchun so‘nggi imkoniyat, aks holda ular bekor bo‘ladi.",
@@ -2737,7 +2737,7 @@
    "note": ""
   },
   {
-   "file": "056_TAPOiCh.png",
+   "file": "056_TAPOiCh.webp",
    "code": "TAPOiCh",
    "group": "Aksiya · TAPOiCh",
    "text": "TAPOiCh korxonasi bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 20 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2747,7 +2747,7 @@
    "note": ""
   },
   {
-   "file": "057_TAPOiCh.png",
+   "file": "057_TAPOiCh.webp",
    "code": "TAPOiCh",
    "group": "Aksiya · TAPOiCh",
    "text": "TAPOiCh korxonasi bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 30 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2757,7 +2757,7 @@
    "note": ""
   },
   {
-   "file": "058_TAPOiCh.png",
+   "file": "058_TAPOiCh.webp",
    "code": "TAPOiCh",
    "group": "Aksiya · TAPOiCh",
    "text": "TAPOiCh korxonasi bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 50 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2767,7 +2767,7 @@
    "note": ""
   },
   {
-   "file": "059_TAPOiCh.png",
+   "file": "059_TAPOiCh.webp",
    "code": "TAPOiCh",
    "group": "Aksiya · TAPOiCh",
    "text": "TAPOiCh korxonasi bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 100 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2777,7 +2777,7 @@
    "note": ""
   },
   {
-   "file": "060_TAPOiCh.png",
+   "file": "060_TAPOiCh.webp",
    "code": "TAPOiCh",
    "group": "Aksiya · TAPOiCh",
    "text": "Dunyoda ro‘y bergan inqiroz tufayli TAPOiCh aksiyalari narxi tushib ketdi. Bu siz uchun aksiyalaringizni 5 sh.b.ga sotish uchun so‘nggi imkoniyat, aks holda ular kuyib ketadi.",
@@ -2787,7 +2787,7 @@
    "note": ""
   },
   {
-   "file": "061_TAPOiCh.png",
+   "file": "061_TAPOiCh.webp",
    "code": "TAPOiCh",
    "group": "Aksiya · TAPOiCh",
    "text": "TAPOiCh korxonasi davlat mulkidan chiqarilib xususiylashtirildi. Uning haqiqiy qiymati 600 000 000 sh.b. deb baholandi. Siz ham korxona egasi hisoblanasiz. Sizning har bir aksiyangiz 200 sh.b. turadi. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2797,7 +2797,7 @@
    "note": ""
   },
   {
-   "file": "062_KCh.png",
+   "file": "062_KCh.webp",
    "code": "KCh",
    "group": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” ochiq koni bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 20 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2807,7 +2807,7 @@
    "note": ""
   },
   {
-   "file": "063_KCh.png",
+   "file": "063_KCh.webp",
    "code": "KCh",
    "group": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” ochiq koni bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 30 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2817,7 +2817,7 @@
    "note": ""
   },
   {
-   "file": "064_KCh.png",
+   "file": "064_KCh.webp",
    "code": "KCh",
    "group": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” ochiq koni bilan katta kompaniya qiziqyapti. Siz unga aksiyalarning kontrol paketini olishda xalaqit berayapsiz. Sizga aksiyalarning har biriga 40 sh.b. miqdorida sotishni taklif qilishyapti. Siz ularni shu narxda sotishingiz mumkin.",
@@ -2827,7 +2827,7 @@
    "note": ""
   },
   {
-   "file": "065_KCh.png",
+   "file": "065_KCh.webp",
    "code": "KCh",
    "group": "Aksiya · “Chirchiq” koni",
    "text": "Dunyoda ro‘y bergan inqiroz tufayli “Chirchiq” ochiq koni aksiyalari narxi tushib ketdi. Bu siz uchun aksiyalaringizni 5 sh.b.ga sotish uchun so‘nggi imkoniyat, aks holda ular kuyib ketadi.",
@@ -2837,7 +2837,7 @@
    "note": ""
   },
   {
-   "file": "066_KCh.png",
+   "file": "066_KCh.webp",
    "code": "KCh",
    "group": "Aksiya · “Chirchiq” koni",
    "text": "“Chirchiq” koni kasodga uchradi. Uning qiymati 500 000 sh.b.ga teng. Agar siz hozir aksiyalaringizni 8 sh.b. miqdorida sotib yubormasangiz, ular kuyib ketadi. Har qanday aksiya egasi ularni shu narxda sotishi mumkin.",
@@ -2847,7 +2847,7 @@
    "note": ""
   },
   {
-   "file": "067_GZ.png",
+   "file": "067_GZ.webp",
    "code": "GZ",
    "group": "Aksiya · Gaz quvuri",
    "text": "Gaz quvuri qurilishi tugadi. Gaz quvuri ishga tushdi va daromad keltirmoqda. Har bir aksiya egasi aksiyalarini 40 sh.b.ga sotishi mumkin.",
@@ -2857,7 +2857,7 @@
    "note": ""
   },
   {
-   "file": "068_GZ.png",
+   "file": "068_GZ.webp",
    "code": "GZ",
    "group": "Aksiya · Gaz quvuri",
    "text": "Gaz quvuridan o‘tkaziladigan gaz hajmi 2 barobar oshdi. Siz gaz quvurining har bir aksiyasini 70 sh.b.dan sotishingiz mumkin.",
@@ -2867,7 +2867,7 @@
    "note": ""
   },
   {
-   "file": "069_GZ.png",
+   "file": "069_GZ.webp",
    "code": "GZ",
    "group": "Aksiya · Gaz quvuri",
    "text": "Dunyoda ro‘y bergan inqiroz tufayli GAZ quvuri aksiyalari narxi tushib ketdi. Bu siz uchun aksiyalaringizni 10 sh.b.ga sotish uchun so‘nggi imkoniyat, aks holda ular kuyib ketadi.",
@@ -2877,7 +2877,7 @@
    "note": ""
   },
   {
-   "file": "070_GZ.png",
+   "file": "070_GZ.webp",
    "code": "GZ",
    "group": "Aksiya · Gaz quvuri",
    "text": "Dunyoda ro‘y bergan inqiroz tufayli GAZ quvuri loyiha quvvati bo‘yicha 100% ishlamoqda. Har bir aksiya egasi aksiyalarini 100 sh.b.ga sotishi mumkin.",
@@ -2887,7 +2887,7 @@
    "note": ""
   },
   {
-   "file": "071_AV.png",
+   "file": "071_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “Nexia” avtomobilingizga xaridor bor. Sizga u uchun 8500 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2897,7 +2897,7 @@
    "note": ""
   },
   {
-   "file": "072_AV.png",
+   "file": "072_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “Nexia” avtomobilingizga xaridor bor. Sizga u uchun 9000 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2907,7 +2907,7 @@
    "note": ""
   },
   {
-   "file": "073_AV.png",
+   "file": "073_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “VAZ-2115” avtomobilingizga xaridor bor. Sizga u uchun 6000 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2917,7 +2917,7 @@
    "note": ""
   },
   {
-   "file": "074_AV.png",
+   "file": "074_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “VAZ-2115” avtomobilingizga xaridor bor. Sizga u uchun 10000 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2927,7 +2927,7 @@
    "note": ""
   },
   {
-   "file": "075_AV.png",
+   "file": "075_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “VAZ-2410” avtomobilingizga xaridor bor. Sizga u uchun 3000 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2937,7 +2937,7 @@
    "note": ""
   },
   {
-   "file": "076_AV.png",
+   "file": "076_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “Reno-Megan” avtomobilingizga xaridor bor. Sizga u uchun 7500 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2947,7 +2947,7 @@
    "note": ""
   },
   {
-   "file": "077_AV.png",
+   "file": "077_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “Volga GAZ-3110” avtomobilingizga xaridor bor. Sizga u uchun 12000 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2957,7 +2957,7 @@
    "note": ""
   },
   {
-   "file": "078_AV.png",
+   "file": "078_AV.webp",
    "code": "AV",
    "group": "Avtomobil",
    "text": "Sizning “RAV4” avtomobilingizga xaridor bor. Sizga u uchun 20000 sh.b. taklif qilmoqdalar. Bu barcha o‘yinchilarga tegishli.",
@@ -2967,7 +2967,7 @@
    "note": ""
   },
   {
-   "file": "079_D.png",
+   "file": "079_D.webp",
    "code": "D",
    "group": "Kolleksiya",
    "text": "Siz markalaringizga xaridor topildi. Biroq uni jami kolleksiya qiziqtirmaydi. Ko‘plab markalarning hech bir qiymati yo‘q. Ular uchun u 100 sh.b. taklif qildi.",
@@ -2977,7 +2977,7 @@
    "note": ""
   },
   {
-   "file": "080_D.png",
+   "file": "080_D.webp",
    "code": "D",
    "group": "Kolleksiya",
    "text": "Siz haqiqiy filatelistni topdingiz. U markalaringiz orasidan Avstraliya pochta xizmatining hali bekor qilinmagan 3 markasini topdi. Ular uchun 3000 sh.b. taklif qilinyapti.",
@@ -2987,7 +2987,7 @@
    "note": ""
   },
   {
-   "file": "081_D.png",
+   "file": "081_D.webp",
    "code": "D",
    "group": "Kolleksiya",
    "text": "Siz nihoyat kamyob tangalaringiz kolleksiyasiga xaridor topdingiz. Ular uchun u 3000 sh.b. taklif qildi.",
@@ -2997,7 +2997,7 @@
    "note": ""
   },
   {
-   "file": "082_D.png",
+   "file": "082_D.webp",
    "code": "D",
    "group": "Kolleksiya",
    "text": "Siz kamyob tangalaringizga xaridor topdingiz. Biroq kolleksiyangiz uni qiziqtirmaydi. Shunga qaramay u ular uchun 100 sh.b. taklif qildi.",
@@ -3007,7 +3007,7 @@
    "note": ""
   },
   {
-   "file": "083_QAR.png",
+   "file": "083_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan qariya unga yaxshiroq qarashingizni talab etmoqda. Oylik harajatlaringizni 50 sh.b.ga oshiring. Bu qariyani qarovga olish degan kartochkaga ega har bir o‘yinchiga tegishli.",
@@ -3017,7 +3017,7 @@
    "note": ""
   },
   {
-   "file": "084_QAR.png",
+   "file": "084_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan qariya unga yaxshiroq qarashingizni talab etmoqda. Oylik harajatlaringizni 100 sh.b.ga oshiring. Bu qariyani qarovga olish degan kartochkaga ega har bir o‘yinchiga tegishli.",
@@ -3027,7 +3027,7 @@
    "note": ""
   },
   {
-   "file": "085_QAR.png",
+   "file": "085_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan qariya kasal bo‘ldi. Uni davolash uchun 100 sh.b. to‘lang, aks holda u siz bilan shartnomani bekor qiladi.",
@@ -3037,7 +3037,7 @@
    "note": ""
   },
   {
-   "file": "086_QAR.png",
+   "file": "086_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan qariya kasal bo‘ldi. Uni davolash uchun 300 sh.b. to‘lang, aks holda u siz bilan shartnomani bekor qiladi.",
@@ -3047,7 +3047,7 @@
    "note": ""
   },
   {
-   "file": "087_QAR.png",
+   "file": "087_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan qariya yangi televizor talab qilayapti. Darhol unga 200 sh.b.ga televizor olib bering, aks holda u siz bilan shartnomani bekor qiladi.",
@@ -3057,7 +3057,7 @@
    "note": ""
   },
   {
-   "file": "088_QAR.png",
+   "file": "088_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan qariya qulupnay yeyishni istayapti. Hozir qish fasli. Unga 100 sh.b. to‘lang, aks holda u siz bilan shartnomani bekor qiladi.",
@@ -3067,7 +3067,7 @@
    "note": ""
   },
   {
-   "file": "089_QAR.png",
+   "file": "089_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan kampir vafot etdi. Uning dafn etish uchun 300 sh.b. to‘lang. Bu kampirni qarovga olish degan kartochkaga ega har bir o‘yinchiga tegishli.",
@@ -3077,7 +3077,7 @@
    "note": ""
   },
   {
-   "file": "090_QAR.png",
+   "file": "090_QAR.webp",
    "code": "QAR",
    "group": "Qarov",
    "text": "Siz qarovingizga olgan kampir sizga ikki xonali kvartirani meros qoldirgan holda vafot etdi. Siz uni 25000 sh.b.ga sotishingiz mumkin. Bu kampirni qarovga olish degan kartochkaga ega har bir o‘yinchiga tegishli.",
@@ -3087,7 +3087,7 @@
    "note": ""
   },
   {
-   "file": "091_KV1s___KV2s.png",
+   "file": "091_KV1s___KV2s.webp",
    "code": "KV1s / KV2s",
    "group": "Buziladigan uylar",
    "text": "Shaharda eski uylarni buzish boshlandi. Uy egalariga yangi uyning quriladigan narxidan kelib chiqgan holda kompensatsiya puli to‘lanmoqda. Bir xonali yangi quriladigan uy narxi 50000 sh.b. Ikki xonalisi 70000 sh.b. Buziladigan kvartiraga ega har qanday kishi uni shu narxda sotishi mumkin.",
@@ -3097,7 +3097,7 @@
    "note": "1 xonali / 2 xonali (KV1s / KV2s)"
   },
   {
-   "file": "092_KV1s___KV2s.png",
+   "file": "092_KV1s___KV2s.webp",
    "code": "KV1s / KV2s",
    "group": "Buziladigan uylar",
    "text": "Shaharda eski uylarni buzish boshlandi. Uy egalariga yangi uyning quriladigan narxidan kelib chiqgan holda kompensatsiya puli to‘lanmoqda. Bir xonali yangi quriladigan uy narxi 50000 sh.b. Ikki xonalisi 90000 sh.b. Buziladigan kvartiraga ega har qanday kishi uni shu narxda sotishi mumkin.",
@@ -3107,7 +3107,7 @@
    "note": "1 xonali / 2 xonali (KV1s / KV2s)"
   },
   {
-   "file": "093_KV1s___KV2s.png",
+   "file": "093_KV1s___KV2s.webp",
    "code": "KV1s / KV2s",
    "group": "Buziladigan uylar",
    "text": "Shaharda eski uylarni buzish boshlandi. Uy egalariga yangi uyning quriladigan narxidan kelib chiqgan holda kompensatsiya puli to‘lanmoqda. Bir xonali yangi quriladigan uy narxi 45000 sh.b. Ikki xonalisi 60000 sh.b. Buziladigan kvartiraga ega har qanday kishi uni shu narxda sotishi mumkin.",
@@ -3117,7 +3117,7 @@
    "note": "1 xonali / 2 xonali (KV1s / KV2s)"
   },
   {
-   "file": "094_KV1s___KV2s.png",
+   "file": "094_KV1s___KV2s.webp",
    "code": "KV1s / KV2s",
    "group": "Buziladigan uylar",
    "text": "Shaharda eski uylarni buzish boshlandi. Uy egalariga yangi uyning quriladigan narxidan kelib chiqgan holda kompensatsiya puli to‘lanmoqda. Bir xonali yangi quriladigan uy narxi 45000 sh.b. Ikki xonalisi 70000 sh.b. Buziladigan kvartiraga ega har qanday kishi uni shu narxda sotishi mumkin.",
@@ -3127,7 +3127,7 @@
    "note": "1 xonali / 2 xonali (KV1s / KV2s)"
   },
   {
-   "file": "095_Barcha_kvartiralar.png",
+   "file": "095_Barcha_kvartiralar.webp",
    "code": "Barcha kvartiralar",
    "group": "Barcha kvartiralar",
    "text": "Uy bozorida uylar narxi ko‘tarildi! Barcha kvartiralar 50% ga qimmatlashdi. Kvartiraga ega har qanday kishi oshgan narxda sotishi mumkin.",
@@ -3137,7 +3137,7 @@
    "note": "barcha kvartiralar narxi"
   },
   {
-   "file": "096_Barcha_kvartiralar.png",
+   "file": "096_Barcha_kvartiralar.webp",
    "code": "Barcha kvartiralar",
    "group": "Barcha kvartiralar",
    "text": "Uy bozorida uylar narxining navbatdagi oshishi natijasida kvartiralar 2 barobar qimmatlashdi. Kvartira egalari haqiqiy qiymatiga ko‘rsatilgan oshgan narxni qo‘shgan holda sotishlari mumkin.",
@@ -3147,7 +3147,7 @@
    "note": "haqiqiy qiymatga qo‘shiladi"
   },
   {
-   "file": "097_Barcha_kvartiralar.png",
+   "file": "097_Barcha_kvartiralar.webp",
    "code": "Barcha kvartiralar",
    "group": "Barcha kvartiralar",
    "text": "Uy bozorida uylar narxi ko‘tarildi. Bir xonali kvartiralar 10 000 sh.b.ga, ikki xonali 20 000 sh.b.ga, uch xonali 30 000 sh.b.ga, to‘rt xonali 40 000 sh.b.ga oshdi!",
@@ -3157,7 +3157,7 @@
    "note": "1 / 2 / 3 / 4 xonali"
   },
   {
-   "file": "098_Barcha_kvartiralar.png",
+   "file": "098_Barcha_kvartiralar.webp",
    "code": "Barcha kvartiralar",
    "group": "Barcha kvartiralar",
    "text": "Uy bozorida uylar narxi ko‘tarildi. Bir xonali kvartiralar 70 000 sh.b.ga, ikki xonali 90 000 sh.b.ga, uch xonali 100 000 sh.b.ga, to‘rt xonali 110 000 sh.b.ga oshdi!",
@@ -3173,745 +3173,745 @@
    "text": "Siz o‘zingizga oltin peroli ruchka sotib oldingiz.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_001.png"
+   "file": "Xarajat_001.webp"
   },
   {
    "n": 2,
    "text": "Sevimli atiringizni sindirib qo‘ydingiz. Yangisini sotib oling.",
    "amount": 120,
    "note": "",
-   "file": "Xarajat_002.png"
+   "file": "Xarajat_002.webp"
   },
   {
    "n": 3,
    "text": "Elektron kofemashina sotib oling.",
    "amount": 600,
    "note": "",
-   "file": "Xarajat_003.png"
+   "file": "Xarajat_003.webp"
   },
   {
    "n": 4,
    "text": "Notebook sotib oldingiz.",
    "amount": 1600,
    "note": "",
-   "file": "Xarajat_004.png"
+   "file": "Xarajat_004.webp"
   },
   {
    "n": 5,
    "text": "“Bojalar” guruhi konsertiga tushing.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_005.png"
+   "file": "Xarajat_005.webp"
   },
   {
    "n": 6,
    "text": "“Bunyodkor” – “Paxtakor” o‘yiniga tushdingiz. Bilet uchun pul to‘lang.",
    "amount": 15,
    "note": "",
-   "file": "Xarajat_006.png"
+   "file": "Xarajat_006.webp"
   },
   {
    "n": 7,
    "text": "Sinfdoshlar bilan kafeda uchrashuv.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_007.png"
+   "file": "Xarajat_007.webp"
   },
   {
    "n": 8,
    "text": "Bahorgi katta tozalashni amalga oshirdingiz.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_008.png"
+   "file": "Xarajat_008.webp"
   },
   {
    "n": 9,
    "text": "Kompyuter tez-tez “osilib” qolyapti. Ta’mirlash uchun olib boring.",
    "amount": 120,
    "note": "",
-   "file": "Xarajat_009.png"
+   "file": "Xarajat_009.webp"
   },
   {
    "n": 10,
    "text": "Ovchilik uchun qurol sotib oldingiz.",
    "amount": 300,
    "note": "",
-   "file": "Xarajat_010.png"
+   "file": "Xarajat_010.webp"
   },
   {
    "n": 11,
    "text": "“Ray Ban” kompaniyasining quyoshdan himoyalovchi ko‘zoynagini sotib oling.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_011.png"
+   "file": "Xarajat_011.webp"
   },
   {
    "n": 12,
    "text": "Manikyur va pedikyur qiling.",
    "amount": 20,
    "note": "",
-   "file": "Xarajat_012.png"
+   "file": "Xarajat_012.webp"
   },
   {
    "n": 13,
    "text": "Yangi divan sotib oldingiz.",
    "amount": 400,
    "note": "",
-   "file": "Xarajat_013.png"
+   "file": "Xarajat_013.webp"
   },
   {
    "n": 14,
    "text": "Bolangizda noto‘g‘ri tishlam — skoba qo‘yish kerak. (agar bolangiz bo‘lsa)",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_014.png"
+   "file": "Xarajat_014.webp"
   },
   {
    "n": 15,
    "text": "Hozir “chilla” payti. Sovutgich qo‘ying.",
    "amount": 500,
    "note": "",
-   "file": "Xarajat_015.png"
+   "file": "Xarajat_015.webp"
   },
   {
    "n": 16,
    "text": "Siz o‘zingizga shaharda sayr qilish uchun velosiped sotib oldingiz.",
    "amount": 150,
    "note": "",
-   "file": "Xarajat_016.png"
+   "file": "Xarajat_016.webp"
   },
   {
    "n": 17,
    "text": "Yangi jalyuzi pardasini derazaga osdingiz.",
    "amount": 80,
    "note": "",
-   "file": "Xarajat_017.png"
+   "file": "Xarajat_017.webp"
   },
   {
    "n": 18,
    "text": "Farzandingiz bilan hayvonot bog‘iga bordingiz. (agar farzandingiz bo‘lsa)",
    "amount": 10,
    "note": "",
-   "file": "Xarajat_018.png"
+   "file": "Xarajat_018.webp"
   },
   {
    "n": 19,
    "text": "Tungi klubga borish ko‘ngilsizlik bilan yakunlandi. Stomatologga xarajatini to‘lang.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_019.png"
+   "file": "Xarajat_019.webp"
   },
   {
    "n": 20,
    "text": "Rafiqangizga tilla zirak sotib oldingiz.",
    "amount": 200,
    "note": "",
-   "file": "Xarajat_020.png"
+   "file": "Xarajat_020.webp"
   },
   {
    "n": 21,
    "text": "8-mart. Pul xarajat qiling.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_021.png"
+   "file": "Xarajat_021.webp"
   },
   {
    "n": 22,
    "text": "“Bunyodkor” – “Paxtakor” o‘yiniga tushdingiz. Bilet uchun pul to‘lang.",
    "amount": 15,
    "note": "",
-   "file": "Xarajat_022.png"
+   "file": "Xarajat_022.webp"
   },
   {
    "n": 23,
    "text": "Oilangiz bilan Chorvoqqa ta’tilga bordingiz.",
    "amount": 800,
    "note": "",
-   "file": "Xarajat_023.png"
+   "file": "Xarajat_023.webp"
   },
   {
    "n": 24,
    "text": "Voyaga yetmagan qizingiz mashina ruliga o‘tirdi. Yangi bamper uchun pul to‘lang. (agar mashinangiz bo‘lsa)",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_024.png"
+   "file": "Xarajat_024.webp"
   },
   {
    "n": 25,
    "text": "Qizingiz Iqtisodiyot universitetiga kirdi. To‘lov shartnomasini to‘lang. (agar pulingiz bo‘lsa)",
    "amount": 600,
    "note": "",
-   "file": "Xarajat_025.png"
+   "file": "Xarajat_025.webp"
   },
   {
    "n": 26,
    "text": "Plastik derazalar hozir modada.",
    "amount": 500,
    "note": "",
-   "file": "Xarajat_026.png"
+   "file": "Xarajat_026.webp"
   },
   {
    "n": 27,
    "text": "Qizingiz Iqtisodiyot universitetiga kirdi. To‘lov shartnomasini to‘lang. (agar pulingiz bo‘lsa)",
    "amount": 600,
    "note": "",
-   "file": "Xarajat_027.png"
+   "file": "Xarajat_027.webp"
   },
   {
    "n": 28,
    "text": "Qizingiz maktabga chiqdi. (agar bolangiz bo‘lsa)",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_028.png"
+   "file": "Xarajat_028.webp"
   },
   {
    "n": 29,
    "text": "Xitoy restoraniga bordingiz.",
    "amount": 30,
    "note": "",
-   "file": "Xarajat_029.png"
+   "file": "Xarajat_029.webp"
   },
   {
    "n": 30,
    "text": "Yangi kostyum sotib oldingiz.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_030.png"
+   "file": "Xarajat_030.webp"
   },
   {
    "n": 31,
    "text": "O‘yin avtomatlari zaliga bordingiz.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_031.png"
+   "file": "Xarajat_031.webp"
   },
   {
    "n": 32,
    "text": "Buyragingiz og‘rib qoldi. Rafiqangiz bilan “Truskavets” sanatoriyasiga suv ichishga borish payti keldi.",
    "amount": 1700,
    "note": "",
-   "file": "Xarajat_032.png"
+   "file": "Xarajat_032.webp"
   },
   {
    "n": 33,
    "text": "O‘zingizni tutib turolmadingiz va oltin ilmаtugma sotib oldingiz.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_033.png"
+   "file": "Xarajat_033.webp"
   },
   {
    "n": 34,
    "text": "Xarid uchun Turkiyaga uyushtirgan sayohatingiz omadsiz keldi.",
    "amount": 5000,
    "note": "",
-   "file": "Xarajat_034.png"
+   "file": "Xarajat_034.webp"
   },
   {
    "n": 35,
    "text": "Bilimga sarmoya kiriting. “POYGA” moliyaviy savodlilik biznes treninglariga qatnashing.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_035.png"
+   "file": "Xarajat_035.webp"
   },
   {
    "n": 36,
    "text": "Siz mashinani qo‘yish qoidasini buzdingiz va uni evakuator olib ketdi.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_036.png"
+   "file": "Xarajat_036.webp"
   },
   {
    "n": 37,
    "text": "Rafiqangiz sizni kinoga olib borishingizni so‘rayapti!",
    "amount": 20,
    "note": "",
-   "file": "Xarajat_037.png"
+   "file": "Xarajat_037.webp"
   },
   {
    "n": 38,
    "text": "Oilangiz bilan “Versal”ga bordingiz.",
    "amount": 200,
    "note": "",
-   "file": "Xarajat_038.png"
+   "file": "Xarajat_038.webp"
   },
   {
    "n": 39,
    "text": "Rafiqangiz yana rulga o‘tirdi. (agar mashinangiz bo‘lsa)",
    "amount": 500,
    "note": "",
-   "file": "Xarajat_039.png"
+   "file": "Xarajat_039.webp"
   },
   {
    "n": 40,
    "text": "Tungi klubga borish ko‘ngilsizlik bilan yakunlandi. Stomatologga xarajatini to‘lang.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_040.png"
+   "file": "Xarajat_040.webp"
   },
   {
    "n": 41,
    "text": "Uy sovuq. Kamin qurishga qaror qildingiz.",
    "amount": 1000,
    "note": "",
-   "file": "Xarajat_041.png"
+   "file": "Xarajat_041.webp"
   },
   {
    "n": 42,
    "text": "Sizni to‘yga taklif etishdi. Yangi kiyim sotib oling.",
    "amount": 150,
    "note": "",
-   "file": "Xarajat_042.png"
+   "file": "Xarajat_042.webp"
   },
   {
    "n": 43,
    "text": "Oilangiz bilan Chorvoqqa ta’tilga bordingiz.",
    "amount": 800,
    "note": "",
-   "file": "Xarajat_043.png"
+   "file": "Xarajat_043.webp"
   },
   {
    "n": 44,
    "text": "Lo‘lidan tilla uzukni juda arzonga sotib oldingiz. 3 kundan so‘ng qorayib ketdi.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_044.png"
+   "file": "Xarajat_044.webp"
   },
   {
    "n": 45,
    "text": "Qizingiz o‘ziga yangi fen sotib oldi. (agar farzandlaringiz bo‘lsa)",
    "amount": 40,
    "note": "",
-   "file": "Xarajat_045.png"
+   "file": "Xarajat_045.webp"
   },
   {
    "n": 46,
    "text": "Basseynga aboniment sotib oldingiz.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_046.png"
+   "file": "Xarajat_046.webp"
   },
   {
    "n": 47,
    "text": "Yangi musiqiy disklar sotib oldingiz.",
    "amount": 20,
    "note": "",
-   "file": "Xarajat_047.png"
+   "file": "Xarajat_047.webp"
   },
   {
    "n": 48,
    "text": "Uyingizga kupe-shkaf yasattiring.",
    "amount": 300,
    "note": "",
-   "file": "Xarajat_048.png"
+   "file": "Xarajat_048.webp"
   },
   {
    "n": 49,
    "text": "Siz bir insonga ishondingiz va pul berdingiz. U qallob bo‘lib chiqdi.",
    "amount": 600,
    "note": "",
-   "file": "Xarajat_049.png"
+   "file": "Xarajat_049.webp"
   },
   {
    "n": 50,
    "text": "Go‘zal surat ko‘rib qoldingiz. Uni sotib olishdan o‘zingizni tutib tura olmadingiz.",
    "amount": 40,
    "note": "",
-   "file": "Xarajat_050.png"
+   "file": "Xarajat_050.webp"
   },
   {
    "n": 51,
    "text": "Roliklarda uchishni o‘rganishga qaror qildingiz.",
    "amount": 150,
    "note": "",
-   "file": "Xarajat_051.png"
+   "file": "Xarajat_051.webp"
   },
   {
    "n": 52,
    "text": "Tishingizning qoplamasi tushib ketdi. Stomatologga darhol borishingiz kerak.",
    "amount": 200,
    "note": "",
-   "file": "Xarajat_052.png"
+   "file": "Xarajat_052.webp"
   },
   {
    "n": 53,
    "text": "Mobil telefoningizni o‘g‘irlab ketishdi. Yangisini sotib oling.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_053.png"
+   "file": "Xarajat_053.webp"
   },
   {
    "n": 54,
    "text": "Qizingiz turmushga chiqayapti. Sepini tayyorlang. (agar bolangiz bo‘lsa)",
    "amount": 5000,
    "note": "",
-   "file": "Xarajat_054.png"
+   "file": "Xarajat_054.webp"
   },
   {
    "n": 55,
    "text": "Uyingizga mikroto‘lqinli pech sotib oldingiz.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_055.png"
+   "file": "Xarajat_055.webp"
   },
   {
    "n": 56,
    "text": "Siz bilim uchun sarmoya kiritdingiz. “POYGA” o‘yinini sotib oldingiz.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_056.png"
+   "file": "Xarajat_056.webp"
   },
   {
    "n": 57,
    "text": "Dvigateldagi moyni almashtirish payti keldi. (agar mashinangiz bo‘lsa)",
    "amount": 40,
    "note": "",
-   "file": "Xarajat_057.png"
+   "file": "Xarajat_057.webp"
   },
   {
    "n": 58,
    "text": "Rafiqangizga tilla zirak sotib oldingiz.",
    "amount": 200,
    "note": "",
-   "file": "Xarajat_058.png"
+   "file": "Xarajat_058.webp"
   },
   {
    "n": 59,
    "text": "Sizga yangi hamyon kerak.",
    "amount": 20,
    "note": "",
-   "file": "Xarajat_059.png"
+   "file": "Xarajat_059.webp"
   },
   {
    "n": 60,
    "text": "Amaliy san’at ko‘rgazmasida jilvali panno yoqib qoldi.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_060.png"
+   "file": "Xarajat_060.webp"
   },
   {
    "n": 61,
    "text": "Manikyur to‘plami sotib oldingiz.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_061.png"
+   "file": "Xarajat_061.webp"
   },
   {
    "n": 62,
    "text": "Chiroyli qizga angayib yoningizda turgan “Neksiya”ni turtib yubordingiz.",
    "amount": 1000,
    "note": "",
-   "file": "Xarajat_062.png"
+   "file": "Xarajat_062.webp"
   },
   {
    "n": 63,
    "text": "“Oybek-Nigora” duetining konsertiga tushing.",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_063.png"
+   "file": "Xarajat_063.webp"
   },
   {
    "n": 64,
    "text": "Rafiqangizga tufli sotib oldingiz. Unga tufli olib berishingizni so‘radi.",
    "amount": 150,
    "note": "Kartada «100 + 50» yozilgan",
-   "file": "Xarajat_064.png"
+   "file": "Xarajat_064.webp"
   },
   {
    "n": 65,
    "text": "Uy sovuq. Kamin qurishga qaror qildingiz.",
    "amount": 1000,
    "note": "",
-   "file": "Xarajat_065.png"
+   "file": "Xarajat_065.webp"
   },
   {
    "n": 66,
    "text": "Tug‘ilgan kuningiz. Stol yasating.",
    "amount": 200,
    "note": "",
-   "file": "Xarajat_066.png"
+   "file": "Xarajat_066.webp"
   },
   {
    "n": 67,
    "text": "Oilangiz bilan “Piramida”ga dam olishga bordingiz.",
    "amount": 1000,
    "note": "",
-   "file": "Xarajat_067.png"
+   "file": "Xarajat_067.webp"
   },
   {
    "n": 68,
    "text": "Ko‘p qor yog‘di. Qishki g‘ildiraklar o‘rnating. (agar mashinangiz bo‘lsa)",
    "amount": 200,
    "note": "",
-   "file": "Xarajat_068.png"
+   "file": "Xarajat_068.webp"
   },
   {
    "n": 69,
    "text": "Fitnes klubiga yozildingiz.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_069.png"
+   "file": "Xarajat_069.webp"
   },
   {
    "n": 70,
    "text": "O‘zingiz uchun uy kinoteatrini sotib oldingiz.",
    "amount": 1000,
    "note": "",
-   "file": "Xarajat_070.png"
+   "file": "Xarajat_070.webp"
   },
   {
    "n": 71,
    "text": "Mashinangizni tunda ko‘chada qoldirdingiz. Avtomagnitolaga pul to‘lang. (agar mashinangiz bo‘lsa)",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_071.png"
+   "file": "Xarajat_071.webp"
   },
   {
    "n": 72,
    "text": "Notebookingizni taksida qoldirdingiz. Yana bittasini sotib oling.",
    "amount": 1600,
    "note": "",
-   "file": "Xarajat_072.png"
+   "file": "Xarajat_072.webp"
   },
   {
    "n": 73,
    "text": "Muzlatgich buzilib qoldi. Usta chaqiring.",
    "amount": 40,
    "note": "",
-   "file": "Xarajat_073.png"
+   "file": "Xarajat_073.webp"
   },
   {
    "n": 74,
    "text": "Sevimli atiringizni sindirib qo‘ydingiz. Yangisini sotib oling.",
    "amount": 120,
    "note": "",
-   "file": "Xarajat_074.png"
+   "file": "Xarajat_074.webp"
   },
   {
    "n": 75,
    "text": "Bolalaringiz bilan istirohat bog‘iga boring. (agar bolalaringiz bo‘lsa)",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_075.png"
+   "file": "Xarajat_075.webp"
   },
   {
    "n": 76,
    "text": "Bilimga sarmoya ajratishga qaror qildingiz. Shaxs yuksalishi treningiga qatnashing.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_076.png"
+   "file": "Xarajat_076.webp"
   },
   {
    "n": 77,
    "text": "O‘g‘lingizga yangi koptok sotib oling va qo‘shningizga oyna qo‘ydiring. (agar bolangiz bo‘lsa)",
    "amount": 70,
    "note": "Kartada «20 + 50» yozilgan",
-   "file": "Xarajat_077.png"
+   "file": "Xarajat_077.webp"
   },
   {
    "n": 78,
    "text": "“Shaxs yuksalishi” treningida qatnashing.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_078.png"
+   "file": "Xarajat_078.webp"
   },
   {
    "n": 79,
    "text": "Ko‘chada chilla. Konditsioner o‘rnating.",
    "amount": 500,
    "note": "",
-   "file": "Xarajat_079.png"
+   "file": "Xarajat_079.webp"
   },
   {
    "n": 80,
    "text": "Zararli odatlar bilan kurash bo‘yicha ma’ruza eshitdingiz.",
    "amount": 50,
    "note": "Kartada «40 + 10» yozilgan",
-   "file": "Xarajat_080.png"
+   "file": "Xarajat_080.webp"
   },
   {
    "n": 81,
    "text": "Muzlatgichni almashtirish payti keldi.",
    "amount": 300,
    "note": "",
-   "file": "Xarajat_081.png"
+   "file": "Xarajat_081.webp"
   },
   {
    "n": 82,
    "text": "Salonga borish payti keldi.",
    "amount": 30,
    "note": "",
-   "file": "Xarajat_082.png"
+   "file": "Xarajat_082.webp"
   },
   {
    "n": 83,
    "text": "Televizor sotib oldingiz.",
    "amount": 500,
    "note": "",
-   "file": "Xarajat_083.png"
+   "file": "Xarajat_083.webp"
   },
   {
    "n": 84,
    "text": "Chaqaloqqa krovat kerak. (agar bolangiz bo‘lsa)",
    "amount": 100,
    "note": "",
-   "file": "Xarajat_084.png"
+   "file": "Xarajat_084.webp"
   },
   {
    "n": 85,
    "text": "Amaliy san’at ko‘rgazmasida jilvali panno yoqib qoldi.",
    "amount": 50,
    "note": "",
-   "file": "Xarajat_085.png"
+   "file": "Xarajat_085.webp"
   }
  ],
  "kxar": [
   {
    "n": 1,
-   "file": "001_xarajat.png",
+   "file": "001_xarajat.webp",
    "text": "Biznes sheriklaringiz Rossiyadan kelishdi. Ularni yaxshilab kutib oling.",
    "amount": 3500
   },
   {
    "n": 2,
-   "file": "002_xarajat.png",
+   "file": "002_xarajat.webp",
    "text": "Uyingizga naqd pul saqlash uchun maxfiy metal seyf yasatdingiz.",
    "amount": 17000
   },
   {
    "n": 3,
-   "file": "003_xarajat.png",
+   "file": "003_xarajat.webp",
    "text": "“Oybek” metrosi bekatidagi “Raketa 2” kooperatividan avtomashina uchun ikkitalik yerosti garaji sotib oling.",
    "amount": 6000
   },
   {
    "n": 4,
-   "file": "004_xarajat.png",
+   "file": "004_xarajat.webp",
    "text": "Rafiqangizning tug‘ilgan kuniga taqinchoqlar to‘plamini sotib oldingiz.",
    "amount": 18000
   },
   {
    "n": 5,
-   "file": "005_xarajat.png",
+   "file": "005_xarajat.webp",
    "text": "Ikkinchi qavatda qishki bog‘ qurish va gullar o‘stirishni juda xohlaysiz.",
    "amount": 8000
   },
   {
    "n": 6,
-   "file": "006_xarajat.png",
+   "file": "006_xarajat.webp",
    "text": "Farzandingizning ingliz tilisini yanada takomillashtirish uchun Angliyaning e’tiborli o‘quv yurtlaridan biriga jo‘nating.",
    "amount": 15000
   },
   {
    "n": 7,
-   "file": "007_xarajat.png",
+   "file": "007_xarajat.webp",
    "text": "Uyali telefoningizni o‘g‘irlab ketishdi. Yangisini sotib oling.",
    "amount": 1000
   },
   {
    "n": 8,
-   "file": "008_xarajat.png",
+   "file": "008_xarajat.webp",
    "text": "Suvli changyutgich sotib oldingiz!",
    "amount": 1000
   },
   {
    "n": 9,
-   "file": "009_xarajat.png",
+   "file": "009_xarajat.webp",
    "text": "Taniqli kompaniyaning kostyum bilan ko‘ylagi yoqib qoldi. Uni sotib oling.",
    "amount": 3000
   },
   {
    "n": 10,
-   "file": "010_xarajat.png",
+   "file": "010_xarajat.webp",
    "text": "Maldiv orollarida oilangiz bilan dam olish.",
    "amount": 18000
   },
   {
    "n": 11,
-   "file": "011_xarajat.png",
+   "file": "011_xarajat.webp",
    "text": "Sevimli jamoangizga muxlislik qilish uchun Angliyaga uchish kerak.",
    "amount": 12000
   },
   {
    "n": 12,
-   "file": "012_xarajat.png",
+   "file": "012_xarajat.webp",
    "text": "Tug‘ilgan kuningizni tog‘dagi pansionatda nishonladingiz. Bu tantana uchun mashhur yulduzlarni taklif qildingiz.",
    "amount": 18000
   },
   {
    "n": 13,
-   "file": "013_xarajat.png",
+   "file": "013_xarajat.webp",
    "text": "Chexiyaning “Karlovy Vary” sanatoriyasida davolanishga ahd qildingiz.",
    "amount": 7000
   },
   {
    "n": 14,
-   "file": "014_xarajat.png",
+   "file": "014_xarajat.webp",
    "text": "Sobiq sherigingizning tug‘ilgan kuniga borib, uni tabriklang. Axir ishlaringizning rivojiga va hozirgi darajaga erishishingizga yordam bergan insonga minnatdorchilik bildirish lozim-ku!",
    "amount": 12000
   },
   {
    "n": 15,
-   "file": "015_xarajat.png",
+   "file": "015_xarajat.webp",
    "text": "Skuter sotib oldingiz.",
    "amount": 22000
   },
   {
    "n": 16,
-   "file": "016_xarajat.png",
+   "file": "016_xarajat.webp",
    "text": "Eski soatingiz buzildi. “RADO”ni “Rolex”ga almashtirish payti keldi.",
    "amount": 20000
   },
   {
    "n": 17,
-   "file": "017_xarajat.png",
+   "file": "017_xarajat.webp",
    "text": "Barcha uskunalarni sotib olib, Avstriyadagi tog‘larda chang‘i uchishni o‘rganishga qaror qildingiz.",
    "amount": 12000
   },
   {
    "n": 18,
-   "file": "018_xarajat.png",
+   "file": "018_xarajat.webp",
    "text": "Akangizga qizini aspiranturaga kirishiga puldan yordam bering.",
    "amount": 7000
   },
   {
    "n": 19,
-   "file": "019_xarajat.png",
+   "file": "019_xarajat.webp",
    "text": "Qizingizning tug‘ilgan kuniga yangi avtomobil sotib oldingiz.",
    "amount": 30000
   },
   {
    "n": 20,
-   "file": "020_xarajat.png",
+   "file": "020_xarajat.webp",
    "text": "Qizingiz turmushga chiqayapti. Sepning zo‘rini qiling!",
    "amount": 25000
   },
   {
    "n": 21,
-   "file": "021_xarajat.png",
+   "file": "021_xarajat.webp",
    "text": "Qizingiz Malayziya universitetida o‘qishni istayapti. Uning o‘qishi va yashashiga pul to‘lang.",
    "amount": 25000
   },
   {
    "n": 22,
-   "file": "022_xarajat.png",
+   "file": "022_xarajat.webp",
    "text": "Uyda basseyn va jakuzi bilan finlar saunasini qurdirishga qaror qildingiz.",
    "amount": 12000
   },
   {
    "n": 23,
-   "file": "023_xarajat.png",
+   "file": "023_xarajat.webp",
    "text": "“Mersedez-Benz” avtomobilingiz tasodifan yuk mashinasini turtib oldi. Uni ta’mirlash va sotish zarur.",
    "amount": 8000
   },
   {
    "n": 24,
-   "file": "024_xarajat.png",
+   "file": "024_xarajat.webp",
    "text": "Xotiningiz yuzini plastik operatsiya qildirdi.",
    "amount": 3500
   },
   {
    "n": 25,
-   "file": "025_xarajat.png",
+   "file": "025_xarajat.webp",
    "text": "Siz sevgan XIX asrda yasalgan vazani sindirib qo‘ydingiz.",
    "amount": 50000
   }
@@ -3919,56 +3919,56 @@
  "hod": [
   {
    "n": 1,
-   "file": "01_OLD_TOMON.png",
+   "file": "01_OLD_TOMON.webp",
    "text": "Tovarni bir halol insonga sotish sharti bilan 3 oyga berdingiz. Uch oydan so‘ng bu inson kasodga uchradi va sizga pullarni qaytara olmaydi. Bankka 10 000 sh.b. bering.",
    "amount": 10000
   },
   {
    "n": 2,
-   "file": "02_OLD_TOMON.png",
+   "file": "02_OLD_TOMON.webp",
    "text": "Siz amerikalik maslahatchingizga ishonib biznes loyihalarga pul tikdingiz. Bir necha oydan so‘ng maslahatchingiz firibgarlikda ayblanib, ozodlikdan mahrum bo‘ldi. Bankka 21 000 sh.b. bering.",
    "amount": 21000
   },
   {
    "n": 3,
-   "file": "03_OLD_TOMON.png",
+   "file": "03_OLD_TOMON.webp",
    "text": "Tanishingizga qarz berdingiz. U firibgar bo‘lib chiqdi. Bankka 5 000 sh.b. bering.",
    "amount": 5000
   },
   {
    "n": 4,
-   "file": "04_OLD_TOMON.png",
+   "file": "04_OLD_TOMON.webp",
    "text": "Ko‘p yillik tanishingiz bilan avtomobil ehtiyot qismlarini ishlab chiqarish biznesini yaratdingiz. Siz unga ishondingiz va u shu vaqtgacha kompaniyani boshqardi. 6 yildan so‘ng u kompaniyaning kasodga uchragani va katta qarzi borligini aytdi. Bankka 25 000 sh.b. bering.",
    "amount": 25000
   },
   {
    "n": 5,
-   "file": "05_OLD_TOMON.png",
+   "file": "05_OLD_TOMON.webp",
    "text": "Piyozni Rossiyaga jo‘natdingiz. Yuk ortilishini shaxsan nazorat qilmadingiz. Sifatsiz bo‘lganligini keyinchalik yukni jo‘natgan hamkorlaringiz aytishdi. Bankka 25 000 sh.b. bering.",
    "amount": 25000
   },
   {
    "n": 6,
-   "file": "06_OLD_TOMON.png",
+   "file": "06_OLD_TOMON.webp",
    "text": "Sharbat uchun konsentratni Ukrainaga jo‘natdingiz. Noto‘g‘ri saqlangani uchun yo‘lda tovar aynidi. Xaridor buzilgan tovar uchun haq to‘lashdan bosh tortdi. Bankka 10 000 sh.b. bering.",
    "amount": 10000
   },
   {
    "n": 7,
-   "file": "07_OLD_TOMON.png",
+   "file": "07_OLD_TOMON.webp",
    "text": "Taqdir taqozosi bilan biznes sherigingiz bilan ajralishingiz lozim. Bankka 75 000 sh.b. bering va biznesingiz o‘zingizda qoladi. Aks holda KBllaringizdan birini aylanaga qaytaring.",
    "amount": 75000
   },
   {
    "n": 8,
-   "file": "08_OLD_TOMON.png",
+   "file": "08_OLD_TOMON.webp",
    "text": "Jahon moliyaviy inqirozi. Fond bozorida narxlar tushib ketgan. Yer, dala-hovli, kvartira va aksiyalar narxi sotilish va sotib olish narxidan ikki barobarga tushib ketdi. Bu barcha o‘yinchilarga tegishli.",
    "amount": "Barcha o‘yinchilar",
    "note": "Matn aniqlashtirildi (qaror)"
   },
   {
    "n": 9,
-   "file": "09_OLD_TOMON.png",
+   "file": "09_OLD_TOMON.webp",
    "text": "Xitoyga bir necha marta sotib olib bozorda muvaffaqiyatli sotgan oliy sifatli poyafzal uchun 60 000 sh.b. o‘tkazdingiz. Biroq vagonda siz buyurtma bergandan boshqa sifat va fasondagi poyafzal kelgan. Siz bir amallab mahsulotni 2 baravar arzonroq narxda sotdingiz. Bankka 30 000 sh.b. bering.",
    "amount": 30000
   }
@@ -3977,7 +3977,7 @@
   {
    "deck": "bozor",
    "code": "Q",
-   "file": "099_Q.png",
+   "file": "099_Q.webp",
    "text": "Do‘stingiz qarzni qaytardi. Unga 300 sh.b. qarz bergan bo‘lsangiz, 600 sh.b. oling. Kartochka faqat qarz bergan o‘yinchiga tegishli.",
    "amount": 600,
    "who": "Qarz kartasi (Q_001) egasi",
@@ -3986,7 +3986,7 @@
   {
    "deck": "xar",
    "code": "SUG",
-   "file": "Xarajat_086.png",
+   "file": "Xarajat_086.webp",
    "text": "Avtomobilingizni sug‘urta qildingiz. Karta sizda qoladi va yo‘l-transport hodisasi (YTH) xarajatlaridan ozod qiladi. (agar mashinangiz bo‘lsa)",
    "amount": 300,
    "who": "Avtomobil egasi",
@@ -3995,7 +3995,7 @@
   {
    "deck": "kichik",
    "code": "MO",
-   "file": "MO_001.png",
+   "file": "MO_001.webp",
    "text": "Malaka oshirish kursiga yoziling. Kurs uchun bir marta 500 sh.b. to‘lang — ish haqingiz har oy 50 sh.b.ga doimiy oshadi.",
    "price": 500,
    "salary_plus": 50,
@@ -4005,7 +4005,7 @@
   {
    "deck": "kichik",
    "code": "XAY",
-   "file": "XAY_001.png",
+   "file": "XAY_001.webp",
    "text": "Mahalla maktabini ta’mirlashga homiylik qiling. Umumiy oylik daromadingizning 10 % ini to‘lang — keyingi 3 navbatda 2 ta kubik tashlaysiz.",
    "price": "Umumiy daromadning 10 %",
    "who": "Faqat kartani olgan o‘yinchi",
@@ -4014,7 +4014,7 @@
   {
    "deck": "bozor",
    "code": "IJR",
-   "file": "100_IJR.png",
+   "file": "100_IJR.webp",
    "text": "Ijarachingiz muddatidan oldin ko‘chib ketdi. Ko‘chmas mulkingizdan birining shu oylik ijara daromadini olmaysiz.",
    "amount": "Bitta mulkning oylik pul oqimi",
    "who": "Ko‘chmas mulk egasi (kartani olgan o‘yinchi)",
@@ -4023,7 +4023,7 @@
   {
    "deck": "hod",
    "code": "TOSH",
-   "file": "10_SUV_TOSHQINI.png",
+   "file": "10_SUV_TOSHQINI.webp",
    "text": "Kuchli jala tufayli avtomobilingizni suv bosdi. Ta’mir uchun bankka 2 000 sh.b. to‘lang. «Avtomobil sug‘urtasi» kartangiz bo‘lsa — to‘lamaysiz. (agar mashinangiz bo‘lsa)",
    "amount": 2000,
    "who": "Avtomobil egasi; sug‘urtasi borlar ozod",

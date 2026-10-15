@@ -101,6 +101,9 @@ export function partnerBuyoutPrice(fullPrice: number, monthlyProfit: number) {
   return fullPrice + monthlyProfit;
 }
 
+/** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja. */
+export const POINTS = { finish: 10, asset: 5, quitJob: 20, exitSmallCircle: 40, win: 100, second: 30, third: 15, auto: -2, abandon: -20, unreliable: -50 } as const;
+
 /** §5.8 Qarov: oylik xarajat +100. */
 export const withQar = (monthlyExpenses: number) => monthlyExpenses + RULES.qarMonthly;
 

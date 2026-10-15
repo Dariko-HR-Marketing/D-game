@@ -17,7 +17,7 @@ describe("profil tekshiruvi (§7)", () => {
     expect(isRestricted({ birthYear: 2010 }, Y)).toBe(false); // 16
     expect(isRestricted(undefined, Y)).toBe(false);
   });
-  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(starsOf(7)).toBe(5); expect(titleOf(0)).toBe("employee"); expect(titleOf(5)).toBe("investor"); expect(titleOf(3)).toBeNull(); expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toEqual({ win: 100, exitSmallCircle: 50, unreliable: -50 }); });
+  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(starsOf(7)).toBe(5); expect(titleOf(0)).toBe("employee"); expect(titleOf(5)).toBe("investor"); expect(titleOf(3)).toBeNull(); expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toMatchObject({ finish: 10, asset: 5, quitJob: 20, exitSmallCircle: 40, win: 100, second: 30, third: 15, auto: -2, abandon: -20, unreliable: -50 }); });
 });
 
 describe("tarix va reyting", () => {

@@ -6,7 +6,7 @@ describe("qoidalar ekrani (§15): manba bilan, dvigatel konstantalaridan", () =>
   const items = ruleItems(RULES);
   it("id lar takrorlanmaydi, har birida sarlavha, matn va SPEC manbasi bor", () => {
     expect(new Set(items.map((i) => i.id)).size).toBe(items.length);
-    for (const i of items) { expect(i.title.length).toBeGreaterThan(2); expect(i.text.length).toBeGreaterThan(20); expect(i.source).toMatch(/^SPEC §\d/); }
+    for (const i of items) { expect(i.title.length).toBeGreaterThan(2); expect(i.text.length).toBeGreaterThan(20); expect(i.source).toMatch(/^(SPEC|Qo.llanma) §\d/); }
   });
   it("matndagi raqamlar RULES dan keladi (to'liq yozilgan, qisqartirishsiz)", () => {
     const t = (id: string) => items.find((i) => i.id === id)!.text;

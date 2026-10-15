@@ -54,6 +54,8 @@ export function validateBundle(b: Bundle): string[] {
   if (b.cellRules.big.onLap?.kind === "drawDeck") { const d = b.cellRules.big.onLap.deck; if (eff.some((e) => e.deck === d && e.mode !== "mandatory")) problems.push(`cellRules.big.onLap: "${d}" dekasida ixtiyoriy kartalar bor (faqat majburiy kartali deka mumkin)`); }
   if (b.cellRules.big.onLap?.kind === "drawCard") { const e = eff.find((x) => x.id === (b.cellRules.big.onLap as any).cardId); if (e && e.mode !== "mandatory") problems.push("cellRules.big.onLap: karta majburiy bo'lishi kerak"); }
   for (const [i, a] of Object.entries(b.cellRules.big.byIndex)) if (a.kind === "offerCellAsset" && b.bigBoard[Number(i)]?.price == null) problems.push(`cellRules.big.byIndex.${i}: katakda narx yo'q (offerCellAsset mumkin emas)`);
+  // Tavakkal (V) kataklari: narx va yutuqli kubik qirralari shart (qo'llanma §11)
+  if (b.cellRules.big.byType.V?.kind === "offerGamble") for (const c of b.bigBoard) if (c.t === "V" && (c.price == null || !c.faces?.length)) problems.push(`katta aylana ${c.i}-katak (V): narx yoki yutuqli kubik qirralari (faces) yo'q`);
   return problems;
 }
 export * from "./cardfile";

@@ -15,41 +15,6 @@ function landBig(cellIdx: number, prep: (s: GameState) => void, n = 3, deckHead?
 }
 const biz = (code: string, income: number) => ({ kind: "small_business", code, price: 1000, monthlyIncome: income, creditPayment: 0, credit: 0 });
 
-describe("standart qoidalar: katta aylana kataklari", () => {
-  it("Ajrashish (23) → hod-7: pul YOKI biznes tanlovi taklif qilinadi", () => {
-    const s = landBig(23, () => {}); expect(s.pending?.cardId).toBe("hod-7");
-  });
-  it("hod-7: pul to'lasa 75 000 ketadi", () => {
-    let s = landBig(23, () => {}); const c0 = s.players[0].cash;
-    const r: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: true }); s = r.state; expect(s.players[0].cash).toBe(c0 - 75_000);
-  });
-  it("hod-7: bizneslardan birini qaytarsa — eng kam daromadlisi ketadi, pul to'lanmaydi", () => {
-    let s = landBig(23, (g) => { g.players[0].assets = [biz("A", 500), biz("B", 100), biz("C", 300)]; }); const c0 = s.players[0].cash;
-    const r: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false }); s = r.state;
-    expect(s.players[0].assets.map((a) => a.code).sort()).toEqual(["A", "C"]); expect(s.players[0].cash).toBe(c0);
-  });
-  it("hod-7: biznesi bo'lmasa tanlov yo'q — to'lov majburiy", () => {
-    let s = landBig(23, () => {}); const c0 = s.players[0].cash;
-    const r: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false }); s = r.state; expect(s.players[0].cash).toBe(c0 - 75_000);
-  });
-  it("Nohalol biznes (47): 1 000 000 to'lanadi; Audit (33): oylik daromadning 20 % i", () => {
-    expect(5_000_000 - landBig(47, () => {}).players[0].cash).toBeGreaterThanOrEqual(1_000_000 - 1); // oy o'tishi qo'shilishi mumkin
-    const s = landBig(33, (g) => { g.players[0].salary = 10_000; });
-    expect(s.log.some((l) => l.includes("qoida kutilmoqda"))).toBe(false);
-  });
-  it("aylana boshi (START dan o'tish): kxar dekasidan majburiy xarajat tortiladi", () => {
-    const s = landBig(36, () => {}, 3, ["kxar", "kxar-1"]); // 34 dan o'tadi emas: 36 ga tushish uchun 34 dan o'tilgan bo'lishi kerak
-    void s;
-    for (let die = 1; die <= 6; die++) for (let seed = 1; seed < 300; seed++) {
-      const g = mk(); Object.assign(g.players[0], { circle: "big", pos: 33, lockedFlow: 5000, cash: 5_000_000 }); g.decks.kxar.draw = ["kxar-1", ...g.decks.kxar.draw.filter((x) => x !== "kxar-1")]; g.rngState = seed;
-      const r = reduce(g, ctx, { type: "roll", playerId: "p0" }); if (r.ok && r.die! >= 2) {
-        expect(r.state.decks.kxar.discard).toContain("kxar-1"); return;
-      }
-    }
-    throw new Error("topilmadi");
-  });
-});
-
 describe("jahon inqirozi (§5.7): 36 oy, sotish va sotib olish narxi 2 baravar past, tugaganda xabar", () => {
   const D = SMALL_BOARD.indexOf("D");
   it("davomiylik 9 aylana × 4 oy = 36", () => { expect(crisisMonths()).toBe(36); });

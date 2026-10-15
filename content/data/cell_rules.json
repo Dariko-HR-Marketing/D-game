@@ -1,47 +1,46 @@
 {
  "small": {
   "K": {
-   "kind": "restart"
+   "kind": "eventCard"
   },
   "Q": {
-   "kind": "skipTurns",
-   "turns": 2
+   "kind": "noSalary",
+   "months": 4
   }
  },
  "big": {
   "byType": {
    "Y": {
-    "kind": "payday",
-    "times": 1
+    "kind": "none"
    },
    "V": {
-    "kind": "offerCellAsset"
+    "kind": "offerGamble"
+   },
+   "O": {
+    "kind": "drawDeck",
+    "deck": "kxar"
    }
   },
   "byIndex": {
    "5": {
-    "kind": "drawDeck",
-    "deck": "hod"
+    "kind": "loseWorstBusiness"
    },
    "23": {
-    "kind": "drawCard",
-    "cardId": "hod-7"
+    "kind": "payCashShare",
+    "share": 0.5
    },
    "33": {
-    "kind": "loseIncomeShare",
+    "kind": "payCashShare",
     "share": 0.2
    },
    "34": {
     "kind": "none"
    },
    "47": {
-    "kind": "payFixed",
-    "amount": 1000000
+    "kind": "shady",
+    "first": 1000000,
+    "share": 0.2
    }
-  },
-  "onLap": {
-   "kind": "drawDeck",
-   "deck": "kxar"
   }
  }
 }

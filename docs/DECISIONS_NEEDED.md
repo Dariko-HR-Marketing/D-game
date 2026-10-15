@@ -8,64 +8,66 @@ SPEC aytmagan qoidalar bo'yicha qarorlarni loyiha jamoasi **professional taxmin 
 {
  "small": {
   "K": {
-   "kind": "restart"
+   "kind": "eventCard"
   },
   "Q": {
-   "kind": "skipTurns",
-   "turns": 2
+   "kind": "noSalary",
+   "months": 4
   }
  },
  "big": {
   "byType": {
    "Y": {
-    "kind": "payday",
-    "times": 1
+    "kind": "none"
    },
    "V": {
-    "kind": "offerCellAsset"
+    "kind": "offerGamble"
+   },
+   "O": {
+    "kind": "drawDeck",
+    "deck": "kxar"
    }
   },
   "byIndex": {
    "5": {
-    "kind": "drawDeck",
-    "deck": "hod"
+    "kind": "loseWorstBusiness"
    },
    "23": {
-    "kind": "drawCard",
-    "cardId": "hod-7"
+    "kind": "payCashShare",
+    "share": 0.5
    },
    "33": {
-    "kind": "loseIncomeShare",
+    "kind": "payCashShare",
     "share": 0.2
    },
    "34": {
     "kind": "none"
    },
    "47": {
-    "kind": "payFixed",
-    "amount": 1000000
+    "kind": "shady",
+    "first": 1000000,
+    "share": 0.2
    }
-  },
-  "onLap": {
-   "kind": "drawDeck",
-   "deck": "kxar"
   }
  }
 }
 ```
 
-| Katak | Qaror | Qanday o'zgartiriladi |
+| Katak | Qoida (manba: «POYGA o'yin qo'llanmasi») | Qanday o'zgartiriladi |
 |---|---|---|
-| Kichik aylana K | Kasbni yo'qotish — o'yinchi yangi kasb bilan boshidan boshlaydi | `small.K` |
-| Kichik aylana Q | 2 navbat o'tkazib yuboradi | `small.Q.turns` |
-| Katta aylana Y (to'lov kuni) | 1 oylik daromad | `big.byType.Y.times` |
-| V (aktiv) | Aktivni sotuvga qo'yish taklifi | `big.byType.V` |
-| 5 (Bankrot) | «hod» dekasidan karta | `big.byIndex.5` |
-| 23 (Ajrashish) | hod-7: 75 000 to'lash yoki eng kam daromadli kichik biznesni yo'qotish (biznes yo'q bo'lsa to'lanadi) | `big.byIndex.23` |
-| 33 (Audit) | daromadning 20 % ini yo'qotish | `big.byIndex.33.share` |
-| 34 (Start) | ta'sirsiz | `big.byIndex.34` |
-| 47 | 1 000 000 to'lanadi (maydondagi narx) | `big.byIndex.47.amount` |
-| Aylana boshidan o'tish | «kxar» dekasidan karta | `big.onLap` |
+| Kichik aylana K | «Kutilmagan hodisa»: xona egasi yoqsa hod kartasi (naqd/bank/qarz bilan to'lanadi, yetmasa yangi kasb); o'chirilgan bo'lsa oddiy katak | `small.K`, xona sozlamasi `events` |
+| Kichik aylana Q | 4 oy (bir aylana) maosh yo'q, faqat passiv daromad; xarajat to'lanadi | `small.Q.months` |
+| Katta aylana Y «Yana pullar» | o'tganda ham, tushganda ham 1 oy: pul oqimi; qarz bo'lsa darhol yopiladi (START dan o'tish oy emas) | dvigatel |
+| V Tavakkal | to'liq narx naqd + 1 kubik; yutuq qirralari katakda (`faces`), natija oylik daromad yoki bir martalik (`lump`) | `board_big.json`, `big.byType.V` |
+| T/V birovniki | A — oylik daromadni egasiga to'lash; B — 2× narxda sotib olish (2 fishka), keyingisi 3× | dvigatel |
+| O Orzu | o'z orzui + 100 000 pul oqimi + naqd yetsa — g'alaba; aks holda kxar kartasi | `big.byType.O` |
+| 5 Bankrot | eng kam daromadli biznes yo'qoladi; yo'q bo'lsa naqd va kichik aylana mulki bilan kichik aylanaga qaytadi | `big.byIndex.5` |
+| 23 Ajrashish | har safar naqdning 50 % i | `big.byIndex.23.share` |
+| 33 Audit | naqdning 20 % i (naqd bo'lmasa ta'sirsiz) | `big.byIndex.33.share` |
+| 34 Start | ta'sirsiz | `big.byIndex.34` |
+| 47 Nohalol biznes | 1-marta 1 000 000; 2-marta naqdning 20 %; 3-marta ta'sirsiz | `big.byIndex.47` |
+| Katta aylana qarzi | pul yetmasa qarz yoziladi, «Yana pullar»da yopiladi; 4 ta o'tishda yopilmasa biznes bankka sotiladi, yo'q bo'lsa yangi kasb bilan kichik aylanaga | dvigatel (`bigDebt`) |
+| Ishdan bo'shash | 3-kichik yoki 1-katta biznesni sotib olganda maosh to'xtaydi | dvigatel (`quitJob`) |
 
 ## Boshqa qarorlar
 

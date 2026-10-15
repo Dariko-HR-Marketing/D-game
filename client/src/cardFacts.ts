@@ -46,6 +46,12 @@ export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
     case "charity": { need = Math.round(e.incomeShare * (p.salary + passiveIncome({ assets: p.assets } as any))); rows.push({ label: F.charity, value: fmt(need) }, { label: F.twoDice, value: `${e.turns}` }); break; }
     case "carInsurance": need = e.price; rows.push({ label: F.price, value: fmt(e.price) }); if (!p.assets.some((a) => a.kind === "car")) notes.push(F.noCar); break;
     case "payOrLoseBusiness": need = e.amount; rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); notes.push(F.hod7Note); break;
+    case "gamble": {
+      need = e.price; rows.push({ label: F.price, value: fmt(e.price) }, { label: F.faces, value: (e.faces as number[]).join(` ${F.facesOr} `) });
+      if (e.lump) rows.push({ label: F.winLump, value: signed(e.lump), tone: "good" }); else if (e.monthlyIncome) { rows.push({ label: F.winMonthly, value: signed(e.monthlyIncome), tone: "good" }); flow = e.monthlyIncome; }
+      notes.push(F.gambleNote); break;
+    }
+    case "rentChoice": need = null; rows.push({ label: F.income, value: signed(-e.income), tone: "bad" }, { label: F.rentMult, value: `${e.mult}× · ${fmt(e.buyPrice)}` }); notes.push(F.rentNote.replace("{n}", String(e.mult))); break;
     default: break;
   }
   const affordable = need === null ? null : p.cash >= need;

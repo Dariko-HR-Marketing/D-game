@@ -11,10 +11,9 @@ import {
 export const CONFIG = {
   bigCells: 53, bigStart: 34,
   smallOpportunityBigFrom: 25_000, // A ilova: "tekshirilsin" (OPEN_QUESTIONS #9)
-  bigMonthOnStartPass: true,       // taxmin (OPEN_QUESTIONS #13)
 } as const;
 
-export interface BigCell { i: number; t: string; name: string; income: number | null; price: number | null }
+export interface BigCell { i: number; t: string; name: string; income: number | null; price: number | null; faces?: number[]; lump?: number }
 export interface Kasb { n: number; name?: string; salary: number; total: number; save: number; child: number }
 export interface Dream { name: string; price: number }
 
@@ -33,10 +32,17 @@ export type DeckName = keyof Ctx["deckIds"];
 export interface DeckState { draw: string[]; discard: string[] }
 
 export interface HandDebt { id: number; to: string; amount: number; months: number; remindedRound?: number }
-export interface GamePlayer extends Player { skipTurns: number; handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean }
+export interface GamePlayer extends Player {
+  skipTurns: number; handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean;
+  noSalary?: number;  // «Ishdan bo'shadingiz!» (Q): qolgan oylar — maosh yo'q, xarajat to'lanadi (qo'llanma §06)
+  quitJob?: boolean;  // 3-kichik yoki 1-katta biznesdan keyin maosh to'xtaydi (qo'llanma §09)
+  shady?: number;     // «Nohalol biznes» katagiga necha marta tushgan (qo'llanma §11)
+  autos?: number;     // vaqt tugab avtomatik qabul qilingan/o'tkazilgan qarorlar soni (ball: −2, §15)
+  bigDebt?: number; bigDebtY?: number; // katta aylana qarzi va «Yana pullar» nechta o'tgan (§11)
+}
 export type Pending =
   | null
-  | { type: "card"; playerId: string; cardId: string; deck: DeckName };
+  | { type: "card"; playerId: string; cardId: string; deck: DeckName; rent?: { cell: number; owner: string; income: number; buyPrice: number; mult: 2 | 3 } };
 
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
@@ -55,6 +61,10 @@ export interface GameState {
   lastRoll?: { playerId: string; die: number; n: number } | null;
   /** Oxirgi tortilgan karta (majburiy karta darhol qo'llanib `pending` bo'lmagani uchun ham ko'rsatiladi). */
   lastCard?: { playerId: string; cardId: string; n: number } | null;
+  /** «Kutilmagan hodisa!» (K katagi) xona egasi tomonidan yoqilganmi (qo'llanma §07). O'chirilgan bo'lsa K — oddiy katak. */
+  events?: boolean;
+  /** Oxirgi tavakkal kubik natijasi (mijoz ko'rsatishi uchun). */
+  lastGamble?: { playerId: string; cell: number; die: number; won: boolean; n: number } | null;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -72,8 +82,8 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean } = {}): GameState {
-  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean } = {}): GameState {
+  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
     for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
@@ -120,12 +130,17 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths }; // jahon inqirozi yangi kasbga ham tegishli
+  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady }; // jahon inqirozi yangi kasbga ham tegishli
 }
 
 /** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */
 function forcePay(s: GameState, ctx: Ctx, p: GamePlayer, amount: number): GamePlayer {
   if (p.cash >= amount) return { ...p, cash: p.cash - amount };
+  if (p.circle === "big") { // katta aylana (qo'llanma §11): pul yetmasa qarz yoziladi va «Yana pullar»da yopiladi; bank limiti kichik aylanaga xos
+    const pay = Math.max(0, p.cash);
+    logf(s, `${p.id}: ${amount - pay} qarzga yozildi`);
+    return { ...p, cash: p.cash - pay, bigDebt: (p.bigDebt ?? 0) + (amount - pay) };
+  }
   const need = Math.ceil((amount - p.cash) / 100) * 100;
   const { player, restart: r } = takeBankLoan(p, need);
   if (r) return restart(s, ctx, p);
@@ -153,7 +168,7 @@ export function chooseDream(s: GameState, playerId: string, dreamIdx: number): G
 }
 
 export type Action =
-  | { type: "roll"; playerId: string }
+  | { type: "roll"; playerId: string; auto?: true }
   | { type: "bank_loan"; playerId: string; amount: number }
   | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
@@ -167,7 +182,7 @@ export type Action =
   | { type: "choose_dream"; playerId: string; dreamIdx: number }
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
-  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean };
+  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; auto?: true };
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
@@ -184,6 +199,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   const cur = currentPlayer(s);
   if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
+  if (a.auto) { const ci = idx(s, cur.id); s.players[ci].autos = (s.players[ci].autos ?? 0) + 1; } // vaqt tugadi: ball −2 (qo'llanma §15)
   if (a.type === "roll") {
     if (s.pending) return { ok: false, error: "decision_pending" };
     // Xayriya (§5.10): keyingi 3 navbatda 2 ta kubik (yig'indisi bo'yicha yuriladi)
@@ -197,16 +213,21 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   }
   if (!s.pending) return { ok: false, error: "nothing_pending" };
   const pend = s.pending; s.pending = null;
-  const ce = effectOf(ctx, pend.cardId);
-  decide(s, ctx, cur.id, ce, a);
+  const ce = effectOf(ctx, pend.cardId, pend);
+  decide(s, ctx, cur.id, ce, a, pend);
   endTurn(s, ctx);
   return { ok: true, state: s };
 }
 
 /** Katta aylana T-kataklari kartasiz: katakdan sintez qilinadi. */
-export function effectOf(ctx: Ctx, id: string): CardEffect {
+export function effectOf(ctx: Ctx, id: string, pend?: Pending | null): CardEffect {
+  if (id.startsWith("rent-")) {
+    const c = ctx.bigBoard[Number(id.slice(5))]; const r = pend && pend.type === "card" && pend.cardId === id ? pend.rent : undefined;
+    return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "rentChoice", cell: c.i, owner: r?.owner ?? "", income: r?.income ?? 0, buyPrice: r?.buyPrice ?? 0, mult: r?.mult ?? 2 } };
+  }
   if (id.startsWith("big-")) {
     const c = ctx.bigBoard[Number(id.slice(4))];
+    if (c.t === "V" && c.faces?.length) return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "gamble", price: c.price!, faces: c.faces, monthlyIncome: c.lump ? undefined : c.income ?? 0, lump: c.lump } };
     return { deck: "bigboard", id, file: "", mode: "optional", text: c.name, effect: { kind: "buy", asset: "business", code: id, price: c.price!, monthlyIncome: c.income ?? 0 } };
   }
   return ctx.effects[id];
@@ -241,33 +262,57 @@ export function tickStakes(s: GameState, pid: string) {
   }
 }
 
-function monthsFor(p: GamePlayer, steps: number): { pos: number; months: number } {
+function monthsFor(ctx: Ctx, p: GamePlayer, steps: number): { pos: number; months: number } {
   if (p.circle === "small") return move(p.pos, steps, 48);
-  // katta aylana: START (34) dan o'tish = oy
-  return move(p.pos, steps, CONFIG.bigCells, (i) => CONFIG.bigMonthOnStartPass && i === CONFIG.bigStart);
+  // katta aylana (qo'llanma §11): «Yana pullar» katagidan o'tish ham, tushish ham — bitta oy (4 ta katak = 4 oy)
+  return move(p.pos, steps, CONFIG.bigCells, (i) => ctx.bigBoard[i]?.t === "Y");
 }
+
+/** Katta aylanada «Yana pullar» o'tganda: qarz darhol yopiladi; bir aylana (4 ta) davomida yopilmasa — biznes bankka sotiladi, bo'lmasa yangi kasb bilan kichik aylanaga. */
+function bigMonthEnd(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
+  if ((p.bigDebt ?? 0) <= 0) return p.bigDebtY ? { ...p, bigDebtY: 0 } : p;
+  const pay = Math.min(Math.max(0, p.cash), p.bigDebt!);
+  p = { ...p, cash: p.cash - pay, bigDebt: p.bigDebt! - pay };
+  if (p.bigDebt! <= 0) return { ...p, bigDebt: 0, bigDebtY: 0 };
+  const y = (p.bigDebtY ?? 0) + 1;
+  if (y < 4) return { ...p, bigDebtY: y };
+  const biz = ownBusinesses(p);
+  if (biz.length === 0) { logf(s, `${p.id}: qarz yopilmadi, sotadigan biznes yo'q`); return restart(s, ctx, p); }
+  const sold = biz[0], rest = Math.max(0, p.bigDebt! - sold.price);
+  logf(s, `${p.id}: qarz uchun ${sold.code} bankka sotildi`);
+  return { ...p, assets: p.assets.filter((x) => x !== sold), cash: p.cash + Math.max(0, sold.price - p.bigDebt!), bigDebt: rest, bigDebtY: 0 };
+}
+/** Egasi o'z biznesi: kichik/katta biznes (sheriklik ulushi emas), eng kam daromadlisi birinchi. */
+const ownBusinesses = (p: Player) => p.assets.filter((x) => (x.kind === "small_business" || x.kind === "business") && !x.stakeOf).sort((x, y) => x.monthlyIncome - y.monthlyIncome);
+/** Katta aylanadagi biznes katagining egasi (aktiv kodi `big-<katak>`). */
+const cellOwner = (s: GameState, cell: number) => s.players.find((q) => q.assets.some((a) => a.code === `big-${cell}`));
 
 function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   let p = s.players[idx(s, pid)];
-  const { pos, months } = monthsFor(p, die);
+  const { pos, months } = monthsFor(ctx, p, die);
+  const oldPos = p.pos;
   p = { ...p, pos };
   for (let m = 0; m < months; m++) {
-    const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
-    p = tickLoans({ ...p, cash: p.cash + flow });
-    if ((p.crisisMonths ?? 0) > 0) { p = { ...p, crisisMonths: Math.max(0, p.crisisMonths! - (p.circle === "big" ? monthsPerLap() : 1)) }; if (p.crisisMonths === 0) notify(s, p.id, "crisis_end"); } // katta aylanada START dan o'tish = 1 aylana = 4 oy
+    const held = (p.noSalary ?? 0) > 0 ? p.salary : 0; // «Ishdan bo'shadingiz!»: maosh yo'q, xarajat to'lanadi
+    const base = playerCashflow(p) - held;
+    const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
+    p = tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary });
+    if ((p.crisisMonths ?? 0) > 0) { p = { ...p, crisisMonths: Math.max(0, p.crisisMonths! - 1) }; if (p.crisisMonths === 0) notify(s, p.id, "crisis_end"); }
+    if (p.circle === "big") p = bigMonthEnd(s, ctx, p);
   }
   if (p.cash < 0) { const debt = -p.cash; p = forcePay(s, ctx, { ...p, cash: 0 }, debt); }
   setP(s, p);
   for (let m = 0; m < months; m++) tickStakes(s, pid);
-  // Katta aylana: START dan har o'tishda (aylana boshi) sozlangan ta'sir (masalan kxar xarajat dekasi)
+  // Katta aylana: START dan har o'tishda (aylana boshi) sozlangan ta'sir (ixtiyoriy; standart qoidada yo'q — kxar «Orzu» katagida olinadi)
   const lap = ctx.cellRules?.big?.onLap;
-  if (p.circle === "big" && months > 0 && lap) runCellAction(s, ctx, p, lap);
+  if (p.circle === "big" && lap && passedStart(oldPos, die)) runCellAction(s, ctx, s.players[idx(s, pid)], lap);
   const q = s.players[idx(s, pid)];
   if (s.pending) return;
   if (q.circle === "small") smallLanding(s, ctx, q);
   else bigLanding(s, ctx, q);
 }
 
+const passedStart = (from: number, steps: number) => { for (let k = 1; k <= steps; k++) if ((from + k) % CONFIG.bigCells === CONFIG.bigStart) return true; return false; };
 function noteCard(s: GameState, playerId: string, cardId: string) { s.lastCard = { playerId, cardId, n: (s.lastCard?.n ?? 0) + 1 }; }
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
   const id = drawFrom(s, deck); noteCard(s, p.id, id);
@@ -351,6 +396,16 @@ function bigLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
       setP(s, { ...p, won: true, cash: p.cash - dream.price }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
     }
   }
+  // Birovning biznesi (qo'llanma §13): o'ziniki — e'tibor bermang; boshqaniki — A (oylik daromadni to'lash) yoki B (2× / 3× narxda sotib olish)
+  if ((cell.t === "T" || cell.t === "V") && cell.price !== null) {
+    const ow = cellOwner(s, cell.i);
+    if (ow) {
+      if (ow.id === p.id) return;
+      const a = ow.assets.find((x) => x.code === `big-${cell.i}`)!; const mult = (a.tokens ?? 1) >= 2 ? 3 : 2;
+      s.pending = { type: "card", playerId: p.id, cardId: `rent-${cell.i}`, deck: "kichik", rent: { cell: cell.i, owner: ow.id, income: a.monthlyIncome, buyPrice: mult * cell.price, mult } };
+      return;
+    }
+  }
   const configured = ctx.cellRules?.big?.byIndex?.[String(cell.i)] ?? ctx.cellRules?.big?.byType?.[cell.t as "T" | "V" | "O" | "X" | "Y"];
   if (configured) return runCellAction(s, ctx, p, configured, cell);
   if (cell.t === "T" && cell.price !== null && cell.income !== null) {
@@ -375,9 +430,31 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
     case "loseIncomeShare": setP(s, forcePay(s, ctx, p, Math.round(act.share * (p.salary + passiveIncome(p))))); return;
     case "drawDeck": offer(s, p, act.deck, ctx); return;
     case "drawCard": forceCard(s, ctx, p, act.cardId); return;
-    case "offerCellAsset":
+    case "offerCellAsset": case "offerGamble":
       if (cell && cell.price !== null) s.pending = { type: "card", playerId: p.id, cardId: `big-${cell.i}`, deck: "kichik" };
       return;
+    case "noSalary":
+      if (p.quitJob || p.salary <= 0) return; // allaqachon ishdan bo'shagan
+      setP(s, { ...p, noSalary: act.months }); logf(s, `${p.id}: ${act.months} oy maosh yo'q`); return;
+    case "payCashShare": {
+      const amt = Math.floor(Math.max(0, p.cash) * act.share);
+      if (amt > 0) { setP(s, { ...p, cash: p.cash - amt }); logf(s, `${p.id}: naqdning ${Math.round(act.share * 100)}% i bankka (${amt})`); }
+      return;
+    }
+    case "loseWorstBusiness": {
+      const worst = ownBusinesses(p)[0];
+      if (worst) { setP(s, { ...p, assets: p.assets.filter((x) => x !== worst) }); logf(s, `${p.id}: ${worst.code} biznesi yo'qoldi`); return; }
+      // Biznes yo'q: naqd pul va kichik aylanadagi mulk bilan kichik aylanaga (qo'llanma §11)
+      setP(s, { ...p, circle: "small", pos: 0, lockedFlow: 0, bigDebt: 0, bigDebtY: 0, assets: p.assets.filter((x) => !["business", "small_business", "partner_stake"].includes(x.kind) && !x.code.startsWith("big-")) });
+      logf(s, `${p.id}: bankrot — kichik aylanaga qaytdi`); return;
+    }
+    case "shady": {
+      const n = p.shady ?? 0; const q = { ...p, shady: n + 1 };
+      if (n === 0) { setP(s, forcePay(s, ctx, q, act.first)); return; }
+      if (n === 1) { setP(s, q); runCellAction(s, ctx, s.players[idx(s, p.id)], { kind: "payCashShare", share: act.share }); return; }
+      setP(s, q); return; // 3-marta va keyin: e'tibor bermang
+    }
+    case "eventCard": if (s.events !== false) offer(s, p, "hod", ctx); return;
   }
 }
 
@@ -390,8 +467,30 @@ export function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
   s.pending = { type: "card", playerId: p.id, cardId: id, deck };
 }
 
-function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<Action, { type: "decide" }>) {
+function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<Action, { type: "decide" }>, pend: NonNullable<Pending>) {
   let p = s.players[idx(s, pid)];
+  const bigCell = pend.cardId.startsWith("big-"); // katta aylana biznesi: faqat naqd, bank krediti yo'q (qo'llanma §11)
+  if (ce.effect.kind === "rentChoice" && pend.rent) { // birovning biznesi (§13)
+    const r = pend.rent; const owner = s.players[idx(s, r.owner)]; const asset = owner.assets.find((x) => x.code === `big-${r.cell}`);
+    if (!asset) return; // egasi o'zgargan yoki biznes yo'qolgan
+    if (a.accept && p.cash >= r.buyPrice) { // B yo'l: egasi sotishga majbur, 2 ta egalik fishkasi
+      setP(s, { ...owner, cash: owner.cash + r.buyPrice, assets: owner.assets.filter((x) => x !== asset) });
+      p = { ...p, cash: p.cash - r.buyPrice, assets: [...p.assets, { ...asset, tokens: 2 }] };
+      setP(s, p); logf(s, `${p.id}: ${asset.code} biznesini ${r.mult}× narxda sotib oldi`); return;
+    }
+    const paid = Math.min(Math.max(0, p.cash), r.income); // A yo'l: xizmatidan foydalandi; yetmasa qolgani qarz
+    setP(s, forcePay(s, ctx, p, r.income)); setP(s, { ...s.players[idx(s, r.owner)], cash: s.players[idx(s, r.owner)].cash + paid });
+    return;
+  }
+  if (ce.effect.kind === "gamble") { // tavakkal biznes (§11): to'liq narx naqd, 1 kubik
+    if (!a.accept || p.cash < ce.effect.price) return;
+    const die = withRng(s, (r) => rollDie(r)); const won = ce.effect.faces.includes(die);
+    const cell = Number(pend.cardId.slice(4));
+    s.lastGamble = { playerId: p.id, cell, die, won, n: (s.lastGamble?.n ?? 0) + 1 };
+    p = { ...p, cash: p.cash - ce.effect.price + (won && ce.effect.lump ? ce.effect.lump : 0) };
+    if (won && !ce.effect.lump) p = { ...p, assets: [...p.assets, { kind: "business", code: pend.cardId, price: ce.effect.price, monthlyIncome: ce.effect.monthlyIncome ?? 0, creditPayment: 0, credit: 0 }] };
+    setP(s, p); logf(s, `${p.id}: tavakkal — kubik ${die}, ${won ? "yutdi" : "yutqazdi"}`); return;
+  }
   // hod #7: pul to'lash YOKI kichik biznesdan birini qaytarish (kamida daromadli tanlanadi — eng kam zarar). Biznes bo'lmasa — to'lov majburiy.
   if (ce.effect.kind === "payOrLoseBusiness") {
     const biz = p.assets.filter((x) => x.kind === "small_business" && !x.partnerId && !x.stakeOf).sort((x, y) => x.monthlyIncome - y.monthlyIncome);
@@ -405,7 +504,7 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
   e = crisisAdjusted(e, p);
   const fund = (need: number) => {
     // §5.3: avval bank (limit ichida)
-    if (p.cash >= need || !a.useBank) return;
+    if (p.cash >= need || !a.useBank || bigCell) return;
     const amt = Math.ceil((need - p.cash) / 100) * 100;
     const r = takeBankLoan(p, amt);
     if (!r.restart) p = r.player as GamePlayer;
@@ -417,7 +516,13 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
     const need = e.kind === "buy" ? (e.down ?? e.price) : e.kind === "courseSalaryPlus" || e.kind === "carInsurance" ? e.price
       : e.kind === "lendRequest" ? e.amount : e.kind === "charity" ? Math.round(e.incomeShare * (p.salary + passiveIncome(p))) : 0;
     fund(need);
-    const r = applyEffect(p, e); if (r.ok) p = { ...p, ...r.player } as GamePlayer;
+    const r = applyEffect(p, e); if (r.ok) {
+      p = { ...p, ...r.player } as GamePlayer;
+      // Ishdan bo'shash (qo'llanma §09): 3-kichik yoki 1-katta biznesni sotib olganda maosh to'xtaydi
+      if (e.kind === "buy" && p.circle === "small" && !p.quitJob && (e.asset === "business" || p.assets.filter((x) => x.kind === "small_business" && !x.stakeOf).length >= 3)) {
+        p = { ...p, quitJob: true, salary: 0, noSalary: 0 }; logf(s, `${p.id}: ishdan bo'shadi — endi faqat biznes daromadi`);
+      }
+    }
   }
   setP(s, p);
 }
@@ -551,7 +656,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (s.bots.includes(a.partnerId) || s.bots.includes(owner.id)) return err("bot");
       if (!s.pending || s.pending.playerId !== owner.id || currentPlayer(s).id !== owner.id) return err("no_pending_card");
       const e = effectOf(ctx, s.pending.cardId).effect;
-      if (e.kind !== "buy" || !["small_business", "business"].includes(e.asset)) return err("business_only"); // §5.6
+      if (e.kind !== "buy" || !["small_business", "business"].includes(e.asset) || s.pending.cardId.startsWith("big-")) return err("business_only"); // §5.6
       const partner = s.players.find((p) => p.id === a.partnerId);
       if (!partner || partner.id === owner.id) return err("bad_partner");
       if (owner.circle !== partner.circle) return err("circle_mismatch"); // §2.7

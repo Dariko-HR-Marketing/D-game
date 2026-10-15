@@ -110,7 +110,7 @@ describe("katak qoidalari admin orqali (versiyali, qulflanadigan)", () => {
     await call(x, "POST", "/admin/content/versions/2/publish", "E");
     const r1 = x.rooms.create("c"); if (!r1.ok) throw 0; x.rooms.join(r1.code, "d"); await x.rooms.start(r1.code, "c", 1, { dreams: false });
     expect(x.rooms.rooms.get(r1.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "skipTurns", turns: 3 });
-    expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "skipTurns", turns: 2 }); // boshlangan o'yin standart qoidada qulflangan (§11)
+    expect(x.rooms.rooms.get(r0.code)!.ctx.cellRules?.small.Q).toEqual({ kind: "noSalary", months: 4 }); // boshlangan o'yin standart qoidada qulflangan (§11)
   });
 });
 

@@ -8,7 +8,7 @@ import { PlayerStrip } from "./PlayerStrip";
 import { FinanceCard } from "./FinanceCard";
 import { TurnPanel } from "./TurnPanel";
 import { DecisionCard } from "./DecisionCard";
-import { CardToast } from "./CardToast";
+import { CardToast, GambleToast } from "./CardToast";
 import { Onboarding } from "./Onboarding";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
@@ -96,6 +96,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   return (
     <View style={{ flex: 1 }}>
       <CardToast room={room} userId={userId} />
+      <GambleToast room={room} userId={userId} />
       <Onboarding onRules={onRules} />
       <ScrollView contentContainerStyle={[s.wrap, sheetOpen && { paddingBottom: 420 }]}>
         {status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}

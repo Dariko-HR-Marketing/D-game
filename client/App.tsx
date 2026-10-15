@@ -78,7 +78,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <><Home status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onRules={() => setScreen("rules")} />{session.token !== session.userId && <View style={{ padding: 12, alignItems: "center" }}><Button label={uz.login.logout} kind="ghost" onPress={onLogout} /></View>}</>
-        : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
+        : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} />}

@@ -23,10 +23,12 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left }: { card:
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1));
-  const mandatory = card.mode === "mandatory", shares = e?.kind === "buyShares", hod7 = e?.kind === "payOrLoseBusiness";
+  const mandatory = card.mode === "mandatory", shares = e?.kind === "buyShares", hod7 = e?.kind === "payOrLoseBusiness", rent = e?.kind === "rentChoice", gamble = e?.kind === "gamble";
+  const cashOnly = gamble || String(card.id).startsWith("big-"); // katta aylana biznesi: faqat naqd
   const qty = Number(q) || 0, cost = shares ? qty * (e.pricePerShare) : f.need;
   const lack = cost !== null && cost !== undefined && cost > me.cash ? cost - me.cash : 0;
-  const bankOk = lack > 0 ? lack <= bankRoom : null;
+  const bankOk = lack > 0 && !cashOnly ? lack <= bankRoom : lack > 0 ? false : null;
+  const rentCantBuy = rent && me.cash < e.buyPrice;
   const inner = (
     <View style={{ gap: space.md }}>
       <View style={s.head}><View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap" }}><Pill label={mandatory ? uz.game.mandatory : uz.game.optional} kind={mandatory ? "bad" : "warn"} /><Pill label={deckOf(card.id)} kind="info" /></View>
@@ -40,12 +42,16 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left }: { card:
         <Row l={uz.facts.total} v={money(qty * e.pricePerShare)} /></View>)}
       {cost !== null && cost !== undefined && cost > 0 && <Row l={uz.facts.yourCash} v={money(me.cash)} />}
       {lack > 0 && bankOk && <Banner kind="warn">{uz.facts.short}: {money(lack)}. {uz.facts.bankAuto}.</Banner>}
-      {lack > 0 && bankOk === false && !hod7 && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {uz.facts.bankNo}.</Banner>}
+      {lack > 0 && cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {uz.facts.cashOnly}.</Banner>}
+      {lack > 0 && bankOk === false && !hod7 && !cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {uz.facts.bankNo}.</Banner>}
       {lack === 0 && cost ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.note}>{n}</Text>)}
-      {!mandatory && (<View style={{ gap: space.sm }}>
-        <Button label={hod7 ? uz.hod7.pay : cost ? `${uz.game.accept} · ${money(cost)}` : uz.game.accept} disabled={shares && (qty < e.min || qty > e.max)}
-          onPress={() => onAct({ type: "decide", accept: true, useBank: true, ...(shares ? { qty } : {}) })} />
+      {!mandatory && rent && (<View style={{ gap: space.sm }}>
+        <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => onAct({ type: "decide", accept: true })} />
+        <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+      {!mandatory && !rent && (<View style={{ gap: space.sm }}>
+        <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${uz.game.accept} · ${money(cost)}` : uz.game.accept} disabled={(shares && (qty < e.min || qty > e.max)) || (cashOnly && lack > 0)}
+          onPress={() => onAct({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />
         <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
     </View>
   );

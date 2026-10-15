@@ -64,7 +64,7 @@ export class Connection {
 
   create() { this.expecting = true; this.send({ type: "create" }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
-  start() { this.send({ type: "start" }); }
+  start(events = true) { this.send({ type: "start", events }); }
   leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [] }); }
   react(emoji: string) { this.send({ type: "react", emoji }); }
   /** Harakat: mijoz ko'rgan oxirgi `seq` bilan (eski holatdagi harakat serverda rad etiladi). */

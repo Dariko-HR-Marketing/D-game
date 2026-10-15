@@ -51,7 +51,7 @@ export class RoomManager {
   on(f: (code: string, ev: RoomEvent) => void) { this.listeners.add(f); return () => this.listeners.delete(f); }
   private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); }
   view(r: Room): RoomView {
-    const pc = r.state?.pending ? effectOf(r.ctx, r.state.pending.cardId) : null;
+    const pc = r.state?.pending ? effectOf(r.ctx, r.state.pending.cardId, r.state.pending) : null;
     const names: Record<string, { name: string; color: number }> = {};
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color }; }
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
@@ -115,7 +115,7 @@ export class RoomManager {
   }
 
   /** §6.5: odam yetmasa bot qo'shiladi. */
-  async start(code: string, userId: string, seed: number, opts: { dreams?: boolean } = {}): Promise<{ ok: true } | { ok: false; error: Err }> {
+  async start(code: string, userId: string, seed: number, opts: { dreams?: boolean; events?: boolean } = {}): Promise<{ ok: true } | { ok: false; error: Err }> {
     const r = this.rooms.get(code);
     if (!r) return { ok: false, error: "room_not_found" };
     if (r.hostId !== userId) return { ok: false, error: "not_host" };
@@ -123,7 +123,7 @@ export class RoomManager {
     let b = 1;
     while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
-    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
+    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
     if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz
     r.state = s;
     await this.store.saveSnapshot(code, s, this.meta(r));
@@ -141,6 +141,7 @@ export class RoomManager {
     if (!r.members.some((m) => m.userId === userId && !m.left)) return { ok: false, error: "not_member" };
     if (action.playerId !== userId || (action as { type: string }).type === "expire" || (action as { type: string }).type === "auto_dreams") return { ok: false, error: "not_member" };
     if (seq !== r.seq) return { ok: false, error: "stale_seq" };
+    if ("auto" in action) return { ok: false, error: "not_member" }; // «avtomatik» bayrog'ini faqat server qo'yadi (ball −2)
     return this.apply(r, action, null);
   }
 
@@ -198,12 +199,12 @@ export class RoomManager {
     if (!r.state || r.state.winner || r.state.phase === "dreams") return;
     const cur = currentPlayer(r.state);
     const bot = r.members.find((x) => x.userId === cur.id)?.bot;
-    if (!r.state.pending) return void (await this.apply(r, { type: "roll", playerId: cur.id }, bot ? "bot" : "timeout"));
+    if (!r.state.pending) return void (await this.apply(r, bot ? { type: "roll", playerId: cur.id } : { type: "roll", playerId: cur.id, auto: true }, bot ? "bot" : "timeout"));
     // Ixtiyoriy karta vaqt tugasa o'tkaziladi (§5.2). Bot: naqdi yetsa qabul qiladi; qarzda qatnashmaydi (§6.5).
-    const e = effectOf(r.ctx, r.state.pending.cardId).effect;
+    const e = effectOf(r.ctx, r.state.pending.cardId, r.state.pending).effect;
     const ea = crisisAdjusted(e, cur); // decide() bilan bir xil (inqiroz narxi)
-    const affordable = ea.kind === "buy" ? cur.cash >= (ea.down ?? ea.price) : e.kind !== "lendRequest";
-    await this.apply(r, { type: "decide", playerId: cur.id, accept: e.kind === "payOrLoseBusiness" ? true : !!bot && affordable }, bot ? "bot" : "timeout");
+    const affordable = ea.kind === "buy" ? cur.cash >= (ea.down ?? ea.price) : e.kind === "gamble" ? cur.cash >= e.price : e.kind === "rentChoice" ? false : e.kind !== "lendRequest";
+    await this.apply(r, { type: "decide", playerId: cur.id, accept: e.kind === "payOrLoseBusiness" ? true : !!bot && affordable, ...(bot ? {} : { auto: true as const }) }, bot ? "bot" : "timeout");
   }
 
   /** §6.7 Reaksiya: faqat xona a'zosi, ruxsat etilgan to'plamdan; tezlik cheklovi tashqarida (app). Holatga ta'sir qilmaydi, saqlanmaydi. */

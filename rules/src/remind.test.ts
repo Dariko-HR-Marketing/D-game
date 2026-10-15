@@ -30,13 +30,6 @@ describe("inqiroz: yaxlitlash va katta aylana", () => {
     expect(Number.isInteger(e.price) && Number.isInteger(e.down)).toBe(true);
     expect(crisisAdjusted({ kind: "buy", asset: "land", code: "L", price: 1001 } as any, {})).toMatchObject({ price: 1001 });
   });
-  it("katta aylanada START dan o'tish inqirozdan 1 aylana (4 oy) kamaytiradi", () => {
-    expect(monthsPerLap()).toBe(4);
-    const s = newGame(ctx, ["a", "b", "c"], 1); const p: any = s.players[0]; p.circle = "big"; p.crisisMonths = 36;
-    // START dan o'tish: pos 33 -> 34 (1) yoki undan o'tish
-    for (let d = 1; d <= 6 && p.crisisMonths === 36; d++) { const t: any = structuredClone(s); t.players[0].pos = 34 - d + 53; t.players[0].pos %= 53; t.rngState = 3; const r: any = reduce(t, ctx, { type: "roll", playerId: "a" }); if (r.ok && r.state.players[0].crisisMonths < 36) { expect(r.state.players[0].crisisMonths).toBe(32); return; } }
-    throw new Error("START dan o'tish holati topilmadi");
-  });
 });
 
 import { tickStakes, RULES as R } from "./index";

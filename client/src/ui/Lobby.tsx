@@ -9,8 +9,8 @@ import { readableOn } from "../contrast";
 import type { RoomView } from "../net/connection";
 
 const MAX = 6, MIN = 2;
-export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: () => void; onLeave: () => void }) {
-  const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false);
+export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: (events: boolean) => void; onLeave: () => void }) {
+  const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false); const [events, setEvents] = useState(true);
   const humans = room.members.length, bots = Math.max(0, MIN - humans);
   const copy = async () => {
     const text = room.code;
@@ -42,7 +42,15 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       </Card>
 
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
-      {host ? <Button label={uz.lobby.start} onPress={onStart} /> : <Banner kind="info">{uz.lobby.wait}</Banner>}
+      {host && (
+        <Card>
+          <Pressable role="switch" aria-checked={events} aria-label={uz.lobby.events} onPress={() => setEvents((v) => !v)} style={s.switchRow}>
+            <View style={{ flex: 1 }}><Text style={s.name}>{uz.lobby.events}</Text><Text style={s.emptyT}>{uz.lobby.eventsHint}</Text></View>
+            <View style={[s.track, events && { backgroundColor: GREEN_TEXT }]} aria-hidden><View style={[s.knob, events && { alignSelf: "flex-end" }]} /></View>
+          </Pressable>
+        </Card>
+      )}
+      {host ? <Button label={uz.lobby.start} onPress={() => onStart(events)} /> : <Banner kind="info">{uz.lobby.wait}</Banner>}
       {error && <Text style={{ color: color.red }} accessibilityRole="alert">{errText(error)}</Text>}
     </Screen>
   );
@@ -52,5 +60,7 @@ const s = StyleSheet.create({
   rowHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, h2: { fontSize: font.lg, fontWeight: "800", color: color.navy },
   player: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48, borderTopWidth: 1, borderTopColor: color.line },
   dot: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, name: { flex: 1, color: color.navy, fontSize: font.lg, fontWeight: "700" },
+  switchRow: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48 },
+  track: { width: 52, height: 30, borderRadius: 15, backgroundColor: tone.muted, padding: 3, justifyContent: "center" }, knob: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#fff", alignSelf: "flex-start" },
   empty: { opacity: 0.8 }, emptyT: { color: tone.muted, fontSize: font.md },
 });

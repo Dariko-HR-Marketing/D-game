@@ -39,6 +39,25 @@ export function CardToast({ room, userId }: { room: RoomView; userId: string }) 
     </View>
   );
 }
+const seenGamble = new Map<string, number>();
+/** Tavakkal biznes natijasi: kubik va yutdi/yutqazdi — hamma ko'radi. */
+export function GambleToast({ room, userId }: { room: RoomView; userId: string }) {
+  const g = room.state.lastGamble as { playerId: string; cell: number; die: number; won: boolean; n: number } | null | undefined;
+  const [seen, setSeenState] = useState(() => seenGamble.get(room.code) ?? 0);
+  const setSeen = (n: number) => { seenGamble.set(room.code, n); setSeenState(n); };
+  const visible = !!g && g.n > seen;
+  useEffect(() => { if (!visible) return; const h = setTimeout(() => setSeen(g!.n), 6000); return () => clearTimeout(h); }, [visible, g?.n]);
+  if (!visible || !g) return null;
+  const who = g.playerId === userId ? uz.result.you : nameOf(room, g.playerId);
+  return (
+    <View style={s.wrap} pointerEvents="box-none">
+      <View style={s.toast} role="status" accessibilityLiveRegion="polite" aria-label={`${who} ${uz.gamble.by}: ${uz.gamble.die} ${g.die}, ${g.won ? uz.gamble.won : uz.gamble.lost}`}>
+        <View style={s.head}><View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.gamble.by}`} kind="info" /><Pill label={`${uz.gamble.die}: ${g.die}`} kind="plain" /><Pill label={g.won ? uz.gamble.won : uz.gamble.lost} kind={g.won ? "good" : "bad"} /></View>
+          <Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={() => setSeen(g.n)} style={s.x}><Text style={s.xT} aria-hidden>✕</Text></Pressable></View>
+      </View>
+    </View>
+  );
+}
 const s = StyleSheet.create({
   wrap: { position: "absolute", top: space.sm, left: space.md, right: space.md, alignItems: "center", zIndex: 60 },
   toast: { width: "100%", maxWidth: 520, backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.sm, borderWidth: 2, borderColor: color.navy, ...shadow, shadowOpacity: 0.25, shadowRadius: 16 },

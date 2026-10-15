@@ -160,7 +160,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
           case "start": { if (!code) return reply({ type: "error", error: "no_room" });
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
-            const r = await rooms.start(code, userId, seed); if (!r.ok) reply({ type: "error", error: r.error }); return; }
+            const r = await rooms.start(code, userId, seed, { events: (m as { events?: boolean }).events }); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
             const r = await rooms.act(code, userId, { ...m.action, playerId: userId }, m.seq);
             if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error }); } return; }

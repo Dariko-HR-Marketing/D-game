@@ -25,7 +25,7 @@ export const ActionIn = z.discriminatedUnion("type", [
 export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("create") }).strict(),
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
-  z.object({ type: z.literal("start") }).strict(),
+  z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),
   z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
