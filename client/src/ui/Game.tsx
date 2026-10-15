@@ -139,7 +139,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
           {REACTIONS.map((e) => <Button key={e} label={e} kind="ghost" onPress={() => onReact(e)} />)}
         </View>
         <View accessibilityLiveRegion="polite" accessibilityRole="alert">
-          {(state.notices ?? []).filter((n: any) => n.to === "all" || n.to === userId).slice(-3).map((n: any) => (
+          {(state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3).map((n: any) => (
             <Text key={n.id} style={s.notice}>{n.key === "loan_reminder" ? `${room.names?.[n.from]?.name ?? n.from} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Text>))}
         </View>
         <View accessibilityLiveRegion="polite">

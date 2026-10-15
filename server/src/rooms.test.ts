@@ -174,3 +174,25 @@ describe("orzu tanlash bosqichi (§6.4)", () => {
     expect(room.state!.phase).toBe("play");
   });
 });
+
+describe("orzu bosqichi: chekka holatlar", () => {
+  it("muddat harakat bilan uzaymaydi", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c");
+    await rm.start(r.code, "a", 5); const room = rm.rooms.get(r.code)!;
+    await clock.advance(50_000);
+    await rm.act(r.code, "a", { type: "choose_dream", playerId: "a", dreamIdx: 0 }, 0);
+    await rm.act(r.code, "a", { type: "choose_dream", playerId: "a", dreamIdx: 1 }, 1);
+    await clock.advance(10_000);
+    expect(room.state!.phase).toBe("play");
+  });
+  it("orzu bosqichida chiqqan o'yinchiga orzu darrov beriladi; takroriy chiqish va chiqqanning harakati rad", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c");
+    await rm.start(r.code, "a", 5); const room = rm.rooms.get(r.code)!;
+    rm.leave(r.code, "c"); await clock.advance(0); await new Promise((x) => setImmediate(x));
+    expect(room.state!.players.find((p) => p.id === "c")!.dreamIdx).not.toBeNull();
+    expect(room.state!.phase).toBe("dreams");
+    room.members.find((m) => m.userId === "c")!.unreliable = true; rm.leave(r.code, "c");
+    expect(room.members.find((m) => m.userId === "c")!.unreliable).toBe(true); // qayta chaqiruv bayroqni o'zgartirmaydi
+    expect(await rm.act(r.code, "c", { type: "choose_dream", playerId: "c", dreamIdx: 5 }, room.seq)).toEqual({ ok: false, error: "not_member" });
+  });
+});

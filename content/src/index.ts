@@ -34,6 +34,7 @@ export function validateBundle(b: Bundle): string[] {
   const cells = new Set(b.bigBoard.filter((c) => c.t === "O").map((c) => c.name));
   for (const d of b.dreams) if (!cells.has(d.name)) problems.push(`orzu "${d.name}" katta aylanada katak topilmadi`);
   if (b.bigBoard[34]?.name !== "Start") problems.push("katta aylana START (34) katagi o'zgargan");
+  if (b.dreams.length < 6) problems.push(`orzular ${b.dreams.length} ta — kamida 6 ta kerak (har bir o'yinchiga alohida orzu)`);
   if (b.cards.kasb.length === 0) problems.push("kasblar yo'q");
   // Katak qoidalari: mavjud bo'lmagan katak, bo'sh deka, narxsiz katakka sotib olish taklifi
   const acts: [string, { kind: string; deck?: string }][] = [...Object.entries(b.cellRules.small).map(([k, a]) => [`small.${k}`, a] as [string, any]),
@@ -43,6 +44,10 @@ export function validateBundle(b: Bundle): string[] {
   const lap = b.cellRules.big.onLap ? ([["big.onLap", b.cellRules.big.onLap]] as [string, any][]) : [];
   for (const [where, a] of [...acts, ...lap]) if (a?.kind === "drawCard" && !ids.has(a.cardId)) problems.push(`cellRules.${where}: "${a.cardId}" kartasi yo'q`);
   for (const [where, a] of [...acts, ...lap]) if (a?.kind === "drawDeck" && !(b.cards as any)[a.deck!]?.length) problems.push(`cellRules.${where}: "${a.deck}" dekasi bo'sh`);
+  // Aylana boshidagi ta'sir tanlov kartasini (pending) qoldirmasligi kerak: katak ta'siri unga qadar bajarilmay qolardi
+  const eff = deriveEffects(b.cards);
+  if (b.cellRules.big.onLap?.kind === "drawDeck") { const d = b.cellRules.big.onLap.deck; if (eff.some((e) => e.deck === d && e.mode !== "mandatory")) problems.push(`cellRules.big.onLap: "${d}" dekasida ixtiyoriy kartalar bor (faqat majburiy kartali deka mumkin)`); }
+  if (b.cellRules.big.onLap?.kind === "drawCard") { const e = eff.find((x) => x.id === (b.cellRules.big.onLap as any).cardId); if (e && e.mode !== "mandatory") problems.push("cellRules.big.onLap: karta majburiy bo'lishi kerak"); }
   for (const [i, a] of Object.entries(b.cellRules.big.byIndex)) if (a.kind === "offerCellAsset" && b.bigBoard[Number(i)]?.price == null) problems.push(`cellRules.big.byIndex.${i}: katakda narx yo'q (offerCellAsset mumkin emas)`);
   return problems;
 }

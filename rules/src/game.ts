@@ -116,7 +116,7 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false };
+  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths }; // jahon inqirozi yangi kasbga ham tegishli
 }
 
 /** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */
@@ -134,7 +134,8 @@ function freeDreams(s: GameState, ctx: Ctx): number[] {
   return ctx.dreams.map((_, i) => i).filter((i) => !taken.has(i));
 }
 function pickFreeDream(s: GameState, ctx: Ctx, pid: string) {
-  const free = freeDreams(s, ctx); if (!free.length) return;
+  let free = freeDreams(s, ctx);
+  if (!free.length) free = ctx.dreams.map((_, i) => i); // orzu o'yinchidan kam bo'lsa (noto'g'ri kontent) takrorlanishga ruxsat — o'yin qotib qolmasin
   const i = withRng(s, (r) => free[Math.floor(r() * free.length)]);
   s.players[idx(s, pid)].dreamIdx = i;
 }
@@ -160,7 +161,7 @@ export type Action =
   | { type: "partner_accept"; playerId: string; proposalId: number }
   | { type: "partner_buyout"; playerId: string; assetCode: string }
   | { type: "choose_dream"; playerId: string; dreamIdx: number }
-  | { type: "auto_dreams"; playerId: "server" }
+  | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean };
 
@@ -206,6 +207,15 @@ export function effectOf(ctx: Ctx, id: string): CardEffect {
   return ctx.effects[id];
 }
 
+/** Inqiroz (§5.7): yer/dala-hovli/kvartira/aksiya sotib olish narxi 2 baravar past (butun songa yaxlitlanadi). Server ham shu bilan «yetarlimi» ni tekshiradi. */
+export function crisisAdjusted<T extends Effect>(e: T, p: { crisisMonths?: number }): T {
+  if ((p.crisisMonths ?? 0) <= 0) return e;
+  const h = (n: number) => Math.max(1, Math.round(n / 2));
+  if (e.kind === "buy" && ["land", "dacha", "apartment"].includes(e.asset)) return { ...e, price: h(e.price), down: e.down === undefined ? undefined : h(e.down), credit: e.credit === undefined ? undefined : Math.round(e.credit / 2), creditPayment: e.creditPayment === undefined ? undefined : Math.round(e.creditPayment / 2) } as T;
+  if (e.kind === "buyShares") return { ...e, pricePerShare: h(e.pricePerShare) } as T;
+  return e;
+}
+
 function monthsFor(p: GamePlayer, steps: number): { pos: number; months: number } {
   if (p.circle === "small") return move(p.pos, steps, 48);
   // katta aylana: START (34) dan o'tish = oy
@@ -219,7 +229,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   for (let m = 0; m < months; m++) {
     const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
     p = tickLoans({ ...p, cash: p.cash + flow });
-    if ((p.crisisMonths ?? 0) > 0) { p = { ...p, crisisMonths: p.crisisMonths! - 1 }; if (p.crisisMonths === 0) notify(s, p.id, "crisis_end"); }
+    if ((p.crisisMonths ?? 0) > 0) { p = { ...p, crisisMonths: Math.max(0, p.crisisMonths! - (p.circle === "big" ? monthsPerLap() : 1)) }; if (p.crisisMonths === 0) notify(s, p.id, "crisis_end"); } // katta aylanada START dan o'tish = 1 aylana = 4 oy
   }
   if (p.cash < 0) { const debt = -p.cash; p = forcePay(s, ctx, { ...p, cash: 0 }, debt); }
   setP(s, p);
@@ -365,10 +375,7 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
   if (!a.accept) return;
   let e = ce.effect;
   // Inqiroz (§5.7): yer/dala-hovli/kvartira/aksiya sotib olish narxi 2 baravar past
-  if ((p.crisisMonths ?? 0) > 0) {
-    if (e.kind === "buy" && ["land", "dacha", "apartment"].includes(e.asset)) e = { ...e, price: e.price / 2, down: e.down === undefined ? undefined : e.down / 2, credit: e.credit === undefined ? undefined : e.credit / 2, creditPayment: e.creditPayment === undefined ? undefined : e.creditPayment / 2 };
-    if (e.kind === "buyShares") e = { ...e, pricePerShare: e.pricePerShare / 2 };
-  }
+  e = crisisAdjusted(e, p);
   const fund = (need: number) => {
     // §5.3: avval bank (limit ichida)
     if (p.cash >= need || !a.useBank) return;
@@ -426,8 +433,10 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const asset = cands.map((x) => ({ x, price: marketPrice(e.amount, x) })).find((c) => c.price !== null);
       if (!asset) return err("nothing_to_sell"); // ortiqcha: ulushli (sheriklik) aktivni sotib bo'lmaydi
       const crisisCut = (p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(asset.x.kind) ? 0.5 : 1; // inqirozda sotish narxi 2 baravar past
-      const price = asset.price! * crisisCut; const proceeds = price - asset.x.credit;
-      setP(s, { ...p, cash: p.cash + proceeds, assets: p.assets.filter((x) => x !== asset.x) });
+      const price = Math.round(asset.price! * crisisCut); const proceeds = price - asset.x.credit;
+      let np: GamePlayer = { ...p, cash: p.cash + proceeds, assets: p.assets.filter((x) => x !== asset.x) };
+      if (np.cash < 0) { const debt = -np.cash; np = forcePay(s, ctx, { ...np, cash: 0 }, debt); } // inqirozda kredit sotuv narxidan katta bo'lishi mumkin
+      setP(s, np);
       pr.sold.push(p.id); logf(s, `${p.id}: ${asset.x.code} sotdi ${price}`); return ok();
     }
     case "bank_loan": { // §5.3: ixtiyoriy bank krediti, faqat o'z navbatida; 100 ga karrali; limit 10 000
@@ -446,7 +455,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
     }
     case "auto_dreams": { // vaqt tugadi: tanlamaganlarga bo'sh orzulardan tasodifiy (serverning manbasi, jurnalga yoziladi)
       if (s.phase !== "dreams") return err("not_dream_phase");
-      for (const q of s.players) if (q.dreamIdx === null) pickFreeDream(s, ctx, q.id);
+      for (const q of s.players) if (q.dreamIdx === null && (!a.only || a.only.includes(q.id))) pickFreeDream(s, ctx, q.id);
       finishDreamsIfDone(s); return ok();
     }
     case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();

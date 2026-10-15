@@ -1,5 +1,5 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
-import { Action, Ctx, GameState, chooseDream, openPartnerships, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
+import { Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
 import type { RoomMeta, Store } from "./store";
 import type { ContentRegistry } from "./registry";
@@ -137,7 +137,7 @@ export class RoomManager {
     const r = this.rooms.get(code);
     if (!r) return { ok: false, error: "room_not_found" };
     if (!r.state) return { ok: false, error: "not_started" };
-    if (!r.members.some((m) => m.userId === userId)) return { ok: false, error: "not_member" };
+    if (!r.members.some((m) => m.userId === userId && !m.left)) return { ok: false, error: "not_member" };
     if (action.playerId !== userId || (action as { type: string }).type === "expire" || (action as { type: string }).type === "auto_dreams") return { ok: false, error: "not_member" };
     if (seq !== r.seq) return { ok: false, error: "stale_seq" };
     return this.apply(r, action, null);
@@ -177,13 +177,14 @@ export class RoomManager {
 
   /** Navbat taymeri (§5.2, §6.3): 30 s ichida qaror bo'lmasa — avtomatik. Bot va oflayn o'yinchi ham shu yo'ldan. */
   private arm(r: Room) {
-    if (r.timer) this.clock.clearTimeout(r.timer);
-    if (r.state!.phase === "dreams") { // orzu bosqichi: umumiy muddat, so'ng tanlamaganlarga avtomatik
+    if (r.state!.phase === "dreams") { // orzu bosqichi: bitta mutlaq muddat (har harakatda uzaymaydi), so'ng tanlamaganlarga avtomatik
+      if (r.timer && r.deadline) return;
       const ms = RULES.dreamSeconds * 1000;
       r.deadline = this.clock.now() + ms;
-      r.timer = this.clock.setTimeout(() => { r.timer = null; void this.apply(r, { type: "auto_dreams", playerId: "server" }, "dream_timeout").catch((e) => this.hooks.onError?.("autoMove", e)); }, ms);
+      r.timer = this.clock.setTimeout(() => { r.timer = null; r.deadline = null; void this.apply(r, { type: "auto_dreams", playerId: "server" }, "dream_timeout").catch((e) => this.hooks.onError?.("autoMove", e)); }, ms);
       return;
     }
+    if (r.timer) this.clock.clearTimeout(r.timer);
     const cur = currentPlayer(r.state!);
     const m = r.members.find((x) => x.userId === cur.id)!;
     const delay = m.bot ? 0 : DECISION_MS;
@@ -199,8 +200,9 @@ export class RoomManager {
     if (!r.state.pending) return void (await this.apply(r, { type: "roll", playerId: cur.id }, bot ? "bot" : "timeout"));
     // Ixtiyoriy karta vaqt tugasa o'tkaziladi (§5.2). Bot: naqdi yetsa qabul qiladi; qarzda qatnashmaydi (§6.5).
     const e = effectOf(r.ctx, r.state.pending.cardId).effect;
-    const affordable = e.kind === "buy" ? cur.cash >= (e.down ?? e.price) : e.kind !== "lendRequest";
-    await this.apply(r, { type: "decide", playerId: cur.id, accept: !!bot && affordable }, bot ? "bot" : "timeout");
+    const ea = crisisAdjusted(e, cur); // decide() bilan bir xil (inqiroz narxi)
+    const affordable = ea.kind === "buy" ? cur.cash >= (ea.down ?? ea.price) : e.kind !== "lendRequest";
+    await this.apply(r, { type: "decide", playerId: cur.id, accept: e.kind === "payOrLoseBusiness" ? true : !!bot && affordable }, bot ? "bot" : "timeout");
   }
 
   /** §6.7 Reaksiya: faqat xona a'zosi, ruxsat etilgan to'plamdan; tezlik cheklovi tashqarida (app). Holatga ta'sir qilmaydi, saqlanmaydi. */
@@ -229,15 +231,17 @@ export class RoomManager {
   /** Ixtiyoriy chiqish: mijoz alohida tasdiq so'raydi; o'rinni bot egallaydi (o'yin to'xtamaydi). */
   leave(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
-    if (!r || !m) return;
+    if (!r || !m || m.left) return; // takroriy chiqish hech narsani o'zgartirmaydi
     this.activeRoomOf.delete(userId);
     this.markOffline(r, userId);
     if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) this.rooms.delete(code); }
     else {
       // «Ishonchsiz» (qaror #66): ochiq qarz yoki sheriklik bilan chiqib ketish
       const gp = r.state.players.find((p) => p.id === userId);
-      m.unreliable = !!gp && (gp.handDebts.length > 0 || openPartnerships(gp) > 0);
-      m.bot = true; m.left = true; m.online = false; if (currentPlayer(r.state).id === userId) this.arm(r); }
+      m.unreliable = !r.endedAt && !!gp && (gp.handDebts.length > 0 || openPartnerships(gp) > 0);
+      m.bot = true; m.left = true; m.online = false;
+      if (r.state.phase === "dreams") void this.apply(r, { type: "auto_dreams", playerId: "server", only: [userId] }, "left").catch((e) => this.hooks.onError?.("autoMove", e)); // chiqqan odam orzusi darrov beriladi
+      else if (currentPlayer(r.state).id === userId) this.arm(r); }
     this.emit(r);
   }
 
