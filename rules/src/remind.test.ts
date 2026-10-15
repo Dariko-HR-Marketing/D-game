@@ -38,3 +38,19 @@ describe("inqiroz: yaxlitlash va katta aylana", () => {
     throw new Error("START dan o'tish holati topilmadi");
   });
 });
+
+import { tickStakes, RULES as R } from "./index";
+describe("sheriklik: ulush qaytgach 24 oy dividend, so'ng bepul o'tadi", () => {
+  it("davr hisoblanadi va egasiga o'tadi; erta sotib olish saqlanadi", () => {
+    const s = newGame(ctx, ["o", "p", "q"], 1);
+    s.players[0].assets = [{ kind: "small_business", code: "B", price: 1000, monthlyIncome: 100, creditPayment: 0, credit: 0, partnerId: "p" }];
+    s.players[1].assets = [{ kind: "partner_stake", code: "B", price: 1000, monthlyIncome: 100, creditPayment: 0, credit: 0, stakeOf: "o" }];
+    for (let m = 0; m < 5; m++) tickStakes(s, "p"); // 500 = ulush narxi (1000/2) qaytdi
+    expect(s.players[1].assets[0].dividendLeft).toBe(R.partnerDividendMonths);
+    for (let m = 0; m < R.partnerDividendMonths - 1; m++) tickStakes(s, "p");
+    expect(s.players[1].assets).toHaveLength(1);
+    tickStakes(s, "p");
+    expect(s.players[1].assets).toHaveLength(0);
+    expect(s.players[0].assets[0]).toMatchObject({ monthlyIncome: 200, partnerId: undefined });
+  });
+});

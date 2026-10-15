@@ -216,6 +216,26 @@ export function crisisAdjusted<T extends Effect>(e: T, p: { crisisMonths?: numbe
   return e;
 }
 
+/** Sheriklik (§5.6, qaror #64): sherik ulushiga to'lagan summasi foyda bilan qaytgach 24 oy dividend oladi; so'ng ulush biznes egasiga BEPUL o'tadi (sheriklik yopiladi). */
+export function tickStakes(s: GameState, pid: string) {
+  const p = s.players[idx(s, pid)];
+  for (const st of p.assets.filter((a) => a.stakeOf)) {
+    const rec = (st.recouped ?? 0) + st.monthlyIncome;
+    let left = st.dividendLeft;
+    if (left === undefined) { if (rec >= st.price / 2) left = RULES.partnerDividendMonths; }
+    else left -= 1;
+    if (left !== undefined && left <= 0) { // bepul o'tish
+      const owner = s.players[idx(s, st.stakeOf!)];
+      const oa = owner.assets.find((a) => a.code === st.code && a.partnerId === pid);
+      if (oa) setP(s, { ...owner, assets: owner.assets.map((a) => (a === oa ? { ...a, monthlyIncome: a.monthlyIncome + st.monthlyIncome, partnerId: undefined } : a)) });
+      setP(s, { ...s.players[idx(s, pid)], assets: s.players[idx(s, pid)].assets.filter((a) => a !== st) });
+      logf(s, `${pid}: ${st.code} ulushi dividend muddatidan so'ng egasiga o'tdi`);
+      return tickStakes(s, pid);
+    }
+    setP(s, { ...s.players[idx(s, pid)], assets: s.players[idx(s, pid)].assets.map((a) => (a === st ? { ...a, recouped: rec, dividendLeft: left } : a)) });
+  }
+}
+
 function monthsFor(p: GamePlayer, steps: number): { pos: number; months: number } {
   if (p.circle === "small") return move(p.pos, steps, 48);
   // katta aylana: START (34) dan o'tish = oy
@@ -233,6 +253,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   }
   if (p.cash < 0) { const debt = -p.cash; p = forcePay(s, ctx, { ...p, cash: 0 }, debt); }
   setP(s, p);
+  for (let m = 0; m < months; m++) tickStakes(s, pid);
   // Katta aylana: START dan har o'tishda (aylana boshi) sozlangan ta'sir (masalan kxar xarajat dekasi)
   const lap = ctx.cellRules?.big?.onLap;
   if (p.circle === "big" && months > 0 && lap) runCellAction(s, ctx, p, lap);

@@ -28,7 +28,10 @@ export function validateProfile(i: any, year: number): { ok: true; value: Omit<P
 export const ageOf = (p: Pick<Profile, "birthYear">, year: number) => year - p.birthYear;
 export const isRestricted = (p: Pick<Profile, "birthYear"> | undefined, year: number) => !!p && ageOf(p, year) < MIN_AGE_RESTRICT;
 
-export interface Stats { unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
+/** §5.9: 5 yulduz — «Yollanma ishchi → Sarmoyador». Qaror #69: yulduz = daraja (ko'pi bilan 5); oraliq unvon nomlari SPEC'da yo'q, shuning uchun faqat ikki chekka nomlanadi. */
+export const starsOf = (level: number) => Math.min(5, Math.max(0, level));
+export const titleOf = (stars: number): "employee" | "investor" | null => (stars >= 5 ? "investor" : stars === 0 ? "employee" : null);
+export interface Stats { stars: number; title: "employee" | "investor" | null; unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
 export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel); // §5.9
 
 export class ProfileService {
@@ -62,7 +65,7 @@ export class ProfileService {
     let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
     for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p?.unreliable) { unreliable++; points += POINTS.unreliable; } if (!p || p.bot) continue; // bot (yoki chiqib ketgan) hisobga olinmaydi
       games++; if (p.won) { wins++; points += POINTS.win ?? 0; } if (p.circle === "big") { reachedBig++; points += POINTS.exitSmallCircle ?? 0; } }
-    return { unreliable, games, wins, reachedBig, points, level: levelOf(points) };
+    const level = levelOf(points); return { stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
   }
   history(userId: string, limit = 50) {
     return this.results.filter((r) => r.players.some((p) => p.id === userId && !p.bot)).slice(-limit).reverse()

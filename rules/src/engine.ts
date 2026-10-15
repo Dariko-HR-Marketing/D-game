@@ -55,6 +55,8 @@ export interface Asset {
   marketValue?: number | null; // kartadagi haqiqiy qiymat (bozor hodisalari uchun); null = noma'lum
   partnerId?: string; // egasi tomonda: sherik
   stakeOf?: string;   // sherik tomonda: biznes egasi
+  recouped?: number;     // sherik tomonda: ulushdan shu paytgacha olingan foyda
+  dividendLeft?: number; // sherik tomonda: ulush qaytgach qolgan dividend oylari (qaror #64)
 }
 /** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
 export interface BankLoan { amount: number; left: number }

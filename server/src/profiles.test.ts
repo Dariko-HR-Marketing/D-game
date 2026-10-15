@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildApp } from "./app";
-import { ProfileService, validateProfile, isRestricted, levelOf, POINTS } from "./profiles";
+import { ProfileService, validateProfile, isRestricted, levelOf, POINTS, starsOf, titleOf } from "./profiles";
 
 const Y = 2026;
 describe("profil tekshiruvi (§7)", () => {
@@ -17,7 +17,7 @@ describe("profil tekshiruvi (§7)", () => {
     expect(isRestricted({ birthYear: 2010 }, Y)).toBe(false); // 16
     expect(isRestricted(undefined, Y)).toBe(false);
   });
-  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toEqual({ win: 100, exitSmallCircle: 50, unreliable: -50 }); });
+  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(starsOf(7)).toBe(5); expect(titleOf(0)).toBe("employee"); expect(titleOf(5)).toBe("investor"); expect(titleOf(3)).toBeNull(); expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toEqual({ win: 100, exitSmallCircle: 50, unreliable: -50 }); });
 });
 
 describe("tarix va reyting", () => {
