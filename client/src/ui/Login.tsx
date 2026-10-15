@@ -1,37 +1,51 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, TextInput, StyleSheet, ScrollView } from "react-native";
 import { Button } from "./Button";
+import { Banner, Card } from "./kit";
+import { Logo } from "./Logo";
 import { uz, errText } from "../i18n/uz";
-import { color, MIN_TAP } from "../theme";
+import { color, font, MIN_TAP, radius, space, tone } from "../theme";
 import { validCode, validPhone, HttpError, type makeAuth } from "../net/http";
+
+const RESEND_S = 60; // server ham 1 daqiqada bitta SMS ruxsat beradi
 
 /** SMS bir martalik kod bilan kirish (§7). Telefon raqami faqat kod yuborish uchun; serverda saqlanmaydi. */
 export function Login({ auth, onDone }: { auth: ReturnType<typeof makeAuth>; onDone: (s: { token: string; userId: string }) => void }) {
   const [phone, setPhone] = useState(""); const [code, setCode] = useState(""); const [step, setStep] = useState<"phone" | "code">("phone");
-  const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [cool, setCool] = useState(0);
+  useEffect(() => { if (cool <= 0) return; const h = setTimeout(() => setCool(cool - 1), 1000); return () => clearTimeout(h); }, [cool]);
   const run = async (f: () => Promise<void>) => { setBusy(true); setErr(null); try { await f(); } catch (e) { setErr(e instanceof HttpError ? e.code : "network"); } finally { setBusy(false); } };
+  const send = () => run(async () => { await auth.request(phone); setStep("code"); setCool(RESEND_S); });
   return (
-    <View style={s.wrap}>
-      <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.login.title}</Text>
-      {step === "phone" ? (<>
-        <Text style={s.label} nativeID="ph">{uz.login.phone}</Text>
-        <TextInput accessibilityLabelledBy="ph" aria-label={uz.login.phone} style={s.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder="90 123 45 67" />
-        <Text style={s.note}>{uz.login.phoneHint}</Text>
-        <Button label={busy ? uz.login.wait : uz.login.send} disabled={busy || !validPhone(phone)} onPress={() => run(async () => { await auth.request(phone); setStep("code"); })} />
+    <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+      <View style={s.wrap}>
+        <View style={s.brand}><Logo size={72} /><Text style={s.h} aria-level={1} accessibilityRole="header">{uz.login.title}</Text></View>
+        <Card>
+          {step === "phone" ? (<>
+            <Text style={s.label} nativeID="ph">{uz.login.phone}</Text>
+            <TextInput accessibilityLabelledBy="ph" aria-label={uz.login.phone} style={s.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder="90 123 45 67" placeholderTextColor="#6B7C8C"
+              onSubmitEditing={() => validPhone(phone) && !busy && send()} returnKeyType="send" />
+            <Text style={s.note}>{uz.login.phoneHint}</Text>
+            <Button label={busy ? uz.login.wait : uz.login.send} disabled={busy || !validPhone(phone)} onPress={send} />
+          </>) : (<>
+            <Banner kind="info">{uz.login.sentTo}: {phone}</Banner>
+            <Text style={s.label} nativeID="cd">{uz.login.code}</Text>
+            <TextInput accessibilityLabelledBy="cd" aria-label={uz.login.code} style={[s.input, s.codeInput]} value={code} onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" autoComplete={"one-time-code" as any} textContentType="oneTimeCode" maxLength={6} autoFocus
+              onSubmitEditing={() => validCode(code) && !busy && run(async () => onDone(await auth.verify(phone, code)))} placeholder="••••••" placeholderTextColor="#9AA9B6" />
+            <Button label={busy ? uz.login.wait : uz.login.confirm} disabled={busy || !validCode(code)} onPress={() => run(async () => onDone(await auth.verify(phone, code)))} />
+            <Button label={cool > 0 ? `${uz.login.resendIn} ${cool} s` : uz.login.resend} kind="ghost" disabled={busy || cool > 0} onPress={send} />
+            <Button label={uz.login.back} kind="ghost" onPress={() => { setStep("phone"); setCode(""); setErr(null); }} />
+          </>)}
+          {err && <Banner kind="bad">{errText(err)}</Banner>}
+        </Card>
         <Text style={s.note}>{uz.login.note}</Text>
-      </>) : (<>
-        <Text style={s.note} accessibilityLiveRegion="polite">{uz.login.sentTo}: {phone}</Text>
-        <Text style={s.label} nativeID="cd">{uz.login.code}</Text>
-        <TextInput accessibilityLabelledBy="cd" aria-label={uz.login.code} style={s.input} value={code} onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" autoComplete="sms-otp" textContentType="oneTimeCode" maxLength={6} />
-        <Button label={busy ? uz.login.wait : uz.login.confirm} disabled={busy || !validCode(code)} onPress={() => run(async () => onDone(await auth.verify(phone, code)))} />
-        <Button label={uz.login.back} kind="ghost" onPress={() => { setStep("phone"); setCode(""); setErr(null); }} />
-      </>)}
-      {err && <Text style={s.err} accessibilityRole="alert">{errText(err)}</Text>}
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 const s = StyleSheet.create({
-  wrap: { flex: 1, gap: 12, padding: 24, maxWidth: 420, width: "100%", alignSelf: "center", justifyContent: "center" },
-  h: { fontSize: 28, fontWeight: "800", color: color.navy }, label: { color: color.navy, fontWeight: "700" }, note: { color: color.text2 }, err: { color: color.red },
-  input: { minHeight: MIN_TAP, borderWidth: 1, borderColor: color.line, borderRadius: 10, paddingHorizontal: 12, fontSize: 18, color: color.navy, backgroundColor: color.white },
+  scroll: { flexGrow: 1, justifyContent: "center" }, wrap: { gap: space.lg, padding: space.xl, maxWidth: 440, width: "100%", alignSelf: "center" }, brand: { alignItems: "center", gap: space.sm },
+  h: { fontSize: font.xxl, fontWeight: "800", color: color.navy }, label: { color: color.navy, fontWeight: "700", fontSize: font.sm }, note: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
+  input: { minHeight: MIN_TAP + 6, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingHorizontal: space.lg, fontSize: font.xl, backgroundColor: color.white, color: color.navy },
+  codeInput: { letterSpacing: 10, textAlign: "center", fontWeight: "800", fontSize: font.xxl },
 });

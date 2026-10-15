@@ -206,3 +206,15 @@ describe("kirish (SMS)", () => {
     await expect(a.verify("+998901234567", "000000")).rejects.toMatchObject({ code: "bad_code", status: 401 });
   });
 });
+
+import { readFileSync } from "node:fs";
+import { uz as uzText } from "./i18n/uz";
+describe("xato kodlari o'zbekcha matnga ega", () => {
+  it("dvigatel, xona, ilova va protokoldagi har bir xato kodi uchun matn bor", () => {
+    const files = ["../../rules/src/game.ts", "../../server/src/rooms.ts", "../../server/src/app.ts", "../../server/src/protocol.ts"];
+    const codes = new Set<string>();
+    for (const f of files) for (const m of readFileSync(decodeURIComponent(new URL(f, import.meta.url).pathname), "utf-8").matchAll(/err\("([a-z_0-9]+)"\)|error: "([a-z_0-9]+)"/g)) codes.add(m[1] ?? m[2]);
+    const missing = [...codes].filter((c) => !(c in uzText.errors));
+    expect(missing).toEqual([]); expect(codes.size).toBeGreaterThan(50);
+  });
+});

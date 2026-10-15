@@ -25,6 +25,7 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
   const room = x.rooms.rooms.get(code)!;
   await shot(a, "07-game-start");
+  await a.getByRole("button", { name: /Moliya amallari/ }).click(); await a.waitForTimeout(300); await a.evaluate(() => window.scrollTo(0, 99999)); await shot(a, "07b-actions");
   for (let i = 0; i < 400 && !room.state!.pending; i++) { const me = currentPlayer(room.state!).id; await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq); }
   if (room.state!.pending) { const me = currentPlayer(room.state!).id; const pg = me === "ua" + tag ? a : c; await pg.waitForTimeout(700); await shot(pg, "08-card"); }
   room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room); (x.rooms as any).emit(room);

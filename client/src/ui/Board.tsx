@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
+import { animationMs, useReducedMotion } from "../motion";
 import { SMALL_BOARD } from "@poyga/rules";
 import { color, font, PLAYER_COLORS, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
@@ -41,9 +42,7 @@ export function Board({ room, size, turns = 0, currentId, children }: { room: Ro
           const mates = players.filter((q) => q.circle === p.circle && q.pos === p.pos), gi = mates.findIndex((q) => q.id === p.id);
           const ang = (gi / Math.max(1, mates.length)) * 2 * Math.PI - Math.PI / 2, off = mates.length > 1 ? pawn * 0.55 : 0;
           const x = pt.x + (off * Math.cos(ang)) / size, y = pt.y + (off * Math.sin(ang)) / size;
-          return <View key={p.id} aria-hidden style={{ position: "absolute", left: x * size - pawn / 2, top: y * size - pawn / 2, width: pawn, height: pawn, borderRadius: pawn / 2, alignItems: "center", justifyContent: "center", zIndex: isCur ? 5 : 3,
-            backgroundColor: hue(p, k), borderWidth: isCur ? 3 : 2, borderColor: color.navy, shadowColor: "#000", shadowOpacity: isCur ? 0.4 : 0.2, shadowRadius: isCur ? 6 : 2, shadowOffset: { width: 0, height: 1 } }}>
-            <Text style={{ fontSize: Math.round(pawn * 0.5), fontWeight: "800", color: readableOn(hue(p, k)) }}>{k + 1}</Text></View>;
+          return <Pawn key={p.id} x={x * size - pawn / 2} y={y * size - pawn / 2} size={pawn} hue={hue(p, k)} label={k + 1} isCur={isCur} />;
         })}
         </View>
         {/* Markaz paneli: taxta tasviridan tashqarida (ichida tugma bo'lgani uchun) */}
@@ -71,3 +70,15 @@ const s = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingHorizontal: space.sm },
   item: { flexDirection: "row", alignItems: "center", gap: space.sm, flexBasis: 150, flexGrow: 1 }, sw: { width: 24, height: 24, borderRadius: 5, alignItems: "center", justifyContent: "center" }, itemT: { color: tone.muted, fontSize: font.sm, flex: 1 },
 });
+
+/** Fishka: yangi katakka silliq siljiydi (harakatni kamaytirish yoqilgan bo'lsa — darhol). */
+function Pawn({ x, y, size, hue, label, isCur }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean }) {
+  const reduced = useReducedMotion(); const pos = useRef(new Animated.ValueXY({ x, y })).current;
+  useEffect(() => { Animated.timing(pos, { toValue: { x, y }, duration: animationMs(reduced) * 2, useNativeDriver: false }).start(); }, [x, y, reduced, pos]);
+  return (
+    <Animated.View aria-hidden style={{ position: "absolute", left: pos.x, top: pos.y, width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center", zIndex: isCur ? 5 : 3,
+      backgroundColor: hue, borderWidth: isCur ? 3 : 2, borderColor: color.navy, shadowColor: "#000", shadowOpacity: isCur ? 0.4 : 0.2, shadowRadius: isCur ? 6 : 2, shadowOffset: { width: 0, height: 1 } }}>
+      <Text style={{ fontSize: Math.round(size * 0.5), fontWeight: "800", color: readableOn(hue) }}>{label}</Text>
+    </Animated.View>
+  );
+}

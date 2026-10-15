@@ -62,3 +62,11 @@ describe("oxirgi kubik holatda saqlanadi", () => {
     if (!r1.state.pending) { const r2: any = reduce(r1.state, ctx, { type: "roll", playerId: "b" }); expect(r2.state.lastRoll).toMatchObject({ playerId: "b", n: 2 }); }
   });
 });
+
+describe("oxirgi karta holatda saqlanadi (majburiy karta ham)", () => {
+  it("forceCard lastCard ni yozadi; tartib raqami oshadi", async () => {
+    const { forceCard } = await import("./index"); const s: any = newGame(ctx, ["a", "b", "c"], 3);
+    forceCard(s, ctx, s.players[0], ctx.deckIds.xar[0]); expect(s.lastCard).toEqual({ playerId: "a", cardId: ctx.deckIds.xar[0], n: 1 });
+    forceCard(s, ctx, s.players[1], ctx.deckIds.xar[1]); expect(s.lastCard).toMatchObject({ playerId: "b", n: 2 });
+  });
+});

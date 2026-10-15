@@ -77,7 +77,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={() => conn.start()} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
-        : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} />}
+        : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} />}
       </View>
     </SafeAreaView>
   );

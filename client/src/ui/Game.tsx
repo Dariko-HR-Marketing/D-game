@@ -8,8 +8,9 @@ import { PlayerStrip } from "./PlayerStrip";
 import { FinanceCard } from "./FinanceCard";
 import { TurnPanel } from "./TurnPanel";
 import { DecisionCard } from "./DecisionCard";
+import { CardToast } from "./CardToast";
 import { Actions } from "./Actions";
-import { uz } from "../i18n/uz";
+import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { color, font, radius, space, tone } from "../theme";
 import { bankRoom, currentId, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
@@ -46,7 +47,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
   );
 }
 
-export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules, error, status }: { error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const { width } = useWindowDimensions();
   const wide = width >= 900; // planshet/kompyuter: taxta chapda, panel o'ngda
@@ -86,7 +87,10 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
 
   return (
     <View style={{ flex: 1 }}>
+      <CardToast room={room} userId={userId} />
       <ScrollView contentContainerStyle={[s.wrap, sheetOpen && { paddingBottom: 420 }]}>
+        {status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}
+        {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}
         <View style={s.top}><Text style={s.title} aria-level={1} accessibilityRole="header">{uz.app.name} · {room.code}</Text></View>
         <PlayerStrip room={room} userId={userId} />
         <View style={[{ gap: space.lg }, wide && { flexDirection: "row", alignItems: "flex-start" }]}>

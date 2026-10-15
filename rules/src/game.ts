@@ -53,6 +53,8 @@ export interface GameState {
   phase: "dreams" | "play"; dreamPhase: boolean;
   /** Oxirgi tashlangan kubik (mijoz ko'rsatishi uchun): kim, nechta, va qaysi tartib raqamda. */
   lastRoll?: { playerId: string; die: number; n: number } | null;
+  /** Oxirgi tortilgan karta (majburiy karta darhol qo'llanib `pending` bo'lmagani uchun ham ko'rsatiladi). */
+  lastCard?: { playerId: string; cardId: string; n: number } | null;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -266,8 +268,9 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   else bigLanding(s, ctx, q);
 }
 
+function noteCard(s: GameState, playerId: string, cardId: string) { s.lastCard = { playerId, cardId, n: (s.lastCard?.n ?? 0) + 1 }; }
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
-  const id = drawFrom(s, deck);
+  const id = drawFrom(s, deck); noteCard(s, p.id, id);
   const ce = ctx.effects[id];
   if (ce.effect.kind === "marketSale") { // hamma mos aktivli o'yinchiga taklif (§5.2 bozor); navbatni to'xtatmaydi
     s.proposals.push({ id: s.nextProposal++, kind: "market", cardId: id, sold: [] }); logf(s, `bozor: ${ce.text ?? id}`); return;
@@ -381,7 +384,7 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
 /** Aniq kartani dekadan chiqarib, o'yinchiga beradi (masalan Ajrashish katagi → hod-7). */
 export function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
   const ce = ctx.effects[id]; if (!ce) { logf(s, `karta topilmadi: ${id}`); return; }
-  const deck = ce.deck as DeckName;
+  const deck = ce.deck as DeckName; noteCard(s, p.id, id);
   if (s.decks[deck]) { const d = s.decks[deck]; d.draw = d.draw.filter((x) => x !== id); d.discard = d.discard.filter((x) => x !== id); d.discard.push(id); }
   if (ce.mode === "mandatory") { autoMandatory(s, ctx, p, ce); return; }
   s.pending = { type: "card", playerId: p.id, cardId: id, deck };
