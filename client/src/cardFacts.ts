@@ -1,0 +1,55 @@
+// Karta qarori uchun raqamlar: o'yinchi narx, boshlang'ich to'lov, daromad va pul oqimiga ta'sirni ko'rib qaror qiladi.
+import { crisisAdjusted, passiveIncome, RULES } from "@poyga/rules";
+import { uz } from "./i18n/uz";
+
+export interface FactRow { label: string; value: string; tone?: "good" | "bad" | "neutral" }
+export interface Facts {
+  rows: FactRow[];
+  /** Hozir kerak bo'ladigan naqd (yo'q bo'lsa null) */
+  need: number | null;
+  /** Naqd yetadimi (need yo'q bo'lsa null) */
+  affordable: boolean | null;
+  /** Naqd yetmasa: bank krediti bilan yopiladimi (limit ichida) */
+  bankCovers: boolean | null;
+  /** Oylik pul oqimiga ta'sir (taxminiy, +/−); noma'lum bo'lsa null */
+  flowDelta: number | null;
+  notes: string[];
+}
+const fmt = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+const signed = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n));
+const F = uz.facts;
+
+interface P { cash: number; salary: number; assets: { kind: string; monthlyIncome: number }[]; crisisMonths?: number; bankDebt?: number }
+
+export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
+  const rows: FactRow[] = []; const notes: string[] = []; let need: number | null = null; let flow: number | null = null;
+  const e = effect ? crisisAdjusted(effect, p) : effect;
+  if ((p.crisisMonths ?? 0) > 0 && JSON.stringify(e) !== JSON.stringify(effect)) notes.push(F.crisisNote);
+  switch (e?.kind) {
+    case "buy": {
+      need = e.down ?? e.price;
+      rows.push({ label: F.price, value: fmt(e.price) });
+      if (e.credit) { rows.push({ label: F.down, value: fmt(need!) }); rows.push({ label: F.credit, value: fmt(e.credit) }); }
+      const income = e.monthlyIncome ?? 0, pay = -(e.creditPayment ?? 0); // kartada foiz manfiy yoziladi
+      if (income) rows.push({ label: F.income, value: signed(income), tone: "good" });
+      if (pay) rows.push({ label: F.creditPay, value: signed(-pay), tone: "bad" });
+      flow = income - pay; if (flow !== 0 || income || pay) rows.push({ label: F.flowDelta, value: signed(flow), tone: flow >= 0 ? "good" : "bad" });
+      if (e.marketValue === null) notes.push(F.unknownValue);
+      break;
+    }
+    case "buyShares": need = e.min * e.pricePerShare; rows.push({ label: F.perShare, value: fmt(e.pricePerShare) }, { label: F.range, value: `${e.min}–${e.max}` }, { label: F.minCost, value: fmt(need!) }); break;
+    case "gain": rows.push({ label: F.gain, value: signed(e.amount), tone: "good" }); break;
+    case "pay": rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); need = e.amount; break;
+    case "lendRequest": need = e.amount; rows.push({ label: F.lend, value: fmt(e.amount) }, { label: F.lendBack, value: fmt(e.returnAmount), tone: "good" }); notes.push(F.lendNote); break;
+    case "qarOffer": rows.push({ label: F.qarMonthly, value: signed(-e.monthlyExpense), tone: "bad" }); flow = -e.monthlyExpense; notes.push(F.qarNote); break;
+    case "courseSalaryPlus": need = e.price; rows.push({ label: F.price, value: fmt(e.price) }, { label: F.salaryPlus, value: signed(e.salaryPlus), tone: "good" }); flow = e.salaryPlus; break;
+    case "charity": { need = Math.round(e.incomeShare * (p.salary + passiveIncome({ assets: p.assets } as any))); rows.push({ label: F.charity, value: fmt(need) }, { label: F.twoDice, value: `${e.turns}` }); break; }
+    case "carInsurance": need = e.price; rows.push({ label: F.price, value: fmt(e.price) }); if (!p.assets.some((a) => a.kind === "car")) notes.push(F.noCar); break;
+    case "payOrLoseBusiness": need = e.amount; rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); notes.push(F.hod7Note); break;
+    default: break;
+  }
+  const affordable = need === null ? null : p.cash >= need;
+  const bankCovers = need === null || affordable ? null : need - p.cash <= bankRoom;
+  return { rows, need, affordable, bankCovers, flowDelta: flow, notes };
+}
+export const BANK_LIMIT = RULES.bankLimit;

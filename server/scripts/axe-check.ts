@@ -28,7 +28,7 @@ for (const [w, h] of [[390, 844], [1024, 768], [1440, 900]] as [number, number][
   await a.getByRole("button", { name: "Reyting" }).click(); await a.waitForSelector("text=Reyting"); await scan(a, `reyting ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Xona yaratish" }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByPlaceholder("Xona kodi").fill(code); await c.getByRole("button", { name: "Kod bilan qo'shilish" }).click(); await c.waitForSelector("text=Xona egasi");
+  await c.getByLabel("Xona kodi").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
   await scan(a, `xona ${tag}`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await scan(a, `orzu tanlash ${tag}`);
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await scan(a, `o'yin ${tag}`);

@@ -79,3 +79,17 @@ export function marketOffers(room: any, userId: string): { proposalId: number; t
   }
   return out;
 }
+
+/** Ko'rsatiladigan ism: profil nomi, bo'lmasa «O'yinchi N» (xom identifikator hech qachon ko'rsatilmaydi). */
+export function nameOf(room: any, id: string | null | undefined): string {
+  if (!id) return "";
+  const n = room?.names?.[id]?.name; if (n) return n;
+  const i = room?.state?.players?.findIndex((p: any) => p.id === id) ?? -1;
+  if (room?.state?.bots?.includes(id)) return `Bot${i >= 0 ? " " + (i + 1) : ""}`;
+  return i >= 0 ? `O'yinchi ${i + 1}` : "O'yinchi";
+}
+/** Jurnal satridagi xom identifikatorlarni ismlarga almashtiradi (uzunroqlari avval). */
+export function humanize(room: any, line: string): string {
+  const ids: string[] = (room?.state?.players ?? []).map((p: any) => p.id).sort((a: string, b: string) => b.length - a.length);
+  let out = line; for (const id of ids) out = out.split(id).join(nameOf(room, id)); return out;
+}

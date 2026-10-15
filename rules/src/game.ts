@@ -51,6 +51,8 @@ export interface GameState {
   notices: Notice[]; nextNotice: number;
   /** "dreams": orzu tanlash (butun maydon ochiq, §6.4); "play": o'yin. `dreamPhase`: o'yin orzu bosqichi bilan boshlangan (jurnaldan qayta o'ynash uchun). */
   phase: "dreams" | "play"; dreamPhase: boolean;
+  /** Oxirgi tashlangan kubik (mijoz ko'rsatishi uchun): kim, nechta, va qaysi tartib raqamda. */
+  lastRoll?: { playerId: string; die: number; n: number } | null;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -186,6 +188,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
     const two = (cur.twoDice ?? 0) > 0;
     const die = withRng(s, (r) => (two ? rollDie(r) + rollDie(r) : rollDie(r)));
     if (two) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
+    s.lastRoll = { playerId: cur.id, die, n: (s.lastRoll?.n ?? 0) + 1 };
     land(s, ctx, cur.id, die);
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s, die };

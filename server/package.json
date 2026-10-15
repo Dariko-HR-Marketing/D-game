@@ -1,32 +1,33 @@
 {
- "name": "@poyga/server",
- "private": true,
- "version": "0.0.0",
- "type": "module",
- "scripts": {
-  "test": "vitest run",
-  "typecheck": "tsc --noEmit",
-  "dev": "tsx src/main.ts",
-  "a11y": "tsx scripts/axe-check.ts",
-  "loadtest": "tsx scripts/loadtest.ts"
- },
- "dependencies": {
-  "@poyga/content": "workspace:*",
-  "@poyga/rules": "workspace:*",
-  "fastify": "^5.1.0",
-  "@fastify/websocket": "^11.0.1",
-  "pg": "^8.13.0",
-  "zod": "^3.23.8",
-  "tsx": "^4.19.0"
- },
- "devDependencies": {
-  "typescript": "^5.6.0",
-  "vitest": "^2.1.0",
-  "@types/node": "^22.0.0",
-  "@types/ws": "^8.5.12",
-  "ws": "^8.18.0",
-  "@types/pg": "^8.11.10",
-  "playwright-core": "^1.49.0",
-  "axe-core": "^4.10.0"
- }
+  "name": "@poyga/server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/main.ts",
+    "a11y": "tsx scripts/axe-check.ts",
+    "loadtest": "tsx scripts/loadtest.ts",
+    "screens": "tsx scripts/screens.ts"
+  },
+  "dependencies": {
+    "@poyga/content": "workspace:*",
+    "@poyga/rules": "workspace:*",
+    "fastify": "^5.1.0",
+    "@fastify/websocket": "^11.0.1",
+    "pg": "^8.13.0",
+    "zod": "^3.23.8",
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.12",
+    "ws": "^8.18.0",
+    "@types/pg": "^8.11.10",
+    "playwright-core": "^1.49.0",
+    "axe-core": "^4.10.0"
+  }
 }

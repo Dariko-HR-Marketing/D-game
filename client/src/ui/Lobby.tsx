@@ -1,33 +1,56 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable, Share, StyleSheet } from "react-native";
 import { Button } from "./Button";
+import { Banner, Card, Pill } from "./kit";
+import { Screen } from "./Screen";
 import { uz, errText } from "../i18n/uz";
-import { color, PLAYER_COLORS, GREEN_TEXT } from "../theme";
+import { color, font, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../theme";
+import { readableOn } from "../contrast";
 import type { RoomView } from "../net/connection";
 
+const MAX = 6, MIN = 2;
 export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: () => void; onLeave: () => void }) {
-  const host = room.members[0]?.userId === userId;
+  const host = room.members[0]?.userId === userId; const [copied, setCopied] = useState(false);
+  const humans = room.members.length, bots = Math.max(0, MIN - humans);
+  const copy = async () => {
+    const text = room.code;
+    try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
+    try { await Share.share({ message: `POYGA: ${text}` }); } catch { /* bekor qilindi */ }
+  };
   return (
-    <View style={s.wrap}>
-      <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.lobby.title}</Text>
-      <Text style={s.code} selectable accessibilityLabel={`${uz.home.code}: ${room.code}`}>{room.code}</Text>
-      <Text style={s.sub}>{uz.lobby.players} · {room.members.length}/6</Text>
-      {room.members.map((m, i) => (
-        <View key={m.userId} style={s.row}>
-          <View style={[s.dot, { backgroundColor: PLAYER_COLORS[(room.names?.[m.userId]?.color ?? i) % 6] }]} />
-          <Text style={s.name}>{m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? m.userId}{m.userId === userId ? ` (${uz.lobby.you})` : ""}{m.online ? "" : ` · ${uz.lobby.offline}`}</Text>
-        </View>
-      ))}
-      <Text style={s.note}>{uz.lobby.hint}</Text>
-      {host ? <Button label={uz.lobby.start} onPress={onStart} /> : <Text style={s.note}>{uz.lobby.wait}</Text>}
-      <Button label="←" kind="ghost" onPress={onLeave} />
-      {error && <Text style={s.err} accessibilityRole="alert">{errText(error)}</Text>}
-    </View>
+    <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={480}>
+      <Card style={{ alignItems: "center", gap: space.md }}>
+        <Text style={s.codeLabel}>{uz.home.code}</Text>
+        <Text style={s.code} selectable accessibilityLabel={`${uz.home.code}: ${room.code.split("").join(" ")}`}>{room.code}</Text>
+        <View style={{ alignSelf: "stretch" }}><Button label={copied ? uz.lobby.copied : uz.lobby.copy} kind="ghost" onPress={copy} /></View>
+        <View accessibilityLiveRegion="polite"><Text style={s.sr}>{copied ? uz.lobby.copied : ""}</Text></View>
+      </Card>
+
+      <Card>
+        <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${MAX}`} kind={humans >= MIN ? "good" : "warn"} /></View>
+        {room.members.map((m, i) => {
+          const hue = PLAYER_COLORS[(room.names?.[m.userId]?.color ?? i) % 6];
+          const label = m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? `${uz.lobby.playerN} ${i + 1}`;
+          return (<View key={m.userId} style={s.player} role="group" accessible aria-label={`${i + 1}. ${label}${m.userId === userId ? `, ${uz.lobby.you}` : ""}${i === 0 ? `, ${uz.lobby.hostWord}` : ""}${m.online ? "" : `, ${uz.lobby.offline}`}`}>
+            <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={{ color: readableOn(hue), fontWeight: "800", fontSize: 12 }}>{i + 1}</Text></View>
+            <Text style={s.name} aria-hidden>{label}{m.userId === userId ? ` · ${uz.lobby.you}` : ""}</Text>
+            <View style={{ flexDirection: "row", gap: space.xs }} aria-hidden>{i === 0 && <Pill label={uz.lobby.hostWord} kind="info" />}{!m.online && <Pill label={uz.lobby.offline} kind="warn" />}</View>
+          </View>);
+        })}
+        {Array.from({ length: Math.max(0, MIN - humans) }, (_, i) => (
+          <View key={`e${i}`} style={[s.player, s.empty]} aria-hidden><View style={[s.dot, { borderStyle: "dashed", borderColor: color.line, backgroundColor: "transparent" }]} /><Text style={s.emptyT}>{uz.lobby.waitingPlayer}</Text></View>))}
+      </Card>
+
+      {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
+      {host ? <Button label={uz.lobby.start} onPress={onStart} /> : <Banner kind="info">{uz.lobby.wait}</Banner>}
+      {error && <Text style={{ color: color.red }} accessibilityRole="alert">{errText(error)}</Text>}
+    </Screen>
   );
 }
 const s = StyleSheet.create({
-  wrap: { flex: 1, gap: 12, padding: 24, maxWidth: 420, width: "100%", alignSelf: "center", justifyContent: "center" },
-  h: { fontSize: 24, fontWeight: "800", color: color.navy }, code: { fontSize: 36, fontWeight: "800", letterSpacing: 6, color: GREEN_TEXT },
-  sub: { color: color.text2 }, row: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 36 },
-  dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: color.navy }, name: { color: color.navy, fontSize: 16 }, note: { color: color.text2 }, err: { color: color.red },
+  codeLabel: { color: tone.muted, fontWeight: "700", fontSize: font.sm }, code: { fontSize: 44, fontWeight: "800", letterSpacing: 8, color: GREEN_TEXT }, sr: { height: 0, width: 0, opacity: 0 },
+  rowHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, h2: { fontSize: font.lg, fontWeight: "800", color: color.navy },
+  player: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48, borderTopWidth: 1, borderTopColor: color.line },
+  dot: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, name: { flex: 1, color: color.navy, fontSize: font.lg, fontWeight: "700" },
+  empty: { opacity: 0.8 }, emptyT: { color: tone.muted, fontSize: font.md },
 });

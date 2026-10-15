@@ -25,3 +25,11 @@ import { animationMs, CARD_OPEN_MS } from "./motionConfig";
 describe("harakatni kamaytirish (§10)", () => {
   it("karta ochilishi ≈ 240 ms, sozlama yoqilsa 0", () => { expect(CARD_OPEN_MS).toBe(240); expect(animationMs(false)).toBe(240); expect(animationMs(true)).toBe(0); });
 });
+
+import { surface, tone } from "./theme";
+describe("ma'no ranglari va yumshoq fonlar (WCAG AA)", () => {
+  it.each([
+    ["yaxshi / yaxshi fon", tone.good, surface.good], ["yomon / yomon fon", tone.bad, surface.bad], ["diqqat / diqqat fon", tone.warn, surface.warn],
+    ["asosiy / ma'lumot fon", color.navy, surface.info], ["yaxshi / oq", tone.good, color.white], ["yomon / oq", tone.bad, color.white], ["diqqat / oq", tone.warn, color.white], ["ikkinchi matn / oq", tone.muted, color.white],
+  ])("%s ≥ 4.5", (_n, a, b) => expect(contrast(a, b)).toBeGreaterThanOrEqual(4.5));
+});
