@@ -65,7 +65,8 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const canRoll = mineTurn && !card && !state.winner;
   useEffect(() => { // kompyuterda probel — kubik tashlash (tugma/matn maydoni fokusda bo'lmasa)
     const doc = (globalThis as any).document; if (!doc?.addEventListener || !canRoll) return;
-    const h = (e: any) => { const tag = (e.target?.tagName ?? "").toLowerCase(); if (e.code === "Space" && !["input", "textarea", "button", "select", "a"].includes(tag) && !e.repeat) { e.preventDefault(); onAct({ type: "roll" }); } };
+    const h = (e: any) => { const tag = (e.target?.tagName ?? "").toLowerCase(); const interactive = !!e.target?.closest?.('[role="button"],[role="link"],[role="radio"],[role="checkbox"],[role="dialog"],[contenteditable="true"]');
+      if (e.code === "Space" && !interactive && !doc.querySelector('[role="dialog"]') && !["input", "textarea", "button", "select", "a"].includes(tag) && !e.repeat) { e.preventDefault(); onAct({ type: "roll" }); } };
     doc.addEventListener("keydown", h); return () => doc.removeEventListener("keydown", h);
   }, [canRoll, onAct]);
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!card} left={left} onRoll={() => onAct({ type: "roll" })} compact={!wide && boardSize < 400} />;

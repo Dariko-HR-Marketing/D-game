@@ -4,6 +4,7 @@ import { Button } from "./Button";
 import { Banner, Card, Pill, Row } from "./kit";
 import { CARD_IMAGES_BASE, cardImageUrl } from "../cardImage";
 import { cardFacts } from "../cardFacts";
+import { crisisAdjusted } from "@poyga/rules";
 import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, radius, space, tone } from "../theme";
@@ -19,7 +20,8 @@ function CardArt({ file, text }: { file?: string; text: string }) {
 
 /** Qaror kartasi: turi, rasm/matn, raqamlar (narx, to'lov, daromad, pul oqimiga ta'sir), naqd yetishi va harakatlar. */
 export function DecisionCard({ card, me, bankRoom, onAct, sheet, left }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number }) {
-  const e = card.effect; const f = cardFacts(e, me, bankRoom);
+  const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
+  const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1));
   const mandatory = card.mode === "mandatory", shares = e?.kind === "buyShares", hod7 = e?.kind === "payOrLoseBusiness";
   const qty = Number(q) || 0, cost = shares ? qty * (e.pricePerShare) : f.need;

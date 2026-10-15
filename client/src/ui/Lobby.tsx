@@ -10,7 +10,7 @@ import type { RoomView } from "../net/connection";
 
 const MAX = 6, MIN = 2;
 export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: () => void; onLeave: () => void }) {
-  const host = room.members[0]?.userId === userId; const [copied, setCopied] = useState(false);
+  const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false);
   const humans = room.members.length, bots = Math.max(0, MIN - humans);
   const copy = async () => {
     const text = room.code;

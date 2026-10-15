@@ -57,13 +57,14 @@ const Empty = ({ loading }: { loading: boolean }) => <p className="muted" role="
 
 /** Tasdiqlash oynasi (<dialog>: fokus tuzog'i va Esc brauzer tomonidan). `reason` — majburiy sabab maydoni. */
 function Confirm({ open, title, body, danger, reason, onClose, onOk }: { open: boolean; title: string; body?: string; danger?: boolean; reason?: string; onClose: () => void; onOk: (reason: string) => void | Promise<void> }) {
-  const ref = useRef<HTMLDialogElement>(null); const [r, setR] = useState(""); const [busy, setBusy] = useState(false);
-  useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) { setR(""); d.showModal(); } if (!open && d.open) d.close(); }, [open]);
+  const ref = useRef<HTMLDialogElement>(null); const [r, setR] = useState(""); const [busy, setBusy] = useState(false); const [fail, setFail] = useState<string | null>(null);
+  useEffect(() => { const d = ref.current; if (!d) return; if (open && !d.open) { setR(""); setFail(null); d.showModal(); } if (!open && d.open) d.close(); }, [open]);
   return (
     <dialog ref={ref} aria-labelledby="dlg-t" onClose={onClose}>
-      <form method="dialog" onSubmit={async (e) => { e.preventDefault(); setBusy(true); try { await onOk(r.trim()); } finally { setBusy(false); } }}>
+      <form method="dialog" onSubmit={async (e) => { e.preventDefault(); setBusy(true); setFail(null); try { await onOk(r.trim()); } catch (err) { setFail(errText(err)); } finally { setBusy(false); } }}>
         <h2 id="dlg-t">{title}</h2>{body && <p className="muted" style={{ margin: 0 }}>{body}</p>}
         {reason && <label>{reason}<input value={r} onChange={(e) => setR(e.target.value)} autoFocus required minLength={3} maxLength={300} /></label>}
+        {fail && <Banner kind="bad">{fail}</Banner>}
         <menu><button type="button" onClick={onClose}>{t.cancel}</button><button type="submit" className={danger ? "d" : "p"} disabled={busy || (!!reason && r.trim().length < 3)}>{t.confirm}</button></menu>
       </form>
     </dialog>
@@ -74,13 +75,20 @@ function Content({ api }: { api: Api }) {
   const vs = useLoad<{ active: number; versions: any[] }>(api, "/admin/content/versions");
   const [part, setPart] = useState("cellRules"); const [text, setText] = useState(""); const [orig, setOrig] = useState(""); const [note, setNote] = useState("");
   const [msg, setMsg] = useState<{ kind: "good" | "bad"; lines: string[] } | null>(null); const [pub, setPub] = useState<number | null>(null); const [loadErr, setLoadErr] = useState<string | null>(null);
-  const load = useCallback(async (p: string) => { setLoadErr(null); try { const r = await api.get(`/admin/content/${p}`); const s = JSON.stringify(r.data, null, 1); setText(s); setOrig(s); setMsg(null); } catch (e) { setLoadErr(errText(e)); } }, [api]);
+  const lseq = useRef(0); const [loadedPart, setLoadedPart] = useState<string | null>(null); const [pendingPart, setPendingPart] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const load = useCallback(async (p: string) => { // kechikkan eski javob yangi tanlovni bosib ketmasin
+    const my = ++lseq.current; setLoadErr(null); setLoadedPart(null);
+    try { const r = await api.get(`/admin/content/${p}`); if (my !== lseq.current) return; const s = JSON.stringify(r.data, null, 1); setText(s); setOrig(s); setMsg(null); setLoadedPart(p); } catch (e) { if (my === lseq.current) setLoadErr(errText(e)); }
+  }, [api]);
   useEffect(() => { void load(part); }, [part, load]);
   let parsed: { ok: true } | { ok: false; error: string } = { ok: true }; try { JSON.parse(text || "null"); } catch (e) { parsed = { ok: false, error: (e as Error).message }; }
   const changed = text !== orig;
   const create = async () => {
-    const r = await api.post(`/admin/content/${part}/versions`, { data: JSON.parse(text), note });
-    if (r.ok) { setMsg({ kind: "good", lines: [`${t.saved}: v${r.version}. «${t.publish}» tugmasi bilan yoqing.`] }); setNote(""); vs.reload(); } else setMsg({ kind: "bad", lines: r.problems ?? [r.error] });
+    if (busy || loadedPart !== part) return; setBusy(true);
+    try {
+      const r = await api.post(`/admin/content/${part}/versions`, { data: JSON.parse(text), note });
+      if (r.ok) { setMsg({ kind: "good", lines: [`${t.saved}: v${r.version}. «${t.publish}» tugmasi bilan yoqing.`] }); setNote(""); setOrig(text); vs.reload(); } else setMsg({ kind: "bad", lines: r.problems ?? [r.error] });
+    } catch (e) { setMsg({ kind: "bad", lines: [errText(e)] }); } finally { setBusy(false); }
   };
   return (<>
     <PageHead title={t.content} />
@@ -94,17 +102,18 @@ function Content({ api }: { api: Api }) {
 
     <section className="card" aria-labelledby="eh"><h2 id="eh">Tahrirlash</h2>
       <div className="stack">
-        <div className="row"><label className="grow">{t.part}<select value={part} onChange={(e) => setPart(e.target.value)}>{Object.entries(t.parts).map(([k, [n]]) => <option key={k} value={k}>{n}</option>)}</select></label>
+        <div className="row"><label className="grow">{t.part}<select value={part} onChange={(e) => (changed ? setPendingPart(e.target.value) : setPart(e.target.value))}>{Object.entries(t.parts).map(([k, [n]]) => <option key={k} value={k}>{n}</option>)}</select></label>
           <button onClick={() => load(part)} disabled={!changed}>Asl holatga qaytarish</button></div>
         <p className="muted" style={{ margin: 0 }}>{t.parts[part]?.[1]}</p>
         <Err e={loadErr} />
         <label>JSON<textarea aria-describedby="jstat" spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} /></label>
         <div id="jstat" role="status" className="muted">{parsed.ok ? (changed ? <Pill kind="warn">O'zgartirilgan</Pill> : <Pill kind="info">O'zgarishsiz</Pill>) : <Banner kind="bad">JSON xato: {parsed.error}</Banner>}</div>
         <label>{t.note}<input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} /></label>
-        <div><button className="p" onClick={create} disabled={!text || !parsed.ok || !changed}>{t.create}</button></div>
+        <div><button className="p" onClick={create} disabled={!text || !parsed.ok || !changed || busy || loadedPart !== part}>{t.create}</button></div>
         {msg && <Banner kind={msg.kind}>{msg.kind === "bad" ? <><b>{t.problems}:</b><ul>{msg.lines.map((m, i) => <li key={i}>{m}</li>)}</ul></> : msg.lines[0]}</Banner>}
       </div>
     </section>
+    <Confirm open={pendingPart !== null} danger title="Saqlanmagan o'zgarishlar bor" body="Boshqa qismni tanlasangiz, shu qismdagi tahrirlar yo'qoladi." onClose={() => setPendingPart(null)} onOk={() => { setPart(pendingPart!); setPendingPart(null); }} />
     <Confirm open={pub !== null} title={`v${pub} ni nashr qilish`} body={t.publishWarn} onClose={() => setPub(null)} onOk={async () => { await api.post(`/admin/content/versions/${pub}/publish`); setPub(null); vs.reload(); }} />
   </>);
 }

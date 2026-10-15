@@ -42,7 +42,11 @@ export default function App() {
         if (cfg.dev) { const u = devUser(); setSess({ token: u, userId: u }); }
         else if (saved) { try { const j = JSON.parse(saved) as Sess; setSess(j.token && j.userId ? j : null); } catch { setSess(null); } }
         else setSess(null);
-      } catch { if (!off) { setLoginErr(true); setSess(null); } }
+      } catch { // server vaqtincha javob bermasa ham saqlangan sessiya yo'qolmasin (qayta SMS kodi shart bo'lmasin)
+        if (off) return;
+        if (saved) { try { const j = JSON.parse(saved) as Sess; if (j.token && j.userId) return setSess(j); } catch { /* buzilgan yozuv */ } }
+        setLoginErr(true); setSess(null);
+      }
     })();
     return () => { off = true; };
   }, [auth]);

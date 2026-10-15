@@ -196,3 +196,14 @@ describe("orzu bosqichi: chekka holatlar", () => {
     expect(await rm.act(r.code, "c", { type: "choose_dream", playerId: "c", dreamIdx: 5 }, room.seq)).toEqual({ ok: false, error: "not_member" });
   });
 });
+
+describe("xona egasi chiqsa", () => {
+  it("keyingi odam egasi bo'ladi va o'yinni boshlay oladi; view da hostId bor", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c");
+    expect(rm.view(rm.rooms.get(r.code)!).hostId).toBe("a");
+    rm.leave(r.code, "a");
+    expect(rm.view(rm.rooms.get(r.code)!).hostId).toBe("b");
+    expect(await rm.start(r.code, "c", 1)).toEqual({ ok: false, error: "not_host" });
+    expect((await rm.start(r.code, "b", 1, { dreams: false })).ok).toBe(true);
+  });
+});

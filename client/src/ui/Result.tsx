@@ -12,11 +12,11 @@ import type { Http } from "../net/http";
 /** Pul oqimi grafigi: o'qlar (eng katta qiymat va aylanalar), manfiy qiymat nol chizig'idan pastga qizil; ma'lumot kam bo'lsa tushuntiriladi. */
 function Chart({ values }: { values: number[] }) {
   if (values.length < 4) return <Text style={s.muted}>{uz.result.fewData}</Text>;
-  const pts = downsample(values, 28); const b = bars(pts); const hasNeg = b.some((x) => x.neg); const H = hasNeg ? 36 : 72; const max = Math.max(...values.map(Math.abs));
+  const pts = downsample(values, 28); const b = bars(pts); const hasNeg = b.some((x) => x.neg); const H = hasNeg ? 36 : 72; const max = Math.max(1, ...pts.map(Math.abs)); // o'q ham ustunlar bilan bir xil masshtabda
   return (
     <View accessibilityRole="image" accessibilityLabel={`${uz.result.cashflowChart}: ${uz.result.chartRange} ${money(Math.min(...values))} – ${money(Math.max(...values))}`} style={{ gap: space.xs }}>
       <View style={s.chartRow} aria-hidden>
-        <View style={s.axis}><Text style={s.axisT}>{money(max)}</Text><Text style={s.axisT}>0</Text></View>
+        <View style={[s.axis, hasNeg && { paddingVertical: 0 }]}><Text style={s.axisT}>{money(max)}</Text><Text style={s.axisT}>0</Text>{hasNeg && <Text style={s.axisT}>{money(-max)}</Text>}</View>
         <View style={s.chart}>{b.map((x, i) => (
           <View key={i} style={s.col}>
             <View style={{ height: H, justifyContent: "flex-end" }}>{!x.neg && <View style={[s.bar, { height: Math.max(2, x.h * H), backgroundColor: color.green }]} />}</View>

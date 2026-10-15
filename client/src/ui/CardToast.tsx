@@ -7,17 +7,24 @@ import { uz } from "../i18n/uz";
 import { color, font, MIN_TAP, radius, shadow, space, tone } from "../theme";
 import type { RoomView } from "../net/connection";
 
+const seenByRoom = new Map<string, number>();
 const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
 
 /** Tortilgan karta haqida xabar: majburiy karta darhol qo'llangani uchun (qaror oynasi yo'q) nima bo'lganini ko'rsatadi; boshqalarning kartalari ham ko'rinadi. */
 export function CardToast({ room, userId }: { room: RoomView; userId: string }) {
   const lc = room.state.lastCard as { playerId: string; cardId: string; n: number } | null | undefined; const card = room.lastCard;
-  const [seen, setSeen] = useState(0);
+  const [seen, setSeenState] = useState(() => seenByRoom.get(room.code) ?? 0);
+  const setSeen = (n: number) => { seenByRoom.set(room.code, n); setSeenState(n); }; // ekran almashsa (qoidalar) qayta chiqmasin
   const mineMandatory = !!lc && !!card && lc.playerId === userId && card.mode === "mandatory";
-  useEffect(() => { if (!lc || mineMandatory) return; const h = setTimeout(() => setSeen(lc.n), 9000); return () => clearTimeout(h); }, [lc?.n, mineMandatory]);
-  if (!lc || !card || lc.n <= seen || room.pendingCard) return null;
-  if (lc.playerId === userId && card.mode !== "mandatory") return null; // o'z ixtiyoriy kartangiz — qaror oynasi allaqachon ko'rsatgan
-  const f = cardFacts(card.effect, { cash: 0, salary: 0, assets: [] }, 0);
+  // O'z ixtiyoriy kartangiz — qaror oynasi allaqachon ko'rsatgan (bozor kartasi bundan mustasno: u qaror oynasiga ega emas)
+  const ownDecided = !!lc && !!card && lc.playerId === userId && card.mode !== "mandatory" && (card.effect as any)?.kind !== "marketSale";
+  const visible = !!lc && !!card && lc.n > seen && !room.pendingCard && !ownDecided;
+  // Taymer faqat xabar ko'ringan paytda ishlaydi (boshqa o'yinchi qaror qilayotganda emas)
+  useEffect(() => { if (!visible || mineMandatory) return; const h = setTimeout(() => setSeen(lc!.n), 9000); return () => clearTimeout(h); }, [visible, lc?.n, mineMandatory]);
+  if (!visible || !lc || !card) return null;
+  const drawer = room.state.players.find((p: any) => p.id === lc.playerId);
+  const f = cardFacts(card.effect, drawer ? { cash: drawer.cash, salary: drawer.salary, assets: drawer.assets, crisisMonths: drawer.crisisMonths } : { cash: 0, salary: 0, assets: [] }, 0);
+  if (lc.playerId !== userId) f.notes.length = 0; // «sizda mashina yo'q» kabi izohlar boshqa o'yinchi uchun ma'nosiz
   const who = lc.playerId === userId ? uz.result.you : nameOf(room, lc.playerId);
   return (
     <View style={s.wrap} pointerEvents="box-none">
