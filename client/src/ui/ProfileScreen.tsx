@@ -3,7 +3,7 @@ import { View, Text, TextInput, ScrollView, Pressable, StyleSheet } from "react-
 import { Button } from "./Button";
 import { uz, errText } from "../i18n/uz";
 import { color, PLAYER_COLORS, MIN_TAP, GREEN_TEXT } from "../theme";
-import { DELETE_WORD, Http, HttpError, isUnder16, validName, validYear } from "../net/http";
+import { sameWord, Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
 export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack: () => void; onDeleted: () => void }) {
   const [name, setName] = useState(""); const [col, setCol] = useState(0); const [year, setYear] = useState("");
@@ -53,7 +53,7 @@ export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack:
         <Button label={uz.profile.export} kind="ghost" onPress={download} />
         <Text style={s.l}>{uz.profile.typeWord}</Text>
         <TextInput accessibilityLabel={uz.profile.typeWord} value={word} onChangeText={setWord} style={s.input} autoCapitalize="characters" />
-        <Button label={uz.profile.deleteBtn} onPress={del} disabled={word !== DELETE_WORD} /></View>)}
+        <Button label={uz.profile.deleteBtn} onPress={del} disabled={!sameWord(word)} /></View>)}
       <Button label={uz.profile.back} kind="ghost" onPress={onBack} />
     </ScrollView>);
 }

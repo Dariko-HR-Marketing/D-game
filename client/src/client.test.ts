@@ -183,3 +183,11 @@ describe("karta rasmi manzili (§2.5)", () => {
     expect(cardImageUrl("/cards", undefined)).toBeNull(); expect(cardImageUrl("/cards", null)).toBeNull();
   });
 });
+
+import { sameWord } from "./net/http";
+describe("o'chirish so'zi", () => {
+  it("apostrof variantlari va registr farqi qabul qilinadi", () => {
+    for (const w of ["O'CHIRISH", "o'chirish", "Oʻchirish", "O’CHIRISH", " O‘CHIRISH "]) expect(sameWord(w)).toBe(true);
+    expect(sameWord("OCHIRISH")).toBe(false);
+  });
+});

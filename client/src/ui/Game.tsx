@@ -125,8 +125,8 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       <View><Board room={room} size={boardSize} turns={wide ? 0 : 3} /></View>
       <View style={[{ gap: 12, flex: 1, minWidth: 280 }, wide && { maxWidth: 420 }]}>
         <Text style={s.title} aria-level={1} accessibilityRole="header">{uz.app.name} · {room.code}</Text>
-        <Text style={s.turn} accessibilityLiveRegion="polite">
-          {state.winner ? `${uz.game.winner}: ${state.winner}` : mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${room.names?.[currentId(room)!]?.name ?? currentId(room)}`}
+        <Text style={s.turn}>
+          <Text accessibilityLiveRegion="polite">{state.winner ? `${uz.game.winner}: ${room.names?.[state.winner]?.name ?? state.winner}` : mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${room.names?.[currentId(room)!]?.name ?? currentId(room)}`}</Text>
           {left > 0 && !state.winner ? ` · ${left} ${uz.game.seconds}` : ""}
         </Text>
         {mine && <Blank p={mine} profession={room.professions?.[mine.id]} />}

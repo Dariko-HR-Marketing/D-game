@@ -1,5 +1,5 @@
 // Mijoz ulanishi: holat serverdan keladi (yagona manba), harakatlar `seq` bilan yuboriladi, uzilsa qayta ulanadi (§6.3).
-export interface WS { send(s: string): void; close(): void; onopen: (() => void) | null; onclose: (() => void) | null; onmessage: ((e: { data: string }) => void) | null }
+export interface WS { readyState?: number; send(s: string): void; close(): void; onopen: (() => void) | null; onclose: (() => void) | null; onmessage: ((e: { data: string }) => void) | null }
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
@@ -34,7 +34,7 @@ export class Connection {
       if (this.rejoinCode) { this.expecting = true; this.send({ type: "join", code: this.rejoinCode }); } // §6.3: qayta ulanganda holat tiklanadi
     };
     ws.onmessage = (e) => {
-      const m = JSON.parse(e.data);
+      let m: any; try { m = JSON.parse(e.data); } catch { return; } // proksi xato sahifasi va h.k. — e'tiborsiz
       if (m.type === "state") {
         if (!this.expecting && !this.state.room) return;
         this.rejoinCode = m.room.code; this.set({ room: m.room, error: null });
@@ -55,7 +55,11 @@ export class Connection {
     };
   }
   close() { this.closed = true; this.ws?.close(); }
-  send(o: unknown) { this.ws?.send(JSON.stringify(o)); }
+  /** Ulanish tayyor bo'lmasa yuborilmaydi (brauzer istisno otmasin); `false` — yuborilmadi. */
+  send(o: unknown): boolean {
+    const w = this.ws; if (!w || (w.readyState !== undefined && w.readyState !== 1)) { this.set({ error: "offline" }); return false; }
+    try { w.send(JSON.stringify(o)); return true; } catch { this.set({ error: "offline" }); return false; }
+  }
 
   create() { this.expecting = true; this.send({ type: "create" }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }

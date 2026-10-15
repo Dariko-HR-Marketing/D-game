@@ -29,7 +29,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
       {a && <Text style={s.h2}>{uz.result.analysis} · {a.rounds} {uz.result.round}</Text>}
       {a?.players.map((p: any) => (
         <View key={p.id} style={[s.card, p.isMe && { borderColor: color.green }]}>
-          <Text style={s.name}>{p.id}</Text>
+          <Text style={s.name}>{p.id}{p.isMe ? ` (${uz.result.you})` : ""}</Text>
           <Chart values={p.series.map((x: any) => x.cashflow)} />
           <Text style={s.sub}>{uz.result.exitRound}: {p.exitRound ?? uz.result.never} · {uz.result.restarts}: {p.restarts}</Text>
           <Text style={s.sub}>{uz.result.peakCash}: {money(p.peakCash)} · {uz.result.peakFlow}: {money(p.peakCashflow)}</Text>

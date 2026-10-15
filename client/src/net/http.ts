@@ -18,6 +18,8 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
 export type Http = ReturnType<typeof makeHttp>;
 
 export const DELETE_WORD = "O'CHIRISH";
+/** Apostrof variantlari va registr farqi hisobga olinmaydi (server ham shunday tekshiradi) */
+export const sameWord = (a: string, b: string = DELETE_WORD) => { const n = (v: string) => v.normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase(); return n(a) === n(b); };
 export const validName = (n: string) => n.trim().length >= 2 && n.trim().length <= 24 && !/[<>]/.test(n);
 export const validYear = (y: string, now = new Date().getFullYear()) => /^\d{4}$/.test(y) && Number(y) >= 1900 && Number(y) <= now;
 export const isUnder16 = (y: string, now = new Date().getFullYear()) => validYear(y, now) && now - Number(y) < 16;

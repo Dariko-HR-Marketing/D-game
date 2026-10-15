@@ -19,7 +19,7 @@ export function DreamPick({ room, userId, error, onPick }: { room: RoomView; use
     <View style={s.wrap}>
       <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.dreams.title}</Text>
       <Text style={s.note}>{uz.dreams.hint}</Text>
-      {left !== null && <Text style={s.note} accessibilityLiveRegion="polite">{uz.dreams.timeLeft}: {left} s</Text>}
+      {left !== null && <Text style={s.note}>{uz.dreams.timeLeft}: {left} s</Text>}
       {mine !== null && <Text style={s.ok}>{uz.dreams.waiting}</Text>}
       {error && <Text style={s.err} accessibilityRole="alert">{errText(error)}</Text>}
       <ScrollView contentContainerStyle={{ gap: 10 }}>

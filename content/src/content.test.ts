@@ -96,3 +96,10 @@ describe("katak qoidalari (cellRules)", () => {
     expect(validateBundle(parseBundle(withRules({ big: { byIndex: { "0": { kind: "offerCellAsset" } } } }))).join()).toContain("narx yo'q"); // 0 — «Yana pullar», narxsiz
   });
 });
+
+describe("nashr tekshiruvi: sxemadan o'tgan buzuq ma'lumot", () => {
+  it("bo'sh deka va narxsiz karta rad etiladi", () => {
+    const b = JSON.parse(JSON.stringify(loadContent())); b.cards.hod = [];
+    expect(validateBundle(parseBundle(b)).some((p) => p.includes("hod"))).toBe(true);
+  });
+});

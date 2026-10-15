@@ -15,6 +15,9 @@ import { RoomManager } from "./rooms";
 export type Authenticate = (token: string | undefined) => string | null;
 export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : null);
 
+/** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
+export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
+
 export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
@@ -128,7 +131,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
             const r = await rooms.start(code, userId, seed); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
             const r = await rooms.act(code, userId, { ...m.action, playerId: userId }, m.seq);
-            if (!r.ok) { if (r.error === "stale_seq") cActions({ type: m.action.type, result: "stale" }); reply({ type: "error", error: r.error }); } return; }
+            if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error }); } return; }
           case "react": { if (!code) return reply({ type: "error", error: "no_room" });
             if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
             const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
@@ -163,7 +166,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   app.get("/me/history", secured((uid) => profiles.history(uid)));
   app.get("/me/export", secured((uid) => ({ userId: uid, exportedAt: Date.now(), ...profiles.export(uid) })));
   app.delete("/me", secured((uid, req, reply) => {
-    if ((req.body as any)?.confirm !== "O'CHIRISH") return reply.code(400).send({ error: "confirm_required" });
+    if (normalizeWord((req.body as any)?.confirm) !== normalizeWord("O'CHIRISH")) return reply.code(400).send({ error: "confirm_required" });
     if (rooms.activeRoomOf.has(uid)) return reply.code(409).send({ error: "in_game" });
     profiles.delete(uid); adminState.users.delete(uid);
     return { ok: true };

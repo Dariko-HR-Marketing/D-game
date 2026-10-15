@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Api, ApiError, SECTIONS, makeApi } from "./api";
 import { t } from "./uz";
@@ -9,7 +9,7 @@ const css = `
 header{display:flex;gap:12px;align-items:center;padding:12px 20px;background:#fff;border-bottom:1px solid var(--line)}
 nav{display:flex;gap:6px;flex:1;flex-wrap:wrap}main{padding:20px;max-width:1100px;margin:auto}
 button{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;cursor:pointer;color:var(--navy)}
-button.p{background:var(--green);color:#fff;border-color:var(--green)}button.on{border-color:var(--navy)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #F2B233}
+button.p{background:var(--green);color:#fff;border-color:var(--green)}button.on{border-color:var(--navy)}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #1B3A6B;outline-offset:2px}
 input,textarea,select{min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;width:100%}textarea{font-family:ui-monospace,monospace;min-height:260px}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{color:var(--t2)}
 .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}.err{color:var(--red)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -17,8 +17,9 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 
 function useLoad<T>(api: Api, path: string, deps: unknown[] = []) {
   const [data, setData] = useState<T | null>(null); const [err, setErr] = useState<string | null>(null);
-  const reload = useCallback(() => { api.get(path).then((d) => { setData(d); setErr(null); }).catch((e: ApiError) => setErr(e.status === 403 ? t.forbidden : e.message)); }, [api, path]);
-  useEffect(reload, [reload, ...deps]);
+  const seq = useRef(0); // eski javob yangisini bosib ketmasin (qidiruvda har belgi so'rov)
+  const reload = useCallback(() => { const my = ++seq.current; api.get(path).then((d) => { if (my === seq.current) { setData(d); setErr(null); } }).catch((e: ApiError) => { if (my === seq.current) setErr(e.status === 403 ? t.forbidden : e.message); }); }, [api, path]);
+  useEffect(() => { const h = setTimeout(reload, 200); return () => { clearTimeout(h); seq.current++; }; }, [reload, ...deps]); // 200 ms kechiktirish + unmount himoyasi
   return { data, err, reload };
 }
 const Err = ({ e }: { e: string | null }) => (e ? <p className="err" role="alert">{e}</p> : null);
