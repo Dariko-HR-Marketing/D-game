@@ -67,15 +67,17 @@ describe("hamkorlik yordamchilari", () => {
   });
   it("sheriklik taklifi faqat naqd va bank limiti tugaganda", () => {
     const r: any = room({ pendingCard: { effect: { kind: "buy", asset: "business", price: 50_000 } } });
-    expect(canOfferPartner(r, "a")).toBe(true);           // 1000 + 10 000 bank < 50 000
-    r.pendingCard.effect.price = 5000; expect(canOfferPartner(r, "a")).toBe(false); // bank yetadi
+    expect(canOfferPartner(r, "a")).toBe(true);           // garovsiz bank kredit bermaydi → naqd yetmasa sheriklik mumkin
+    const a = r.state.players.find((x: any) => x.id === "a"); a.assets = [{ kind: "apartment", code: "K", price: 9000, monthlyIncome: 0, creditPayment: 0, credit: 0 }]; a.salary = 5000;
+    r.pendingCard.effect.price = 5000; expect(canOfferPartner(r, "a")).toBe(false); // garovli bank krediti yetadi (1000 + 4000 ≥ 5000)
     r.pendingCard.effect.asset = "apartment"; r.pendingCard.effect.price = 50_000; expect(canOfferPartner(r, "a")).toBe(false); // faqat biznes
     r.pendingCard.effect.asset = "business"; expect(canOfferPartner(r, "b")).toBe(false); // navbati emas
   });
   it("qarz chegaralari: beruvchi 20 %, oluvchi limiti; 5 dan kam odam", () => {
     const r: any = room(); const b = loanBounds(r, "a", "b");
     expect(b.max).toBe(1000); expect(b.enough).toBe(false); // min(20 % × 5000, (1000)×0.5×36=18 000)
-    expect(bankRoom({ bankDebt: 3600 })).toBe(6400);
+    expect(bankRoom({ bankDebt: 0, salary: 5000, assets: [{ kind: "apartment", code: "K", price: 9000, monthlyIncome: 0, creditPayment: 0, credit: 0 }] })).toBe(5000); // garov 120 %: 9 000 / 1,2 = 7 500 → chegara 5 000
+    expect(bankRoom({ bankDebt: 3600 })).toBe(0); // garov yo'q
     expect(partnerCandidates(r, "a")).toEqual(["b"]);
   });
 });

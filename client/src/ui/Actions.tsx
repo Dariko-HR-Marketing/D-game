@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, MIN_TAP } from "../theme";
-import { nameOf, bankRoom, canOfferPartner, marketOffers, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
+import { nameOf, bankRoom, pledgeableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
 import type { RoomView } from "../net/connection";
 
 const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -24,6 +24,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
   const [partner, setPartner] = useState(""); const [sAmt, setSAmt] = useState("100");
   if (!p || st.winner) return null;
   const mineTurn = st.players[st.turn % st.players.length].id === userId;
+  const pk = room.pendingCard?.effect?.kind; const buyCardOpen = mineTurn && (pk === "buy" || pk === "buyShares") && !String(room.pendingCard?.id ?? "").startsWith("big-");
   const pr = myProposals(room, userId);
   const gv = loanGivers(room, userId); const bounds = giver ? loanBounds(room, userId, giver) : null;
   const buy = canOfferPartner(room, userId);
@@ -55,9 +56,18 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
       {mineTurn && (
         <Box title={uz.coop.bank}>
           <Text style={s.note}>{uz.coop.bankRoom}: {money(bankRoom(p))}</Text>
+          <Text style={s.note}>{buyCardOpen ? uz.coop.bankRules : uz.coop.bankPurpose}</Text>
           <Num label={uz.coop.bankHint} value={bank} onChange={setBank} />
-          <Button label={uz.coop.take} kind="ghost" disabled={!bank || Number(bank) % 100 !== 0 || Number(bank) > bankRoom(p)} onPress={() => { onAct({ type: "bank_loan", amount: Number(bank) }); setBank(""); }} />
+          <Button label={uz.coop.take} kind="ghost" disabled={!buyCardOpen || !bank || Number(bank) % 100 !== 0 || Number(bank) < 2000 || Number(bank) > bankRoom(p)} onPress={() => { onAct({ type: "bank_loan", amount: Number(bank) }); setBank(""); }} />
+          {(p.bankLoans ?? []).map((l: any, i: number) => { const elapsed = 36 - l.left, cost = Math.ceil((l.amount * l.left) / 36);
+            return (<Button key={i} kind="ghost" label={`${uz.coop.repayEarly}: ${money(l.amount)} · ${money(cost)}`} disabled={elapsed < 12 || p.cash < cost} onPress={() => onAct({ type: "bank_repay", loanIdx: i })} />); })}
         </Box>)}
+      {mineTurn && pledgeableAssets(p).length > 0 && (
+        <Box title={uz.coop.lombard}>
+          <Text style={s.note}>{uz.coop.lombardRules}</Text>
+          {pledgeableAssets(p).map(({ idx, a }) => (<Button key={idx} kind="ghost" label={`${a.code} → +${money(Math.floor((a.price * 0.5) / 100) * 100)}`} onPress={() => onAct({ type: "lombard", assetIdx: idx })} />))}
+        </Box>)}
+      {(p.lombards ?? []).length > 0 && (<Text style={s.note}>{uz.coop.lombardActive}: {(p.lombards as any[]).map((l) => `${l.code} ${money(l.amount)} · ${l.left} ${uz.coop.months.toLowerCase()}`).join("; ")}</Text>)}
 
       {buy && (
         <Box title={uz.coop.partner}>

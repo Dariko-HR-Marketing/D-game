@@ -67,6 +67,9 @@ SPEC aytmagan qoidalar bo'yicha qarorlarni loyiha jamoasi **professional taxmin 
 | 34 Start | ta'sirsiz | `big.byIndex.34` |
 | 47 Nohalol biznes | 1-marta 1 000 000; 2-marta naqdning 20 %; 3-marta ta'sirsiz | `big.byIndex.47` |
 | Katta aylana qarzi | pul yetmasa qarz yoziladi, «Yana pullar»da yopiladi; 4 ta o'tishda yopilmasa biznes bankka sotiladi, yo'q bo'lsa yangi kasb bilan kichik aylanaga | dvigatel (`bigDebt`) |
+| Bank krediti | 2 000–5 000, garov 120 %, faqat sotib olish uchun, to'lov ≤ daromad (OPEN_QUESTIONS #92) | `RULES.bank*` |
+| Lombard | garov qiymatining 50 %, oyiga 10 %, 12 oydan keyin asosiy qarz (#93) | `RULES.lombard*` |
+| Qarz (kichik aylana) | naqd yetmasa qarz, naqd paydo bo'lishi bilan yopiladi, chegara 10 000 (#94) | `RULES.bankLimit` |
 | Ishdan bo'shash | 3-kichik yoki 1-katta biznesni sotib olganda maosh to'xtaydi | dvigatel (`quitJob`) |
 
 ## Boshqa qarorlar

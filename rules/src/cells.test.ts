@@ -53,10 +53,10 @@ describe("sozlangan katak ta'sirlari (kichik aylana)", () => {
     const flow = s.players[0].salary - s.players[0].baseExpenses;
     expect(s.players[0].cash - noRule.players[0].cash).toBe(2 * flow);
   });
-  it("payFixed: naqd yetmasa avtomatik bank krediti (§5.3)", () => {
+  it("payFixed: naqd yetmasa qarz (owe) yoziladi (qo'llanma §09)", () => {
     const ctx = withRules({ small: { Q: { kind: "payFixed", amount: 3000 } } });
     const s = landSmall(ctx, cellAt("Q"), (g) => { g.players[0].cash = 1000; });
-    expect(s.players[0].bankDebt).toBeGreaterThan(0); expect(s.players[0].cash).toBeGreaterThanOrEqual(0);
+    expect(s.players[0].owe).toBeGreaterThan(0); expect(s.players[0].cash).toBe(0);
   });
   it("loseIncomeShare: oylik daromadning ulushi bir marta yo'qoladi", () => {
     const ctx = withRules({ small: { Q: { kind: "loseIncomeShare", share: 0.2 } } });

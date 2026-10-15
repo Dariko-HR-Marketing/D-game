@@ -56,12 +56,19 @@ describe("o'yinchi blank", () => {
     const r = E.applyEffect(P(), { kind: "qarOffer", monthlyExpense: 100 });
     expect(r.ok && E.monthlyExpenses(r.player)).toBe(k1.total + 100);
   });
-  it("bank krediti: oylik to'lov xarajatga qo'shiladi, limitdan oshsa restart", () => {
-    const { player, restart } = E.takeBankLoan(P(), 3600);
-    expect(restart).toBe(false); expect(player.cash).toBe(k1.save + 3600);
-    expect(E.monthlyExpenses(player)).toBeCloseTo(k1.total + 160);
-    expect(E.takeBankLoan(player, 6401).restart).toBe(true);
-    expect(E.takeBankLoan(player, 6400).restart).toBe(false);
+  it("bank krediti (qo'llanma §08): garov 120 %, 2 000–5 000, oylik to'lov xarajatga qo'shiladi", () => {
+    const rich = (q: E.Player) => ({ ...q, assets: [{ kind: "apartment", code: "KV1", price: 9000, monthlyIncome: 0, creditPayment: 0, credit: 0 }] as E.Player["assets"] });
+    expect(E.takeBankLoan(P(), 3600).ok).toBe(false); // garovsiz kredit yo'q
+    const q = rich(P()); expect(E.maxBankLoan(q)).toBe(5000);
+    const { player, ok } = E.takeBankLoan(q, 3600);
+    expect(ok).toBe(true); expect(player.cash).toBe(k1.save + 3600); expect(E.monthlyExpenses(player)).toBeCloseTo(k1.total + 160);
+    expect(player.assets[0].pledged).toBe("bank"); expect(E.takeBankLoan(player, 2000).ok).toBe(false); // aktiv garovda — boshqa garov yo'q
+    expect(E.takeBankLoan(q, 1900).ok).toBe(false); expect(E.takeBankLoan(q, 5100).ok).toBe(false); expect(E.takeBankLoan(q, 5000).ok).toBe(true);
+  });
+  it("kredit to'lovi daromaddan katta bo'lsa bank bermaydi", () => {
+    const mk = (salary: number) => ({ ...P(), salary, assets: [{ kind: "apartment", code: "KV1", price: 90_000, monthlyIncome: 0, creditPayment: 0, credit: 0 }] as E.Player["assets"] });
+    expect(E.maxBankLoan(mk(100))).toBe(2200); // 2 200 → oyiga 97,8 ≤ 100; 2 300 → 102,2 > 100
+    expect(E.maxBankLoan(mk(50))).toBe(0);
   });
   it("pul yetmasa shortfall qaytadi", () => {
     const r = E.applyEffect({ ...P(), cash: 50 }, { kind: "pay", amount: 120, to: "bank" });
@@ -107,13 +114,15 @@ describe("aktivlar", () => {
 
 describe("bank krediti 36 oyda so'nadi (§5.3 formulasi)", () => {
   it("oylik to'lov har oy bir xil, asosiy qarz summa/36 dan kamayadi, 36 oydan keyin qarz yo'q", () => {
-    let p = E.takeBankLoan(E.newPlayer("p", { ...k1, salary: 100_000, total: 0 } as any), 3600).player;
+    const c = (q: E.Player) => ({ ...q, assets: [{ kind: "apartment", code: "KV1", price: 99_000, monthlyIncome: 0, creditPayment: 0, credit: 0 }, { kind: "apartment", code: "KV2", price: 99_000, monthlyIncome: 0, creditPayment: 0, credit: 0 }] as E.Player["assets"] });
+    let p = E.takeBankLoan(c(E.newPlayer("p", { ...k1, salary: 100_000, total: 0 } as any)), 3600).player;
     expect(E.monthlyExpenses(p)).toBeCloseTo(160); expect(p.bankDebt).toBe(3600);
     p = E.passMonths(p, 1); expect(p.bankDebt).toBeCloseTo(3500); expect(E.monthlyExpenses(p)).toBeCloseTo(160);
     p = E.passMonths(p, 35); expect(p.bankDebt).toBe(0); expect(p.bankLoans).toHaveLength(0); expect(E.monthlyExpenses(p)).toBe(0);
   });
   it("bir nechta kredit mustaqil muddat bilan", () => {
     let p = E.newPlayer("p", { ...k1, salary: 1e6, total: 0 } as any);
+    p = { ...p, assets: [1, 2, 3, 4].map((i) => ({ kind: "apartment", code: "KV" + i, price: 9000, monthlyIncome: 0, creditPayment: 0, credit: 0 })) };
     p = E.takeBankLoan(p, 3600).player; p = E.passMonths(p, 18); p = E.takeBankLoan(p, 3600).player;
     expect(E.monthlyExpenses(p)).toBeCloseTo(320); p = E.passMonths(p, 18); expect(p.bankLoans).toHaveLength(1); expect(p.bankDebt).toBeCloseTo(1800);
   });

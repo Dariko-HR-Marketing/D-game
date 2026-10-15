@@ -5,7 +5,7 @@ import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
 import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
-  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, totalDebt, shuffle, rollDie, seededRng,
+  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
 export const CONFIG = {
@@ -112,7 +112,7 @@ function drawFrom(s: GameState, deck: DeckName): string {
 
 export const currentPlayer = (s: GameState) => s.players[s.turn % s.players.length];
 const idx = (s: GameState, id: string) => s.players.findIndex((p) => p.id === id);
-const setP = (s: GameState, p: GamePlayer) => { s.players[idx(s, p.id)] = p; };
+const setP = (s: GameState, p: GamePlayer) => { s.players[idx(s, p.id)] = settleOwe(p); };
 /** Jurnal chegaralangan (so'nggi 100): holat va snapshot hajmi cheksiz o'smasin. To'liq jurnal serverda (harakatlar ketma-ketligi). */
 /** Inqiroz davomiyligi: 9 aylana × (aylanadagi «D» kataklari soni = 4 oy) = 36 oy = 3 yil (§5.7). */
 // (Lazy: engine ↔ index ↔ game aylana importi tufayli modul yuklanishida SMALL_BOARD hali tayyor emas.)
@@ -141,11 +141,11 @@ function forcePay(s: GameState, ctx: Ctx, p: GamePlayer, amount: number): GamePl
     logf(s, `${p.id}: ${amount - pay} qarzga yozildi`);
     return { ...p, cash: p.cash - pay, bigDebt: (p.bigDebt ?? 0) + (amount - pay) };
   }
-  const need = Math.ceil((amount - p.cash) / 100) * 100;
-  const { player, restart: r } = takeBankLoan(p, need);
-  if (r) return restart(s, ctx, p);
-  logf(s, `${p.id}: bank krediti ${need}`);
-  return { ...(player as GamePlayer), cash: player.cash - amount };
+  // Kichik aylana (qo'llanma §09): naqd yetmasa summa qarz (owe) sifatida yoziladi, naqd paydo bo'lishi bilan darhol qaytariladi; 10 000 dan oshsa — yangi kasb bilan boshidan
+  const pay = Math.max(0, p.cash), rest = amount - pay;
+  if ((p.owe ?? 0) + rest > RULES.bankLimit) return restart(s, ctx, p);
+  logf(s, `${p.id}: ${rest} qarzga yozildi`);
+  return { ...p, cash: p.cash - pay, owe: (p.owe ?? 0) + rest };
 }
 
 function freeDreams(s: GameState, ctx: Ctx): number[] {
@@ -170,6 +170,8 @@ export function chooseDream(s: GameState, playerId: string, dreamIdx: number): G
 export type Action =
   | { type: "roll"; playerId: string; auto?: true }
   | { type: "bank_loan"; playerId: string; amount: number }
+  | { type: "bank_repay"; playerId: string; loanIdx: number }
+  | { type: "lombard"; playerId: string; assetIdx: number }
   | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
@@ -268,6 +270,12 @@ function monthsFor(ctx: Ctx, p: GamePlayer, steps: number): { pos: number; month
   return move(p.pos, steps, CONFIG.bigCells, (i) => ctx.bigBoard[i]?.t === "Y");
 }
 
+/** Naqd va kichik aylana mulki bilan kichik aylanaga qaytish (bizneslar yo'qoladi, katta aylana qarzi o'chadi). */
+function backToSmall(s: GameState, p: GamePlayer): GamePlayer {
+  logf(s, `${p.id}: kichik aylanaga qaytdi`);
+  return { ...p, circle: "small", pos: 0, lockedFlow: 0, bigDebt: 0, bigDebtY: 0, assets: p.assets.filter((x) => !["business", "small_business", "partner_stake"].includes(x.kind) && !x.code.startsWith("big-")) };
+}
+
 /** Katta aylanada «Yana pullar» o'tganda: qarz darhol yopiladi; bir aylana (4 ta) davomida yopilmasa — biznes bankka sotiladi, bo'lmasa yangi kasb bilan kichik aylanaga. */
 function bigMonthEnd(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   if ((p.bigDebt ?? 0) <= 0) return p.bigDebtY ? { ...p, bigDebtY: 0 } : p;
@@ -277,7 +285,7 @@ function bigMonthEnd(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const y = (p.bigDebtY ?? 0) + 1;
   if (y < 4) return { ...p, bigDebtY: y };
   const biz = ownBusinesses(p);
-  if (biz.length === 0) { logf(s, `${p.id}: qarz yopilmadi, sotadigan biznes yo'q`); return restart(s, ctx, p); }
+  if (biz.length === 0) { logf(s, `${p.id}: qarz yopilmadi, sotadigan biznes yo'q`); return backToSmall(s, p); } // yumshatilgan (qaror): yangi kasb emas, naqd va mulk bilan kichik aylanaga
   const sold = biz[0], rest = Math.max(0, p.bigDebt! - sold.price);
   logf(s, `${p.id}: qarz uchun ${sold.code} bankka sotildi`);
   return { ...p, assets: p.assets.filter((x) => x !== sold), cash: p.cash + Math.max(0, sold.price - p.bigDebt!), bigDebt: rest, bigDebtY: 0 };
@@ -297,6 +305,10 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
     const base = playerCashflow(p) - held;
     const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
     p = tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary });
+    if (p.cash < 0 && (p.lombards ?? []).length) { // lombard foizi to'lanmadi: garov yo'qoladi (qo'llanma §08)
+      logf(s, `${p.id}: lombard foizi kechikdi — garov yo'qoldi`);
+      p = { ...p, assets: p.assets.filter((x) => x.pledged !== "lombard"), lombards: [] };
+    }
     if ((p.crisisMonths ?? 0) > 0) { p = { ...p, crisisMonths: Math.max(0, p.crisisMonths! - 1) }; if (p.crisisMonths === 0) notify(s, p.id, "crisis_end"); }
     if (p.circle === "big") p = bigMonthEnd(s, ctx, p);
   }
@@ -445,12 +457,15 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
       const worst = ownBusinesses(p)[0];
       if (worst) { setP(s, { ...p, assets: p.assets.filter((x) => x !== worst) }); logf(s, `${p.id}: ${worst.code} biznesi yo'qoldi`); return; }
       // Biznes yo'q: naqd pul va kichik aylanadagi mulk bilan kichik aylanaga (qo'llanma §11)
-      setP(s, { ...p, circle: "small", pos: 0, lockedFlow: 0, bigDebt: 0, bigDebtY: 0, assets: p.assets.filter((x) => !["business", "small_business", "partner_stake"].includes(x.kind) && !x.code.startsWith("big-")) });
-      logf(s, `${p.id}: bankrot — kichik aylanaga qaytdi`); return;
+      setP(s, backToSmall(s, p)); return;
     }
     case "shady": {
       const n = p.shady ?? 0; const q = { ...p, shady: n + 1 };
-      if (n === 0) { setP(s, forcePay(s, ctx, q, act.first)); return; }
+      if (n === 0) { // yumshatilgan (qaror): naqd yetmasa qarz/restart emas — hamma naqd olinadi va eng kam daromadli biznes yo'qoladi
+        if (q.cash >= act.first) { setP(s, { ...q, cash: q.cash - act.first }); return; }
+        const worst = ownBusinesses(q)[0];
+        setP(s, { ...q, cash: 0, assets: worst ? q.assets.filter((x) => x !== worst) : q.assets }); logf(s, `${p.id}: nohalol biznes — naqd olindi${worst ? `, ${worst.code} yo'qoldi` : ""}`); return;
+      }
       if (n === 1) { setP(s, q); runCellAction(s, ctx, s.players[idx(s, p.id)], { kind: "payCashShare", share: act.share }); return; }
       setP(s, q); return; // 3-marta va keyin: e'tibor bermang
     }
@@ -503,11 +518,11 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
   // Inqiroz (§5.7): yer/dala-hovli/kvartira/aksiya sotib olish narxi 2 baravar past
   e = crisisAdjusted(e, p);
   const fund = (need: number) => {
-    // §5.3: avval bank (limit ichida)
-    if (p.cash >= need || !a.useBank || bigCell) return;
-    const amt = Math.ceil((need - p.cash) / 100) * 100;
+    // Bank krediti (qo'llanma §08): faqat biznes/aksiya/aktiv sotib olish uchun; 2 000–5 000, garov 120 %
+    if (p.cash >= need || !a.useBank || bigCell || (e.kind !== "buy" && e.kind !== "buyShares")) return;
+    const amt = Math.max(RULES.bankMin, Math.ceil((need - p.cash) / 100) * 100);
     const r = takeBankLoan(p, amt);
-    if (!r.restart) p = r.player as GamePlayer;
+    if (r.ok) p = r.player as GamePlayer;
   };
   if (e.kind === "buyShares") {
     const qty = a.qty ?? e.min; fund(qty * e.pricePerShare);
@@ -531,7 +546,7 @@ function endTurn(s: GameState, ctx: Ctx) {
   const p = currentPlayer(s);
   if (p.circle === "small" && canExitSmallCircle({
     cash: p.cash, salary: p.salary, passiveIncome: passiveIncome(p), expenses: monthlyExpenses(p),
-    bankDebt: p.bankDebt, otherDebt: totalDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) })) {
+    bankDebt: p.bankDebt, otherDebt: allDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) })) {
     const lock = playerCashflow(p);
     setP(s, { ...p, circle: "big", pos: CONFIG.bigStart, lockedFlow: lock });
     logf(s, `${p.id}: kichik aylanadan chiqdi`);
@@ -561,7 +576,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (pr.sold.includes(a.playerId)) return err("already_sold");
       const e = effectOf(ctx, pr.cardId).effect; if (e.kind !== "marketSale") return err("no_proposal");
       const p = P(a.playerId);
-      const cands = p.assets.filter((x) => assetMatches(e.targets, x) && (a.assetCode === undefined || x.code === a.assetCode) && !x.partnerId && !x.stakeOf);
+      const cands = p.assets.filter((x) => assetMatches(e.targets, x) && (a.assetCode === undefined || x.code === a.assetCode) && !x.partnerId && !x.stakeOf && !x.pledged);
       const asset = cands.map((x) => ({ x, price: marketPrice(e.amount, x) })).find((c) => c.price !== null);
       if (!asset) return err("nothing_to_sell"); // ortiqcha: ulushli (sheriklik) aktivni sotib bo'lmaydi
       const crisisCut = (p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(asset.x.kind) ? 0.5 : 1; // inqirozda sotish narxi 2 baravar past
@@ -571,12 +586,25 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       setP(s, np);
       pr.sold.push(p.id); logf(s, `${p.id}: ${asset.x.code} sotdi ${price}`); return ok();
     }
-    case "bank_loan": { // §5.3: ixtiyoriy bank krediti, faqat o'z navbatida; 100 ga karrali; limit 10 000
+    case "bank_loan": { // qo'llanma §08: faqat o'z navbatida va faqat sotib olish kartasi ochiq turganda; 100 ga karrali, 2 000–5 000, garov 120 %
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
       if (!posInt(a.amount) || a.amount % 100 !== 0) return err("invalid_amount");
+      const pk = s.pending && s.pending.playerId === a.playerId ? effectOf(ctx, s.pending.cardId, s.pending).effect.kind : null;
+      if ((pk !== "buy" && pk !== "buyShares") || s.pending!.cardId.startsWith("big-")) return err("bank_purpose");
       const r = takeBankLoan(P(a.playerId), a.amount);
-      if (r.restart) return err("bank_limit"); // o'yinchi o'zi yangi kasbga o'tishni tanlamaydi: faqat majburiy to'lovda
+      if (!r.ok) return err("bank_limit"); // garov yetmaydi, to'lov daromaddan katta yoki oraliqdan tashqari
       setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: bank krediti ${a.amount}`); return ok();
+    }
+    case "bank_repay": { // muddatidan oldin yopish: kamida 3 aylanadan (12 oy) keyin
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const r = repayBankLoan(P(a.playerId), a.loanIdx); if (!r.ok) return err(P(a.playerId).bankLoans[a.loanIdx] ? (P(a.playerId).cash < r.cost ? "insufficient_cash" : "too_early") : "no_loan");
+      setP(s, r.player as GamePlayer); return ok();
+    }
+    case "lombard": { // aktivni garovga qo'yib qiymatining 50 % ini olish
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const p = P(a.playerId); const i = p.assets.findIndex((x, n) => n === a.assetIdx); if (i < 0) return err("no_asset");
+      const r = takeLombard(p, i); if (!r.ok) return err("not_pledgeable");
+      setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: lombard ${p.assets[i].code}`); return ok();
     }
     case "choose_dream": { // §6.4/N09: har bir o'yinchi o'z orzusini tanlaydi; ikki o'yinchi bir orzuni tanlay olmaydi (qaror, #61)
       if (s.phase !== "dreams") return err("not_dream_phase");
@@ -660,7 +688,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const partner = s.players.find((p) => p.id === a.partnerId);
       if (!partner || partner.id === owner.id) return err("bad_partner");
       if (owner.circle !== partner.circle) return err("circle_mismatch"); // §2.7
-      const room = RULES.bankLimit - owner.bankDebt;
+      const room = maxBankLoan(owner);
       if (owner.cash >= e.price || e.price - owner.cash <= room) return err("not_needed"); // naqd va bank limiti tugagach
       s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId });
       return ok();

@@ -1,7 +1,7 @@
 // Balans simulyatsiyasi (SPEC §5.11, §13): bot siyosatlari bilan ko'p o'yin o'ynab, davomiylik va chiqish/g'alaba ulushini o'lchaydi.
 // Ishga tushirish: npx tsx sim/sim.ts [o'yinlar_soni] [siyosat] [maks_navbat]
 import { loadContent, deriveEffects } from "@poyga/content";
-import { Ctx, GameState, Action, newGame, reduce, chooseDream, currentPlayer, effectOf, assetMatches, marketPrice, monthlyExpenses, passiveIncome, RULES } from "../src/index";
+import { Ctx, GameState, Action, newGame, reduce, chooseDream, currentPlayer, effectOf, assetMatches, marketPrice, monthlyExpenses, passiveIncome, maxBankLoan, RULES } from "../src/index";
 
 const { cards, bigBoard, dreams } = loadContent();
 const fx = deriveEffects(cards);
@@ -23,7 +23,7 @@ function decide(s: GameState, policy: Policy, me: any, e: any): { accept: boolea
       if (delta <= 0) return { accept: false };
       const upfront = e.down ?? e.price;
       if (me.cash >= upfront * 1.2) return { accept: true };
-      const need = upfront - me.cash, bankRoom = RULES.bankLimit - me.bankDebt;
+      const need = upfront - me.cash, bankRoom = maxBankLoan(me);
       const pay = (need * (1 / 36 + 0.2 / 12)); // bank to'lovi
       return { accept: need <= bankRoom && delta > pay * 1.5, useBank: true };
     }

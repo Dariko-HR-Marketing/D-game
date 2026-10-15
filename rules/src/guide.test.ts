@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import { loadContent } from "@poyga/content";
 import { ctx as base } from "./testctx";
 import { Ctx, GameState, newGame, reduce, SMALL_BOARD } from "./index";
+import { settleOwe } from "./engine";
 
 const ctx: Ctx = { ...base, cellRules: loadContent().cellRules };
 const mk = (n = 3, events = true) => newGame(ctx, Array.from({ length: n }, (_, i) => `p${i}`), 1, [], [], { events });
@@ -89,9 +90,10 @@ describe("Katta aylana: oylar «Yana pullar» katagida", () => {
 });
 
 describe("Katta aylana qarzi: yetmasa qarz yoziladi, Yana pullar da yopiladi", () => {
-  it("Nohalol biznes naqddan ko'p bo'lsa — qolgani qarz (restart emas)", () => {
-    const s = land("big", 47, (g) => { g.players[0].cash = 300_000; });
-    expect(s.players[0].bigDebt).toBeGreaterThan(600_000); expect(s.players[0].restarts).toBe(0);
+  it("Nohalol biznes, naqd yetmasa (yumshatilgan): hamma naqd olinadi va eng kam daromadli biznes yo'qoladi — qarz ham, restart ham yo'q", () => {
+    const s = land("big", 47, (g) => { g.players[0].cash = 300_000; g.players[0].lockedFlow = 0; g.players[0].assets = [biz("A", 500), biz("B", 100)]; });
+    expect(s.players[0].cash).toBeLessThan(10_000); expect(s.players[0].bigDebt ?? 0).toBe(0); expect(s.players[0].restarts).toBe(0);
+    expect(s.players[0].assets.map((a) => a.code)).toEqual(["A"]);
   });
   it("Yana pullar da pul oqimi qarzni yopadi", () => {
     const s = land("big", 26, (g) => { g.players[0].cash = 0; g.players[0].bigDebt = 3000; });
@@ -101,9 +103,9 @@ describe("Katta aylana qarzi: yetmasa qarz yoziladi, Yana pullar da yopiladi", (
     const s = land("big", 26, (g) => { Object.assign(g.players[0], { cash: 0, lockedFlow: 0, bigDebt: 900_000, bigDebtY: 3, assets: [biz("A", 500), { ...biz("B", 100), price: 1_000_000 }] }); });
     expect(s.players[0].assets.map((a) => a.code)).toEqual(["A"]); expect(s.players[0].bigDebt).toBe(0); expect(s.players[0].cash).toBeGreaterThanOrEqual(100_000);
   });
-  it("sotadigan biznes ham yo'q — yangi kasb bilan kichik aylanaga", () => {
+  it("sotadigan biznes ham yo'q — yumshatilgan: naqd va mulk bilan kichik aylanaga (yangi kasb emas)", () => {
     const s = land("big", 26, (g) => { Object.assign(g.players[0], { cash: 0, lockedFlow: 0, bigDebt: 900_000, bigDebtY: 3, assets: [] }); });
-    expect(s.players[0].circle).toBe("small"); expect(s.players[0].restarts).toBe(1);
+    expect(s.players[0].circle).toBe("small"); expect(s.players[0].restarts).toBe(0);
   });
 });
 
@@ -216,4 +218,20 @@ describe("katta aylana: tasodifiy o'yinlar xatosiz va sonlar chekli (fuzz)", () 
       }
     }
   }, 60_000);
+});
+
+describe("Qarz (owe) — kichik aylana (qo'llanma §09)", () => {
+  it("naqd yetmasa yetmagani qarz bo'ladi; naqd paydo bo'lishi bilan darhol yopiladi", () => {
+    const p: any = { cash: 300, owe: 200 }; expect(settleOwe(p)).toMatchObject({ cash: 100, owe: 0 });
+    expect(settleOwe({ cash: 100, owe: 250 } as any)).toMatchObject({ cash: 0, owe: 150 });
+    expect(settleOwe({ cash: 0, owe: 50 } as any)).toMatchObject({ cash: 0, owe: 50 });
+  });
+  it("10 000 dan oshsa yangi kasb bilan boshidan (majburiy to'lov)", () => {
+    const s = land("small", cellOf("K"), (g) => { g.players[0].cash = 0; g.players[0].owe = 9_990; }); // K — hod kartasi: katta to'lovlar
+    expect(s.players[0].restarts + (s.players[0].owe ?? 0)).toBeGreaterThan(0);
+  });
+  it("kichik aylanadan chiqish qarz bilan mumkin emas", () => {
+    const s = mk(); Object.assign(s.players[0], { cash: 2_000_000, owe: 10, salary: 0, assets: [biz("A", 30_000)] });
+    const r: any = reduce(s, ctx, { type: "roll", playerId: "p0" }); expect(r.state.players[0].circle).toBe("small");
+  });
 });

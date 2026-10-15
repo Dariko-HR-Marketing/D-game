@@ -91,8 +91,9 @@ describe("Xayriya: daromadning 10 % i, keyingi 3 navbatda 2 kubik", () => {
     expect(s.players[0].twoDice).toBe(0); expect(dice.slice(0, 3).every((d) => d >= 2 && d <= 12)).toBe(true); expect(dice.slice(3).every((d) => d >= 1 && d <= 6)).toBe(true);
   });
   it("naqd yetmasa — bank kreditidan (avtomatik emas: useBank bilan)", () => {
-    const s = landWith(base, "kichik", xay, "I", (g) => { g.players[0].cash = 10; });
+    // Xayriya sotib olish emas — bank krediti faqat aktiv sotib olish uchun (qo'llanma §08): kredit olinmaydi, karta ta'sir qilmaydi
+    const s = landWith(base, "kichik", xay, "I", (g) => { g.players[0].cash = 10; g.players[0].assets = [{ kind: "apartment", code: "K", price: 90_000, monthlyIncome: 0, creditPayment: 0, credit: 0 }]; });
     const r: any = reduce(s, base, { type: "decide", playerId: "p0", accept: true, useBank: true }); expect(r.ok).toBe(true);
-    expect(r.state.players[0].bankDebt).toBeGreaterThan(0); expect(r.state.players[0].twoDice).toBe(3);
+    expect(r.state.players[0].bankDebt).toBe(0); expect(r.state.players[0].twoDice ?? 0).toBe(0);
   });
 });
