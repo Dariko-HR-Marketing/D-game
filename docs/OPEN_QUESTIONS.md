@@ -78,3 +78,4 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 71. Kirish: SMS bir martalik kod + imzolangan sessiya tokeni kodlandi (`server/src/auth.ts`, `docs/AUTH.md`), mijozda kirish ekrani. SMS provayderi tanlanmagan: umumiy HTTP shlyuz (`SMS_HTTP_URL`) yoki provayderga adapter kerak. Google/Apple hali yo'q.
 72. Ma'lumot qabul qilish vositalari tayyor: kasb importi (CSV, total/cf avtomatik), karta rasmlari tekshiruvi (418 ta kutiladi), VPS o'rnatish/zaxira/tiklash skriptlari — `docs/DATA_INTAKE.md`.
 73. Maxfiylik siyosati va foydalanish shartlari qoralamalari (`docs/legal/`) tayyor — advokat ko'rib chiqishi shart; ilovada rozilik ekrani tasdiqlangan matn kelgach.
+74. Google/Apple: server tomoni (ID token tekshiruvi, `/auth/google`, `/auth/apple`) tayyor va sinalgan; mijoz tugmalari va client ID'lar provayder konsolidan kelgach.

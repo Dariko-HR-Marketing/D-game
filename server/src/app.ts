@@ -1,4 +1,5 @@
-import { OtpService, normalizePhone, verifyToken } from "./auth";
+import { OtpService, normalizePhone, verifyToken, signToken, userIdOfSub } from "./auth";
+import type { OidcVerifier } from "./oidc";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
@@ -19,7 +20,7 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 /** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>> } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
@@ -102,7 +103,14 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   app.get("/health", async () => ({ ok: true }));
   // --- kirish (SMS bir martalik kod) ---
   const authLimit = new KeyedLimiter(10 / 60, 10); // IP bo'yicha ~10 so'rov/daqiqa
-  app.get("/auth/config", async () => ({ sms: !!opts.otp, dev: !opts.otp && !opts.authSecret }));
+  app.get("/auth/config", async () => ({ sms: !!opts.otp, google: !!opts.oidc?.google, apple: !!opts.oidc?.apple, dev: !opts.otp && !opts.authSecret && !opts.oidc }));
+  for (const prov of ["google", "apple"] as const) app.post(`/auth/${prov}`, async (req, reply) => {
+    const v = opts.oidc?.[prov]; if (!v || !opts.authSecret) return reply.code(404).send({ error: "not_enabled" });
+    if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    const r = await v.verify((req.body as any)?.idToken); if (!r) return reply.code(401).send({ error: "bad_token" });
+    const userId = userIdOfSub(opts.authSecret, prov, r.sub);
+    return { token: signToken(opts.authSecret, userId, Date.now() + 30 * 86_400_000), userId };
+  });
   app.post("/auth/sms/request", async (req, reply) => {
     if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
     if (!authLimit.allow(req.ip)) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }

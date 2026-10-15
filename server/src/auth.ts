@@ -42,6 +42,8 @@ export function verifyToken(secret: string, token: string | undefined, now = Dat
 }
 /** Telefon → barqaror anonim identifikator (HMAC): raqamning o'zi saqlanmaydi. */
 export const userIdOf = (secret: string, phone: string) => "p" + createHmac("sha256", secret).update("uid:" + phone).digest("hex").slice(0, 20);
+/** Google/Apple `sub` → barqaror anonim ID (provayder bo'yicha alohida). */
+export const userIdOfSub = (secret: string, provider: string, sub: string) => provider[0] + createHmac("sha256", secret).update(`uid:${provider}:${sub}`).digest("hex").slice(0, 20);
 
 export interface OtpOpts { secret: string; sms: SmsSender; now?: () => number; ttlMs?: number; maxAttempts?: number; sessionMs?: number; code?: () => string }
 type Rec = { hash: string; exp: number; tries: number };

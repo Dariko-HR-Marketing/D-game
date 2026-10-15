@@ -9,6 +9,7 @@ import { ProfileService } from "./profiles";
 import { AnalysisService } from "./analysis";
 import { WriteQueue } from "./persist";
 import { ConsoleSms, HttpSms, OtpService } from "./auth";
+import { APPLE, GOOGLE, OidcVerifier } from "./oidc";
 
 const url = process.env.DATABASE_URL;
 const analysisWrites = new WriteQueue();
@@ -29,11 +30,15 @@ let otp: OtpService | undefined;
 if (authSecret) {
   const sms = process.env.SMS_HTTP_URL ? new HttpSms(process.env.SMS_HTTP_URL, process.env.SMS_HTTP_TOKEN ?? "")
     : process.env.SMS_PROVIDER === "console" && process.env.NODE_ENV !== "production" ? new ConsoleSms() : null;
-  if (!sms) throw new Error("AUTH_SECRET berilgan, lekin SMS yuboruvchi sozlanmagan (SMS_HTTP_URL yoki staging uchun SMS_PROVIDER=console)");
-  otp = new OtpService({ secret: authSecret, sms });
-  setInterval(() => otp!.sweep(), 60_000).unref();
+  const anyOidc = [process.env.GOOGLE_CLIENT_IDS, process.env.APPLE_CLIENT_ID].some((v) => (v ?? "").trim());
+  if (!sms && !anyOidc) throw new Error("AUTH_SECRET berilgan, lekin kirish usuli yo'q: SMS_HTTP_URL, GOOGLE_CLIENT_IDS yoki APPLE_CLIENT_ID (staging uchun SMS_PROVIDER=console)");
+  if (sms) { otp = new OtpService({ secret: authSecret, sms }); setInterval(() => otp!.sweep(), 60_000).unref(); }
 }
-const { app, rooms } = buildApp({ otp, authSecret, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
+const ids = (v?: string) => (v ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+const oidc: Partial<Record<"google" | "apple", OidcVerifier>> = {};
+if (authSecret && ids(process.env.GOOGLE_CLIENT_IDS).length) oidc.google = new OidcVerifier(GOOGLE(ids(process.env.GOOGLE_CLIENT_IDS)));
+if (authSecret && ids(process.env.APPLE_CLIENT_ID).length) oidc.apple = new OidcVerifier(APPLE(ids(process.env.APPLE_CLIENT_ID)));
+const { app, rooms } = buildApp({ otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
 process.on("unhandledRejection", (e) => app.log.error({ err: String((e as Error)?.message ?? e) }, "unhandledRejection"));
 process.on("uncaughtException", (e) => { app.log.fatal({ err: e.message }, "uncaughtException"); process.exit(1); });
 for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, async () => { app.log.info({ sig }, "to'xtatilmoqda"); await app.close(); await Promise.race([Promise.all([adminState?.writes.flush(), profiles?.writes.flush(), registry?.writes.flush(), analysisWrites.flush()]), new Promise((r) => setTimeout(r, 8000))]); process.exit(0); }); // navbatdagi yozuvlar (taqiq, audit, natija) yo'qolmasin

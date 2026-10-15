@@ -17,7 +17,10 @@
 2. Provayder API'si `{to,text}` + Bearer ga mos kelmasa, `server/src/auth.ts` da `SmsSender` interfeysini amalga oshiruvchi kichik sinf yoziladi (`send(phone, text)`), `main.ts` da tanlanadi. Provayder tanlangach shuni men yozaman.
 3. Staging'da sinash uchun: `SMS_PROVIDER=console` — kod server jurnalida (`docker compose logs server`) ko'rinadi.
 
+## Google / Apple (server tomoni tayyor)
+`POST /auth/google` va `POST /auth/apple` `{idToken}` qabul qiladi: RS256 imzo (provayder JWKS, 1 soat kesh, kalit aylansa qayta yuklanadi), emitent, auditoriya (client ID), muddat tekshiriladi; `alg=none/HS256` rad etiladi. Natija — o'sha sessiya tokeni (`userId` = `g…`/`a…` + HMAC(sub)). `.env`: `GOOGLE_CLIENT_IDS` (vergul bilan, web/Android/iOS), `APPLE_CLIENT_ID`. Testlar mahalliy RSA kalit bilan (`oidc.test.ts`).
+
 ## Hali yo'q
-- Google/Apple bilan kirish: `Authenticate` interfeysi tayyor, provayder (OAuth client ID) kelgach qo'shiladi.
+- Google/Apple **mijoz tomoni** (tugmalar): `expo-auth-session` / Apple Sign In uchun provayder konsolida ilova yaratilib client ID'lar olinishi kerak. Server tayyor, mijozga faqat `idToken` olib `/auth/google` ga yuborish qoladi.
 - Sessiyani bekor qilish ro'yxati (hozircha `AUTH_SECRET` almashtirish hamma sessiyani bekor qiladi).
 - Telefon raqami egaligi uchun SMS xarajati/spam monitoringi: `poyga_rate_limited_total{scope="auth"}` ko'rsatkichi bor.

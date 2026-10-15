@@ -27,6 +27,8 @@ services:
       SMS_HTTP_URL: ${SMS_HTTP_URL:-}
       SMS_HTTP_TOKEN: ${SMS_HTTP_TOKEN:-}
       SMS_PROVIDER: ${SMS_PROVIDER:-}
+      GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
       LOG_LEVEL: info
       PORT: "3000"
       TRUST_PROXY: "1" # Caddy ortida: haqiqiy mijoz IP (tezlik cheklovi uchun)

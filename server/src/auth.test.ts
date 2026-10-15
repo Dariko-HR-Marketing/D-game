@@ -55,7 +55,7 @@ describe("HTTP + WebSocket (haqiqiy rejim)", () => {
   it("SMS orqali kirish → token bilan HTTP va WS ishlaydi; sinov tokeni (ID) rad etiladi", async () => {
     const sms = new Capture(); const otp = new OtpService({ secret: SECRET, sms });
     const x = buildApp({ otp, authSecret: SECRET }); await x.app.listen({ port: 0 }); const port = (x.app.server.address() as any).port;
-    expect((await x.app.inject({ url: "/auth/config" })).json()).toEqual({ sms: true, dev: false });
+    expect((await x.app.inject({ url: "/auth/config" })).json()).toEqual({ sms: true, google: false, apple: false, dev: false });
     expect((await x.app.inject({ method: "POST", url: "/auth/sms/request", payload: { phone: "xyz" } })).statusCode).toBe(400);
     expect((await x.app.inject({ method: "POST", url: "/auth/sms/request", payload: { phone: "901234567" } })).statusCode).toBe(200);
     expect((await x.app.inject({ method: "POST", url: "/auth/sms/verify", payload: { phone: "901234567", code: "000000" === sms.code() ? "111111" : "000000" } })).statusCode).toBe(401);
