@@ -24,6 +24,7 @@ services:
       METRICS_TOKEN: ${METRICS_TOKEN:-}
       LOG_LEVEL: info
       PORT: "3000"
+      TRUST_PROXY: "1" # Caddy ortida: haqiqiy mijoz IP (tezlik cheklovi uchun)
     # Tashqariga to'g'ridan-to'g'ri ochilmaydi — faqat Caddy orqali.
 
   web:

@@ -5,7 +5,7 @@ import type { ActiveRoom, JournalEntry, RoomMeta, Store } from "./store";
 
 export class PgStore implements Store {
   constructor(private pool: Pool) {}
-  static connect(url: string) { return new PgStore(new Pool({ connectionString: url })); }
+  static connect(url: string) { const pool = new Pool({ connectionString: url }); pool.on("error", (e) => console.error("pg pool xatosi (ulanish uzildi, qayta ulanadi):", e.message)); return new PgStore(pool); }
 
   async closeRoom(code: string) { await this.pool.query("update rooms set ended_at=now() where code=$1 and ended_at is null", [code]); }
   async ping() { await this.pool.query("select 1"); }

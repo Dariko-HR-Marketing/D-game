@@ -24,7 +24,18 @@ export interface Persist {
 export class WriteQueue {
   private tail: Promise<void> = Promise.resolve();
   errors: unknown[] = [];
-  push(f: () => Promise<void>) { this.tail = this.tail.then(f).catch((e) => { this.errors.push(e); console.error("persist xatosi:", e); }); }
+  /** Vaqtincha xatoda 3 marta (kutish bilan) qayta uriniladi; shundan keyin ham bo'lmasa — jurnalga yoziladi, navbat davom etadi. */
+  constructor(private retryMs = [200, 1000, 4000]) {}
+  push(f: () => Promise<void>) {
+    this.tail = this.tail.then(async () => {
+      for (let i = 0; ; i++) {
+        try { return await f(); } catch (e) {
+          if (i >= this.retryMs.length) { this.errors.push(e); if (this.errors.length > 100) this.errors.shift(); console.error("persist xatosi:", e); return; }
+          await new Promise((r) => setTimeout(r, this.retryMs[i]));
+        }
+      }
+    });
+  }
   flush() { return this.tail; }
 }
 

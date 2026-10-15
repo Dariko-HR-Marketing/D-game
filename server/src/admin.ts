@@ -52,6 +52,7 @@ export type AdminAuth = (token: string | undefined) => { id: string; role: Role 
 /** ADMIN_TOKENS='{"tok1":{"id":"a","role":"administrator"}}' — vaqtinchalik; keyin SSO/2FA ulanadi. */
 export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   const m: Record<string, { id: string; role: Role }> = raw ? JSON.parse(raw) : {};
+  for (const [, v] of Object.entries(m)) if (!(v?.role in PERMS)) throw new Error(`ADMIN_TOKENS: noma'lum rol "${v?.role}"`); // xato sozlama ishga tushishda ma'lum bo'lsin, har so'rovda 500 emas
   return (t) => (t && Object.hasOwn(m, t) ? m[t] : null);
 };
 
@@ -63,8 +64,12 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
       const who = d.auth(tok || undefined);
       if (!who) return reply.code(401).send({ error: "unauthorized" });
       if (!can(who.role, perm)) return reply.code(403).send({ error: "forbidden" });
-      const out = await h(req, who);
-      if (auditAction) d.state.record({ at: now(), admin: who.id, role: who.role, action: auditAction, target: (req.params as any)?.id ?? (req.params as any)?.v, detail: req.body });
+      // Audit: muvaffaqiyatsiz urinish ham yoziladi (":failed"); tafsilot qisqartiriladi (kontent matni jurnalni shishirmasin)
+      const detail = (() => { const j = JSON.stringify(req.body ?? null); return j.length > 2000 ? { truncated: true, size: j.length } : req.body; })();
+      const rec = (suffix: string) => auditAction && d.state.record({ at: now(), admin: who.id, role: who.role, action: auditAction + suffix, target: (req.params as any)?.id ?? (req.params as any)?.v, detail });
+      let out: unknown;
+      try { out = await h(req, who); } catch (e) { rec(":failed"); throw e; }
+      rec((out as { error?: unknown } | null)?.error ? ":failed" : "");
       return out;
     };
 

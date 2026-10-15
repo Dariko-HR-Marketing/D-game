@@ -21,7 +21,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
   const serializers = { req: (r: any) => ({ method: r.method, path: String(r.url).split("?")[0], id: r.id }), res: (r: any) => ({ status: r.statusCode }) };
   const logger = opts.logger ? { level: "info", ...(opts.logger === true ? {} : opts.logger), serializers } : false;
-  const app = Fastify({ bodyLimit: 64 * 1024, logger });
+  const app = Fastify({ bodyLimit: 64 * 1024, logger, trustProxy: process.env.TRUST_PROXY === "1" }); // Caddy ortida TRUST_PROXY=1: aks holda hamma mijoz bitta IP bo'lib qoladi
   const m = new Metrics();
   const cHttp = m.counter("poyga_http_requests_total", "HTTP so'rovlari (holat kodi bo'yicha)");
   const cLimited = m.counter("poyga_rate_limited_total", "Tezlik cheklovi tufayli rad etilganlar");
@@ -83,6 +83,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   });
   // Xavfsizlik sarlavhalari va HTTP tezlik cheklovi (IP bo'yicha; admin kirish urinishlari qattiqroq).
   // WS ulanishi alohida va kengroq: maktab/ofis NAT ortidagi ko'p o'yinchi bir IP dan ulanadi (ta'lim auditoriyasi, §1).
+  const complaintLimit = new KeyedLimiter(1 / 60, 3); // ~1 shikoyat/daqiqa, burst 3
   const reactLimit = new KeyedLimiter(0.7, 3); // ~1 reaksiya / 1.5 s, burst 3
   const wsPingMs = Number(process.env.WS_PING_MS ?? 25_000);
   const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(1, 20), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
@@ -112,6 +113,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
 
       socket.on("message", async (raw: Buffer) => {
         if (!bucket.take()) { cLimited({ scope: "ws" }); reply({ type: "error", error: "rate_limited" }); if (++strikes > 5) socket.close(4429, "rate_limited"); return; }
+        if (adminState.isBanned(userId)) return socket.close(4403, "banned"); // ulanganidan keyin bloklangan bo'lsa ham
         const parsed = parseMessage(raw.toString());
         if (!parsed.ok) return reply({ type: "error", error: parsed.error });
         const m = parsed.msg;
@@ -135,13 +137,14 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
         }
         } catch (e) { cWsErr(); app.log.error({ err: String((e as Error).message), type: m.type }, "ws: ichki xato"); reply({ type: "error", error: "internal" }); } // bitta xato jarayonni qulatmaydi
       });
-      socket.on("close", () => { clearInterval(ping); openSockets--; if (code) { rooms.disconnect(code, userId); sockets.get(code)?.delete(client); } });
+      socket.on("close", () => { clearInterval(ping); openSockets--; if (code) { sockets.get(code)?.delete(client); if (![...(sockets.get(code) ?? [])].some((c) => c.userId === userId)) rooms.disconnect(code, userId); } }); // yangi ulanish bor bo'lsa, eski soket yopilishi o'yinchini oflayn qilmasin
     });
   });
   // --- profil, tarix, reyting, hisobni boshqarish (§5.9, §7) ---
   const userOf = (req: any) => auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined);
   const secured = (h: (uid: string, req: any, reply: any) => unknown) => async (req: any, reply: any) => {
     const uid = userOf(req); if (!uid) return reply.code(401).send({ error: "unauthorized" });
+    if (adminState.isBanned(uid)) return reply.code(403).send({ error: "banned" }); // taqiqlangan hisob o'chirish bilan taqiqdan qutula olmaydi
     return h(uid, req, reply);
   };
   const year = () => new Date().getFullYear();
@@ -165,15 +168,20 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     profiles.delete(uid); adminState.users.delete(uid);
     return { ok: true };
   }));
-  app.get("/leaderboard", async (req) => profiles.leaderboard(Math.min(100, Number((req.query as any).limit) || 20)));
+  app.get("/leaderboard", async (req) => profiles.leaderboard(Math.max(1, Math.min(100, Math.floor(Number((req.query as any).limit)) || 20))));
 
   // Shikoyat: foydalanuvchi tokeni bilan (kirish xizmati ulangach haqiqiy autentifikatsiya)
   app.post("/complaints", async (req, reply) => {
     const uid = auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined);
     if (!uid) return reply.code(401).send({ error: "unauthorized" });
-    const b = (req.body ?? {}) as { against?: string; room?: string; text?: string };
-    if (!b.text || b.text.length > 2000) return reply.code(400).send({ error: "bad_text" });
-    return adminState.addComplaint({ from: uid, against: b.against ?? null, room: b.room ?? null, text: b.text, at: Date.now() });
+    if (adminState.isBanned(uid)) return reply.code(403).send({ error: "banned" });
+    const b = (req.body ?? {}) as { against?: unknown; room?: unknown; text?: unknown };
+    const short = (v: unknown) => (v === undefined || v === null ? null : typeof v === "string" && v.length <= 64 ? v : undefined);
+    if (typeof b.text !== "string" || !b.text.trim() || b.text.length > 2000) return reply.code(400).send({ error: "bad_text" });
+    const against = short(b.against), room = short(b.room);
+    if (against === undefined || room === undefined) return reply.code(400).send({ error: "bad_field" });
+    if (!complaintLimit.allow(uid)) return reply.code(429).send({ error: "rate_limited" }); // bir hisobdan ko'p yuborilmasin
+    return adminState.addComplaint({ from: uid, against, room, text: b.text, at: Date.now() });
   });
   return { app, rooms, store, registry, adminState, profiles, analysis };
 }
