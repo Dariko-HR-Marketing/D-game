@@ -61,7 +61,7 @@ describe("o'yinlar: ro'yxat, shubhali, qayta o'ynatish, yopish", () => {
     expect((await s.j("POST", `/admin/rooms/${code}/close`, sup, { reason: "spam" })).statusCode).toBe(403);
     expect((await s.j("POST", `/admin/rooms/${code}/close`, mod, {})).json().error).toBe("reason_required");
     expect((await s.j("POST", `/admin/rooms/${code}/close`, mod, { reason: "qoidabuzarlik" })).json().ok).toBe(true);
-    const room = s.x.rooms.rooms.get(code)!; expect(room.endedAt).not.toBeNull(); expect(s.x.rooms.view(room, "alice").closed).toBe("qoidabuzarlik");
+    const room = s.x.rooms.rooms.get(code)!; expect(room.endedAt).not.toBeNull(); expect(s.x.rooms.view(room).closed).toBe("qoidabuzarlik");
     expect((await s.j("POST", `/admin/rooms/${code}/close`, mod, { reason: "yana" })).json().error).toBe("not_found"); // allaqachon yopilgan
     expect(s.x.rooms.create("alice").ok).toBe(true); // a'zo bo'shatildi
   });

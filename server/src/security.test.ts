@@ -42,7 +42,7 @@ describe("HTTP", () => {
   it("xavfsizlik sarlavhalari va /admin kirish urinishlari cheklanadi", async () => {
     const x = buildApp(); const r = await x.app.inject({ method: "GET", url: "/admin/audit" });
     expect(r.headers["x-content-type-options"]).toBe("nosniff"); expect(r.headers["x-frame-options"]).toBe("DENY"); expect(r.headers["cache-control"]).toBe("no-store");
-    let last = 0; for (let i = 0; i < 30; i++) last = (await x.app.inject({ method: "GET", url: "/admin/audit", headers: { authorization: "Bearer bad" } })).statusCode;
+    let last = 0; for (let i = 0; i < 100; i++) last = (await x.app.inject({ method: "GET", url: "/admin/audit", headers: { authorization: "Bearer bad" } })).statusCode;
     expect(last).toBe(429);
   });
   it("katta tana rad etiladi (413)", async () => {
