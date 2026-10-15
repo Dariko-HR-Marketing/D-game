@@ -20,6 +20,8 @@ services:
       NODE_ENV: ${NODE_ENV:-staging}
       DATABASE_URL: postgres://poyga:${POSTGRES_PASSWORD}@db:5432/poyga
       CORS_ORIGINS: https://${APP_DOMAIN:?APP_DOMAIN kerak},https://${ADMIN_DOMAIN:?ADMIN_DOMAIN kerak}
+      PUBLIC_URL: https://${API_DOMAIN}   # ota-ona SMS havolalari (/parent/...) shu manzilda ochiladi
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-}
       ADMIN_TOKENS: ${ADMIN_TOKENS:-}
       ADMIN_BOOTSTRAP_LOGIN: ${ADMIN_BOOTSTRAP_LOGIN:-}
       ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
