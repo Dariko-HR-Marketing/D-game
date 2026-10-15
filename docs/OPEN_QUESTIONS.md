@@ -85,3 +85,4 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 78. UX/UI (2-bosqich): tortilgan karta xabari (majburiy karta ham ko'rinadi, `lastCard`), fishka silliq harakati, kirish ekrani (qayta yuborish taymeri, brend), xato/oflayn bannerlari o'yinda, har bir xato kodi uchun o'zbekcha matn (test bilan kafolatlangan).
 79. Admin panel qayta ishlandi: yon menyu, versiyalar jadvali va nashr tasdig'i, JSON tekshiruvi, bloklash/shikoyat uchun sabab bilan tasdiqlash oynasi, o'yin jurnali jadvali, foydalanuvchi ismlari, voronka grafigi, mobil maket; axe: buzilish yo'q (`scripts/screens-admin.ts`).
 80. Birinchi o'yin yo'riqnomasi (3 qadam, bir marta), kompyuterda probel — kubik, UX hujjati (`docs/UX.md`). Haqiqiy qurilmada va odamlar bilan sinov hali o'tkazilmagan.
+81. UI sinov vositalari: bot bilan 60 navbat brauzer e2e (`scripts/e2e-play.ts`), yo'riqnomada klaviatura fokusi qamalishi tekshiruvi, CI da 'ui' ishi (axe + kirish + admin + e2e).

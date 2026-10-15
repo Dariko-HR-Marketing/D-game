@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Button } from "./Button";
 import { color, font, radius, space, tone } from "../theme";
@@ -12,11 +12,25 @@ const write = () => { try { (globalThis as any).localStorage?.setItem(KEY, "1");
 export function Onboarding({ onRules }: { onRules: () => void }) {
   const [open, setOpen] = useState(() => !read()); const [i, setI] = useState(0); const steps = uz.onboarding.steps; const last = i === steps.length - 1;
   const close = () => { write(); setOpen(false); };
+  const card = useRef<any>(null);
+  // Klaviatura: fokus oyna ichida qamaladi (Tab/Shift+Tab aylanadi), Esc yopadi; ochilganda birinchi tugmaga fokus
+  useEffect(() => {
+    const doc = (globalThis as any).document; const root: HTMLElement | null = card.current; if (!open || !doc?.addEventListener || !root?.querySelectorAll) return;
+    const items = () => Array.from(root.querySelectorAll<HTMLElement>('[role="button"],button,a[href],[tabindex="0"]')).filter((e) => !(e as any).disabled);
+    const prev = doc.activeElement as HTMLElement | null; items()[0]?.focus?.();
+    const h = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); close(); return; }
+      if (e.key !== "Tab") return; const l = items(); if (!l.length) return;
+      const first = l[0], last = l[l.length - 1];
+      if (e.shiftKey && doc.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && doc.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    doc.addEventListener("keydown", h); return () => { doc.removeEventListener("keydown", h); prev?.focus?.(); };
+  }, [open, i]);
   if (!open) return null;
   return (
     <View style={s.back}>
       <View style={s.wrapper}>
-        <View style={s.card} role="dialog" aria-modal aria-label={steps[i].title}>
+        <View ref={card} style={s.card} role="dialog" aria-modal aria-label={steps[i].title}>
           <Text style={s.count}>{i + 1} / {steps.length}</Text>
           <Text nativeID="onb-t" style={s.title} aria-level={2} accessibilityRole="header">{steps[i].title}</Text>
           <Text style={s.body}>{steps[i].text}</Text>

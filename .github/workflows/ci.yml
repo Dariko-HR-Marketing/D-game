@@ -37,3 +37,24 @@ jobs:
           docker build -f deploy/vps/Dockerfile.web --build-arg API_WS=wss://api.example.uz --build-arg API_HTTP=https://api.example.uz -t poyga-web .
           docker run --rm -e API_DOMAIN=api.example.uz -e APP_DOMAIN=game.example.uz -e ADMIN_DOMAIN=admin.example.uz poyga-web caddy validate --config /etc/caddy/Caddyfile
           docker run --rm poyga-web sh -c 'test -f /srv/app/index.html && test -f /srv/admin/index.html'
+  ui:
+    # Brauzerda: veb eksport → axe-core (WCAG 2.2 AA) barcha ekranlarda va kirish/admin ekranlarida → bot bilan 60 navbat o'ynash (xatosiz)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright-core install --with-deps chromium
+      - run: pnpm --filter @poyga/client export:web
+      - run: pnpm --filter @poyga/admin build
+      - name: Statik serverlar
+        run: |
+          (cd client/dist && python3 -m http.server 8081 >/dev/null 2>&1 &)
+          (cd admin/dist && python3 -m http.server 8082 >/dev/null 2>&1 &)
+          sleep 2
+      - run: pnpm --filter @poyga/server a11y
+      - run: pnpm --filter @poyga/server exec tsx scripts/screens-login.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/screens-admin.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/e2e-play.ts

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 // Admin panel rasmlari: `OUT=papka pnpm tsx scripts/screens-admin.ts` (oldindan: admin build va `cd admin/dist && python3 -m http.server 8082`).
 import { chromium } from "playwright-core";
 import { mkdirSync } from "node:fs";
@@ -19,7 +20,7 @@ x.profiles.record({ room: "ABC234", finishedAt: Date.now(), durationMs: 3_600_00
 x.adminState.addComplaint({ from: "bobur", against: "ali", room: "ABC234", text: "O'yin vaqtida haqorat qildi", at: Date.now() });
 const r = x.rooms.create("ali"); if (r.ok) { x.rooms.join(r.code, "bobur"); await x.rooms.start(r.code, "ali", 5); }
 await x.app.listen({ port: 3000, host: "127.0.0.1" });
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium", args: ["--no-sandbox"] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 for (const [tag, w, h] of [["d", 1440, 900], ["n", 390, 844]] as [string, number, number][]) {
   const p = await (await b.newContext({ viewport: { width: w, height: h } })).newPage(); await p.goto(WEB);
   await p.getByLabel("Kirish tokeni").waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-0-login.png` }); await scan(p, `login ${tag}`);

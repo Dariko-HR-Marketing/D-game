@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 // Ekran rasmlari (UX/UI ko'rik uchun): `OUT=papka pnpm screens` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { mkdirSync } from "node:fs";
@@ -8,7 +9,7 @@ const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ??
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const onboard = async (p: any) => { const b = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await b.count()) await b.click(); };
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium", args: ["--no-sandbox"] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 const sizes: [string, number, number][] = [["n", 390, 844], ["t", 1024, 768], ["d", 1440, 900]];
 for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env.ONLY.includes(t))) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 // Kirish ekrani rasmlari (haqiqiy rejim): `OUT=papka pnpm tsx scripts/screens-login.ts`
 import { chromium } from "playwright-core";
 import { mkdirSync } from "node:fs";
@@ -13,7 +14,7 @@ const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ??
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 let last = ""; const sms: SmsSender = { async send(_p, t) { last = /(\d{6})/.exec(t)![1]; } };
 const x = buildApp({ authSecret: "s".repeat(40), otp: new OtpService({ secret: "s".repeat(40), sms }) }); await x.app.listen({ port: 3000, host: "127.0.0.1" });
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium", args: ["--no-sandbox"] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number, number][]) {
   const p = await (await b.newContext({ viewport: { width: w, height: h } })).newPage(); await p.goto(WEB);
   await p.getByLabel("Telefon raqami").waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-login-1.png` }); await scan(p, `kirish ${tag}`);
