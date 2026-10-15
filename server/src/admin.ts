@@ -6,10 +6,10 @@ import type { ContentRegistry, Part } from "./registry";
 import { WriteQueue, type Persist } from "./persist";
 
 export type Role = "administrator" | "content_editor" | "support" | "analyst";
-export type Perm = "content.read" | "content.write" | "users.read" | "users.ban" | "rooms.read" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read";
+export type Perm = "content.read" | "content.write" | "users.read" | "users.ban" | "rooms.read" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read" | "commerce.manage";
 
 export const PERMS: Record<Role, readonly Perm[]> = {
-  administrator: ["content.read", "content.write", "users.read", "users.ban", "rooms.read", "journal.read", "complaints.manage", "analytics.read", "audit.read"],
+  administrator: ["content.read", "content.write", "users.read", "users.ban", "rooms.read", "journal.read", "complaints.manage", "analytics.read", "audit.read", "commerce.manage"],
   content_editor: ["content.read", "content.write"],
   support: ["users.read", "users.ban", "rooms.read", "journal.read", "complaints.manage"],
   analyst: ["analytics.read", "rooms.read"], // shaxssiz ma'lumot
@@ -56,7 +56,7 @@ export const envAdminAuth = (raw = process.env.ADMIN_TOKENS): AdminAuth => {
   return (t) => (t && Object.hasOwn(m, t) ? m[t] : null);
 };
 
-export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; nameOf?: (id: string) => string | undefined; funnel?: (registered: number) => unknown; now?: () => number }) {
+export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state: AdminState; registry: ContentRegistry; rooms: RoomManager; store: Store; cards?: () => unknown; nameOf?: (id: string) => string | undefined; funnel?: (registered: number) => unknown; now?: () => number; extend?: (guard: (perm: Perm, h: (req: any, who: { id: string; role: Role }) => unknown, auditAction?: string) => any) => void }) {
   const now = d.now ?? Date.now;
   const guard = (perm: Perm, h: (req: FastifyRequest, who: { id: string; role: Role }) => Promise<unknown> | unknown, auditAction?: string) =>
     async (req: FastifyRequest, reply: any) => {
@@ -72,6 +72,8 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
       rec((out as { error?: unknown } | null)?.error ? ":failed" : "");
       return out;
     };
+
+  d.extend?.(guard);
 
   // --- kontent ---
   app.get("/admin/content/versions", guard("content.read", () => ({ active: d.registry.activeVersion, versions: d.registry.infos })));

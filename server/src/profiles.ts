@@ -8,7 +8,7 @@ export interface ResultPlayer {
   id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean;
   left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
 }
-export interface GameResult { room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
+export interface GameResult { tag?: { kind: "class" | "tournament"; id: string }; room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
 
 export interface ProfilePersist {
   loadProfiles(): Promise<Profile[]>; saveProfile(p: Profile): Promise<void>; deleteProfile(userId: string): Promise<void>;
@@ -96,15 +96,15 @@ export class ProfileService {
   levelCached(userId: string) { let v = this.lvl.get(userId); if (v === undefined) { v = this.stats(userId).level; this.lvl.set(userId, v); } return v; }
   record(r: GameResult) { this.lvl.clear(); this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
   /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
-  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = []) {
-    this.record({ room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
+  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = [], tag?: { kind: "class" | "tournament"; id: string }) {
+    this.record({ tag, room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
       players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined,
         left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds) })) });
   }
 
   stats(userId: string): Stats {
     let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
-    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p) points += gamePoints(p); if (p?.unreliable) unreliable++; if (!p || p.bot) continue; // bot (yoki chiqib ketgan) statistikaga kirmaydi
+    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p && r.tag?.kind !== "tournament") points += gamePoints(p); /* turnir ballari alohida: umumiy ball o'zgarmaydi */ if (p?.unreliable) unreliable++; if (!p || p.bot) continue; // bot (yoki chiqib ketgan) statistikaga kirmaydi
       games++; if (p.won) wins++; if (p.circle === "big") reachedBig++; }
     const level = levelOf(points); return { achievements: achievementsOf(this.results, userId), stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
   }
@@ -117,6 +117,9 @@ export class ProfileService {
     return { registered, withProfile: this.profiles.size, playedFirstGame: v.length, playedThreeOrMore: v.filter((g) => g.n >= 3).length, wonAtLeastOnce: v.filter((g) => g.w > 0).length,
       gamesFinished: finished, gamesWithWinner: withWinner, winShare: finished ? withWinner / finished : 0 };
   }
+  hasResult(room: string) { return this.results.some((r) => r.room === room); }
+  /** Foydalanuvchining eng oxirgi tugagan o'yini (bepul tarifda faqat shuning tahlili ochiq). */
+  latestRoomOf(userId: string): string | null { for (let i = this.results.length - 1; i >= 0; i--) if (this.results[i].players.some((p) => p.id === userId && !p.bot)) return this.results[i].room; return null; }
   history(userId: string, limit = 50) {
     return this.results.filter((r) => r.players.some((p) => p.id === userId && !p.bot)).slice(-limit).reverse()
       .map((r) => ({ room: r.room, finishedAt: r.finishedAt, rounds: r.rounds, durationMs: r.durationMs, won: r.winner === userId, reachedBig: r.players.find((p) => p.id === userId)!.circle === "big", players: r.players.filter((p) => !p.bot).length }));

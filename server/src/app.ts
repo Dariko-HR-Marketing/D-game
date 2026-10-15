@@ -1,4 +1,4 @@
-import { OtpService, normalizePhone, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
+import { OtpService, type SmsSender, normalizePhone, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
 import type { OidcVerifier } from "./oidc";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
@@ -12,6 +12,15 @@ import { Bucket, KeyedLimiter, ipKey } from "./ratelimit";
 import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
+import { Commerce, DevProvider, type PaymentProvider } from "./commerce";
+import { ParentConsents } from "./parents";
+import { PhoneLinks } from "./phones";
+import { registerShop } from "./shop-routes";
+import { Edu } from "./edu";
+import { Tournaments } from "./tournaments";
+import { registerBiz, registerBizAdmin } from "./biz-routes";
+import type { DocStore } from "./docs";
+import { randomBytes } from "node:crypto";
 
 /** Kirish xizmati (SMS/Google/Apple) keyin ulanadi: hozir `token` = userId (faqat dev/test). */
 export type Authenticate = (token: string | undefined) => string | null;
@@ -20,7 +29,7 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 /** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>> } = {}) {
+export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
@@ -44,15 +53,24 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const registry = opts.registry ?? new ContentRegistry();
   const adminState = opts.adminState ?? new AdminState();
   const profiles = opts.profiles ?? new ProfileService();
+  // Tijorat: telefon tasdig'i, ota-ona roziligi, do'kon/Plus. Production'da to'lov provayderi berilmasa xaridlar yopiq (`payments_unavailable`).
+  const secret = opts.authSecret ?? randomBytes(24).toString("hex"); const dev = !opts.otp && !opts.authSecret && !opts.oidc && process.env.NODE_ENV !== "production";
+  const phones = opts.phones ?? new PhoneLinks(secret, opts.docs);
+  const consents = opts.consents ?? new ParentConsents(secret, opts.sms, opts.publicUrl ?? process.env.PUBLIC_URL ?? "http://localhost:3000", opts.docs);
+  const commerce = opts.commerce ?? new Commerce({ docs: opts.docs, providers: opts.providers ?? (process.env.NODE_ENV === "production" ? [] : [new DevProvider()]), consents,
+    phoneOk: (uid) => dev || phones.isVerified(uid), ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; },
+    achievements: (uid) => profiles.stats(uid).achievements, phoneHashOf: (uid) => phones.hashFor(uid), hashOf: (p) => phones.hashOf(p) });
+  const edu = opts.edu ?? new Edu(opts.docs); const tournaments = opts.tournaments ?? new Tournaments(opts.docs);
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
   const rooms = new RoomManager(registry, store, undefined, undefined, {
-    restricted: (ids) => profiles.restrictedOf(ids),               // §2.8: 16 yoshgacha — qarz/sheriklik yopiq
-    profile: (id) => { const p = profiles.get(id); return p ? { ...p, level: profiles.levelCached(id) } : undefined; },
+    restricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.loansBlocked(ids)])], // §2.8: 16 yoshgacha va ota-ona o'chirgan bolalar — qarz/sheriklik yopiq
+    profile: (id) => { const p = profiles.get(id); return p ? { ...p, level: profiles.levelCached(id), cos: commerce.cosmetics(id) } : undefined; },
+    canJoin: (tag, uid) => (tag.kind === "class" ? edu.canJoinRoom(tag.id, uid) : tournaments.canJoinRoom(tag.id, uid)), // sinf/turnir xonasi — faqat a'zolar
     onStart: () => cGames({ event: "started" }),
     onAbandon: () => cGames({ event: "abandoned" }),
     onError: (where, e) => { cErr({ where }); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },
     onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
-    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId), r.members.filter((m) => m.unreliable).map((m) => m.userId)); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
+    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId), r.members.filter((m) => m.unreliable).map((m) => m.userId), r.tag); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });
   m.gauge("poyga_rooms_active", "Faol (tugamagan, boshlangan) xonalar", () => [...rooms.rooms.values()].filter((r) => r.state && !r.endedAt).length);
   m.gauge("poyga_rooms_lobby", "Boshlanmagan xonalar", () => [...rooms.rooms.values()].filter((r) => !r.state).length);
@@ -70,7 +88,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!metricsToken || (req.headers.authorization ?? "") !== `Bearer ${metricsToken}`) return reply.code(metricsToken ? 401 : 404).send({ error: "unauthorized" });
     return reply.header("content-type", "text/plain; version=0.0.4").send(m.render());
   });
-  registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name });
+  registerAdmin(app, { auth: opts.adminAuth ?? envAdminAuth(), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => registerBizAdmin(guard, app, { edu, tournaments, nameOf: (id) => profiles.get(id)?.name }) });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -100,6 +118,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     const lim = req.url.startsWith("/admin") ? adminLimit : req.url.startsWith("/ws") ? wsConnLimit : httpLimit;
     if (!lim.allow(ipKey(req.ip))) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
   });
+  app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string", bodyLimit: 8 * 1024 }, (_req, body, done) => done(null, Object.fromEntries(new URLSearchParams(body as string)))); // ota-ona sahifasi formasi
   app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   app.get("/health", async () => ({ ok: true }));
   // --- kirish (SMS bir martalik kod) ---
@@ -128,6 +147,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
     const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
     const r = opts.otp.verify(phone, (req.body as any)?.code); if (!r.ok) return reply.code(401).send({ error: r.error });
+    phones.link(r.userId, phone); // SMS bilan kirgan — telefon tasdiqlangan
     return { token: r.token, userId: r.userId };
   });
 
@@ -154,7 +174,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error });
+          case "create": { if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
@@ -193,14 +213,15 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     const code = String((req.params as any).code).toUpperCase();
     const r = await analysis.analyze(code); if (!r) return reply.code(404).send({ error: "no_game" });
     if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
+    if (!commerce.analysisAllowed(uid, !profiles.hasResult(code) || profiles.latestRoomOf(uid) === code)) return reply.code(402).send({ error: "plus_required" }); // bepul: faqat oxirgi o'yin tahlili
     return presentable(r.analysis, (id) => profiles.get(id)?.name, uid);
   }));
-  app.get("/me/history", secured((uid) => profiles.history(uid)));
+  app.get("/me/history", secured((uid) => { const lim = commerce.historyLimit(uid); return lim === null ? profiles.history(uid) : profiles.history(uid, lim); })); // bepul tarif: oxirgi N o'yin; Plus: to'liq
   app.get("/me/export", secured((uid) => ({ userId: uid, exportedAt: Date.now(), ...profiles.export(uid) })));
   app.delete("/me", secured((uid, req, reply) => {
     if (normalizeWord((req.body as any)?.confirm) !== normalizeWord("O'CHIRISH")) return reply.code(400).send({ error: "confirm_required" });
     if (rooms.activeRoomOf.has(uid)) return reply.code(409).send({ error: "in_game" });
-    profiles.delete(uid); adminState.users.delete(uid); revocations.revoke(uid); // o'chirilgan hisobning eski tokenlari yaroqsiz
+    profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); revocations.revoke(uid); // o'chirilgan hisobning eski tokenlari yaroqsiz
     return { ok: true };
   }));
   app.get("/leaderboard", async (req) => profiles.leaderboard(Math.max(1, Math.min(100, Math.floor(Number((req.query as any).limit)) || 20))));
@@ -218,5 +239,10 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     if (!complaintLimit.allow(uid)) return reply.code(429).send({ error: "rate_limited" }); // bir hisobdan ko'p yuborilmasin
     return adminState.addComplaint({ from: uid, against, room, text: b.text, at: Date.now() });
   });
-  return { app, rooms, store, registry, adminState, profiles, analysis };
+  registerShop({ app, commerce, phones, consents, otp: opts.otp, dev, webhookSecret: opts.webhookSecret ?? process.env.PAYMENT_WEBHOOK_SECRET, onTournamentConsent: (id, ok) => tournaments.onConsent(id, ok), devPay: dev && process.env.NODE_ENV !== "production", secured, ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; }, nameOf: (id) => profiles.get(id)?.name, limited: (scope) => cLimited({ scope }) });
+  const ageOf = (uid: string) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; };
+  registerBiz({ app, edu, tournaments, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev });
+  const ready = Promise.all([phones.load(), consents.load(), commerce.load(), edu.load(), tournaments.load()]).then(() => undefined); // docs jadvalidan tiklash
+  const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush()]);
+  return { app, rooms, store, registry, adminState, profiles, analysis, commerce, phones, consents, edu, tournaments, ready, flush };
 }
