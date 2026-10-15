@@ -35,7 +35,7 @@ function Content({ api }: { api: Api }) {
   };
   return (<>
     <div className="card"><h2>{t.content}</h2><Err e={vs.err} />
-      <table><thead><tr><th>{t.version}</th><th>{t.part}</th><th>{t.note}</th><th>{t.active}</th><th /></tr></thead><tbody>
+      <table><thead><tr><th>{t.version}</th><th>{t.part}</th><th>{t.note}</th><th>{t.active}</th><th>Amal</th></tr></thead><tbody>
         {vs.data?.versions.map((v) => (<tr key={v.version}><td>v{v.version}</td><td>{v.part}</td><td>{v.note}</td><td>{vs.data!.active === v.version ? "✓" : ""}</td>
           <td>{vs.data!.active !== v.version && <button onClick={async () => { await api.post(`/admin/content/versions/${v.version}/publish`); vs.reload(); }}>{t.publish}</button>}</td></tr>))}
       </tbody></table></div>
@@ -51,7 +51,7 @@ function Rooms({ api }: { api: Api }) {
   const [q, setQ] = useState(""); const l = useLoad<any[]>(api, `/admin/rooms?q=${encodeURIComponent(q)}`);
   const [j, setJ] = useState<any[] | null>(null);
   return (<div className="card"><h2>{t.rooms}</h2><input aria-label={t.search} placeholder={t.search} value={q} onChange={(e) => setQ(e.target.value)} /><Err e={l.err} />
-    <table><thead><tr><th>Kod</th><th>Versiya</th><th>Aylana</th><th>O'yinchilar</th><th /></tr></thead><tbody>{l.data?.map((r) => (
+    <table><thead><tr><th>Kod</th><th>Versiya</th><th>Aylana</th><th>O'yinchilar</th><th>Amal</th></tr></thead><tbody>{l.data?.map((r) => (
       <tr key={r.code}><td>{r.code}</td><td>{r.contentVersion ?? "—"}</td><td>{r.round ?? "—"}</td>
         <td>{Array.isArray(r.members) ? r.members.map((m: any) => m.userId).join(", ") : r.members}</td>
         <td><button onClick={async () => setJ(await api.get(`/admin/rooms/${r.code}/journal`).catch(() => []))}>{t.journal}</button></td></tr>))}</tbody></table>
@@ -61,13 +61,13 @@ function Rooms({ api }: { api: Api }) {
 function Users({ api }: { api: Api }) {
   const [q, setQ] = useState(""); const l = useLoad<any[]>(api, `/admin/users?q=${encodeURIComponent(q)}`);
   return (<div className="card"><h2>{t.users}</h2><input aria-label={t.search} placeholder={t.search} value={q} onChange={(e) => setQ(e.target.value)} /><Err e={l.err} />
-    <table><thead><tr><th>ID</th><th /><th /></tr></thead><tbody>{l.data?.map((u) => (<tr key={u.id}><td>{u.id}</td><td>{u.banned ? t.banned : ""}</td>
+    <table><thead><tr><th>ID</th><th>Holat</th><th>Amal</th></tr></thead><tbody>{l.data?.map((u) => (<tr key={u.id}><td>{u.id}</td><td>{u.banned ? t.banned : ""}</td>
       <td><button onClick={async () => { await api.post(`/admin/users/${u.id}/${u.banned ? "unban" : "ban"}`, { reason: "admin" }); l.reload(); }}>{u.banned ? t.unban : t.ban}</button></td></tr>))}</tbody></table></div>);
 }
 
 function Complaints({ api }: { api: Api }) {
   const l = useLoad<any[]>(api, "/admin/complaints");
-  return (<div className="card"><h2>{t.complaints}</h2><Err e={l.err} /><table><tbody>{l.data?.map((c) => (<tr key={c.id}><td>#{c.id}</td><td>{c.from} → {c.against ?? "—"}</td><td>{c.text}</td>
+  return (<div className="card"><h2>{t.complaints}</h2><Err e={l.err} /><table><thead><tr><th>№</th><th>Kim</th><th>Matn</th><th>Amal</th></tr></thead><tbody>{l.data?.map((c) => (<tr key={c.id}><td>#{c.id}</td><td>{c.from} → {c.against ?? "—"}</td><td>{c.text}</td>
     <td>{c.status === "open" ? <button onClick={async () => { await api.post(`/admin/complaints/${c.id}/resolve`, { resolution: "ko'rib chiqildi" }); l.reload(); }}>{t.resolve}</button> : t.resolved}</td></tr>))}</tbody></table></div>);
 }
 function Analytics({ api }: { api: Api }) {
@@ -77,7 +77,7 @@ function Analytics({ api }: { api: Api }) {
 }
 function Audit({ api }: { api: Api }) {
   const l = useLoad<any[]>(api, "/admin/audit");
-  return (<div className="card"><h2>{t.audit}</h2><Err e={l.err} /><table><tbody>{l.data?.slice().reverse().map((a, i) => (<tr key={i}><td>{new Date(a.at).toLocaleString("uz")}</td><td>{a.admin} ({a.role})</td><td>{a.action}</td><td>{a.target}</td></tr>))}</tbody></table></div>);
+  return (<div className="card"><h2>{t.audit}</h2><Err e={l.err} /><table><thead><tr><th>Vaqt</th><th>Admin</th><th>Amal</th><th>Obyekt</th></tr></thead><tbody>{l.data?.slice().reverse().map((a, i) => (<tr key={i}><td>{new Date(a.at).toLocaleString("uz")}</td><td>{a.admin} ({a.role})</td><td>{a.action}</td><td>{a.target}</td></tr>))}</tbody></table></div>);
 }
 
 const VIEWS: Record<string, (p: { api: Api }) => React.ReactElement> = { content: Content, rooms: Rooms, users: Users, complaints: Complaints, analytics: Analytics, audit: Audit };
@@ -95,9 +95,9 @@ function App() {
       setErr(true); sessionStorage.removeItem("tok"); setToken("");
     })();
   }, [token, api]);
-  if (!token || !role) return (<main><h1>{t.title}</h1><div className="card" style={{ maxWidth: 420 }}>
+  if (!token || !role) return (<main><h1>{t.title}</h1><form className="card" style={{ maxWidth: 420 }} onSubmit={(e) => { e.preventDefault(); sessionStorage.setItem("tok", input); setToken(input); }}>
     <label>{t.token}<input type="password" value={input} onChange={(e) => setInput(e.target.value)} /></label>
-    <p><button className="p" onClick={() => { sessionStorage.setItem("tok", input); setToken(input); }}>{t.login}</button></p>{err && <Err e={t.loginErr} />}</div></main>);
+    <p><button className="p" type="submit">{t.login}</button></p>{err && <Err e={t.loginErr} />}</form></main>);
   const View = VIEWS[tab];
   return (<><header><b>{t.title}</b><nav>{SECTIONS[role].map((s) => <button key={s} className={s === tab ? "on" : ""} onClick={() => setTab(s)}>{(t as any)[s]}</button>)}</nav>
     <button onClick={() => { sessionStorage.removeItem("tok"); setToken(""); setRole(null); }}>{t.logout}</button></header><main>{View && <View api={api} />}</main></>);

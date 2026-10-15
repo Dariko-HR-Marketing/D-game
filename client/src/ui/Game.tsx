@@ -17,11 +17,16 @@ const CELL_COLOR: Record<string, string> = { S: color.navy, I: color.green, H: c
 
 function Board({ room, size, turns = 0 }: { room: RoomView; size: number; turns?: number }) {
   const players = room.state.players;
-  const circle = players.find((p: any) => p.circle === "small") ? "small" : "big";
+  const anySmall = players.some((p: any) => p.circle === "small"), anyBig = players.some((p: any) => p.circle === "big");
+  const circle = anySmall ? "small" : "big";
   const n = circle === "small" ? 48 : 53;
   const cell = Math.max(12, Math.floor(((2 * Math.PI * 0.44 * size) / n) * 0.86)); // qo'shni kataklar ustma-ust tushmaydi
+  const mixed = anySmall && anyBig; // aralash: katta aylana o'yinchilari ichki halqada (53 katak)
+  const inner = 0.2, dot = Math.max(6, Math.floor((2 * Math.PI * inner * size) / 53 * 0.7));
+  const hue = (p: any, k: number) => PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6];
   return (
-    <View style={{ width: size, height: size }} role="img" aria-label={`Taxta. ${players.map((p: any) => `${room.names?.[p.id]?.name ?? p.id}: ${p.pos}-katak`).join("; ")}`}>
+    <View>
+    <View style={{ width: size, height: size }} role="img" aria-label={`Taxta. ${players.map((p: any) => `${room.names?.[p.id]?.name ?? p.id}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}`}>
       {Array.from({ length: n }, (_, i) => {
         const { x, y } = ringPosition(i, n, 0.44, turns);
         const t = circle === "small" ? SMALL_BOARD[i] : "";
@@ -29,11 +34,24 @@ function Board({ room, size, turns = 0 }: { room: RoomView; size: number; turns?
           backgroundColor: circle === "small" ? CELL_COLOR[t] : color.line, opacity: 0.9 }}>
           <Text style={{ color: readableOn(circle === "small" ? CELL_COLOR[t] : color.line), fontSize: cell * 0.5, textAlign: "center", fontWeight: "700" }}>{t}</Text></View>;
       })}
-      {players.map((p: any, k: number) => {
-        const nn = p.circle === "small" ? 48 : 53, { x, y } = ringPosition(p.pos, nn, 0.34 + k * 0.025, turns);
-        return <View key={p.id} aria-hidden style={{ position: "absolute", left: x * size - 9, top: y * size - 9, width: 18, height: 18, borderRadius: 9,
-          backgroundColor: PLAYER_COLORS[k % 6], borderWidth: 2, borderColor: color.navy }} />;
+      {mixed && Array.from({ length: 53 }, (_, i) => {
+        const { x, y } = ringPosition(i, 53, inner, turns);
+        return <View key={`b${i}`} aria-hidden style={{ position: "absolute", left: x * size - dot / 2, top: y * size - dot / 2, width: dot, height: dot, borderRadius: dot / 2, backgroundColor: color.line }} />;
       })}
+      {players.map((p: any, k: number) => {
+        const big = p.circle === "big" && mixed, nn = p.circle === "small" ? 48 : 53;
+        const { x, y } = ringPosition(p.pos, nn, big ? inner : 0.34 + k * 0.025, turns);
+        return <View key={p.id} aria-hidden style={{ position: "absolute", left: x * size - 10, top: y * size - 10, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center",
+          backgroundColor: hue(p, k), borderWidth: 2, borderColor: color.navy }}><Text style={{ fontSize: 11, fontWeight: "800", color: readableOn(hue(p, k)) }}>{k + 1}</Text></View>;
+      })}
+    </View>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }} accessibilityLabel="O'yinchilar">
+      {players.map((p: any, k: number) => (
+        <View key={p.id} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: hue(p, k), borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 9, fontWeight: "800", color: readableOn(hue(p, k)) }}>{k + 1}</Text></View>
+          <Text style={{ color: color.navy, fontSize: 13 }}>{room.names?.[p.id]?.name ?? p.id}{p.circle === "big" ? " ★" : ""}</Text>
+        </View>))}
+    </View>
     </View>
   );
 }
