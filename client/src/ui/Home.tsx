@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView } from "react-native";
 import { Button } from "./Button";
-import { Pill } from "./kit";
+import { Banner, Pill } from "./kit";
 import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
@@ -25,6 +25,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false);
   const [me, setMe] = useState<{ name: string; color: number; level: number } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0 }); }).catch(() => {}); return () => { off = true; }; }, [http]);
+  const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
+  useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
   const online = status === "online", ready = code.length === 6;
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
@@ -36,6 +38,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
       </View>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
         <View style={s.wrap}>
+          {notes.map((n) => <Banner key={n.id} kind={n.kind === "warn" ? "warn" : "info"}>{n.text}</Banner>)}
           <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text>
           <View>
             <Row icon="plus" title={uz.home.newGame} sub={uz.home.newGameSub} onPress={onCreate} disabled={!online} />

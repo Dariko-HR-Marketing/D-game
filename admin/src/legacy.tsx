@@ -40,37 +40,3 @@ export function Audit({ api }: { api: Api }) {
 }
 
 
-export function Edu({ api }: { api: Api }) {
-  const l = useLoad<{ orgs: any[] }>(api, "/admin/edu/orgs"); const [name, setName] = useState(""); const [days, setDays] = useState("365"); const [seats, setSeats] = useState(""); const [msg, setMsg] = useState<{ kind: "good" | "bad"; text: string } | null>(null);
-  const run = async (fn: () => Promise<any>, ok: (r: any) => string) => { try { const r = await fn(); setMsg(r.error ? { kind: "bad", text: r.error } : { kind: "good", text: ok(r) }); l.reload(); } catch (e) { setMsg({ kind: "bad", text: errText(e) }); } };
-  return (<>
-    <PageHead title={t.edu} />
-    <section className="card"><h2>Yangi tashkilot</h2><p className="muted">Litsenziya shartnoma asosida beriladi. Shartnoma tugagach sinf ochish va yangi o'quvchi qo'shish to'xtaydi.</p>
-      <div className="row"><label className="grow">Nomi<input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} /></label><label>Muddat (kun)<input inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} /></label><label>O'rinlar (bo'sh = cheksiz)<input inputMode="numeric" value={seats} onChange={(e) => setSeats(e.target.value)} /></label>
-        <button className="p" disabled={name.trim().length < 2} onClick={() => run(() => api.post("/admin/edu/orgs", { name, licenseUntil: Date.now() + Number(days) * 86_400_000, seats: num(seats) }), () => t.saved)}>Yaratish</button></div>
-      {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}</section>
-    <section className="card"><h2>Tashkilotlar</h2><Err e={l.err} />{!l.data?.orgs.length ? <Empty loading={l.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Jadval"><table><thead><tr><th>Nomi</th><th>Litsenziya</th><th className="num">O'rinlar</th><th className="num">O'qituvchi</th><th className="num">Sinf</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{l.data.orgs.map((o) => (
-      <tr key={o.id}><td><b>{o.name}</b></td><td>{o.active && o.licenseUntil > Date.now() ? <Pill kind="good">{fmtTime(o.licenseUntil)} gacha</Pill> : <Pill kind="bad">Tugagan</Pill>}</td><td className="num">{o.seats ?? "∞"}</td><td className="num">{o.teachers}</td><td className="num">{o.classes}</td>
-        <td><div className="row"><button className="sm" onClick={() => run(() => api.post(`/admin/edu/orgs/${o.id}/invite`), (r) => `Taklif kodi: ${r.invite.code} (14 kun, bir marta)`)}>O'qituvchi kodi</button><button className="sm" onClick={() => run(() => api.post(`/admin/edu/orgs/${o.id}`, { licenseUntil: Math.max(Date.now(), o.licenseUntil) + 365 * 86_400_000 }), () => "Bir yilga uzaytirildi")}>+1 yil</button><button className="sm" onClick={() => run(() => api.post(`/admin/edu/orgs/${o.id}`, { active: !o.active }), () => t.saved)}>{o.active ? "To'xtatish" : "Yoqish"}</button></div></td></tr>))}</tbody></table></div>}</section>
-  </>);
-}
-
-export function Tournaments({ api }: { api: Api }) {
-  const l = useLoad<{ tournaments: any[] }>(api, "/admin/tournaments"); const blank = { title: "", sponsor: "", sponsorUrl: "", rules: "", prize: "", format: "", maxPlayers: "" };
-  const [f, setF] = useState(blank); const [msg, setMsg] = useState<{ kind: "good" | "bad"; text: string } | null>(null);
-  const set = (k: keyof typeof blank) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
-  const run = async (fn: () => Promise<any>) => { try { const r = await fn(); setMsg(r.error ? { kind: "bad", text: r.error } : { kind: "good", text: t.saved }); if (!r.error) setF(blank); l.reload(); } catch (e) { setMsg({ kind: "bad", text: errText(e) }); } };
-  const next: Record<string, [string, string]> = { draft: ["open", "Ro'yxatni ochish"], open: ["running", "Boshlash"], running: ["finished", "Yakunlash"] };
-  return (<>
-    <PageHead title={t.tournaments} />
-    <section className="card"><h2>Yangi turnir</h2><p className="muted">Sovrin va shartlar homiy bilan shartnomada; bu yerda faqat matn sifatida ko'rsatiladi. 16 yoshgacha o'yinchilarga homiy nomi ko'rsatilmaydi.</p>
-      <div className="stack"><div className="row"><label className="grow">Nomi<input value={f.title} onChange={set("title")} maxLength={120} /></label><label className="grow">Homiy<input value={f.sponsor} onChange={set("sponsor")} maxLength={120} /></label><label className="grow">Homiy havolasi (https)<input value={f.sponsorUrl} onChange={set("sponsorUrl")} /></label></div>
-        <div className="row"><label className="grow">Format<input value={f.format} onChange={set("format")} maxLength={300} /></label><label className="grow">Sovrin<input value={f.prize} onChange={set("prize")} maxLength={500} /></label><label>Ishtirokchilar chegarasi<input inputMode="numeric" value={f.maxPlayers} onChange={set("maxPlayers")} /></label></div>
-        <label>Qoidalar<textarea style={{ minHeight: 100 }} value={f.rules} onChange={set("rules")} maxLength={4000} /></label>
-        <div><button className="p" disabled={f.title.trim().length < 2} onClick={() => run(() => api.post("/admin/tournaments", { ...f, maxPlayers: num(f.maxPlayers), sponsorUrl: f.sponsorUrl || undefined, status: "draft" }))}>Qoralama sifatida saqlash</button></div>{msg && <Banner kind={msg.kind}>{msg.text}</Banner>}</div></section>
-    <section className="card"><h2>Turnirlar</h2><Err e={l.err} />{!l.data?.tournaments.length ? <Empty loading={l.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Jadval"><table><thead><tr><th>Nomi</th><th>Homiy</th><th>Holat</th><th className="num">Ishtirokchi</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{l.data.tournaments.map((x) => (
-      <tr key={x.id}><td><b>{x.title}</b></td><td>{x.sponsor || "—"}</td><td><Pill kind={x.status === "running" ? "good" : x.status === "open" ? "info" : "warn"}>{x.status}</Pill></td><td className="num">{x.players}{x.maxPlayers ? ` / ${x.maxPlayers}` : ""}</td>
-        <td><div className="row">{next[x.status] && <button className="sm" onClick={() => run(() => api.post(`/admin/tournaments/${x.id}`, { status: next[x.status][0] }))}>{next[x.status][1]}</button>}<button className="sm d" onClick={() => run(() => api.delete(`/admin/tournaments/${x.id}`))}>O'chirish</button></div></td></tr>))}</tbody></table></div>}</section>
-  </>);
-}
-

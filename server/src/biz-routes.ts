@@ -12,7 +12,7 @@ import type { RoomManager } from "./rooms";
 import type { Tournaments } from "./tournaments";
 
 export interface BizDeps {
-  app: FastifyInstance; edu: Edu; tournaments: Tournaments; consents: ParentConsents; phones: PhoneLinks; profiles: ProfileService; rooms: RoomManager;
+  ops?: Ops; app: FastifyInstance; edu: Edu; tournaments: Tournaments; consents: ParentConsents; phones: PhoneLinks; profiles: ProfileService; rooms: RoomManager;
   secured: (h: (uid: string, req: any, reply: any) => unknown) => (req: any, reply: any) => unknown;
   ageOf: (uid: string) => number | null; nameOf: (uid: string) => string | undefined; hashOf: (p: string) => string; dev: boolean; tournamentsPaused?: () => boolean;
 }
@@ -24,6 +24,9 @@ export function registerBiz(d: BizDeps) {
   const info = { nameOf: d.nameOf, levelOf: (id: string) => profiles.levelCached(id), ageOf: d.ageOf };
   const teacher = (uid: string, reply: any) => { const c = edu.teacherCtx(uid); if (!c) { fail(reply, "not_teacher"); return null; } return c; };
   const kpub = (k: ReturnType<Edu["classesOf"]>[number]) => ({ id: k.id, name: k.name, joinCode: k.joinCode, students: k.students.length, createdAt: k.createdAt });
+
+  /** E'lonlar (maqsadli): hammaga, o'z sinfiga yoki ro'yxatdan o'tgan turnirga. */
+  app.get("/me/announcements", d.secured((uid) => ({ announcements: (d.ops?.announcementsFor({ classIds: edu.classesAsStudent(uid).map((k) => k.id).concat(edu.classesOf(uid).map((k) => k.id)), tournamentIds: tn.regs.values().filter((r) => r.userId === uid && r.approved).map((r) => r.tournamentId) }) ?? []).map((a) => ({ id: a.id, text: a.text, kind: a.kind })) })));
 
   // --- o'qituvchi ---
   app.get("/edu/me", d.secured((uid) => {

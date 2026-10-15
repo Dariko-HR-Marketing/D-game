@@ -21,6 +21,7 @@ import { Ops } from "./ops";
 import { registerAdminAuth, registerAdminCore } from "./admin-core";
 import { registerAdminGames } from "./admin-games";
 import { registerAdminFinance } from "./admin-finance";
+import { registerAdminHub } from "./admin-hub";
 import { Edu } from "./edu";
 import { Tournaments } from "./tournaments";
 import { registerBiz, registerBizAdmin } from "./biz-routes";
@@ -97,7 +98,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   function eraseUser(uid: string) { profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); adminState.banUntil.delete(uid); revocations.revoke(uid); }
   const legacyAuth = envAdminAuth();
   registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth });
-  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }) } });
+  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }) } });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -250,7 +251,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   });
   registerShop({ app, commerce, phones, consents, otp: opts.otp, dev, webhookSecret: opts.webhookSecret ?? process.env.PAYMENT_WEBHOOK_SECRET, onTournamentConsent: (id, ok) => tournaments.onConsent(id, ok), salesPaused: () => ops.flags().salesPaused || ops.flags().maintenance, payEvent: (o, a, ok, e) => ops.payEvent(o, a, ok, e), devPay: dev && process.env.NODE_ENV !== "production", secured, ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; }, nameOf: (id) => profiles.get(id)?.name, limited: (scope) => cLimited({ scope }) });
   const ageOf = (uid: string) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; };
-  registerBiz({ app, edu, tournaments, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
+  registerBiz({ app, edu, tournaments, ops, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
   app.addHook("onResponse", async (req, rep) => { if (rep.statusCode >= 500) ops.logError(`${req.method} ${req.routeOptions?.url ?? req.url}`, `HTTP ${rep.statusCode}`); });
   app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "" }; });
   const ready = Promise.all([phones.load(), consents.load(), commerce.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {

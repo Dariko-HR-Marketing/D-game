@@ -5,7 +5,8 @@ import { AccountPage, Login, PasswordForm, TotpSetup } from "./auth";
 import { Accounts } from "./accounts";
 import { Complaints } from "./complaints";
 import { Dashboard } from "./dash";
-import { Analytics, Audit, Edu, Tournaments } from "./legacy";
+import { Analytics, Audit } from "./legacy";
+import { Announce, Edu, Tournaments } from "./hub";
 import { Finance } from "./finance";
 import { System } from "./system";
 import { Content } from "./content";
@@ -39,6 +40,7 @@ function App() {
       case "rooms": return <Rooms api={api} perms={me.perms} />;
       case "content": return <Content api={api} perms={me.perms} />;
       case "shop": return <Finance api={api} perms={me.perms} />;
+      case "announce": return <Announce api={api} />;
       case "system": return <System api={api} perms={me.perms} />;
       case "edu": return <Edu api={api} />;
       case "tournaments": return <Tournaments api={api} />;
