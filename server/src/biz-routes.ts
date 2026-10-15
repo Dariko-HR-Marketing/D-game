@@ -1,6 +1,7 @@
 // Ta'lim (o'qituvchi paneli, sinf) va homiy turnirlari marshrutlari + ularning admin boshqaruvi.
 import type { FastifyInstance } from "fastify";
 import type { Guard } from "./admin";
+import type { Ops } from "./ops";
 import type { Commerce } from "./commerce";
 import type { Edu } from "./edu";
 import { reportCsv } from "./edu";
@@ -93,7 +94,7 @@ export function registerBiz(d: BizDeps) {
 }
 
 /** Admin: ta'lim tashkilotlari va turnirlar (qo'shimcha ruxsat `commerce.manage`). */
-export function registerBizAdmin(guard: Guard, app: FastifyInstance, d: { edu: Edu; tournaments: Tournaments; commerce: Commerce; nameOf: (id: string) => string | undefined }) {
+export function registerBizAdmin(guard: Guard, app: FastifyInstance, d: { edu: Edu; tournaments: Tournaments; commerce: Commerce; ops: Ops; nameOf: (id: string) => string | undefined }) {
   const P = "commerce.manage";
   const bad = (reply: any, error: string) => reply.code(STATUS[error] ?? 400).send({ error });
   app.get("/admin/edu/orgs", guard("edu.manage", () => ({ orgs: d.edu.orgs.values().map((o) => ({ ...o, teachers: d.edu.teachers.values().filter((t) => t.orgId === o.id).length, classes: d.edu.classes.values().filter((k) => k.orgId === o.id && !k.archived).length })) })));
@@ -105,7 +106,7 @@ export function registerBizAdmin(guard: Guard, app: FastifyInstance, d: { edu: E
   app.post("/admin/tournaments/:id", guard("tournaments.manage", (req) => { const r = d.tournaments.upsert(String(req.params.id), (req.body ?? {}) as any); return r.ok ? { tournament: r.t } : { error: r.error }; }, "tournament.update"));
   app.delete("/admin/tournaments/:id", guard("tournaments.manage", (req) => (d.tournaments.remove(String(req.params.id)) ? { ok: true } : { error: "not_found" }), "tournament.delete"));
   app.get("/admin/shop/config", guard("commerce.read", () => ({ config: d.commerce.config() })));
-  app.post("/admin/shop/config", guard(P, (req) => { const r = d.commerce.setConfig((req.body ?? {}) as any); return r.ok ? { config: r.config } : { error: r.error }; }, "shop.config"));
+  app.post("/admin/shop/config", guard(P, (req, who) => { const before = d.commerce.config(); const r = d.commerce.setConfig((req.body ?? {}) as any); if (r.ok) d.ops.log(who.id, "shop.config", before, r.config); return r.ok ? { config: r.config } : { error: r.error }; }, "shop.config"));
   app.get("/admin/shop/orders", guard("commerce.read", () => ({ orders: d.commerce.orders.values().sort((a, b) => b.createdAt - a.createdAt).slice(0, 200).map((o) => ({ id: o.id, user: d.nameOf(o.userId) ?? "—", sku: o.sku, title: o.title, amount: o.amount, status: o.status, channel: o.channel, createdAt: o.createdAt, paidAt: o.paidAt })) })));
   void bad;
 }

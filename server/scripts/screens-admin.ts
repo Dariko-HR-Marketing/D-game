@@ -16,6 +16,7 @@ const x = buildApp({}); const PW = "Parol-12345", PW2 = "Yangi-Parol-77"; x.acco
 for (const u of ["ali", "bobur", "sara", "dilya"]) x.adminState.touch(u, Date.now() - 1000 * 60 * Math.random() * 600);
 x.profiles.put("ali", { name: "Ali", color: 0, birthYear: 1990 }); x.profiles.put("bobur", { name: "Bobur", color: 1, birthYear: 1995 });
 x.profiles.record({ room: "ABC234", finishedAt: Date.now(), durationMs: 3_600_000, rounds: 40, winner: "ali", contentVersion: 1, players: [{ id: "ali", bot: false, circle: "big", restarts: 0, won: true }, { id: "bobur", bot: false, circle: "small", restarts: 1, won: false }] });
+x.commerce.setConfig({ plusMonthly: 30_000, plusYearly: 300_000, items: { "pawn-emerald": 9_000 } }); x.commerce.orders.set("ord1", { id: "ord1", userId: "ali", sku: "plus:monthly", title: "POYGA Plus (oylik)", amount: 30_000, channel: "web", status: "pending_payment", createdAt: Date.now() }); x.commerce.confirmPaid("ord1", 30_000);
 x.adminState.addComplaint({ from: "bobur", against: "ali", room: "ABC234", text: "O'yin vaqtida haqorat qildi", at: Date.now() });
 const r = x.rooms.create("ali"); if (r.ok) { x.rooms.join(r.code, "bobur"); await x.rooms.start(r.code, "ali", 5); }
 await x.app.listen({ port: 3000, host: "127.0.0.1" });
@@ -32,6 +33,8 @@ for (const [tag, w, h] of [["d", 1440, 900], ["n", 390, 844]] as [string, number
   const nav = (n: string) => p.getByRole("navigation").getByRole("button", { name: n, exact: true }).click();
   await nav("Kontent"); await p.getByRole("tab", { name: "Muharrir" }).click(); await p.waitForTimeout(500); await scan(p, `kontent muharriri ${tag}`);
   await p.getByRole("tab", { name: "Versiyalar" }).click(); await p.getByRole("button", { name: "Tekshiruv" }).first().click(); await p.waitForTimeout(400); await scan(p, `kontent tekshiruvi ${tag}`);
+  await nav("Moliya va do'kon"); for (const tb of ["Buyurtmalar", "Narxlar va chegaralar", "Katalog", "To'lov provayderi", "O'zgarishlar tarixi"]) { await p.getByRole("tab", { name: tb }).click(); await p.waitForTimeout(400); await scan(p, `moliya ${tb} ${tag}`); }
+  await p.getByRole("tab", { name: "Buyurtmalar" }).click(); await p.waitForTimeout(300); await p.getByRole("button", { name: "Ochish" }).first().click(); await p.getByText("Provayder havolasi").waitFor(); await p.screenshot({ path: `${OUT}/${tag}-70-buyurtma.png`, fullPage: true }); await scan(p, `buyurtma ${tag}`);
   await nav("Xonalar"); for (const [tb, nm] of [["Tugagan", "tugagan"], ["Shubhali", "shubhali"]]) { await p.getByRole("tab", { name: tb }).click(); await p.waitForTimeout(400); await scan(p, `xonalar ${nm} ${tag}`); }
   await p.getByRole("tab", { name: "Jonli" }).click(); await p.waitForTimeout(400); await p.getByRole("button", { name: "Qayta o'ynatish" }).first().click(); await p.getByText("Naqd pul dinamikasi").waitFor().catch(async (e: Error) => { console.log("MAIN:", (await p.locator("main").innerText()).slice(0, 600)); throw e; }); await p.screenshot({ path: `${OUT}/${tag}-80-replay.png`, fullPage: true }); await scan(p, `qayta o'ynatish ${tag}`);
   await p.getByRole("button", { name: "← Orqaga" }).click();

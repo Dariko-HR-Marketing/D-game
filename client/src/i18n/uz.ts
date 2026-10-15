@@ -87,6 +87,7 @@ export const uz = {
     market: "Bozor taklifi", sell: "Sotish", sellFor: "Sotish narxi", net: "Kreditdan keyin qoladi", debts: "Hamkorlik qarzlari", repay: "To'lash", sec: "soniya", shares: "Aksiya soni",
   },
   errors: {
+    maintenance: "Texnik ishlar olib borilmoqda. Birozdan keyin urinib ko'ring", sales_paused: "Xaridlar vaqtincha to'xtatilgan. Keyinroq urinib ko'ring", paused: "Bu amal vaqtincha to'xtatilgan",
     room_limit: "Bepul tarifda kuniga xona yaratish chegarasi tugadi. Plus bilan cheklov yo'q", not_allowed: "Bu xonaga faqat sinf yoki turnir a'zolari kira oladi", plus_required: "Bu imkoniyat POYGA Plus uchun", price_unset: "Bu mahsulot narxi hali belgilanmagan",
     payments_unavailable: "To'lov hozircha ulanmagan. Keyinroq urinib ko'ring", phone_required: "Avval telefon raqamingizni tasdiqlang", profile_required: "Avval profilni to'ldiring", parent_phone_required: "Ota-onangizning telefon raqamini kiriting", same_phone: "Ota-ona raqami sizning raqamingizdan farq qilishi kerak",
      phone_taken: "Bu raqam boshqa hisobga bog'langan",  sms_unavailable: "SMS xizmati hozircha ulanmagan",  unavailable: "Bu mahsulot hozircha sotilmaydi", already_owned: "Bu narsa sizda bor", not_owned: "Bu narsa sizda yo'q", not_plus: "Bu imkoniyat Plus egalari uchun", already_claimed: "Bu oyning sovg'asi olingan", plus_already_long: "Plus muddati yetarlicha uzun",

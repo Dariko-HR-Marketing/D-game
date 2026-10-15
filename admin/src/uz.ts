@@ -8,7 +8,7 @@ export const ERRORS: Record<string, string> = {
 };
 export const t = {
   title: "POYGA admin", token: "Kirish tokeni", login: "Kirish", logout: "Chiqish", loginErr: "Token noto'g'ri yoki ruxsat yo'q", loginHint: "Administrator tokeni parol menejerida saqlanadi. Uni hech kimga yubormang.",
-  content: "Kontent", rooms: "Xonalar", users: "Foydalanuvchilar", complaints: "Shikoyatlar", analytics: "Analitika", audit: "Audit", dashboard: "Boshqaruv paneli", accounts: "Admin hisoblari", announce: "E'lonlar", system: "Tizim", shop: "Do'kon va Plus", edu: "Ta'lim", tournaments: "Turnirlar",
+  content: "Kontent", rooms: "Xonalar", users: "Foydalanuvchilar", complaints: "Shikoyatlar", analytics: "Analitika", audit: "Audit", dashboard: "Boshqaruv paneli", accounts: "Admin hisoblari", announce: "E'lonlar", system: "Tizim", shop: "Moliya va do'kon", edu: "Ta'lim", tournaments: "Turnirlar",
   version: "Versiya", active: "Faol", publish: "Nashr qilish", create: "Yangi versiya yaratish", note: "Izoh (nima o'zgardi)", part: "Qism",
   search: "Qidirish", ban: "Bloklash", unban: "Blokdan chiqarish", resolve: "Hal qilish", journal: "O'yin jurnali", forbidden: "Ruxsat yo'q",
   problems: "Muammolar", saved: "Saqlandi", load: "Yuklash", banned: "Bloklangan", open: "Ochiq", resolved: "Hal qilingan",

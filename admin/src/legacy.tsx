@@ -40,26 +40,6 @@ export function Audit({ api }: { api: Api }) {
 }
 
 
-export function Shop({ api }: { api: Api }) {
-  const c = useLoad<{ config: any }>(api, "/admin/shop/config"); const o = useLoad<{ orders: any[] }>(api, "/admin/shop/orders");
-  const [f, setF] = useState<Record<string, string>>({}); const [msg, setMsg] = useState<{ kind: "good" | "bad"; text: string } | null>(null);
-  useEffect(() => { if (c.data) { const g = c.data.config; setF({ plusMonthly: g.plusMonthly ?? "", plusYearly: g.plusYearly ?? "", freeRoomsPerDay: g.freeRoomsPerDay ?? "", freeHistory: g.freeHistory ?? "", ...Object.fromEntries(Object.entries(g.items ?? {}).map(([k, v]) => ["i:" + k, String(v ?? "")])) }); } }, [c.data]);
-  const save = async () => {
-    const items: Record<string, number | null> = {}; for (const [k, v] of Object.entries(f)) if (k.startsWith("i:")) items[k.slice(2)] = num(String(v));
-    try { const r = await api.post("/admin/shop/config", { plusMonthly: num(String(f.plusMonthly ?? "")), plusYearly: num(String(f.plusYearly ?? "")), freeRoomsPerDay: num(String(f.freeRoomsPerDay ?? "")), freeHistory: num(String(f.freeHistory ?? "")), items }); setMsg(r.error ? { kind: "bad", text: r.error } : { kind: "good", text: t.saved }); c.reload(); } catch (e) { setMsg({ kind: "bad", text: errText(e) }); }
-  };
-  const field = (k: string, label: string) => <label key={k}>{label}<input inputMode="numeric" value={f[k] ?? ""} onChange={(e) => setF({ ...f, [k]: e.target.value })} placeholder="belgilanmagan" /></label>;
-  const itemKeys = Object.keys(f).filter((k) => k.startsWith("i:"));
-  return (<>
-    <PageHead title={t.shop} />
-    <section className="card" aria-labelledby="sh"><h2 id="sh">Narxlar va bepul tarif chegaralari</h2><p className="muted">Narx bo'sh qoldirilsa, xarid yopiq turadi (narx o'ylab topilmaydi). Chegara bo'sh = cheklovsiz.</p><Err e={c.err} />
-      <div className="stack"><div className="row">{field("plusMonthly", "Plus, oylik (so'm)")}{field("plusYearly", "Plus, yillik (so'm)")}{field("freeRoomsPerDay", "Bepul: kuniga xona")}{field("freeHistory", "Bepul: tarix yozuvlari")}</div>
-        {itemKeys.length > 0 && <div className="row">{itemKeys.map((k) => field(k, k.slice(2)))}</div>}
-        <div><button className="p" onClick={save}>Saqlash</button></div>{msg && <Banner kind={msg.kind}>{msg.text}</Banner>}</div></section>
-    <section className="card"><h2>Buyurtmalar</h2><Err e={o.err} />{!o.data?.orders.length ? <Empty loading={o.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Jadval"><table><thead><tr><th>Vaqt</th><th>Foydalanuvchi</th><th>Mahsulot</th><th className="num">Summa</th><th>Holat</th></tr></thead><tbody>{o.data.orders.map((x) => <tr key={x.id}><td className="muted">{fmtTime(x.createdAt)}</td><td>{x.user}</td><td>{x.title}</td><td className="num">{x.amount}</td><td><Pill kind={x.status === "paid" ? "good" : x.status === "rejected" || x.status === "cancelled" ? "bad" : "warn"}>{x.status}</Pill></td></tr>)}</tbody></table></div>}</section>
-  </>);
-}
-
 export function Edu({ api }: { api: Api }) {
   const l = useLoad<{ orgs: any[] }>(api, "/admin/edu/orgs"); const [name, setName] = useState(""); const [days, setDays] = useState("365"); const [seats, setSeats] = useState(""); const [msg, setMsg] = useState<{ kind: "good" | "bad"; text: string } | null>(null);
   const run = async (fn: () => Promise<any>, ok: (r: any) => string) => { try { const r = await fn(); setMsg(r.error ? { kind: "bad", text: r.error } : { kind: "good", text: ok(r) }); l.reload(); } catch (e) { setMsg({ kind: "bad", text: errText(e) }); } };

@@ -31,7 +31,7 @@ export const ITEMS: Item[] = [
 const ITEM = new Map(ITEMS.map((i) => [i.id, i]));
 export const itemById = (id: string) => ITEM.get(id);
 
-export interface CatalogConfig { plusMonthly: number | null; plusYearly: number | null; items: Record<string, number | null>; freeRoomsPerDay: number | null; freeHistory: number | null }
+export interface CatalogConfig { plusMonthly: number | null; plusYearly: number | null; items: Record<string, number | null>; freeRoomsPerDay: number | null; freeHistory: number | null; hidden?: string[] }
 /** Narxlar qiymati berilmagan (null). `freeRoomsPerDay`/`freeHistory` — taxminiy standartlar (OPEN_QUESTIONS): bepul tarifdagi chegara. */
 export const DEFAULT_CONFIG: CatalogConfig = { plusMonthly: null, plusYearly: null, items: {}, freeRoomsPerDay: 5, freeHistory: 10 };
 
@@ -71,6 +71,7 @@ export class Commerce {
     for (const [k, v] of Object.entries(c.items)) if (!ITEM.has(k) || !okP(v)) return { ok: false, error: "bad_price" };
     const lim = (v: unknown) => v === null || (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 10_000);
     if (!lim(c.freeRoomsPerDay) || !lim(c.freeHistory)) return { ok: false, error: "bad_limit" };
+    if (c.hidden !== undefined && (!Array.isArray(c.hidden) || c.hidden.some((h) => !ITEM.has(h)))) return { ok: false, error: "bad_item" };
     this.cfg.set("config", c); return { ok: true, config: c };
   }
 
@@ -94,7 +95,7 @@ export class Commerce {
     return {
       plus: { active: plus, until: plus ? e.plusUntil : null, plan: plus ? e.plusPlan ?? null : null, cancelled: !!e.plusCancelled, monthly: c.plusMonthly, yearly: c.plusYearly, claimedThisMonth: e.claimedMonth === ym(this.now()),
         features: { rooms: plus ? null : c.freeRoomsPerDay, history: plus ? null : c.freeHistory, analysis: plus ? "all" : "last", ads: !plus } },
-      items: ITEMS.map((i) => ({ ...i, owned: this.owns(uid, i.id), price: i.source === "shop" ? c.items[i.id] ?? null : null, equipped: e.equipped[i.kind as "pawn" | "frame" | "avatar"] === i.id })),
+      items: ITEMS.filter((i) => !(c.hidden ?? []).includes(i.id) || this.owns(uid, i.id)).map((i) => ({ ...i, owned: this.owns(uid, i.id), price: i.source === "shop" ? c.items[i.id] ?? null : null, equipped: e.equipped[i.kind as "pawn" | "frame" | "avatar"] === i.id })),
       equipped: e.equipped, paymentsReady: (this.d.providers ?? []).length > 0,
     };
   }
@@ -109,7 +110,7 @@ export class Commerce {
   async order(uid: string, sku: string, channel: "web" | "store", parentPhone?: unknown): Promise<{ ok: true; order: Order; parentRequired: boolean } | { ok: false; error: OrderErr }> {
     const price = this.priceOf(sku); if (price === undefined) return { ok: false, error: "bad_sku" };
     let title = ""; const m = /^item:(.+)$/.exec(sku);
-    if (m) { const it = ITEM.get(m[1])!; if (!it.available) return { ok: false, error: "unavailable" }; if (this.owns(uid, it.id)) return { ok: false, error: "already_owned" }; title = it.name; }
+    if (m) { const it = ITEM.get(m[1])!; if (!it.available || (this.config().hidden ?? []).includes(it.id)) return { ok: false, error: "unavailable" }; if (this.owns(uid, it.id)) return { ok: false, error: "already_owned" }; title = it.name; }
     else title = sku === "plus:monthly" ? "POYGA Plus (oylik)" : "POYGA Plus (yillik)";
     if (price === null) return { ok: false, error: "price_unset" };
     if (sku.startsWith("plus:") && this.isPlus(uid) && (this.ent(uid).plusUntil! - this.now()) > 400 * DAY) return { ok: false, error: "plus_already_long" };
