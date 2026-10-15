@@ -22,6 +22,7 @@ import { registerAdminAuth, registerAdminCore } from "./admin-core";
 import { registerAdminGames } from "./admin-games";
 import { registerAdminFinance } from "./admin-finance";
 import { registerAdminHub } from "./admin-hub";
+import { registerAdminInsight } from "./admin-insight";
 import { Edu } from "./edu";
 import { Tournaments } from "./tournaments";
 import { registerBiz, registerBizAdmin } from "./biz-routes";
@@ -98,7 +99,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   function eraseUser(uid: string) { profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); adminState.banUntil.delete(uid); revocations.revoke(uid); }
   const legacyAuth = envAdminAuth();
   registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth });
-  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }) } });
+  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerAdminInsight(guard, app, { state: adminState, ops, profiles, commerce, consents, rooms, store, sockets: () => openSockets }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }) } });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {

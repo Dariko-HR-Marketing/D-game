@@ -55,7 +55,7 @@ Rasmiy qo'llanma bo'yicha (Docker Engine + Compose plugin): https://docs.docker.
 git clone https://github.com/Dariko-HR-Marketing/D-game.git && cd D-game/deploy/vps
 cp .env.example .env && nano .env
 ```
-`.env` da: uchta manzil, `POSTGRES_PASSWORD` (faqat harf va raqam, uzun), `ADMIN_TOKENS` (parol menejerida yaratilgan 32+ belgili token), `NODE_ENV=staging`. `.env` ni hech qachon GitHub'ga yuklamang (`.gitignore` da bor).
+`.env` da: uchta manzil, `POSTGRES_PASSWORD` (faqat harf va raqam, uzun), `ADMIN_BOOTSTRAP_LOGIN`/`ADMIN_BOOTSTRAP_PASSWORD` (birinchi administrator; [ADMIN.md](ADMIN.md)), `NODE_ENV=staging`. `.env` ni hech qachon GitHub'ga yuklamang (`.gitignore` da bor).
 
 ### 5. Ishga tushirish
 ```bash
@@ -67,7 +67,7 @@ docker compose logs -f server       # "tiklangan o'yinlar: 0", "Server listening
 ### 6. Tekshirish
 - `curl https://api.<domen>/ready` → `{"ready":true}`
 - `https://game.<domen>` ochiladi → "Xona yaratish" → ikkinchi brauzerdan qo'shilib o'ynang.
-- `https://admin.<domen>` → `ADMIN_TOKENS` dagi token → xonalar ko'rinadi.
+- `https://admin.<domen>` → bootstrap login/parol → parolni almashtirish → 2FA → boshqaruv paneli.
 - Server qayta ishga tushirilsa (`docker compose restart server`) faol o'yin bazadan tiklanadi.
 
 ## Karta rasmlari (§2.5)

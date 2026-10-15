@@ -5,7 +5,7 @@ import { AccountPage, Login, PasswordForm, TotpSetup } from "./auth";
 import { Accounts } from "./accounts";
 import { Complaints } from "./complaints";
 import { Dashboard } from "./dash";
-import { Analytics, Audit } from "./legacy";
+import { Analytics, Audit } from "./insight";
 import { Announce, Edu, Tournaments } from "./hub";
 import { Finance } from "./finance";
 import { System } from "./system";

@@ -4,6 +4,7 @@ import type { Api } from "./api";
 import { Banner, Empty, Err, FormDialog, PageHead, Pill, errText, useLoad } from "./lib";
 import { t } from "./uz";
 import { Log } from "./finance";
+import { Health } from "./insight";
 
 export function Flags({ api, canEdit }: { api: Api; canEdit: boolean }) {
   const f = useLoad<{ flags: any }>(api, "/admin/flags"); const [dlg, setDlg] = useState<null | { patch: Record<string, unknown>; title: string }>(null); const x = f.data?.flags;
@@ -18,6 +19,6 @@ export function Flags({ api, canEdit }: { api: Api; canEdit: boolean }) {
   </section>);
 }
 export function System({ api, perms }: { api: Api; perms: string[] }) {
-  return (<><PageHead title={t.system} />{perms.includes("system.read") || perms.includes("flags.manage") ? <Flags api={api} canEdit={perms.includes("flags.manage")} /> : null}{perms.includes("system.read") && <Log api={api} />}</>);
+  return (<><PageHead title={t.system} />{perms.includes("system.read") && <Health api={api} />}{perms.includes("system.read") || perms.includes("flags.manage") ? <Flags api={api} canEdit={perms.includes("flags.manage")} /> : null}{perms.includes("system.read") && <Log api={api} />}</>);
 }
 void errText;
