@@ -4,7 +4,7 @@ import { RULES } from "@poyga/rules";
 import { WriteQueue } from "./persist";
 
 export interface Profile { userId: string; name: string; color: number; birthYear: number; updatedAt: number }
-export interface ResultPlayer { id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean }
+export interface ResultPlayer { id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean }
 export interface GameResult { room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
 
 export interface ProfilePersist {
@@ -15,7 +15,7 @@ export interface ProfilePersist {
 export const PROFILE_COLORS = 6; // §7: fishka rangi (6 ta)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
-export const POINTS: { win: number | null; exitSmallCircle: number | null } = { win: 100, exitSmallCircle: 50 }; // qaror (#63): SPEC raqam bermaydi; 100 ball = 1 daraja
+export const POINTS: { win: number | null; exitSmallCircle: number | null; unreliable: number } = { win: 100, exitSmallCircle: 50, unreliable: -50 }; // qaror (#63): SPEC raqam bermaydi; 100 ball = 1 daraja
 
 export function validateProfile(i: any, year: number): { ok: true; value: Omit<Profile, "userId" | "updatedAt"> } | { ok: false; error: string } {
   const name = typeof i?.name === "string" ? i.name.trim().replace(/\s+/g, " ") : "";
@@ -28,7 +28,7 @@ export function validateProfile(i: any, year: number): { ok: true; value: Omit<P
 export const ageOf = (p: Pick<Profile, "birthYear">, year: number) => year - p.birthYear;
 export const isRestricted = (p: Pick<Profile, "birthYear"> | undefined, year: number) => !!p && ageOf(p, year) < MIN_AGE_RESTRICT;
 
-export interface Stats { games: number; wins: number; reachedBig: number; points: number; level: number }
+export interface Stats { unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
 export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel); // §5.9
 
 export class ProfileService {
@@ -53,16 +53,16 @@ export class ProfileService {
 
   record(r: GameResult) { this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
   /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
-  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = []) {
+  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = []) {
     this.record({ room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
-      players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won })) });
+      players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined })) });
   }
 
   stats(userId: string): Stats {
-    let games = 0, wins = 0, reachedBig = 0, points = 0;
-    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (!p || p.bot) continue; // bot (yoki chiqib ketgan) hisobga olinmaydi
+    let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
+    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p?.unreliable) { unreliable++; points += POINTS.unreliable; } if (!p || p.bot) continue; // bot (yoki chiqib ketgan) hisobga olinmaydi
       games++; if (p.won) { wins++; points += POINTS.win ?? 0; } if (p.circle === "big") { reachedBig++; points += POINTS.exitSmallCircle ?? 0; } }
-    return { games, wins, reachedBig, points, level: levelOf(points) };
+    return { unreliable, games, wins, reachedBig, points, level: levelOf(points) };
   }
   history(userId: string, limit = 50) {
     return this.results.filter((r) => r.players.some((p) => p.id === userId && !p.bot)).slice(-limit).reverse()

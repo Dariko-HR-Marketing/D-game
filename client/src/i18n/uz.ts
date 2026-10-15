@@ -11,7 +11,7 @@ export const uz = {
     exitTitle: "Kichik aylanadan chiqish", exitCash: "Naqd ≥ 1 000 000", exitFlow: "Passiv oqim ≥ 25 000", exitDebt: "Qarz yo'q", exitPartner: "Sheriklik yopilgan",
     before: "Oldin", after: "Keyin",
   },
-  profile: {
+  profile: { unreliable: "Ishonchsiz (ochiq qarz bilan chiqqan o'yinlar)",
     title: "Profil", name: "Ism", color: "Fishka rangi", birthYear: "Tug'ilgan yil", save: "Saqlash", saved: "Saqlandi", level: "Daraja", games: "O'yinlar", wins: "G'alabalar", big: "Katta aylanaga chiqqan",
     under16: "16 yoshgacha: o'zaro qarz, sheriklik va erkin chat yopiq; to'lov ota-ona tasdig'i bilan.", history: "O'yinlar tarixi", empty: "Hozircha bo'sh", won: "G'alaba", lost: "O'yin tugadi",
     leaderboard: "Reyting", rank: "O'rin", back: "Orqaga", danger: "Hisobni o'chirish",

@@ -45,7 +45,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     onAbandon: () => cGames({ event: "abandoned" }),
     onError: (where, e) => { cErr({ where }); app.log.error({ where, err: String((e as Error)?.message ?? e) }, "xona xatosi"); },
     onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
-    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId)); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
+    onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId), r.members.filter((m) => m.unreliable).map((m) => m.userId)); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });
   m.gauge("poyga_rooms_active", "Faol (tugamagan, boshlangan) xonalar", () => [...rooms.rooms.values()].filter((r) => r.state && !r.endedAt).length);
   m.gauge("poyga_rooms_lobby", "Boshlanmagan xonalar", () => [...rooms.rooms.values()].filter((r) => !r.state).length);

@@ -17,13 +17,18 @@ describe("profil tekshiruvi (§7)", () => {
     expect(isRestricted({ birthYear: 2010 }, Y)).toBe(false); // 16
     expect(isRestricted(undefined, Y)).toBe(false);
   });
-  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toEqual({ win: 100, exitSmallCircle: 50 }); });
+  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toEqual({ win: 100, exitSmallCircle: 50, unreliable: -50 }); });
 });
 
 describe("tarix va reyting", () => {
   const mk = () => { const s = new ProfileService(undefined, () => Y, () => 1000); for (const [id, n] of [["a", "Ali"], ["b", "Bobur"], ["c", "Sara"]]) s.put(id, { name: n, color: 0, birthYear: 1990 }); return s; };
   const res = (winner: string | null, players: ([string, boolean] | [string, boolean, "small" | "big"])[]) => ({ room: "R", finishedAt: 5, durationMs: 100, rounds: 7, winner, contentVersion: 1,
     players: players.map(([id, bot, circle]) => ({ id, bot, circle: circle ?? "small", restarts: 0, won: id === winner })) });
+  it("«Ishonchsiz»: ochiq qarz bilan chiqqan — o'yin hisobga olinmaydi, faqat −50 ball", () => {
+    const s = mk();
+    s.record({ ...res("b", []), players: [{ id: "b", bot: false, circle: "small", restarts: 0, won: true }, { id: "c", bot: true, circle: "small", restarts: 0, won: false, unreliable: true }] });
+    expect(s.stats("c")).toMatchObject({ unreliable: 1, games: 0, points: -50 });
+  });
   it("statistika va reyting: g'alaba ko'p yuqorida, botlar reytingda yo'q", () => {
     const s = mk();
     s.record(res("a", [["a", false, "big"], ["b", false], ["bot-1", true]])); s.record(res("a", [["a", false, "big"], ["c", false]])); s.record(res("b", [["b", false, "big"], ["c", false]]));

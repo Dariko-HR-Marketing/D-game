@@ -77,6 +77,7 @@ SPEC aytmagan qoidalar bo'yicha qarorlarni loyiha jamoasi **professional taxmin 
 | 62 | Qarz eslatmasi: beruvchi qarzdorga eslatma yuboradi, har bir qarz uchun raundda 1 marta | `game.ts` `loan_remind` |
 | 62 | Avto sug'urta kartasi faqat mashinasi borga qo'llanadi | `engine.ts` |
 | 63 | Ballar: g'alaba 100, kichik aylanadan chiqish 50; 100 ball = 1 daraja | `server/src/profiles.ts` `POINTS` |
+| 66 | «Ishonchsiz»: ochiq qarz yoki sheriklik bilan o'yindan ixtiyoriy chiqqan o'yinchi −50 ball oladi va profilida belgi ko'rinadi (o'yin statistikaga kirmaydi) | `server/src/profiles.ts` `POINTS.unreliable`, `rooms.ts` `leave` |
 | 64 | Sheriklik: sherik foydaning 50 % ini ega bo'lgunicha oladi, ega istalgan payt to'liq narx + 1 oylik foyda bilan sotib oladi. «24 oy dividend»/«bepul» variant kodlanmadi (SPEC noaniq) | `game.ts` `partner_buyout` |
 
 ## Hali tashqaridan kerak (qaror emas, ma'lumot/xizmat)

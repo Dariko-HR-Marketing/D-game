@@ -1,5 +1,5 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
-import { Action, Ctx, GameState, chooseDream, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
+import { Action, Ctx, GameState, chooseDream, openPartnerships, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
 import type { RoomMeta, Store } from "./store";
 import type { ContentRegistry } from "./registry";
@@ -10,7 +10,7 @@ export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => 
 export const MAX_PLAYERS = 6, MIN_PLAYERS = 2;
 export const DECISION_MS = RULES.cardDecisionSeconds * 1000;
 
-export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
+export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null;
@@ -63,7 +63,7 @@ export class RoomManager {
   }
 
   private meta(r: Room): RoomMeta {
-    return { hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt };
+    return { hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt };
   }
 
   /** Server qayta ishga tushganda tugamagan o'yinlarni tiklaydi (§6.3). O'yinchilar oflayn deb belgilanadi va qayta ulanganda davom etadi. */
@@ -75,7 +75,7 @@ export class RoomManager {
       if ("active" in this.content) ctx = a.meta.contentVersion != null ? this.content.ctxFor(a.meta.contentVersion) : undefined;
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
-      const r: Room = { code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, online: false })), state: a.state, seq: a.meta.seq,
+      const r: Room = { code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable, online: false })), state: a.state, seq: a.meta.seq,
         timer: null, deadline: null, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
@@ -233,7 +233,11 @@ export class RoomManager {
     this.activeRoomOf.delete(userId);
     this.markOffline(r, userId);
     if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) this.rooms.delete(code); }
-    else { m.bot = true; m.left = true; m.online = false; if (currentPlayer(r.state).id === userId) this.arm(r); }
+    else {
+      // «Ishonchsiz» (qaror #66): ochiq qarz yoki sheriklik bilan chiqib ketish
+      const gp = r.state.players.find((p) => p.id === userId);
+      m.unreliable = !!gp && (gp.handDebts.length > 0 || openPartnerships(gp) > 0);
+      m.bot = true; m.left = true; m.online = false; if (currentPlayer(r.state).id === userId) this.arm(r); }
     this.emit(r);
   }
 
