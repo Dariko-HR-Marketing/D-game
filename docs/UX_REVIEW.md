@@ -6,7 +6,15 @@ Usul: veb mijoz va admin yig'ildi, `server/scripts/screens.ts` va `screens-admin
 1. **Xabarlar sarlavhani to'sardi (yuqori).** `CardToast`/`GambleToast` ekranning eng tepasiga qo'yilgan edi va «Qoidalar» tugmasi hamda xona kodini yopib qo'yardi. O'zingizning majburiy kartangiz xabari o'z-o'zidan yopilmaydi, shuning uchun to'siq uzoq turishi mumkin edi. Shu sabab CI'dagi `ui` (e2e) beqaror qulagan («Yopish tugmasi bosishni to'sib turibdi»). Endi xabar sarlavha ostida chiqadi (`HEADER_H`).
 2. **Admin diagrammalarida qiymat ko'rinmasdi (o'rta).** 14 kunlik ustunlarda o'q va yorliq yo'q edi, faqat sichqoncha ustida ko'rinardi. Endi birinchi/oxirgi sana va eng katta qiymat ko'rinadi.
 
+## Keyingi bosqichda tuzatildi (2026-10-17)
+- **Bosh sahifa:** «Yangi o'yin» yashil ikonka bilan ajratildi; ikonkalar takrorlanmaydi (kubik, kod bilan qo'shilish — odamlar, qoidalar — kitob, reyting — kubok, turnirlar — bayroq, sinf — uy, do'kon — yulduz).
+- **Qaror varag'i:** naqd yetmasa, «O'tkazaman» asosiy (yashil) tugma bo'ladi, o'chiq tugma ikkinchi o'rinda.
+- **Natija:** «chiqmadi» raqamlar qatoridan kichik, neytral matn bo'ldi.
+- **Orzu tanlash:** hisoblagich «0/2 tanlagan» ko'rinishida.
+- **Admin:** summalar («30 000 sh.b.») bir qatorda; telefonda sarlavha tugmalari ixcham.
+
 ## Tavsiyalar (dizayner/mahsulot qarori kerak)
+Quyidagilardan yuqoridagi to'rttasi bajarilgan; qolganlari ochiq.
 **Yuqori**
 - **Taxta yozuvlari juda mayda.** Katak yozuvi 6–10 px (`Board.tsx` `labelSize`), tizimdagi eng kichik shrift 12 px. Telefonda katak yozuvi umuman yo'q, faqat ikonka va rang. Ma'lumot ikonka va rangdan o'qiladi, lekin yozuvli kataklar kompyuterda o'qilmaydi. Yo'l: yozuv o'rniga ikonka + qisqa belgi, yoki katakni bosganda tushuntirish, yoki kamida 11–12 px (katak balandligi o'zgaradi, maketga ta'sir qiladi).
 - **Fishkalar katakni yopadi.** Telefonda o'ng ustundagi «1» va «2» fishkalar katak ikonkasini yopadi, kompyuterda START yozuvi ustiga tushadi. Fishkani katak chetiga yoki bir nechta bo'lsa yonma-yon qo'yish kerak.

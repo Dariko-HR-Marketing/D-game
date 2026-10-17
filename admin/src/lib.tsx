@@ -28,7 +28,7 @@ label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
 tr:last-child td{border-bottom:0}td.num{text-align:right;font-variant-numeric:tabular-nums}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--t2)}.muted{color:var(--t2)}
 .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:800}.pill.good{background:var(--s-good);color:var(--green-t)}.pill.bad{background:var(--s-bad);color:var(--red)}.pill.warn{background:var(--s-warn);color:var(--warn)}.pill.info{background:var(--s-info);color:var(--navy)}
 .banner{border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px}.banner.good{background:var(--s-good);color:var(--green-t)}.banner.bad{background:var(--s-bad);color:var(--red)}.banner.warn{background:var(--s-warn);color:var(--warn)}.banner.info{background:var(--s-info);color:var(--navy)}.pill.plain{background:#EEF2F5;color:var(--t2)}.banner ul{margin:6px 0 0;padding-left:20px;font-weight:600}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}.stat{background:var(--bg);border-radius:12px;padding:14px}.stat b{display:block;font-size:26px}.stat span{font-size:12px;color:var(--t2);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}.stat{background:var(--bg);border-radius:12px;padding:14px}.stat b{display:block;font-size:clamp(20px,2.1vw,26px);white-space:nowrap}.stat span{font-size:12px;color:var(--t2);font-weight:700}
 .bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden;min-width:80px}.bar i{display:block;height:100%;background:var(--green)}
 dialog{border:0;border-radius:16px;padding:24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,34,56,.35);color:var(--navy)}dialog::backdrop{background:rgba(8,34,56,.5)}
 dialog form{display:flex;flex-direction:column;gap:14px}dialog menu{display:flex;gap:10px;justify-content:flex-end;margin:0;padding:0}
@@ -39,7 +39,7 @@ dialog form{display:flex;flex-direction:column;gap:14px}dialog menu{display:flex
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:start}.attn{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}.attn:last-child{border:0}
 nav .grp{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#9FB2C6;padding:10px 12px 2px}
 button.link{border:0;background:none;min-height:0;padding:0;color:#1B3A6B;text-decoration:underline;font-weight:700}
-@media(max-width:820px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 12px;gap:8px}aside .who{display:none}nav{flex-direction:row;overflow-x:auto;flex:1 1 100%;order:3}nav button{white-space:nowrap}aside .out{margin:0 0 0 auto}main{padding:16px}}
+@media(max-width:820px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 12px;gap:8px}aside .who{display:none}nav{flex-direction:row;overflow-x:auto;flex:1 1 100%;order:3}nav button{white-space:nowrap}aside .out{margin:0;padding:8px 12px;font-size:13px}aside .brand{flex:1 1 auto}main{padding:16px}}
 `;
 
 export const fmtTime = (ms?: number) => (ms ? new Date(ms).toLocaleString("uz", { dateStyle: "short", timeStyle: "short" }) : "—");

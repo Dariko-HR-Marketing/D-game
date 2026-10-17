@@ -49,7 +49,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
               <Chart values={p.series.map((x: any) => x.cashflow)} />
               <View style={s.stats}>
                 <Stat label={uz.result.peakCash} value={money(p.peakCash)} /><Stat label={uz.result.peakFlow} value={money(p.peakCashflow)} kind="good" />
-                <Stat label={uz.result.exitRound} value={p.exitRound ?? uz.result.never} /><Stat label={uz.result.restarts} value={String(p.restarts)} kind={p.restarts > 0 ? "bad" : "neutral"} />
+                <Stat label={uz.result.exitRound} value={p.exitRound ?? uz.result.never} text={p.exitRound == null} /><Stat label={uz.result.restarts} value={String(p.restarts)} kind={p.restarts > 0 ? "bad" : "neutral"} />
                 <Stat label={uz.result.accepted} value={String(p.decisions.accepted)} /><Stat label={uz.result.skipped} value={String(p.decisions.skipped)} />
               </View>
             </Card>
