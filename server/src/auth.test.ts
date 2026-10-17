@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import WebSocket from "ws";
 import { buildApp } from "./app";
-import { OtpService, normalizePhone, signToken, verifyToken, HttpSms, ConsoleSms, Revocations, type SmsSender } from "./auth";
+import { OtpService, normalizePhone, signToken, verifyToken, HttpSms, EskizSms, NoopSms, fixedCode, ConsoleSms, Revocations, type SmsSender } from "./auth";
 import { ipKey, KeyedLimiter } from "./ratelimit";
 
 const SECRET = "x".repeat(40);
@@ -69,6 +69,32 @@ describe("OTP", () => {
     const s = new HttpSms("https://sms.example/send", "TKN", f); await s.send("+998901234567", "salom");
     expect(seen.u).toBe("https://sms.example/send"); expect(seen.i.headers.authorization).toBe("Bearer TKN"); expect(seen.i.signal).toBeDefined(); expect(JSON.parse(seen.i.body)).toEqual({ to: "+998901234567", text: "salom" });
     await expect(s.send("+1", "fail")).rejects.toThrow("sms_gateway_500");
+  });
+  it("doimiy kod: NoopSms SMS yubormaydi, kod 6 raqam, production'da taqiqlangan", async () => {
+    const now = { t: 1_000_000 };
+    const otp = new OtpService({ secret: "s".repeat(32), sms: new NoopSms(), now: () => now.t, code: fixedCode("123456") });
+    expect((await otp.request("+998900000001")).ok).toBe(true);
+    const bad = await otp.verify("+998900000001", "000000"); expect(bad.ok).toBe(false);
+    const ok = await otp.verify("+998900000001", "123456"); expect(ok.ok).toBe(true);
+    expect(() => fixedCode("12345")).toThrow(); expect(() => fixedCode(undefined)).toThrow();
+    const o = process.env.NODE_ENV; process.env.NODE_ENV = "production"; try { expect(() => new NoopSms()).toThrow(); } finally { process.env.NODE_ENV = o; }
+  });
+  it("EskizSms: login, plyussiz raqam, 401 da qayta kirish, xatoda istisno", async () => {
+    expect(() => new EskizSms("", "p", "4546")).toThrow(); expect(() => new EskizSms("e", "p", "")).toThrow();
+    const calls: { u: string; h: any; b: URLSearchParams }[] = []; let logins = 0, expired = true;
+    const f: any = async (u: string, i: any) => {
+      calls.push({ u, h: i.headers, b: i.body });
+      if (u.endsWith("/auth/login")) { logins++; return { ok: true, status: 200, json: async () => ({ data: { token: `T${logins}` } }) }; }
+      if (i.headers.authorization === "Bearer T1" && expired) { expired = false; return { ok: false, status: 401 }; }
+      return { ok: !i.body.get("message").includes("fail"), status: 500 };
+    };
+    const s = new EskizSms("a@b.c", "pw", "4546", "https://e/api", f);
+    await s.send("+998901234567", "kod 123456");
+    expect(logins).toBe(2); const sent = calls.filter((c) => c.u.endsWith("/sms/send")); expect(sent).toHaveLength(2);
+    expect(sent[1].h.authorization).toBe("Bearer T2"); expect(sent[1].b.get("mobile_phone")).toBe("998901234567"); expect(sent[1].b.get("from")).toBe("4546");
+    expect(calls[0].b.get("email")).toBe("a@b.c");
+    await s.send("+998901234567", "ok"); expect(logins).toBe(2);
+    await expect(s.send("+998901234567", "fail")).rejects.toThrow("sms_gateway_500");
   });
 });
 describe("HTTP + WebSocket (haqiqiy rejim)", () => {
