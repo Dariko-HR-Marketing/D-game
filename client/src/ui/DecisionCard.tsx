@@ -110,7 +110,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
         <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund}
           onPress={() => onAct({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />
-        <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+        <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={cantFund && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
     </View>
   );
   return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>;

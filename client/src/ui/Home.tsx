@@ -11,10 +11,10 @@ import { color, font, radius, space, tone, MIN_TAP } from "../theme";
 import type { Http } from "../net/http";
 
 type Tab = "home" | "board" | "rules" | "profile";
-function Row({ icon, title, sub, onPress, disabled }: { icon: IconName; title: string; sub: string; onPress: () => void; disabled?: boolean }) {
+function Row({ icon, title, sub, onPress, disabled, primary }: { icon: IconName; title: string; sub: string; onPress: () => void; disabled?: boolean; primary?: boolean }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.row, pressed && { backgroundColor: "#F4F7F8" }, disabled && { opacity: 0.5 }]}>
-      <View style={s.rowIcon} aria-hidden><Icon name={icon} size={20} color={color.navy} /></View>
+      <View style={[s.rowIcon, primary && { backgroundColor: color.green }]} aria-hidden><Icon name={icon} size={20} color={primary ? color.white : color.navy} /></View>
       <View style={{ flex: 1, gap: 2 }} aria-hidden><Text style={s.rowT}>{title}</Text><Text style={s.rowS}>{sub}</Text></View>
       <Icon name="chevron" size={18} color="#6B7C8C" />
     </Pressable>);
@@ -41,7 +41,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {notes.map((n) => <Banner key={n.id} kind={n.kind === "warn" ? "warn" : "info"}>{n.text}</Banner>)}
           <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text>
           <View>
-            <Row icon="plus" title={uz.home.newGame} sub={uz.home.newGameSub} onPress={onCreate} disabled={!online} />
+            <Row icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={onCreate} disabled={!online} />
             <Row icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
             {joinOpen && (
               <View style={s.join}>
@@ -54,9 +54,9 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
               </View>)}
             <Row icon="book" title={uz.home.rulesRow} sub={uz.home.rulesSub} onPress={onRules} />
             <Row icon="trophy" title={uz.profile.leaderboard} sub={uz.home.boardSub} onPress={onLeaderboard} />
-            {onTournaments && <Row icon="trophy" title="Turnirlar" sub="Homiylar bilan musobaqalar" onPress={onTournaments} />}
-            {onClass && <Row icon="people" title="Sinf" sub="Maktab: sinfga qo'shilish yoki o'qituvchi paneli" onPress={onClass} />}
-            {onShop && <Row icon="plus" title="Do'kon va Plus" sub="Ko'rinish uchun narsalar, cheklovsiz xonalar" onPress={onShop} />}
+            {onTournaments && <Row icon="flag" title="Turnirlar" sub="Homiylar bilan musobaqalar" onPress={onTournaments} />}
+            {onClass && <Row icon="house" title="Sinf" sub="Maktab: sinfga qo'shilish yoki o'qituvchi paneli" onPress={onClass} />}
+            {onShop && <Row icon="star" title="Do'kon va Plus" sub="Ko'rinish uchun narsalar, cheklovsiz xonalar" onPress={onShop} />}
           </View>
           <View style={s.how}>
             <Text style={s.howT} aria-level={2} accessibilityRole="header">{uz.home.howTitle}</Text>

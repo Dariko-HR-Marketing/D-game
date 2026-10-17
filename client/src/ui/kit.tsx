@@ -14,10 +14,10 @@ export function Pill({ label, kind = "plain" }: { label: string; kind?: "good" |
   return <View style={[k.pill, { backgroundColor: surface[kind] }]}><Text style={[k.pillText, { color: fg }]}>{label}</Text></View>;
 }
 /** Katta raqam + izoh (naqd, pul oqimi va h.k.) */
-export function Stat({ label, value, kind = "neutral", big }: { label: string; value: string; kind?: "good" | "bad" | "neutral"; big?: boolean }) {
+export function Stat({ label, value, kind = "neutral", big, text }: { label: string; value: string; kind?: "good" | "bad" | "neutral"; big?: boolean; text?: boolean }) {
   const fg = kind === "good" ? tone.good : kind === "bad" ? tone.bad : color.navy;
   return (<View style={k.stat} role="group" accessible aria-label={`${label}: ${value}`}>
-    <Text style={[big ? k.statBig : k.statVal, { color: fg }]} aria-hidden>{value}</Text><Text style={k.statLabel} aria-hidden>{label}</Text></View>);
+    <Text style={[big ? k.statBig : k.statVal, text && { fontSize: font.md, lineHeight: 28 }, { color: text ? tone.muted : fg }]} aria-hidden>{value}</Text><Text style={k.statLabel} aria-hidden>{label}</Text></View>);
 }
 export function Row({ l, v, kind }: { l: string; v: string; kind?: "good" | "bad" | "neutral" }) {
   const fg = kind === "good" ? tone.good : kind === "bad" ? tone.bad : color.navy;

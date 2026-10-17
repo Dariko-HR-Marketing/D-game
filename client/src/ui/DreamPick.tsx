@@ -30,7 +30,7 @@ export function DreamPick({ room, userId, error, onPick }: { room: RoomView; use
           <View key={p.id} role="group" accessible aria-label={`${nameOf(room, p.id)}: ${ok ? uz.dreams.chosen : uz.dreams.choosing}`} style={s.who1}>
             <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={{ color: readableOn(hue), fontWeight: "800", fontSize: 11 }}>{k + 1}</Text></View>
             <Text style={s.whoT} aria-hidden>{nameOf(room, p.id)} {ok ? "✓" : "…"}</Text></View>); })}
-        <Text style={s.cnt}>{done}/{players.length}</Text>
+        <Text style={s.cnt}>{done}/{players.length} {uz.dreams.chosen}</Text>
       </View>
       {mine !== null && <Banner kind="good">{uz.dreams.waiting}</Banner>}
       {error ? <Text style={{ color: color.red }} accessibilityRole="alert">{errText(error)}</Text> : null}
