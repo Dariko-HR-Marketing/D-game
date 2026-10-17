@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
-import { animationMs, useReducedMotion } from "../motion";
+import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-native";
+import { useReducedMotion } from "../motion";
+import { stepMs } from "../motionConfig";
 import { SMALL_BOARD } from "@poyga/rules";
 import { color, font, PLAYER_COLORS, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
@@ -52,7 +53,7 @@ export function boardGeometry(width: number, wide: boolean, n: number, tight = f
 }
 
 /** Taxta: kvadrat halqa (soat yo'nalishida), ikonkali kataklar, o'yinchi fishkalari; markazda — kubik/navbat paneli (`children`). */
-export function Board({ room, width, wide, currentId, tight, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; children?: React.ReactNode }) {
+export function Board({ room, width, wide, currentId, tight, movement, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
   const players: any[] = room.state.players;
   const anySmall = players.some((p) => p.circle === "small"), anyBig = players.some((p) => p.circle === "big");
   const circle: "small" | "big" = anySmall ? "small" : "big";
@@ -67,8 +68,9 @@ export function Board({ room, width, wide, currentId, tight, children }: { room:
   const hue = (p: any, k: number) => room.names?.[p.id]?.cos?.pawn ?? PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6]; // do'kon kosmetikasi: faqat rang
   const pawn = wide ? 28 : 22;
   const curP = players.find((p) => p.id === currentId);
+  const at = (p: any): { pos: number; circle: string } => movement?.[p.id] ?? { pos: p.pos, circle: p.circle }; // fishka hozir turgan (yurib kelayotgan) katak
   const where = (p: any): { x: number; y: number } => {
-    const big = p.circle === "big" && mixed; const t: Tile = big ? innerTiles[pathIndex(p.pos, 53, 24)] : tiles[pathIndex(p.pos, p.circle === "small" ? 48 : 53, p.circle === "small" ? (wide ? 4 : 12) : 24)];
+    const q = at(p), big = q.circle === "big" && mixed; const t: Tile = big ? innerTiles[pathIndex(q.pos, 53, 24)] : tiles[pathIndex(q.pos, q.circle === "small" ? 48 : 53, q.circle === "small" ? (wide ? 4 : 12) : 24)];
     const ox = big ? inset : 0;
     return { x: ox + t.x + t.w / 2, y: ox + t.y + t.h / 2 };
   };
@@ -77,7 +79,7 @@ export function Board({ room, width, wide, currentId, tight, children }: { room:
       <View style={{ width: W, height: H }}>
         <View style={StyleSheet.absoluteFill} role="img" aria-label={`Taxta. ${players.map((p) => `${nameOf(room, p.id)}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}`}>
           {tiles.map((t, pi) => {
-            const i = (((pi - offset) % n) + n) % n; const L = lookOf(circle, i); const here = curP && curP.circle === circle && curP.pos === i;
+            const i = (((pi - offset) % n) + n) % n; const L = lookOf(circle, i); const cq = curP ? at(curP) : null, here = !!cq && cq.circle === circle && cq.pos === i;
             const dream = circle === "big" && BIG_CELLS[i].t === "O" && players.some((p) => p.dreamIdx !== null && room.dreams?.[p.dreamIdx]?.name === BIG_CELLS[i].name && p.id === currentId);
             const side = !t.corner && (pi >= g.cols && pi < g.cols + Math.ceil((n - 2 * g.cols) / 2) || pi >= 2 * g.cols + Math.ceil((n - 2 * g.cols) / 2));
             const small = side && !wide; // telefonda yon kataklar nozik: faqat ikonka
@@ -89,9 +91,9 @@ export function Board({ room, width, wide, currentId, tight, children }: { room:
           })}
           {mixed && innerTiles.map((t, pi) => <View key={`b${pi}`} aria-hidden style={{ position: "absolute", left: inset + t.x + 1, top: inset + t.y + 1, width: t.w - 2, height: t.h - 2, borderRadius: 3, backgroundColor: color.line }} />)}
           {players.map((p, k) => {
-            const pt = where(p); const mates = players.filter((q) => q.circle === p.circle && q.pos === p.pos), gi = mates.findIndex((q) => q.id === p.id);
+            const pt = where(p); const ap = at(p), mates = players.filter((q) => at(q).circle === ap.circle && at(q).pos === ap.pos), gi = mates.findIndex((q) => q.id === p.id);
             const ang = (gi / Math.max(1, mates.length)) * 2 * Math.PI - Math.PI / 2, off = mates.length > 1 ? pawn * 0.5 : 0;
-            return <Pawn key={p.id} x={pt.x + off * Math.cos(ang) - pawn / 2} y={pt.y + off * Math.sin(ang) - pawn / 2} size={pawn} hue={hue(p, k)} label={k + 1} isCur={p.id === currentId} />;
+            return <Pawn key={p.id} x={pt.x + off * Math.cos(ang) - pawn / 2} y={pt.y + off * Math.sin(ang) - pawn / 2} size={pawn} hue={hue(p, k)} label={k + 1} isCur={p.id === currentId} testID={`pawn-${k + 1}`} />;
           })}
         </View>
         {/* Markaz paneli (ichida tugma bor — taxta tasviridan tashqarida) */}
@@ -124,11 +126,17 @@ const s = StyleSheet.create({
 });
 
 /** Fishka: yangi katakka silliq siljiydi (harakatni kamaytirish yoqilgan bo'lsa — darhol). */
-function Pawn({ x, y, size, hue, label, isCur }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean }) {
-  const reduced = useReducedMotion(); const pos = useRef(new Animated.ValueXY({ x, y })).current;
-  useEffect(() => { Animated.timing(pos, { toValue: { x, y }, duration: animationMs(reduced) * 2, useNativeDriver: false }).start(); }, [x, y, reduced, pos]);
+function Pawn({ x, y, size, hue, label, isCur, testID }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean; testID?: string }) {
+  const reduced = useReducedMotion(); const pos = useRef(new Animated.ValueXY({ x, y })).current; const hop = useRef(new Animated.Value(0)).current;
+  // Har bir katakka o'tishda fishka sakraydi (yoyi bo'ylab), shunda har bir katak ustidan yurgani bilinadi
+  useEffect(() => {
+    const d = stepMs(reduced);
+    Animated.timing(pos, { toValue: { x, y }, duration: Math.round(d * 0.92), easing: Easing.inOut(Easing.quad), useNativeDriver: false }).start();
+    if (d > 0) { hop.setValue(0); Animated.sequence([Animated.timing(hop, { toValue: 1, duration: d * 0.45, easing: Easing.out(Easing.quad), useNativeDriver: false }), Animated.timing(hop, { toValue: 0, duration: d * 0.45, easing: Easing.in(Easing.quad), useNativeDriver: false })]).start(); }
+  }, [x, y, reduced, pos, hop]);
   return (
-    <Animated.View aria-hidden style={{ position: "absolute", left: pos.x, top: pos.y, width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center", zIndex: isCur ? 6 : 4,
+    <Animated.View aria-hidden testID={testID} style={{ position: "absolute", left: pos.x, top: pos.y, width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center", zIndex: isCur ? 6 : 4,
+      transform: [{ translateY: hop.interpolate({ inputRange: [0, 1], outputRange: [0, -size * 0.55] }) }, { scale: hop.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }],
       backgroundColor: hue, borderWidth: isCur ? 3 : 2, borderColor: isCur ? color.navy : "#fff", shadowColor: "#000", shadowOpacity: isCur ? 0.4 : 0.25, shadowRadius: isCur ? 6 : 3, shadowOffset: { width: 0, height: 1 } }}>
       <Text style={{ fontSize: Math.round(size * 0.5), fontWeight: "800", color: readableOn(hue) }}>{label}</Text>
     </Animated.View>

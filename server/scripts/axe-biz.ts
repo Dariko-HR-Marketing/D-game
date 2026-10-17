@@ -22,7 +22,7 @@ const scan = async (p: any, name: string) => {
   const r = await p.evaluate(async () => (window as any).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }));
   total += r.violations.length; console.log(name.padEnd(26), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 100)}`).join(" | ") : "OK");
 };
-const open = async (uid: string, w: number, h: number) => { const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); p.on("pageerror", (e) => { console.log("PAGEERROR", e.message); total++; }); await p.goto(WEB);
+const open = async (uid: string, w: number, h: number) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); p.on("pageerror", (e) => { console.log("PAGEERROR", e.message); total++; }); await p.goto(WEB);
   const sk = p.getByRole("button", { name: "O'tkazib yuborish" }); await p.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }).catch(async () => { if (await sk.count()) await sk.click(); }); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); return p; };
 const back = async (p: any, name = "Orqaga") => p.getByRole("button", { name }).first().click();
 for (const [w, h] of [[390, 844], [1440, 900]] as [number, number][]) {

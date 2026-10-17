@@ -31,6 +31,13 @@ O'yin ekrani oyna balandligiga teng, sahifa o'zi aylanmaydi. Chapda qaror/moliya
 OUT=/tmp/fit pnpm tsx scripts/fit-check.ts
 ```
 
+## Harakat, 3D kubik va tovush
+- **Kubik (3D):** CSS 3D kub (`ui/Dice3D.tsx`, veb): uch o'qda aylanib, tepaga otilib, 2–3 marta sakrab natija yuzida to'xtaydi (≈1 s, `DICE_MS`); soya balandlikka qarab o'zgaradi. Qarama-qarshi yuzlar yig'indisi 7, birlik qizil. 7+ (2 kubik yig'indisi) bo'lsa old yuz raqam ko'rsatadi. Native'da tekis yuz (`FlatDice`).
+- **Fishka yurishi:** server holatni bir martada yangilaydi, mijoz (`useMovement`) fishkani kubik to'xtagach har bir katak ustidan bittalab yurgizadi (`STEP_MS` ≈ 230 ms, har katakda sakrash). Aylana almashsa, orqaga yursa yoki 12 dan uzoq bo'lsa — bir zumda ko'chadi. Karta, qaror va kubik tugmasi fishka yetib kelgachgina chiqadi (`settled`).
+- **Harakatni kamaytirish** (tizim sozlamasi): kubik aylanmaydi, fishka kechikishsiz, bir zumda ko'chadi.
+- **Tovush** (`sound.ts`, Web Audio, tashqi fayllarsiz): kubik shitirlashi va to'xtashi, fishka qadami (balandligi oshib boradi), karta, pul yutuq/to'lov, «sizning navbatingiz», taymerning oxirgi 5 soniyasi, g'alaba/yutqazish. Sarlavhadagi tugma (`role=switch`) yoqadi/o'chiradi, holat `localStorage` da saqlanadi. Brauzer siyosati tufayli birinchi bosishdan keyin ochiladi; yorliq yashirin bo'lsa faqat navbat va natija tovushi chalinadi. Native ilovada hozircha jim.
+- Tekshiruv: `client/src/motion3d.test.ts` (rejalash, burchaklar, tovush dvigateli) va `server/scripts/motion-check.ts` (haqiqiy brauzerda: kubik aylanishi, fishka qadamlari, kartaning kechikishi, tovush tugmasi). Boshqa skriptlar `reducedMotion` bilan ishlaydi (tez bo'lishi uchun).
+
 ## Hali odam ko'zi bilan sinalmagan
 Ekranlar avtomatik rasm va axe bilan tekshirilgan, lekin haqiqiy telefon/planshetda, haqiqiy foydalanuvchilar bilan sinov (o'qish tezligi, tugmalar joyi, 30 soniyalik qaror yetarlimi) o'tkazilmagan. Dizayner tasdig'i (prototip bilan solishtirish, SPEC §16) ham kutilmoqda.
 

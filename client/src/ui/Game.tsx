@@ -21,6 +21,8 @@ import { color, font, HEADER_H, radius, space, tone } from "../theme";
 import { bankRoom, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
+import { useMovement } from "../useMovement";
+import { useGameSounds, useSoundPrefs } from "../useGameSounds";
 
 /** Karta ochilishi: yengil paydo bo'lish (~240 ms); harakatni kamaytirish yoqilgan bo'lsa — darhol. */
 function CardEnter({ children, id, from = 12, style }: { children: React.ReactNode; id: string; from?: number; style?: any }) {
@@ -61,7 +63,9 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const { width, height } = useWindowDimensions();
   const wide = width >= 900; // planshet/kompyuter: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
   const left = useCountdown(room.deadline);
-  const mine = me(room, userId), mineTurn = isMyTurn(room, userId), card = room.pendingCard;
+  const mine = me(room, userId), mineTurn = isMyTurn(room, userId), cardRaw = room.pendingCard;
+  const mv = useMovement(room), settled = mv.settled; // fishka kataklar ustidan yurib bo'lguncha karta/qaror ko'rsatilmaydi
+  const card = settled ? cardRaw : null;
   const state = room.state; const cur = currentId(room); const curP = state.players.find((p: any) => p.id === cur);
   const sideW = 380, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
   // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
@@ -77,7 +81,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
   const log: string[] = state.log.slice(-6).reverse().map((l: string) => humanize(room, l));
   const bank = mine ? bankRoom(mine) : 0;
-  const canRoll = mineTurn && !card && !state.winner;
+  const canRoll = mineTurn && !cardRaw && settled && !state.winner;
   const myDie = (state.lastRoll && state.lastRoll.playerId === userId ? state.lastRoll.die : null) as number | null;
   useEffect(() => { // kompyuterda probel — kubik tashlash (tugma/matn maydoni fokusda bo'lmasa)
     const doc = (globalThis as any).document; if (!doc?.addEventListener || !canRoll) return;
@@ -85,8 +89,10 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       if (e.code === "Space" && !interactive && !doc.querySelector('[role="dialog"]') && !["input", "textarea", "button", "select", "a"].includes(tag) && !e.repeat) { e.preventDefault(); onAct({ type: "roll" }); } };
     doc.addEventListener("keydown", h); return () => doc.removeEventListener("keydown", h);
   }, [canRoll, onAct]);
+  useGameSounds({ room, userId, settled, mineTurn, left });
+  const snd = useSoundPrefs();
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
-  const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!card} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} />;
+  const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} />;
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
   const hint = mineTurn ? uz.hud.mineHint.replace("{s}", "30").replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
@@ -136,13 +142,14 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       <Text style={s.hSub}>{state.round}-{uz.hud.turnWord}</Text>
       <View style={{ flex: 1 }} />
       {wide && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
+      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={s.hBtn} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={s.hBtn}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
     </View>
   );
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <CardToast room={room} userId={userId} /><GambleToast room={room} userId={userId} /><Onboarding onRules={onRules} />
+      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} /><Onboarding onRules={onRules} />
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine ? (
@@ -156,7 +163,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
         <ScrollView style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           <View style={{ width: boardWidth }}><PlayersLane room={room} userId={userId} wide /></View>
-          <Board room={room} width={boardWidth} wide tight={tight} currentId={cur}>{centre}</Board>
+          <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
           <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
           <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>{eventsCard(3)}</View>
@@ -169,13 +176,13 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <CardToast room={room} userId={userId} /><GambleToast room={room} userId={userId} /><Onboarding onRules={onRules} />
+      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} /><Onboarding onRules={onRules} />
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
         {tab === "field" && (<>
           {stats}
-          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} currentId={cur}>{centre}</Board></View>
+          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
             {left > 0 && <TimerRing left={left} size={52} label={`${left} ${uz.game.seconds}`} />}

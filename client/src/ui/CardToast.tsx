@@ -11,14 +11,14 @@ const seenByRoom = new Map<string, number>();
 const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
 
 /** Tortilgan karta haqida xabar: majburiy karta darhol qo'llangani uchun (qaror oynasi yo'q) nima bo'lganini ko'rsatadi; boshqalarning kartalari ham ko'rinadi. */
-export function CardToast({ room, userId }: { room: RoomView; userId: string }) {
+export function CardToast({ room, userId, hold }: { room: RoomView; userId: string; hold?: boolean }) {
   const lc = room.state.lastCard as { playerId: string; cardId: string; n: number } | null | undefined; const card = room.lastCard;
   const [seen, setSeenState] = useState(() => seenByRoom.get(room.code) ?? 0);
   const setSeen = (n: number) => { seenByRoom.set(room.code, n); setSeenState(n); }; // ekran almashsa (qoidalar) qayta chiqmasin
   const mineMandatory = !!lc && !!card && lc.playerId === userId && card.mode === "mandatory";
   // O'z ixtiyoriy kartangiz — qaror oynasi allaqachon ko'rsatgan (bozor kartasi bundan mustasno: u qaror oynasiga ega emas)
   const ownDecided = !!lc && !!card && lc.playerId === userId && card.mode !== "mandatory" && (card.effect as any)?.kind !== "marketSale";
-  const visible = !!lc && !!card && lc.n > seen && !room.pendingCard && !ownDecided;
+  const visible = !!lc && !!card && lc.n > seen && !room.pendingCard && !ownDecided && !hold; // fishka yurib bo'lguncha (hold) ko'rsatilmaydi
   // Taymer faqat xabar ko'ringan paytda ishlaydi (boshqa o'yinchi qaror qilayotganda emas)
   useEffect(() => { if (!visible || mineMandatory) return; const h = setTimeout(() => setSeen(lc!.n), 9000); return () => clearTimeout(h); }, [visible, lc?.n, mineMandatory]);
   if (!visible || !lc || !card) return null;
@@ -41,11 +41,11 @@ export function CardToast({ room, userId }: { room: RoomView; userId: string }) 
 }
 const seenGamble = new Map<string, number>();
 /** Tavakkal biznes natijasi: kubik va yutdi/yutqazdi — hamma ko'radi. */
-export function GambleToast({ room, userId }: { room: RoomView; userId: string }) {
+export function GambleToast({ room, userId, hold }: { room: RoomView; userId: string; hold?: boolean }) {
   const g = room.state.lastGamble as { playerId: string; cell: number; die: number; won: boolean; n: number } | null | undefined;
   const [seen, setSeenState] = useState(() => seenGamble.get(room.code) ?? 0);
   const setSeen = (n: number) => { seenGamble.set(room.code, n); setSeenState(n); };
-  const visible = !!g && g.n > seen;
+  const visible = !!g && g.n > seen && !hold;
   useEffect(() => { if (!visible) return; const h = setTimeout(() => setSeen(g!.n), 6000); return () => clearTimeout(h); }, [visible, g?.n]);
   if (!visible || !g) return null;
   const who = g.playerId === userId ? uz.result.you : nameOf(room, g.playerId);
