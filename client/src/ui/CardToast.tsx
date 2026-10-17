@@ -4,7 +4,7 @@ import { Pill, Row } from "./kit";
 import { cardFacts } from "../cardFacts";
 import { nameOf } from "../model";
 import { uz } from "../i18n/uz";
-import { color, font, MIN_TAP, radius, shadow, space, tone } from "../theme";
+import { color, font, HEADER_H, MIN_TAP, radius, shadow, space, tone } from "../theme";
 import type { RoomView } from "../net/connection";
 
 const seenByRoom = new Map<string, number>();
@@ -59,7 +59,7 @@ export function GambleToast({ room, userId }: { room: RoomView; userId: string }
   );
 }
 const s = StyleSheet.create({
-  wrap: { position: "absolute", top: space.sm, left: space.md, right: space.md, alignItems: "center", zIndex: 60 },
+  wrap: { position: "absolute", top: HEADER_H + space.sm, left: space.md, right: space.md, alignItems: "center", zIndex: 60 },
   toast: { width: "100%", maxWidth: 520, backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.sm, borderWidth: 2, borderColor: color.navy, ...shadow, shadowOpacity: 0.25, shadowRadius: 16 },
   head: { flexDirection: "row", alignItems: "flex-start", gap: space.sm }, x: { width: MIN_TAP, height: MIN_TAP, alignItems: "center", justifyContent: "center", marginTop: -space.sm, marginRight: -space.sm }, xT: { color: tone.muted, fontSize: font.lg, fontWeight: "800" },
   text: { color: color.navy, fontSize: font.md, lineHeight: 22, fontWeight: "600" },

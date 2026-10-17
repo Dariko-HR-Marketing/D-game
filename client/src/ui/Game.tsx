@@ -17,7 +17,7 @@ import { Onboarding } from "./Onboarding";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
-import { color, font, radius, space, tone } from "../theme";
+import { color, font, HEADER_H, radius, space, tone } from "../theme";
 import { bankRoom, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
@@ -176,7 +176,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
 }
 const s = StyleSheet.create({
   wrap: { padding: space.lg, gap: space.md, maxWidth: 1440, width: "100%", alignSelf: "center" }, mwrap: { padding: space.lg, gap: space.md },
-  header: { minHeight: 56, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
+  header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
   hBtn: { minHeight: 44, minWidth: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
   codePill: { backgroundColor: "#F4F7F8", borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4 }, codeT: { fontWeight: "800", letterSpacing: 2, color: color.navy },
