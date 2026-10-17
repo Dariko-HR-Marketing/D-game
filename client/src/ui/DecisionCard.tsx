@@ -56,7 +56,8 @@ function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unkn
 }
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
-export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null }) {
+/** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
+export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1));
@@ -73,8 +74,9 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
   const gainCash = e?.kind === "gain" ? e.amount : 0;
   const afterCash = me.cash - (cost ?? 0) + gainCash;
   const showChange = !rent && (cost !== null && cost !== undefined && cost > 0 || gainCash > 0 || (f.flowDelta ?? 0) !== 0);
-  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} /> : (
-    <View style={{ gap: space.md }}>
+  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} /> : null;
+  const body = (
+    <>
       <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
         {typeof die === "number" ? <Dice value={die} size={48} /> : <View style={[s.headIcon, { borderColor: H.border }]}><Icon name={H.icon} size={24} color={H.fg} /></View>}
         <View style={{ flex: 1 }}>
@@ -103,6 +105,9 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
       {lack === 0 && cost ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
       <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote}</Text></View>
+    </>
+  );
+  const actions = (<>
       {!mandatory && rent && (<View style={{ gap: space.sm }}>
         <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => onAct({ type: "decide", accept: true })} />
         <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
@@ -111,9 +116,11 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund}
           onPress={() => onAct({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />
         <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={cantFund && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
-    </View>
-  );
-  return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>;
+  </>);
+  if (e?.kind === "deckChoice") return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>;
+  if (layout) return <>{layout(<View style={{ gap: space.md }}>{body}</View>, <View style={{ gap: space.sm }}>{actions}</View>)}</>;
+  const full = <View style={{ gap: space.md }}>{body}{actions}</View>;
+  return sheet ? full : <Card accent="gold" style={{ gap: space.md }}>{full}</Card>;
 }
 const s = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 1 },

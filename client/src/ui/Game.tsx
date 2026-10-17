@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pres
 import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
 import { Banner, Card, Pill, SectionTitle } from "./kit";
-import { Board } from "./Board";
+import { Board, boardGeometry } from "./Board";
 import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
 import { BottomNav } from "./BottomNav";
@@ -23,10 +23,10 @@ import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
 
 /** Karta ochilishi: yengil paydo bo'lish (~240 ms); harakatni kamaytirish yoqilgan bo'lsa — darhol. */
-function CardEnter({ children, id, from = 12 }: { children: React.ReactNode; id: string; from?: number }) {
+function CardEnter({ children, id, from = 12, style }: { children: React.ReactNode; id: string; from?: number; style?: any }) {
   const reduced = useReducedMotion(); const v = React.useRef(new Animated.Value(0)).current;
   useEffect(() => { v.setValue(0); Animated.timing(v, { toValue: 1, duration: animationMs(reduced), useNativeDriver: true }).start(); }, [id, reduced, v]);
-  return <Animated.View style={{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [from, 0] }) }] }}>{children}</Animated.View>;
+  return <Animated.View style={[style, { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [from, 0] }) }] }]}>{children}</Animated.View>;
 }
 
 function useCountdown(deadline: number | null) {
@@ -53,15 +53,24 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
   );
 }
 
+/** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
+const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100;
 export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules, error, status }: { error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
-  const { width } = useWindowDimensions();
-  const wide = width >= 900; // planshet/kompyuter: chapda moliyaviy panel, markazda taxta
+  const { width, height } = useWindowDimensions();
+  const wide = width >= 900; // planshet/kompyuter: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
   const left = useCountdown(room.deadline);
   const mine = me(room, userId), mineTurn = isMyTurn(room, userId), card = room.pendingCard;
   const state = room.state; const cur = currentId(room); const curP = state.players.find((p: any) => p.id === cur);
-  const sideW = 380, boardWidth = wide ? Math.min(Math.max(width - sideW - 64, 560), 940) : Math.min(width - 32, 460);
+  const sideW = 380, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
+  // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
+  const reserveH = HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + WIDE_STRIP_H + 4 * space.md;
+  let boardWidth = wide ? Math.min(Math.max(width - sideW - 64, 560), 940) : Math.min(width - 32, 460), tight = false;
+  if (wide) {
+    while (boardWidth > 560 && boardGeometry(boardWidth, true, nCells).H > height - reserveH) boardWidth -= 20;
+    if (boardGeometry(boardWidth, true, nCells).H > height - reserveH) { tight = true; while (boardWidth > 480 && boardGeometry(boardWidth, true, nCells, true).H > height - reserveH) boardWidth -= 20; }
+  }
   const sheetOpen = !wide && !!card && mineTurn;
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
@@ -93,25 +102,30 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
     </View>
   );
 
-  const side = (
-    <View style={[{ gap: space.md }, wide ? { width: sideW } : { flex: 1 }]}>
+  const eventsCard = (nLines: number) => (
+    <Card>
+      <SectionTitle>{uz.game.events}</SectionTitle>
+      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : log.slice(0, nLines).map((l, i) => <Text key={i} style={[s.log, i === 0 && { color: color.navy, fontWeight: "700" }]} numberOfLines={wide ? 2 : undefined}>{l}</Text>)}
+      <View accessibilityLiveRegion="polite">{reactions.map((r) => <Text key={r.id} style={s.log}>{r.from === userId ? uz.result.you : nameOf(room, r.from)}: {r.emoji}</Text>)}</View>
+    </Card>);
+  const reactRow = (<View style={s.reactRow} role="group" aria-label={uz.react.label}>{REACTIONS.map((e2) => <View key={e2} style={{ minWidth: 56 }}><Button label={e2} kind="ghost" onPress={() => onReact(e2)} /></View>)}</View>);
+  const leaveBlock = !state.winner && (!confirmLeave ? <Button label={uz.leave.button} kind="ghost" onPress={() => setConfirmLeave(true)} /> : (
+    <Card accent="red" raised={false} label={uz.leave.title}>
+      <Pill label={uz.leave.title} kind="bad" /><Text style={s.cardText}>{uz.leave.warn}</Text>
+      <Button label={uz.leave.confirm} onPress={onLeave} /><Button label={uz.leave.cancel} kind="ghost" onPress={() => setConfirmLeave(false)} />
+    </Card>));
+  // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
+  const sideMain = (
+    <View style={{ gap: space.md }}>
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
-      {card && mineTurn && wide && mine && <CardEnter id={card.id}><DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} left={left} die={myDie} /></CardEnter>}
       {mine && <FinanceCard p={mine} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} />}
       <Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible>
-      <Card>
-        <SectionTitle>{uz.game.events}</SectionTitle>
-        {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : log.map((l, i) => <Text key={i} style={[s.log, i === 0 && { color: color.navy, fontWeight: "700" }]}>{l}</Text>)}
-        <View accessibilityLiveRegion="polite">{reactions.map((r) => <Text key={r.id} style={s.log}>{r.from === userId ? uz.result.you : nameOf(room, r.from)}: {r.emoji}</Text>)}</View>
-      </Card>
-      <View style={s.reactRow} role="group" aria-label={uz.react.label}>{REACTIONS.map((e2) => <View key={e2} style={{ minWidth: 56 }}><Button label={e2} kind="ghost" onPress={() => onReact(e2)} /></View>)}</View>
-      {!state.winner && (!confirmLeave ? <Button label={uz.leave.button} kind="ghost" onPress={() => setConfirmLeave(true)} /> : (
-        <Card accent="red" raised={false} label={uz.leave.title}>
-          <Pill label={uz.leave.title} kind="bad" /><Text style={s.cardText}>{uz.leave.warn}</Text>
-          <Button label={uz.leave.confirm} onPress={onLeave} /><Button label={uz.leave.cancel} kind="ghost" onPress={() => setConfirmLeave(false)} />
-        </Card>))}
     </View>
+  );
+  // Telefon: hammasi bitta ustunda
+  const side = (
+    <View style={{ gap: space.md, flex: 1 }}>{sideMain}{eventsCard(6)}{reactRow}{leaveBlock}</View>
   );
   const banners = (<>{status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
@@ -127,20 +141,29 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   );
 
   if (wide) return (
-    <View style={{ flex: 1 }}>
+    <View style={{ height, overflow: "hidden" as any }}>
       <CardToast room={room} userId={userId} /><GambleToast room={room} userId={userId} /><Onboarding onRules={onRules} />
       {header}
-      <ScrollView contentContainerStyle={[s.wrap, { paddingTop: space.md }]}>
-        {banners}
-        <PlayersLane room={room} userId={userId} wide />
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.lg }}>
-          {side}
-          <View style={{ flex: 1, gap: space.sm, alignItems: "center" }}>
-            <Board room={room} width={boardWidth} wide currentId={cur}>{centre}</Board>
-            <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
+      <View style={s.shell}>
+        {card && mineTurn && mine ? (
+          <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
+            <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
+              <DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} left={left} die={myDie}
+                layout={(body, actions) => (<View style={s.decide}><ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} />
+            </CardEnter>
           </View>
-        </View>
-      </ScrollView>
+        ) : <ScrollView style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={s.sideScroll}>{sideMain}</ScrollView>}
+        <ScrollView style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
+          {banners}
+          <View style={{ width: boardWidth }}><PlayersLane room={room} userId={userId} wide /></View>
+          <Board room={room} width={boardWidth} wide tight={tight} currentId={cur}>{centre}</Board>
+          <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
+          <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
+            <View style={{ flex: 1 }}>{eventsCard(3)}</View>
+            <View style={{ width: 270, gap: space.sm }}>{reactRow}{leaveBlock}</View>
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 
@@ -167,7 +190,8 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       {sheetOpen && mine && (
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
-          <ScrollView><CardEnter id={card!.id} from={48}><DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} sheet left={left} die={myDie} /></CardEnter></ScrollView>
+          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} sheet left={left} die={myDie}
+            layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView style={{ flexShrink: 1 }}>{body}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
         items={[{ key: "field", label: uz.hud.tabs.field, icon: "board" }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart" }, { key: "players", label: uz.hud.tabs.players, icon: "people" }, { key: "rules" as any, label: uz.hud.tabs.rules, icon: "book" }]} />
@@ -175,7 +199,11 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   );
 }
 const s = StyleSheet.create({
-  wrap: { padding: space.lg, gap: space.md, maxWidth: 1440, width: "100%", alignSelf: "center" }, mwrap: { padding: space.lg, gap: space.md },
+  mwrap: { padding: space.lg, gap: space.md },
+  shell: { flex: 1, flexDirection: "row", gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md, minHeight: 0, maxWidth: 1440, width: "100%", alignSelf: "center" },
+  decide: { flex: 1, minHeight: 0, borderRadius: radius.lg, borderWidth: 2, borderColor: color.gold, backgroundColor: color.white, padding: space.md, gap: space.md },
+  decideActions: { paddingTop: space.sm, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
+  sideScroll: { paddingBottom: space.lg }, mainScroll: { alignItems: "center", gap: space.md, paddingBottom: space.lg },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
   hBtn: { minHeight: 44, minWidth: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },

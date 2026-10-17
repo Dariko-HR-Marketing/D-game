@@ -25,6 +25,12 @@ OUT=/tmp/shots pnpm tsx scripts/screens-login.ts   # kirish ekrani + axe
 OUT=/tmp/shots pnpm tsx scripts/screens-admin.ts   # admin: rasmlar + axe
 ```
 
+## Bitta ko'rinishga sig'ish (kompyuter/planshet)
+O'yin ekrani oyna balandligiga teng, sahifa o'zi aylanmaydi. Chapda qaror/moliya (kerak bo'lsa ichida aylanadi, qaror tugmalari pastda qotib turadi), o'ngda o'yinchilar, taxta, «So'nggi voqealar», reaksiyalar va chiqish. Taxta balandlikka ham moslanadi (`Game.tsx`: kenglik kamayadi; juda past ekranda `tight` — kataklar kichikroq, yozuvlar yashirinadi, ikonka va rang qoladi). Telefonda qaror varag'ida ham tugmalar pastda qotib turadi. Tekshiruv: `server/scripts/fit-check.ts` (1024×768 … 1920×1080, sahifa aylanishi va asosiy tugmalar ko'rinishini o'lchaydi):
+```bash
+OUT=/tmp/fit pnpm tsx scripts/fit-check.ts
+```
+
 ## Hali odam ko'zi bilan sinalmagan
 Ekranlar avtomatik rasm va axe bilan tekshirilgan, lekin haqiqiy telefon/planshetda, haqiqiy foydalanuvchilar bilan sinov (o'qish tezligi, tugmalar joyi, 30 soniyalik qaror yetarlimi) o'tkazilmagan. Dizayner tasdig'i (prototip bilan solishtirish, SPEC §16) ham kutilmoqda.
 

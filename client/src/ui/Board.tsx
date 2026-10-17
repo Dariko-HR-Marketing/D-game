@@ -42,21 +42,22 @@ export const cellLabel = (circle: "small" | "big", i: number) => (circle === "sm
 const labelSize = (label: string, w: number) => { const longest = Math.max(...label.split(" ").map((x) => x.length), 4); return Math.max(6, Math.min(10, Math.floor(((w - 8) / (longest * 0.78)) * 2) / 2)); };
 
 /** Taxta o'lchamlari: telefonda tor va baland (10 ustun), planshet/kompyuterda keng (16 ustun). */
-export function boardGeometry(width: number, wide: boolean, n: number) {
+export function boardGeometry(width: number, wide: boolean, n: number, tight = false) {
   const cols = n === 48 ? (wide ? 16 : 10) : wide ? 17 : 11;
   const side = n - 2 * cols, rows = Math.ceil(side / 2) + 2; // o'ng ustun chapdan bitta ko'p bo'lishi mumkin
-  const c = wide ? Math.max(48, Math.min(72, Math.round(width / (cols + 1.2)))) : Math.round(Math.max(36, Math.min(48, width * 0.128)));
-  const sideH = wide ? Math.max(40, c * 0.9) : Math.max(19, c * 0.46);
+  // tight: past ekran (balandlik kam) — kataklar kichikroq (yozuvlar yashirinadi, ikonka va rang qoladi)
+  const c = wide ? Math.max(tight ? 34 : 48, Math.min(72, Math.round(width / (cols + 1.2)))) : Math.round(Math.max(36, Math.min(48, width * 0.128)));
+  const sideH = wide ? Math.max(tight ? 30 : 40, c * 0.9) : Math.max(19, c * 0.46);
   return { cols, c, W: width, H: Math.round(2 * c + rows * 0 + Math.ceil(side / 2) * sideH) };
 }
 
 /** Taxta: kvadrat halqa (soat yo'nalishida), ikonkali kataklar, o'yinchi fishkalari; markazda — kubik/navbat paneli (`children`). */
-export function Board({ room, width, wide, currentId, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; children?: React.ReactNode }) {
+export function Board({ room, width, wide, currentId, tight, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; children?: React.ReactNode }) {
   const players: any[] = room.state.players;
   const anySmall = players.some((p) => p.circle === "small"), anyBig = players.some((p) => p.circle === "big");
   const circle: "small" | "big" = anySmall ? "small" : "big";
   const n = circle === "small" ? 48 : 53;
-  const g = boardGeometry(width, wide, n), { W, H, c } = g;
+  const g = boardGeometry(width, wide, n, tight), { W, H, c } = g;
   const offset = circle === "small" ? (wide ? 4 : 12) : 24;
   const tiles = squareRing(n, g.cols, W, H, c);
   const mixed = anySmall && anyBig;
