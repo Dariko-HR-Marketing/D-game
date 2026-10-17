@@ -29,6 +29,7 @@
 1. `.env` da `AUTH_SECRET` (32+ belgi) va SMS shlyuz (`SMS_HTTP_URL`, `SMS_HTTP_TOKEN`) ni kiriting.
 1a. **Eskiz:** `SMS_PROVIDER=eskiz`, `ESKIZ_EMAIL`, `ESKIZ_PASSWORD` (Eskiz «SMS shlyuz» sahifasidagi yashirin kalit), `ESKIZ_FROM` (standart `4546` — Eskiz sinov jo'natuvchisi). Adapter `EskizSms` (`server/src/auth.ts`): login → token xotirada, 401 da qayta kirish. Eskiz sinov rejimida faqat tasdiqlangan shablon matnlari o'tadi; ishlab chiqarishda jo'natuvchi nomi va matn shablonlari Eskiz tomonidan tasdiqlanishi kerak.
 2. Boshqa provayder API'si `{to,text}` + Bearer ga mos kelmasa, `server/src/auth.ts` da `SmsSender` interfeysini amalga oshiruvchi kichik sinf yoziladi (`send(phone, text)`), `main.ts` da tanlanadi. Provayder tanlangach shuni men yozaman.
+3a. **Doimiy kod (faqat staging):** `SMS_PROVIDER=fixed` va `SMS_FIXED_CODE=<6 raqam>` — SMS yuborilmaydi, hamma raqam uchun shu kod. `NODE_ENV=production` da server ishga tushmaydi. Kod hammaga ma'lum bo'ladi, shuning uchun staging ochiq internetda bo'lsa istalgan raqam bilan kirish mumkin.
 3. Staging'da sinash uchun: `SMS_PROVIDER=console` — kod server jurnalida (`docker compose logs server`) ko'rinadi.
 
 ## Google / Apple (server tomoni tayyor)

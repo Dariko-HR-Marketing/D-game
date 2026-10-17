@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import WebSocket from "ws";
 import { buildApp } from "./app";
-import { OtpService, normalizePhone, signToken, verifyToken, HttpSms, EskizSms, ConsoleSms, Revocations, type SmsSender } from "./auth";
+import { OtpService, normalizePhone, signToken, verifyToken, HttpSms, EskizSms, NoopSms, fixedCode, ConsoleSms, Revocations, type SmsSender } from "./auth";
 import { ipKey, KeyedLimiter } from "./ratelimit";
 
 const SECRET = "x".repeat(40);
@@ -69,6 +69,15 @@ describe("OTP", () => {
     const s = new HttpSms("https://sms.example/send", "TKN", f); await s.send("+998901234567", "salom");
     expect(seen.u).toBe("https://sms.example/send"); expect(seen.i.headers.authorization).toBe("Bearer TKN"); expect(seen.i.signal).toBeDefined(); expect(JSON.parse(seen.i.body)).toEqual({ to: "+998901234567", text: "salom" });
     await expect(s.send("+1", "fail")).rejects.toThrow("sms_gateway_500");
+  });
+  it("doimiy kod: NoopSms SMS yubormaydi, kod 6 raqam, production'da taqiqlangan", async () => {
+    const now = { t: 1_000_000 };
+    const otp = new OtpService({ secret: "s".repeat(32), sms: new NoopSms(), now: () => now.t, code: fixedCode("123456") });
+    expect((await otp.request("+998900000001")).ok).toBe(true);
+    const bad = await otp.verify("+998900000001", "000000"); expect(bad.ok).toBe(false);
+    const ok = await otp.verify("+998900000001", "123456"); expect(ok.ok).toBe(true);
+    expect(() => fixedCode("12345")).toThrow(); expect(() => fixedCode(undefined)).toThrow();
+    const o = process.env.NODE_ENV; process.env.NODE_ENV = "production"; try { expect(() => new NoopSms()).toThrow(); } finally { process.env.NODE_ENV = o; }
   });
   it("EskizSms: login, plyussiz raqam, 401 da qayta kirish, xatoda istisno", async () => {
     expect(() => new EskizSms("", "p", "4546")).toThrow(); expect(() => new EskizSms("e", "p", "")).toThrow();

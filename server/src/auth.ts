@@ -9,6 +9,15 @@ export class ConsoleSms implements SmsSender {
   constructor() { if (process.env.NODE_ENV === "production") throw new Error("ConsoleSms production'da taqiqlangan (kodlar jurnalga tushadi)"); }
   async send(phone: string, text: string) { console.log(`[SMS → ${phone.slice(0, 5)}***] ${text}`); } }
 
+/** Faqat sinov (staging): SMS yubormaydi. `SMS_PROVIDER=fixed` bilan doimiy kod (`SMS_FIXED_CODE`) ishlatiladi. Production'da taqiqlangan. */
+export class NoopSms implements SmsSender {
+  constructor() { if (process.env.NODE_ENV === "production") throw new Error("NoopSms production'da taqiqlangan (doimiy kod xavfsiz emas)"); }
+  async send() { /* SMS yuborilmaydi */ } }
+export function fixedCode(raw: string | undefined): () => string {
+  if (!/^\d{6}$/.test(raw ?? "")) throw new Error("SMS_FIXED_CODE 6 ta raqam bo'lishi kerak");
+  return () => raw!;
+}
+
 /** Umumiy HTTP-orqali yuboruvchi: istalgan SMS-shlyuz uchun. Shlyuz JSON `{to, text}` qabul qiladigan oraliq xizmat yoki moslashtirilgan adapter bo'lishi kerak. */
 export class HttpSms implements SmsSender {
   constructor(private url: string, private token: string, private f: typeof fetch = fetch, private timeoutMs = 8000) { if (!token) throw new Error("SMS_HTTP_TOKEN bo'sh bo'lmasligi kerak"); }
