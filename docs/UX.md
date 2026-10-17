@@ -38,6 +38,13 @@ OUT=/tmp/fit pnpm tsx scripts/fit-check.ts
 - **Tovush** (`sound.ts`, Web Audio, tashqi fayllarsiz): kubik shitirlashi va to'xtashi, fishka qadami (balandligi oshib boradi), karta, pul yutuq/to'lov, «sizning navbatingiz», taymerning oxirgi 5 soniyasi, g'alaba/yutqazish. Sarlavhadagi tugma (`role=switch`) yoqadi/o'chiradi, holat `localStorage` da saqlanadi. Brauzer siyosati tufayli birinchi bosishdan keyin ochiladi; yorliq yashirin bo'lsa faqat navbat va natija tovushi chalinadi. Native ilovada hozircha jim.
 - Tekshiruv: `client/src/motion3d.test.ts` (rejalash, burchaklar, tovush dvigateli) va `server/scripts/motion-check.ts` (haqiqiy brauzerda: kubik aylanishi, fishka qadamlari, kartaning kechikishi, tovush tugmasi). Boshqa skriptlar `reducedMotion` bilan ishlaydi (tez bo'lishi uchun).
 
+## Onboarding, vaqt, fishka, karta, kirish (2026-10-17)
+- **Sahifa yo'riqnomalari** (`ui/Tour.tsx`): har sahifada birinchi kirishda bir marta — Bosh sahifa, Xona, Orzu, O'yin (kichik aylana 9 qadam, katta aylanaga chiqqanda alohida 5 qadam), Natija, Profil, Reyting, Do'kon, Sinf, Turnirlar. Veb'da kerakli element yoritiladi (spotlight), karta shu yonida; telefonda markazda/pastda. Qayta ko'rsatish: sahifadagi «?» va Profil → «Yo'riqnomani qayta ko'rsatish». Holat `localStorage` (`poyga-tour-<id>-v2`), `poyga-tours-off=1` — o'chirish (sinov skriptlari). Matnlar `uz.tour`, tartibi `ui/tourData.ts`; tekshiruv: `server/scripts/tour-check.ts`.
+- **Oyma-oy vaqt** (`ui/TimeBar.tsx`): «O'yin vaqti 2 yil 5 oy», yil ichidagi oylar 12 nuqtada, har tashlashdan keyin (fishka yurib bo'lgach) «+N oy». Hisobni server qiladi (`monthsPlayed`). Taxminiy davomiylik (≈ 14 / ≈ 5 yil) faqat yo'riqnomada, «taxminiy» deb (OPEN_QUESTIONS №114, BALANCE.md).
+- **Fishka**: odam ikonkasi (rang + raqam nishoni), katak USTIDA emas, taxta ramkasi (tashqi chet) bo'ylab yuradi va katak tomonga qaragan strelka bilan; bir katakdagilar chet bo'ylab yonma-yon.
+- **Karta**: asl rasm (kesilmaydi, ustiga yozuv yo'q), ochilganda aylanib chiqadi; rasm bo'lsa matn faqat ekran o'qigichga, bo'lmasa ko'rinadi. Boshqa o'yinchi tortgan karta xabari (bozor kartasi ham) 30 soniya yoki «✕» gacha turadi (`toast-check.ts`).
+- **Kirish va Bosh sahifa — bitta sahifa**: kirish (telefon/kod) bitta ekranda, past ekranda rasm yashirinadi; Bosh sahifadan «Qanday o'ynaladi» bloki yo'riqnomaga ko'chdi, «Chiqish» Profilga o'tdi. Tekshiruv: `server/scripts/fit-phone.ts` (320×568 … 1440×900).
+
 ## Hali odam ko'zi bilan sinalmagan
 Ekranlar avtomatik rasm va axe bilan tekshirilgan, lekin haqiqiy telefon/planshetda, haqiqiy foydalanuvchilar bilan sinov (o'qish tezligi, tugmalar joyi, 30 soniyalik qaror yetarlimi) o'tkazilmagan. Dizayner tasdig'i (prototip bilan solishtirish, SPEC §16) ham kutilmoqda.
 

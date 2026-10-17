@@ -42,6 +42,10 @@ export const cellLabel = (circle: "small" | "big", i: number) => (circle === "sm
 /** Yozuv o'lchami: eng uzun so'z katakka sig'adigan eng katta o'lcham (so'z o'rtasidan bo'linmasin). */
 const labelSize = (label: string, w: number) => { const longest = Math.max(...label.split(" ").map((x) => x.length), 4); return Math.max(6, Math.min(10, Math.floor(((w - 8) / (longest * 0.78)) * 2) / 2)); };
 
+/** Fishka o'lchami va taxta atrofidagi bo'sh joy (fishka ramka bo'ylab, katak chetida yuradi — chetdan tashqariga chiqadi). */
+export const pawnSize = (wide: boolean) => (wide ? 30 : 24);
+export const boardPad = (wide: boolean) => Math.round(pawnSize(wide) * 0.75);
+
 /** Taxta o'lchamlari: telefonda tor va baland (10 ustun), planshet/kompyuterda keng (16 ustun). */
 export function boardGeometry(width: number, wide: boolean, n: number, tight = false) {
   const cols = n === 48 ? (wide ? 16 : 10) : wide ? 17 : 11;
@@ -66,16 +70,18 @@ export function Board({ room, width, wide, currentId, tight, movement, children 
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
   const innerTiles = mixed ? squareRing(53, Math.max(8, Math.round(iW / (ic * 1.6))), iW, iH, ic) : [];
   const hue = (p: any, k: number) => room.names?.[p.id]?.cos?.pawn ?? PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6]; // do'kon kosmetikasi: faqat rang
-  const pawn = wide ? 28 : 22;
+  const pawn = pawnSize(wide), PAD = boardPad(wide);
   const curP = players.find((p) => p.id === currentId);
   const at = (p: any): { pos: number; circle: string } => movement?.[p.id] ?? { pos: p.pos, circle: p.circle }; // fishka hozir turgan (yurib kelayotgan) katak
-  const where = (p: any): { x: number; y: number } => {
+  /** Fishka katak USTIDA emas, taxta RAMKASI (tashqi chet) bo'ylab yuradi: katak ikonkasi yopilmaydi. `inward` — katak tomonga qaragan strelka burchagi (gradus). */
+  const where = (p: any): { x: number; y: number; inward: number | null; tx: number; ty: number } => {
     const q = at(p), big = q.circle === "big" && mixed; const t: Tile = big ? innerTiles[pathIndex(q.pos, 53, 24)] : tiles[pathIndex(q.pos, q.circle === "small" ? 48 : 53, q.circle === "small" ? (wide ? 4 : 12) : 24)];
-    const ox = big ? inset : 0;
-    return { x: ox + t.x + t.w / 2, y: ox + t.y + t.h / 2 };
+    if (big) return { x: inset + t.x + t.w / 2, y: inset + t.y + t.h / 2, inward: null, tx: 1, ty: 0 };
+    const dx = t.x + t.w >= W - 0.5 ? 1 : t.x <= 0.5 ? -1 : 0, dy = t.y + t.h >= H - 0.5 ? 1 : t.y <= 0.5 ? -1 : 0, lift = pawn * 0.28; // chetdan biroz tashqariga
+    return { x: t.x + t.w / 2 + dx * (t.w / 2 + lift), y: t.y + t.h / 2 + dy * (t.h / 2 + lift), inward: (Math.atan2(-dy, -dx) * 180) / Math.PI, tx: dy !== 0 ? 1 : 0, ty: dy !== 0 ? 0 : 1 };
   };
   return (
-    <View>
+    <View testID="board" style={{ padding: PAD }}>
       <View style={{ width: W, height: H }}>
         <View style={StyleSheet.absoluteFill} role="img" aria-label={`Taxta. ${players.map((p) => `${nameOf(room, p.id)}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}`}>
           {tiles.map((t, pi) => {
@@ -92,8 +98,8 @@ export function Board({ room, width, wide, currentId, tight, movement, children 
           {mixed && innerTiles.map((t, pi) => <View key={`b${pi}`} aria-hidden style={{ position: "absolute", left: inset + t.x + 1, top: inset + t.y + 1, width: t.w - 2, height: t.h - 2, borderRadius: 3, backgroundColor: color.line }} />)}
           {players.map((p, k) => {
             const pt = where(p); const ap = at(p), mates = players.filter((q) => at(q).circle === ap.circle && at(q).pos === ap.pos), gi = mates.findIndex((q) => q.id === p.id);
-            const ang = (gi / Math.max(1, mates.length)) * 2 * Math.PI - Math.PI / 2, off = mates.length > 1 ? pawn * 0.5 : 0;
-            return <Pawn key={p.id} x={pt.x + off * Math.cos(ang) - pawn / 2} y={pt.y + off * Math.sin(ang) - pawn / 2} size={pawn} hue={hue(p, k)} label={k + 1} isCur={p.id === currentId} testID={`pawn-${k + 1}`} />;
+            const shift = mates.length > 1 ? (gi - (mates.length - 1) / 2) * pawn * 0.8 : 0; // bir katakdagi o'yinchilar chet bo'ylab yonma-yon
+            return <Pawn key={p.id} x={pt.x + shift * pt.tx - pawn / 2} y={pt.y + shift * pt.ty - pawn / 2} size={pawn} hue={hue(p, k)} label={k + 1} isCur={p.id === currentId} inward={pt.inward} testID={`pawn-${k + 1}`} />;
           })}
         </View>
         {/* Markaz paneli (ichida tugma bor — taxta tasviridan tashqarida) */}
@@ -126,19 +132,27 @@ const s = StyleSheet.create({
 });
 
 /** Fishka: yangi katakka silliq siljiydi (harakatni kamaytirish yoqilgan bo'lsa — darhol). */
-function Pawn({ x, y, size, hue, label, isCur, testID }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean; testID?: string }) {
+/** O'yinchi belgisi: odam ikonkasi (rang + raqam nishoni — rangga tayanmaydi) va katak tomonga qaragan kichik strelka. Har bir katakka o'tishda sakraydi. */
+function Pawn({ x, y, size, hue, label, isCur, testID, inward }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean; testID?: string; inward: number | null }) {
   const reduced = useReducedMotion(); const pos = useRef(new Animated.ValueXY({ x, y })).current; const hop = useRef(new Animated.Value(0)).current;
-  // Har bir katakka o'tishda fishka sakraydi (yoyi bo'ylab), shunda har bir katak ustidan yurgani bilinadi
   useEffect(() => {
     const d = stepMs(reduced);
     Animated.timing(pos, { toValue: { x, y }, duration: Math.round(d * 0.92), easing: Easing.inOut(Easing.quad), useNativeDriver: false }).start();
     if (d > 0) { hop.setValue(0); Animated.sequence([Animated.timing(hop, { toValue: 1, duration: d * 0.45, easing: Easing.out(Easing.quad), useNativeDriver: false }), Animated.timing(hop, { toValue: 0, duration: d * 0.45, easing: Easing.in(Easing.quad), useNativeDriver: false })]).start(); }
   }, [x, y, reduced, pos, hop]);
+  const fg = readableOn(hue), a = Math.max(8, Math.round(size * 0.34));
   return (
-    <Animated.View aria-hidden testID={testID} style={{ position: "absolute", left: pos.x, top: pos.y, width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center", zIndex: isCur ? 6 : 4,
-      transform: [{ translateY: hop.interpolate({ inputRange: [0, 1], outputRange: [0, -size * 0.55] }) }, { scale: hop.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }],
-      backgroundColor: hue, borderWidth: isCur ? 3 : 2, borderColor: isCur ? color.navy : "#fff", shadowColor: "#000", shadowOpacity: isCur ? 0.4 : 0.25, shadowRadius: isCur ? 6 : 3, shadowOffset: { width: 0, height: 1 } }}>
-      <Text style={{ fontSize: Math.round(size * 0.5), fontWeight: "800", color: readableOn(hue) }}>{label}</Text>
+    <Animated.View aria-hidden testID={testID} style={{ position: "absolute", left: pos.x, top: pos.y, width: size, height: size, zIndex: isCur ? 6 : 4,
+      transform: [{ translateY: hop.interpolate({ inputRange: [0, 1], outputRange: [0, -size * 0.55] }) }, { scale: hop.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }] }}>
+      {inward !== null && <View style={{ position: "absolute", left: size / 2 - a / 2, top: size / 2 - a, width: 0, height: 0, borderTopWidth: a, borderBottomWidth: a, borderLeftWidth: a * 1.5, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: isCur ? color.navy : hue,
+        transform: [{ rotate: `${inward}deg` }, { translateX: size / 2 - 3 }] }} />}
+      <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center", backgroundColor: hue, borderWidth: isCur ? 3 : 2, borderColor: isCur ? color.navy : "#fff",
+        shadowColor: "#000", shadowOpacity: isCur ? 0.4 : 0.25, shadowRadius: isCur ? 6 : 3, shadowOffset: { width: 0, height: 1 } }}>
+        <Icon name="person" size={Math.round(size * 0.62)} color={fg} stroke={2.2} fill={fg} />
+      </View>
+      <View style={{ position: "absolute", right: -size * 0.16, bottom: -size * 0.16, minWidth: Math.round(size * 0.46), height: Math.round(size * 0.46), borderRadius: size, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", paddingHorizontal: 2, borderWidth: 1.5, borderColor: "#fff" }}>
+        <Text style={{ color: "#fff", fontSize: Math.max(9, Math.round(size * 0.32)), fontWeight: "800", lineHeight: Math.max(11, Math.round(size * 0.4)) }}>{label}</Text>
+      </View>
     </Animated.View>
   );
 }

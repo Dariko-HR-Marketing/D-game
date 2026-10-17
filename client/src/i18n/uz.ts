@@ -5,12 +5,60 @@ export const uz = {
   home: { hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
     how: ["Xona oching yoki kod bilan qo'shiling (2–6 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
   dreams: { title: "Orzuingizni tanlang", hint: "Har bir o'yinchi o'z orzusini tanlaydi. Bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi.", taken: "band", yours: "Sizning tanlovingiz", waiting: "Boshqa o'yinchilar tanlashini kutyapmiz", timeLeft: "Qolgan vaqt", pick: "Tanlash", change: "Shuni tanlash", chosen: "tanlagan", choosing: "tanlayapti", price: "Narxi" },
-  onboarding: { next: "Keyingisi", back: "Orqaga", skip: "O'tkazib yuborish", done: "Tushunarli, boshlaymiz", rules: "To'liq qoidalarni o'qish",
-    steps: [
-      { title: "Kubik tashlang", text: "Navbatingiz kelganda taxta markazidagi «Kubik tashlash» tugmasini bosing. Fishkangiz tushgan songa teng katak yuradi. (Kompyuterda — probel tugmasi.)" },
-      { title: "Kartaga qarab qaror qiling", text: "Katakka qarab karta chiqadi. Ixtiyoriy kartada narx, oylik daromad va pul oqimiga ta'sir ko'rsatiladi: foydali bo'lsa «Qabul qilaman», bo'lmasa «O'tkazaman». 30 soniya ichida javob bermasangiz karta o'tkaziladi." },
-      { title: "Maqsad: pul sizga ishlasin", text: "Passiv daromadingiz xarajatingizdan ko'p bo'lsa va naqdingiz 1 000 000 ga yetsa, katta aylanaga chiqasiz. U yerda orzuingiz katagiga tushib, uni sotib olsangiz — g'alaba." },
-    ] },
+  onboarding: { next: "Keyingisi", back: "Orqaga", skip: "O'tkazib yuborish", done: "Tushunarli", rules: "To'liq qoidalarni o'qish", replay: "Yo'riqnomani qayta ko'rsatish", replayHint: "Hamma sahifalardagi qisqa yo'riqnomalar qaytadan chiqadi.", help: "Yo'riqnoma", step: "qadam" },
+  time: { year: "yil", month: "oy", label: "O'yin vaqti", delta: "o'tdi", you: "Siz", total: "jami" },
+  // Sahifa yo'riqnomalari (onboarding): har sahifada birinchi kirishda bir marta. {..} — taxminiy raqamlar (client/src/estimates.ts, docs/BALANCE.md).
+  tour: {
+    home: [
+      { title: "POYGA'ga xush kelibsiz", text: "Bu moliyaviy savodxonlik o'yini: pul oqimi va passiv daromad yaratishni o'ynab o'rganasiz. Hozir qisqacha tanishib chiqamiz. Istalgan payt o'tkazib yuborishingiz mumkin." },
+      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Kod bilan qo'shilish». O'yinda 2–6 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
+      { title: "Qoidalar, reyting va profil", text: "Pastdagi menyuda: «Qoidalar» — to'liq qoidalar, «Reyting» — eng kuchli o'yinchilar, «Profil» — ismingiz, fishka rangi va yutuqlaringiz." },
+    ],
+    lobby: [
+      { title: "Xona kodi", text: "Kodni do'stlaringizga yuboring — ular «Kod bilan qo'shilish» orqali kiradi. Hamma yig'ilgach xona egasi o'yinni boshlaydi." },
+      { title: "«Kutilmagan hodisa!» kartalari", text: "Yoqilsa, «Boshidan boshlang» katagi hodisa kartasini ochadi (katta to'lov bo'lishi mumkin). O'chirilsa — oddiy katak. Buni faqat xona egasi o'zgartiradi." },
+    ],
+    dreams: [
+      { title: "Orzuingizni tanlang", text: "Har bir o'yinchi o'z orzusini tanlaydi, bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi." },
+      { title: "Orzu — katta maqsad", text: "Katta aylanada g'alaba uchun orzu katagiga tushasiz va naqdingiz orzu narxidan kam bo'lmasligi kerak. Narx har orzuda ko'rsatilgan." },
+    ],
+    "game-small": [
+      { title: "Kichik aylana", text: "Taxtada 48 katak, harakat soat yo'nalishida. Maqsad — kichik aylanadan chiqish: naqd kamida 1 000 000, oylik passiv pul oqimi kamida 25 000 va qarz hamda kreditlar bo'lmasligi kerak." },
+      { title: "Kubik tashlang", text: "Navbatingiz kelganda «Kubikni tashlash» ni bosing (kompyuterda — probel tugmasi). Fishkangiz kubikdagi songa teng katak yuradi. 30 soniya ichida tashlamasangiz navbat o'tadi." },
+      { title: "Vaqt oyma-oy hisoblanadi", text: "Har bir «D» (Daromad) katagidan o'tsangiz yoki unga tushsangiz bitta oy o'tadi va pul oqimi naqdingizga qo'shiladi. Aylanada 4 ta shunday katak bor: 4 oy — 1 aylana, 3 aylana — 1 yil. O'tgan vaqt shu yerda ko'rinib turadi." },
+      { title: "Katak turlari", text: "Daromad (oy o'tadi), Imkoniyat (sarmoya kartasi), Xarajat, Bozor, Farzand (suyunchi), «Ishdan bo'shadingiz» va «O'yinni boshidan boshlang!». To'liq ro'yxat taxta ostidagi «Katak turlari» da." },
+      { title: "Kartaga qarab qaror qiling", text: "Katakka qarab karta chiqadi. Ixtiyoriy kartada narx, oylik daromad va pul oqimiga ta'sir ko'rsatiladi: foydali bo'lsa «Qabul qilaman», bo'lmasa «O'tkazaman». 30 soniya ichida javob bermasangiz ixtiyoriy karta o'tkaziladi, majburiy karta avtomatik qabul qilinadi." },
+      { title: "Moliyaviy holat", text: "Naqd, oylik pul oqimi va passiv daromadingiz shu yerda. Pastda chiqish shartlariga qanchalik yaqinlashganingiz ko'rinadi." },
+      { title: "Pul yetmasa", text: "Naqd yetmasa bank krediti beriladi (limit 10 000 sh.b.), so'ng o'zaro qarz va sheriklik mumkin. Bank, qarz, sheriklik va bozor takliflari «Moliya amallari» bo'limida." },
+      { title: "Qancha davom etadi", text: "Botlar bilan o'lchovda kichik aylanadan chiqish o'rtacha taxminan {smallYears} yil ({smallMonths} oy, ≈ {smallLaps} aylana) davom etdi. Bu taxminiy raqam; haqiqiy o'yinchilarda farq qiladi." },
+      { title: "Tovush va qoidalar", text: "Tovushni shu tugma bilan yoqasiz yoki o'chirasiz. To'liq qoidalar — «Qoidalar» tugmasida. Omad!" },
+    ],
+    "game-big": [
+      { title: "Katta aylanaga chiqdingiz!", text: "Taxtada 53 katak, endi 2 ta kubik tashlanadi. G'alaba uchun uchta shart birga bajarilishi kerak: oylik pul oqimi kamida 100 000, o'z orzu katagingizga tushish va naqd orzu narxidan kam bo'lmasligi." },
+      { title: "Oy qanday o'tadi", text: "Katta aylanada oy «Yana pullar» katagidan o'tganda yoki unga tushganda o'tadi. Aylanada 4 ta shunday katak bor. Har oy pul oqimi naqdingizga qo'shiladi; vaqt shu yerda ko'rinadi." },
+      { title: "Katak turlari", text: "Turg'un biznes (faqat naqd, oylik daromad), tavakkal biznes (narx naqd + bitta kubik), orzu katagi, «Yana pullar» (oy o'tadi) va maxsus kataklar: audit, ajrashish, bankrot, nohalol biznes." },
+      { title: "Kichik aylana o'yinchilari bilan", text: "Katta va kichik aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi yo'q. Siz faqat o'z aylanangizni ko'rasiz." },
+      { title: "Qancha davom etadi", text: "Botlar bilan o'lchovda katta aylanada g'alabagacha o'rtacha taxminan {bigYears} yil ({bigMonths} oy) ketdi. Bu taxminiy raqam." },
+    ],
+    result: [
+      { title: "O'yin tahlili", text: "Har bir o'yinchi uchun eng ko'p naqd, eng yuqori pul oqimi, kichik aylanadan qaysi aylanada chiqqani, qayta boshlashlar, qabul qilingan va o'tkazilgan kartalar ko'rsatiladi. Grafik aylanalar bo'yicha pul oqimini ko'rsatadi." },
+    ],
+    profile: [
+      { title: "Profilingiz", text: "Ismingiz va fishka rangingiz o'yinda ko'rinadi. Tug'ilgan yil yosh bo'yicha cheklovlar uchun kerak (16 yoshgacha ba'zi imkoniyatlar yopiq). Yutuqlar va o'yin tarixi shu yerda." },
+    ],
+    leaderboard: [
+      { title: "Reyting", text: "Reytingda faqat ismi bor va kamida bitta o'yin o'ynagan odamlar ko'rinadi. Shaxsiy ma'lumot chiqmaydi — faqat ism va fishka rangi." },
+    ],
+    shop: [
+      { title: "Do'kon va Plus", text: "Asosiy o'yin bepul. Pulli qo'shimchalar o'yin natijasiga ta'sir qilmaydi: ular ko'rinish (fishka, ramka, fon) va qulayliklar uchun." },
+    ],
+    class: [
+      { title: "Sinf", text: "O'qituvchi bergan kod bilan sinfga qo'shilasiz. O'qituvchi sinf xonasini ochadi va hisobotlarni ko'radi." },
+    ],
+    tournaments: [
+      { title: "Turnirlar", text: "Turnir shartlarini o'qing va ro'yxatdan o'ting. 16 yoshgacha ro'yxatdan o'tish uchun ota-ona roziligi kerak." },
+    ],
+  } as Record<string, { title: string; text: string }[]>,
   deck: { kichik: "Kichik sarmoya", katta: "Katta sarmoya", xar: "Xarajat", kxar: "Katta xarajat", bozor: "Bozor", hod: "Hodisa", new: "Yangi karta", kasb: "Kasb", other: "Karta" } as Record<string, string>,
   legend: { big: { T: "Turg'un biznes: faqat naqd, oylik daromad", V: "Tavakkal biznes: narx naqd + bitta kubik", O: "Orzu: o'z orzuingizda g'alaba, aks holda katta xarajat", Y: "Yana pullar: oy o'tadi, pul oqimi qo'shiladi", X: "Maxsus: audit, ajrashish, bankrot, nohalol biznes" } as Record<string, string>, title: "Katak turlari", cells: { S: "Start", I: "Imkoniyat (sarmoya kartasi)", H: "Xarajat", B: "Bozor", D: "Daromad: oy o'tadi, pul oqimi qo'shiladi", O: "Farzand: suyunchi", K: "O'yinni boshidan boshlang!", Q: "Ishdan bo'shadingiz" } as Record<string, string> },
   facts: { title: "Karta raqamlari", total: "Jami", price: "Narxi", down: "Boshlang'ich to'lov", credit: "Kredit", income: "Oylik daromad", creditPay: "Kredit to'lovi (oyiga)", flowDelta: "Oylik pul oqimiga ta'siri", perShare: "Bitta aksiya narxi", range: "Miqdor (dona)", minCost: "Eng kam xarid",

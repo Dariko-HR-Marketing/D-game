@@ -12,7 +12,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 const sizes: [number, number][] = [[1024, 768], [1280, 720], [1440, 900], [1593, 890], [1735, 985], [1920, 1080]];
 let failed = 0;
 for (const [w, h] of sizes) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const tag = `${w}x${h}`, a = await mk("fa" + tag), c = await mk("fb" + tag);
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

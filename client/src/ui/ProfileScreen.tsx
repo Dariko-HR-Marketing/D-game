@@ -2,17 +2,19 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill, SectionTitle, Stat } from "./kit";
+import { tourKV } from "./tourStore";
+import { resetTours } from "../tours";
 import { Screen } from "./Screen";
 import { uz, errText } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, MIN_TAP, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
 import { sameWord, Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
-export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack: () => void; onDeleted: () => void }) {
+export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Http; onBack: () => void; onDeleted: () => void; onLogout?: () => void }) {
   const [name, setName] = useState(""); const [col, setCol] = useState(0); const [year, setYear] = useState("");
   const [stats, setStats] = useState<any>(null); const [hist, setHist] = useState<any[]>([]); const [loaded, setLoaded] = useState(false);
   const [msg, setMsg] = useState<string | null>(null); const [err, setErr] = useState<string | null>(null);
-  const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false);
+  const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false); const [tourReset, setTourReset] = useState(false);
 
   useEffect(() => { (async () => {
     try { const r = await http.profile(); if (r.profile) { setName(r.profile.name); setCol(r.profile.color); setYear(String(r.profile.birthYear)); } setStats(r.stats); setHist(await http.history()); } catch (e) { setErr((e as HttpError).code ?? "network"); }
@@ -87,6 +89,12 @@ export function ProfileScreen({ http, onBack, onDeleted }: { http: Http; onBack:
             <Text style={s.muted} aria-hidden>{h.rounds} {uz.game.round.toLowerCase()} · {h.players} {uz.profile.playersWord}</Text></View>))}
       </Card>
 
+      <Card>
+        <Text style={s.body}>{uz.onboarding.replayHint}</Text>
+        <Button label={tourReset ? uz.profile.saved : uz.onboarding.replay} kind="ghost" onPress={() => { resetTours(tourKV); setTourReset(true); }} />
+      </Card>
+
+      {onLogout && <Button label={uz.login.logout} kind="ghost" onPress={onLogout} />}
       <Button label={uz.profile.danger} kind="ghost" onPress={() => setShowDelete(!showDelete)} />
       {showDelete && (<Card accent="red" raised={false}>
         <Text style={s.body}>{uz.profile.consequences}</Text>

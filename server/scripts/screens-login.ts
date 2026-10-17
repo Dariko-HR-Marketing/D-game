@@ -16,9 +16,9 @@ let last = ""; const sms: SmsSender = { async send(_p, t) { last = /(\d{6})/.exe
 const x = buildApp({ authSecret: "s".repeat(40), otp: new OtpService({ secret: "s".repeat(40), sms }) }); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number, number][]) {
-  const p = await (await b.newContext({ viewport: { width: w, height: h } })).newPage(); await p.goto(WEB);
-  await p.getByRole("button", { name: "Boshlash", exact: true }).waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-login-0-welcome.png` }); await scan(p, `xush kelibsiz ${tag}`); await p.getByRole("button", { name: "Boshlash", exact: true }).click();
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("poyga-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB);
   await p.getByLabel("Telefon raqami").waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-login-1.png` }); await scan(p, `kirish ${tag}`);
+  { const m = await p.evaluate(() => ({ sh: document.documentElement.scrollHeight, ih: window.innerHeight })); if (m.sh > m.ih + 1) { total++; console.log(`SIG'MAYDI kirish ${tag}: ${m.sh} > ${m.ih}`); } }
   await p.getByLabel("Telefon raqami").fill(tag === "n" ? "90 123 45 67" : "91 765 43 21"); await p.getByRole("button", { name: "Kod yuborish" }).click();
   await p.getByLabel("SMS kodi (6 raqam)").waitFor(); await p.getByLabel("SMS kodi (6 raqam)").fill("000000"); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.waitForTimeout(500);
   await p.screenshot({ path: `${OUT}/${tag}-login-2-error.png` }); await scan(p, `kod xato ${tag}`);

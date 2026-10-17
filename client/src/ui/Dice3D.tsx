@@ -44,7 +44,7 @@ export function Dice3D({ value, n, size = 64 }: { value: number | null; n?: numb
   }, [n, value, reduced]);
   const numeral = value === null ? "?" : value > 6 ? String(value) : null;
   const label = value === null ? uz.game.diceNone : `${uz.game.diceLabel}: ${value}`, ab = k % 2 ? "b" : "a";
-  return h("div", { role: "img", "aria-label": label, style: { width: size, height: size, position: "relative", flexShrink: 0, perspective: size * 5, margin: `${size * 0.16}px 0 ${size * 0.1}px` } },
+  return h("div", { role: "img", "aria-label": label, style: { width: size, height: size, position: "relative", flexShrink: 0, perspective: size * 5, margin: `${size * 0.16}px ${size * 0.18}px ${size * 0.1}px` } },
     h("div", { "aria-hidden": true, style: { position: "absolute", left: size * 0.08, right: size * 0.08, bottom: -size * 0.1, height: size * 0.2, borderRadius: "50%", background: "radial-gradient(closest-side,rgba(8,34,56,.6),rgba(8,34,56,0))", opacity: 0.4,
       animation: rolling ? `poyga-shadow-${ab} ${DICE_MS}ms ease-out both` : undefined } }),
     h("div", { "aria-hidden": true, style: { width: "100%", height: "100%", transformStyle: "preserve-3d", ["--up" as any]: `${size * 0.5}px`, animation: rolling ? `poyga-toss-${ab} ${DICE_MS}ms cubic-bezier(.3,.55,.4,1) both` : undefined } },

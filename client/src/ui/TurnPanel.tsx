@@ -18,7 +18,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
   if (st.winner) return (<><Text style={s.eyebrow}>{uz.game.winner}</Text><Text style={s.title}>{nameOf(room, st.winner)}</Text></>);
   const hint = big ? uz.hud.hintBig : uz.hud.hintSmall;
   return (
-    <View style={s.wrap}>
+    <View style={s.wrap} testID="turn-panel">
       <Text style={s.eyebrow}>{cellLabel(cur.circle, cur.pos)}</Text>
       <Dice value={lr?.die ?? null} n={lr?.n} size={wide ? 56 : 44} />
       <Text style={s.title} accessibilityLiveRegion="polite">{lr ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? uz.hud.rollNow : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>

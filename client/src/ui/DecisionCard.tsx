@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Image, Pressable, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill, Row } from "./kit";
 import { Dice } from "./Dice";
 import { Icon, type IconName } from "./Icon";
 import { TimerRing } from "./TimerRing";
-import { CARD_IMAGES_BASE, cardImageUrl } from "../cardImage";
+import { CardFace } from "./CardFace";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
 import { crisisAdjusted } from "@poyga/rules";
@@ -29,12 +29,6 @@ const headOf = (id: string, e: any) => {
   return e?.kind === "pay" || e?.kind === "carInsurance" || e?.kind === "floodCarRepair" ? HEAD.xar : e?.kind === "buy" || e?.kind === "courseSalaryPlus" || e?.kind === "charity" ? HEAD.kichik : e?.kind === "marketSale" || e?.kind === "debtRepaid" || e?.kind === "tenantLeft" ? HEAD.bozor : HEAD.big;
 };
 
-function CardArt({ file, text }: { file?: string; text: string }) {
-  const url = cardImageUrl(CARD_IMAGES_BASE, file); const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [url]);
-  if (!url || failed) return null;
-  return <Image source={{ uri: url }} accessibilityLabel={text} resizeMode="contain" style={s.art} onError={() => setFailed(true)} />;
-}
 
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
 function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
@@ -60,7 +54,8 @@ function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unkn
 export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
-  const [q, setQ] = useState(String(e?.min ?? 1));
+  const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
+  const artH = Math.round(sheet ? Math.min(300, vh * 0.34) : Math.min(360, vh * 0.4)); // asl rasm kesilmaydi, ekran balandligiga moslanadi
   const mandatory = card.mode === "mandatory", shares = e?.kind === "buyShares", hod7 = e?.kind === "payOrLoseBusiness", rent = e?.kind === "rentChoice", gamble = e?.kind === "gamble";
   const cashOnly = gamble || String(card.id).startsWith("big-"); // katta aylana biznesi: faqat naqd
   const qty = Number(q) || 0, cost = shares ? qty * (e.pricePerShare) : f.need;
@@ -86,8 +81,8 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
         {left ? <TimerRing left={left} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
       </View>
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
-      <CardArt file={card.file} text={card.text} />
-      <Text style={s.text}>{card.text}</Text>
+      <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
+      <Text style={artOk ? s.sr : s.text} aria-hidden={artOk}>{card.text}</Text>
       {showChange && (
         <View style={{ gap: space.xs }}>
           <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>
@@ -127,7 +122,7 @@ const s = StyleSheet.create({
   headIcon: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   headEyebrow: { fontSize: 12, fontWeight: "700" }, headTitle: { fontSize: font.xl, fontWeight: "800" },
   badges: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" },
-  art: { width: "100%", height: 200, borderRadius: radius.sm, backgroundColor: color.bg }, text: { color: color.navy, fontSize: font.lg, lineHeight: 24, fontWeight: "600" },
+  sr: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 }, text: { color: color.navy, fontSize: font.lg, lineHeight: 24, fontWeight: "600" },
   sec: { color: tone.muted, fontSize: 12, fontWeight: "800", letterSpacing: 0.8 },
   change: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 1, borderColor: "#E6ECEF", borderRadius: radius.md, paddingHorizontal: space.md, minHeight: 44 }, chL: { color: color.navy, fontSize: font.md }, chV: { fontSize: font.lg, fontWeight: "800", fontVariant: ["tabular-nums"] },
   facts: { backgroundColor: color.bg, borderRadius: radius.md, padding: space.md, gap: 2 },

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pres
 import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
 import { Banner, Card, Pill, SectionTitle } from "./kit";
-import { Board, boardGeometry } from "./Board";
+import { Board, boardGeometry, boardPad } from "./Board";
 import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
 import { BottomNav } from "./BottomNav";
@@ -13,7 +13,8 @@ import { FinanceCard } from "./FinanceCard";
 import { TurnPanel } from "./TurnPanel";
 import { DecisionCard } from "./DecisionCard";
 import { CardToast, GambleToast } from "./CardToast";
-import { Onboarding } from "./Onboarding";
+import { replayTour } from "./tourStore";
+import { TimeBar } from "./TimeBar";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -56,7 +57,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 }
 
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
-const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100;
+const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
 export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules, error, status }: { error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
@@ -69,8 +70,8 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const state = room.state; const cur = currentId(room); const curP = state.players.find((p: any) => p.id === cur);
   const sideW = 380, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
   // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
-  const reserveH = HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + WIDE_STRIP_H + 4 * space.md;
-  let boardWidth = wide ? Math.min(Math.max(width - sideW - 64, 560), 940) : Math.min(width - 32, 460), tight = false;
+  const pad = boardPad(wide), short = wide && height < 820, reserveH = HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
+  let boardWidth = wide ? Math.min(Math.max(width - sideW - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, 460), tight = false;
   if (wide) {
     while (boardWidth > 560 && boardGeometry(boardWidth, true, nCells).H > height - reserveH) boardWidth -= 20;
     if (boardGeometry(boardWidth, true, nCells).H > height - reserveH) { tight = true; while (boardWidth > 480 && boardGeometry(boardWidth, true, nCells, true).H > height - reserveH) boardWidth -= 20; }
@@ -93,6 +94,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const snd = useSoundPrefs();
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} />;
+  const timeInSide = wide && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
   const hint = mineTurn ? uz.hud.mineHint.replace("{s}", "30").replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
@@ -123,10 +125,12 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
   const sideMain = (
     <View style={{ gap: space.md }}>
+      {timeInSide && <TimeBar room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
-      {mine && <FinanceCard p={mine} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} />}
-      <Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible>
+      {mine && <View testID="finance"><FinanceCard p={mine} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
+      <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
+      {short && eventsCard(3)}
     </View>
   );
   // Telefon: hammasi bitta ustunda
@@ -143,31 +147,32 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       <View style={{ flex: 1 }} />
       {wide && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
       <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={s.hBtn} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.hBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={s.hBtn}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
     </View>
   );
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} /><Onboarding onRules={onRules} />
+      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
               <DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} left={left} die={myDie}
-                layout={(body, actions) => (<View style={s.decide}><ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} />
+                layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.hud.ixtiyoriy} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={s.sideScroll}>{sideMain}</ScrollView>}
-        <ScrollView style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={s.sideScroll}>{sideMain}</ScrollView>}
+        <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
-          <View style={{ width: boardWidth }}><PlayersLane room={room} userId={userId} wide /></View>
+          <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimeBar room={room} userId={userId} settled={settled} /></View>}</View>
           <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
           <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
           <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
-            <View style={{ flex: 1 }}>{eventsCard(3)}</View>
-            <View style={{ width: 270, gap: space.sm }}>{reactRow}{leaveBlock}</View>
+            {!short && <View style={{ flex: 1 }}>{eventsCard(3)}</View>}
+            <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}<View style={short ? { flex: 1, maxWidth: 260 } : undefined}>{leaveBlock}</View></View>
           </View>
         </ScrollView>
       </View>
@@ -176,11 +181,12 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} /><Onboarding onRules={onRules} />
+      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
         {tab === "field" && (<>
+          <TimeBar room={room} userId={userId} settled={settled} />
           {stats}
           <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
@@ -198,7 +204,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
           <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} sheet left={left} die={myDie}
-            layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView style={{ flexShrink: 1 }}>{body}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} /></CardEnter>
+            layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.hud.ixtiyoriy} style={{ flexShrink: 1 }}>{body}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
         items={[{ key: "field", label: uz.hud.tabs.field, icon: "board" }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart" }, { key: "players", label: uz.hud.tabs.players, icon: "people" }, { key: "rules" as any, label: uz.hud.tabs.rules, icon: "book" }]} />

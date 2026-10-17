@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Pill } from "./kit";
 import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
+import { replayTour } from "./tourStore";
 import { BottomNav } from "./BottomNav";
 import { uz, errText } from "../i18n/uz";
 import { color, font, radius, space, tone, MIN_TAP } from "../theme";
 import type { Http } from "../net/http";
 
 type Tab = "home" | "board" | "rules" | "profile";
-function Row({ icon, title, sub, onPress, disabled, primary }: { icon: IconName; title: string; sub: string; onPress: () => void; disabled?: boolean; primary?: boolean }) {
+function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: { icon: IconName; title: string; sub: string; onPress: () => void; disabled?: boolean; primary?: boolean; testID?: string; compact?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.row, pressed && { backgroundColor: "#F4F7F8" }, disabled && { opacity: 0.5 }]}>
+    <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} accessibilityState={{ disabled: !!disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.row, compact && { minHeight: 52, paddingVertical: 4 }, pressed && { backgroundColor: "#F4F7F8" }, disabled && { opacity: 0.5 }]}>
       <View style={[s.rowIcon, primary && { backgroundColor: color.green }]} aria-hidden><Icon name={icon} size={20} color={primary ? color.white : color.navy} /></View>
-      <View style={{ flex: 1, gap: 2 }} aria-hidden><Text style={s.rowT}>{title}</Text><Text style={s.rowS}>{sub}</Text></View>
+      <View style={{ flex: 1, gap: 2 }} aria-hidden><Text style={s.rowT}>{title}</Text><Text style={s.rowS} numberOfLines={compact ? 1 : 2}>{sub}</Text></View>
       <Icon name="chevron" size={18} color="#6B7C8C" />
     </Pressable>);
 }
@@ -27,13 +28,14 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0 }); }).catch(() => {}); return () => { off = true; }; }, [http]);
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
-  const online = status === "online", ready = code.length === 6;
+  const online = status === "online", ready = code.length === 6; const { height } = useWindowDimensions(); const compact = height < 700; // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
         <View style={s.brand}><Logo size={30} /><Text style={s.logoT}>{uz.app.name}</Text></View>
         <View style={{ flex: 1 }} />
-        <Pill label={online ? uz.home.online : status === "offline" ? uz.home.offline : uz.home.connecting} kind={online ? "good" : status === "offline" ? "bad" : "warn"} />
+        <View style={{ alignSelf: "center" }}><Pill label={online ? uz.home.online : status === "offline" ? uz.home.offline : uz.home.connecting} kind={online ? "good" : status === "offline" ? "bad" : "warn"} /></View>
+        <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.avatarBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={uz.profile.title} onPress={onProfile} style={s.avatarBtn}><Avatar name={me?.name ?? "?"} colorIdx={me?.color ?? 0} level={me?.level} size={34} /></Pressable>
       </View>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
@@ -41,8 +43,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {notes.map((n) => <Banner key={n.id} kind={n.kind === "warn" ? "warn" : "info"}>{n.text}</Banner>)}
           <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text>
           <View>
-            <Row icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={onCreate} disabled={!online} />
-            <Row icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={onCreate} disabled={!online} />
+            <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
             {joinOpen && (
               <View style={s.join}>
                 <Text style={s.label} nativeID="codeLabel">{uz.home.codeLabel}</Text>
@@ -52,20 +54,16 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
                   <View style={{ flexShrink: 0 }}><Button label={uz.home.joinShort} onPress={() => onJoin(code)} disabled={!online || !ready} /></View>
                 </View>
               </View>)}
-            <Row icon="book" title={uz.home.rulesRow} sub={uz.home.rulesSub} onPress={onRules} />
-            <Row icon="trophy" title={uz.profile.leaderboard} sub={uz.home.boardSub} onPress={onLeaderboard} />
-            {onTournaments && <Row icon="flag" title="Turnirlar" sub="Homiylar bilan musobaqalar" onPress={onTournaments} />}
-            {onClass && <Row icon="house" title="Sinf" sub="Maktab: sinfga qo'shilish yoki o'qituvchi paneli" onPress={onClass} />}
-            {onShop && <Row icon="star" title="Do'kon va Plus" sub="Ko'rinish uchun narsalar, cheklovsiz xonalar" onPress={onShop} />}
-          </View>
-          <View style={s.how}>
-            <Text style={s.howT} aria-level={2} accessibilityRole="header">{uz.home.howTitle}</Text>
-            {uz.home.how.map((t, i) => (<View key={i} style={s.step}><View style={s.num}><Text style={s.numText}>{i + 1}</Text></View><Text style={s.stepText}>{t}</Text></View>))}
+            <Row compact={compact} icon="book" title={uz.home.rulesRow} sub={uz.home.rulesSub} onPress={onRules} />
+            <Row compact={compact} icon="trophy" title={uz.profile.leaderboard} sub={uz.home.boardSub} onPress={onLeaderboard} />
+            {onTournaments && <Row compact={compact} icon="flag" title="Turnirlar" sub="Homiylar bilan musobaqalar" onPress={onTournaments} />}
+            {onClass && <Row compact={compact} icon="house" title="Sinf" sub="Maktab: sinfga qo'shilish yoki o'qituvchi paneli" onPress={onClass} />}
+            {onShop && <Row compact={compact} icon="star" title="Do'kon va Plus" sub="Ko'rinish uchun narsalar, cheklovsiz xonalar" onPress={onShop} />}
           </View>
           {error && <Text style={s.err} accessibilityRole="alert">{errText(error)}</Text>}
         </View>
       </ScrollView>
-      <BottomNav<Tab> label={uz.home.nav} active="home" onChange={(k) => (k === "board" ? onLeaderboard() : k === "rules" ? onRules() : k === "profile" ? onProfile() : undefined)}
+      <BottomNav<Tab> testID="home-nav" label={uz.home.nav} active="home" onChange={(k) => (k === "board" ? onLeaderboard() : k === "rules" ? onRules() : k === "profile" ? onProfile() : undefined)}
         items={[{ key: "home", label: uz.home.tabHome, icon: "home" }, { key: "board", label: uz.profile.leaderboard, icon: "trophy" }, { key: "rules", label: uz.hud.tabs.rules, icon: "book" }, { key: "profile", label: uz.profile.title, icon: "person" }]} />
     </View>
   );

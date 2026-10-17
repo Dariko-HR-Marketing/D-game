@@ -5,9 +5,9 @@ import { color, tone } from "../theme";
 
 export interface NavItem<K extends string> { key: K; label: string; icon: IconName }
 /** Pastki navigatsiya (telefon): faol bo'lim qalin va to'q, qolganlari kulrang; faol bo'lim `aria-current`. */
-export function BottomNav<K extends string>({ items, active, onChange, label }: { items: NavItem<K>[]; active: K; onChange: (k: K) => void; label: string }) {
+export function BottomNav<K extends string>({ items, active, onChange, label, testID }: { items: NavItem<K>[]; active: K; onChange: (k: K) => void; label: string; testID?: string }) {
   return (
-    <View role="navigation" aria-label={label} style={s.nav}>
+    <View role="navigation" aria-label={label} style={s.nav} testID={testID}>
       {items.map((it) => { const on = it.key === active; return (
         <Pressable key={it.key} accessibilityRole="button" accessibilityLabel={it.label} aria-current={on ? "page" : undefined} onPress={() => onChange(it.key)} style={s.item}>
           <Icon name={it.icon} size={22} stroke={on ? 2.2 : 1.8} color={on ? color.navy : "#6B7C8C"} />
