@@ -3,6 +3,8 @@ export const color = { navy: "#082238", green: "#11835A", gold: "#F2B233", red: 
 // §10 yashili (#11835A) oq fonda ≥ 4.5, lekin #F4F7F8 fonda 4.42 — kichik matn uchun biroz to'qroq variant (AA talabi §10 ham bor).
 export const GREEN_TEXT = "#0E6B4A";
 export const MIN_TAP = 44;
+/** O'yin sarlavhasi balandligi: xabarlar (CardToast) undan pastda chiqadi, shunda «Qoidalar» va xona kodi tugmalari to'silmaydi. */
+export const HEADER_H = 56;
 export const PLAYER_COLORS = ["#11835A", "#F2B233", "#9E2A30", "#2C6DB5", "#7B4FA3", "#E07A2F"]; // 6 ta fishka rangi
 
 /** Bo'shliq shkalasi (4 px asosida), burchak va soyalar — barcha ekranlarda bir xil. */

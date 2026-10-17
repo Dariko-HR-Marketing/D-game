@@ -85,9 +85,11 @@ export const csv = (rows: unknown[][]) => rows.map((r) => r.map((v) => { let s =
 /** Oddiy ustunli diagramma (SVG): ko'rish uchun; qiymatlar jadval ko'rinishida `<title>` va aria-label'da ham bor. */
 export function Bars({ values, labels, label, color = "#11835A", height = 90, fmt = (n: number) => String(n) }: { values: number[]; labels: string[]; label: string; color?: string; height?: number; fmt?: (n: number) => string }) {
   const max = Math.max(1, ...values), w = 100 / Math.max(1, values.length);
-  return (<svg role="img" aria-label={`${label}: ${values.map((v, i) => `${labels[i]} — ${fmt(v)}`).join(", ")}`} viewBox={`0 0 100 ${height / 3}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
+  // Ko'rinadigan o'qlar: birinchi/oxirgi yorliq va eng katta qiymat (avval faqat sichqoncha ustida `<title>` da edi)
+  const cap = (<div aria-hidden className="muted" style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, marginTop: 4 }}><span>{labels[0]}</span><span>{`max: ${fmt(Math.max(0, ...values))}`}</span><span>{labels[labels.length - 1]}</span></div>);
+  return (<div><svg role="img" aria-label={`${label}: ${values.map((v, i) => `${labels[i]} — ${fmt(v)}`).join(", ")}`} viewBox={`0 0 100 ${height / 3}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
     {values.map((v, i) => { const h = (v / max) * (height / 3 - 2); return <rect key={i} x={i * w + w * 0.12} y={height / 3 - h} width={w * 0.76} height={Math.max(h, v ? 0.6 : 0.15)} rx="0.6" fill={color}><title>{`${labels[i]}: ${fmt(v)}`}</title></rect>; })}
-  </svg>);
+  </svg>{values.length > 0 && cap}</div>);
 }
 export const Field = ({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) => <label className="grow">{label}{children}{hint && <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>{hint}</span>}</label>;
 export function Tabs<T extends string>({ items, active, onChange, label }: { items: [T, string][]; active: T; onChange: (k: T) => void; label: string }) {
