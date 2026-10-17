@@ -8,7 +8,7 @@ import { AdminState } from "./admin";
 import { ProfileService } from "./profiles";
 import { AnalysisService } from "./analysis";
 import { WriteQueue } from "./persist";
-import { ConsoleSms, HttpSms, OtpService, type SmsSender } from "./auth";
+import { ConsoleSms, EskizSms, HttpSms, OtpService, type SmsSender } from "./auth";
 import { PgDocs } from "./docs";
 import { Ops } from "./ops";
 import { APPLE, GOOGLE, OidcVerifier } from "./oidc";
@@ -31,7 +31,8 @@ if (authSecret && authSecret.length < 32) throw new Error("AUTH_SECRET kamida 32
 const ops = new Ops(docs);
 let otp: OtpService | undefined; let smsSender: SmsSender | undefined;
 if (authSecret) {
-  const sms = process.env.SMS_HTTP_URL ? new HttpSms(process.env.SMS_HTTP_URL, process.env.SMS_HTTP_TOKEN ?? "")
+  const sms = process.env.SMS_PROVIDER === "eskiz" ? new EskizSms(process.env.ESKIZ_EMAIL ?? "", process.env.ESKIZ_PASSWORD ?? "", process.env.ESKIZ_FROM ?? "4546")
+    : process.env.SMS_HTTP_URL ? new HttpSms(process.env.SMS_HTTP_URL, process.env.SMS_HTTP_TOKEN ?? "")
     : process.env.SMS_PROVIDER === "console" && process.env.NODE_ENV !== "production" ? new ConsoleSms() : null;
   const anyOidc = [process.env.GOOGLE_CLIENT_IDS, process.env.APPLE_CLIENT_ID].some((v) => (v ?? "").trim());
   if (!sms && !anyOidc) throw new Error("AUTH_SECRET berilgan, lekin kirish usuli yo'q: SMS_HTTP_URL, GOOGLE_CLIENT_IDS yoki APPLE_CLIENT_ID (staging uchun SMS_PROVIDER=console)");

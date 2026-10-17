@@ -18,6 +18,35 @@ export class HttpSms implements SmsSender {
   }
 }
 
+/** Eskiz (notify.eskiz.uz) adapteri: login → Bearer token (xotirada), 401 da qayta kirish. Telefon `998...` (plyussiz) ko'rinishida yuboriladi. */
+export class EskizSms implements SmsSender {
+  private token: string | null = null; private login: Promise<string> | null = null;
+  constructor(private email: string, private password: string, private from: string, private base = "https://notify.eskiz.uz/api", private f: typeof fetch = fetch, private timeoutMs = 8000) {
+    if (!email || !password) throw new Error("ESKIZ_EMAIL va ESKIZ_PASSWORD bo'sh bo'lmasligi kerak");
+    if (!from) throw new Error("ESKIZ_FROM bo'sh bo'lmasligi kerak");
+  }
+  private async auth(): Promise<string> {
+    this.login ??= (async () => {
+      try {
+        const r = await this.f(`${this.base}/auth/login`, { signal: AbortSignal.timeout(this.timeoutMs), method: "POST", body: new URLSearchParams({ email: this.email, password: this.password }) });
+        if (!r.ok) throw new Error(`sms_gateway_login_${r.status}`);
+        const t = ((await r.json()) as { data?: { token?: string } })?.data?.token;
+        if (!t) throw new Error("sms_gateway_login_no_token");
+        return (this.token = t);
+      } finally { this.login = null; }
+    })();
+    return this.login;
+  }
+  private post(token: string, phone: string, text: string) {
+    return this.f(`${this.base}/message/sms/send`, { signal: AbortSignal.timeout(this.timeoutMs), method: "POST", headers: { authorization: `Bearer ${token}` }, body: new URLSearchParams({ mobile_phone: phone.replace(/^\+/, ""), message: text, from: this.from }) });
+  }
+  async send(phone: string, text: string) {
+    let r = await this.post(this.token ?? (await this.auth()), phone, text);
+    if (r.status === 401) { this.token = null; r = await this.post(await this.auth(), phone, text); }
+    if (!r.ok) throw new Error(`sms_gateway_${r.status}`);
+  }
+}
+
 /** +998901234567 ko'rinishiga keltiradi; noto'g'ri bo'lsa null. */
 export function normalizePhone(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
