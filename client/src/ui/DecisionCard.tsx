@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Image, Pressable, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill, Row } from "./kit";
 import { Dice } from "./Dice";
 import { Icon, type IconName } from "./Icon";
 import { TimerRing } from "./TimerRing";
-import { CARD_IMAGES_BASE, cardImageUrl } from "../cardImage";
+import { CardFace } from "./CardFace";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
 import { crisisAdjusted } from "@poyga/rules";
@@ -29,12 +29,6 @@ const headOf = (id: string, e: any) => {
   return e?.kind === "pay" || e?.kind === "carInsurance" || e?.kind === "floodCarRepair" ? HEAD.xar : e?.kind === "buy" || e?.kind === "courseSalaryPlus" || e?.kind === "charity" ? HEAD.kichik : e?.kind === "marketSale" || e?.kind === "debtRepaid" || e?.kind === "tenantLeft" ? HEAD.bozor : HEAD.big;
 };
 
-function CardArt({ file, text }: { file?: string; text: string }) {
-  const url = cardImageUrl(CARD_IMAGES_BASE, file); const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [url]);
-  if (!url || failed) return null;
-  return <Image source={{ uri: url }} accessibilityLabel={text} resizeMode="contain" style={s.art} onError={() => setFailed(true)} />;
-}
 
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
 function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
@@ -56,10 +50,12 @@ function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unkn
 }
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
-export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null }) {
+/** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
+export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
-  const [q, setQ] = useState(String(e?.min ?? 1));
+  const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
+  const artH = Math.round(sheet ? Math.min(300, vh * 0.34) : Math.min(360, vh * 0.4)); // asl rasm kesilmaydi, ekran balandligiga moslanadi
   const mandatory = card.mode === "mandatory", shares = e?.kind === "buyShares", hod7 = e?.kind === "payOrLoseBusiness", rent = e?.kind === "rentChoice", gamble = e?.kind === "gamble";
   const cashOnly = gamble || String(card.id).startsWith("big-"); // katta aylana biznesi: faqat naqd
   const qty = Number(q) || 0, cost = shares ? qty * (e.pricePerShare) : f.need;
@@ -73,8 +69,9 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
   const gainCash = e?.kind === "gain" ? e.amount : 0;
   const afterCash = me.cash - (cost ?? 0) + gainCash;
   const showChange = !rent && (cost !== null && cost !== undefined && cost > 0 || gainCash > 0 || (f.flowDelta ?? 0) !== 0);
-  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} /> : (
-    <View style={{ gap: space.md }}>
+  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} /> : null;
+  const body = (
+    <>
       <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
         {typeof die === "number" ? <Dice value={die} size={48} /> : <View style={[s.headIcon, { borderColor: H.border }]}><Icon name={H.icon} size={24} color={H.fg} /></View>}
         <View style={{ flex: 1 }}>
@@ -84,8 +81,8 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
         {left ? <TimerRing left={left} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
       </View>
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
-      <CardArt file={card.file} text={card.text} />
-      <Text style={s.text}>{card.text}</Text>
+      <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
+      <Text style={artOk ? s.sr : s.text} aria-hidden={artOk}>{card.text}</Text>
       {showChange && (
         <View style={{ gap: space.xs }}>
           <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>
@@ -103,6 +100,9 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
       {lack === 0 && cost ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
       <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote}</Text></View>
+    </>
+  );
+  const actions = (<>
       {!mandatory && rent && (<View style={{ gap: space.sm }}>
         <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => onAct({ type: "decide", accept: true })} />
         <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
@@ -111,16 +111,18 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die }: { 
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund}
           onPress={() => onAct({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />
         <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={cantFund && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
-    </View>
-  );
-  return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>;
+  </>);
+  if (e?.kind === "deckChoice") { if (layout) return <>{layout(<View style={{ gap: space.md }}>{inner}</View>, null)}</>; return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>; } // tugmalar DeckChoice ichida; layout bo'lsa ham chap ustun (moliya) saqlanadi
+  if (layout) return <>{layout(<View style={{ gap: space.md }}>{body}</View>, <View style={{ gap: space.sm }}>{actions}</View>)}</>;
+  const full = <View style={{ gap: space.md }}>{body}{actions}</View>;
+  return sheet ? full : <Card accent="gold" style={{ gap: space.md }}>{full}</Card>;
 }
 const s = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 1 },
   headIcon: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   headEyebrow: { fontSize: 12, fontWeight: "700" }, headTitle: { fontSize: font.xl, fontWeight: "800" },
   badges: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" },
-  art: { width: "100%", height: 200, borderRadius: radius.sm, backgroundColor: color.bg }, text: { color: color.navy, fontSize: font.lg, lineHeight: 24, fontWeight: "600" },
+  sr: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 }, text: { color: color.navy, fontSize: font.lg, lineHeight: 24, fontWeight: "600" },
   sec: { color: tone.muted, fontSize: 12, fontWeight: "800", letterSpacing: 0.8 },
   change: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 1, borderColor: "#E6ECEF", borderRadius: radius.md, paddingHorizontal: space.md, minHeight: 44 }, chL: { color: color.navy, fontSize: font.md }, chV: { fontSize: font.lg, fontWeight: "800", fontVariant: ["tabular-nums"] },
   facts: { backgroundColor: color.bg, borderRadius: radius.md, padding: space.md, gap: 2 },

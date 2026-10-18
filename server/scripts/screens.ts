@@ -12,7 +12,7 @@ const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 const sizes: [string, number, number][] = [["n", 390, 844], ["t", 1024, 768], ["d", 1440, 900]];
 for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env.ONLY.includes(t))) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ua" + tag), c = await mk("ub" + tag);
   const shot = async (p: any, n: string) => { await p.waitForTimeout(400); await p.screenshot({ path: `${OUT}/${tag}-${n}.png`, fullPage: false }); };
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await shot(a, "01-home");

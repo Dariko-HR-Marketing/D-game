@@ -45,15 +45,15 @@ function sellAny(s: GameState, pid: string): Action | null {
   return null;
 }
 
-export interface Result { games: number; policy: Policy; turnsPerGame: number[]; exits: number; wins: number; players: number; restarts: number; exitRounds: number[]; stuckCash: number[] }
+export interface Result { games: number; policy: Policy; turnsPerGame: number[]; exits: number; wins: number; players: number; restarts: number; exitRounds: number[]; exitMonths: number[]; bigMonths: number[]; stuckCash: number[] }
 
 export function run(games: number, policy: Policy, maxTurns: number, seed0 = 1): Result {
-  const r: Result = { games, policy, turnsPerGame: [], exits: 0, wins: 0, players: 0, restarts: 0, exitRounds: [], stuckCash: [] };
+  const r: Result = { games, policy, turnsPerGame: [], exits: 0, wins: 0, players: 0, restarts: 0, exitRounds: [], exitMonths: [], bigMonths: [], stuckCash: [] };
   for (let g = 0; g < games; g++) {
     const n = 2 + (g % 5);
     let s = newGame(ctx, Array.from({ length: n }, (_, i) => `p${i}`), seed0 + g);
     s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % dreams.length)));
-    const exitedAt = new Map<string, number>();
+    const exitedAt = new Map<string, number>(), exitMonthsOf = new Map<string, number>(); // o'yinchi → chiqish paytidagi jami oylar
     let t = 0;
     for (; t < maxTurns && !s.winner; t++) {
       const me = currentPlayer(s).id;
@@ -65,10 +65,10 @@ export function run(games: number, policy: Policy, maxTurns: number, seed0 = 1):
         const d = decide(s, policy, cur, e);
         const o2 = reduce(s, ctx, { type: "decide", playerId: me, ...d }); if (!o2.ok) throw new Error(o2.error); s = o2.state;
       }
-      for (const p of s.players) if (p.circle === "big" && !exitedAt.has(p.id)) exitedAt.set(p.id, s.round);
+      for (const p of s.players) if (p.circle === "big" && !exitedAt.has(p.id)) { exitedAt.set(p.id, s.round); exitMonthsOf.set(p.id, p.monthsPlayed ?? 0); }
     }
-    r.turnsPerGame.push(t); r.players += n; r.exits += exitedAt.size; r.exitRounds.push(...exitedAt.values());
-    if (s.winner) r.wins++; r.restarts += s.players.reduce((a, p) => a + p.restarts, 0);
+    r.turnsPerGame.push(t); r.players += n; r.exits += exitedAt.size; r.exitRounds.push(...exitedAt.values()); r.exitMonths.push(...exitMonthsOf.values());
+    if (s.winner) { r.wins++; const w = s.players.find((p) => p.id === s.winner); if (w && exitMonthsOf.has(w.id)) r.bigMonths.push((w.monthsPlayed ?? 0) - exitMonthsOf.get(w.id)!); } r.restarts += s.players.reduce((a, p) => a + p.restarts, 0);
     for (const p of s.players) if (p.circle === "small") r.stuckCash.push(p.cash);
   }
   return r;
@@ -78,7 +78,7 @@ const q = (xs: number[], f: number) => { const a = [...xs].sort((x, y) => x - y)
 export function report(r: Result) {
   const exitPct = (100 * r.exits) / r.players;
   return { policy: r.policy, games: r.games, players: r.players, exitedSmallCircle: `${exitPct.toFixed(1)} %`, gamesWithWinner: `${((100 * r.wins) / r.games).toFixed(1)} %`,
-    restartsPerPlayer: +(r.restarts / r.players).toFixed(2), medianTurnsPerGame: q(r.turnsPerGame, 0.5), exitRoundMedian: q(r.exitRounds, 0.5), exitRoundP90: q(r.exitRounds, 0.9),
+    restartsPerPlayer: +(r.restarts / r.players).toFixed(2), medianTurnsPerGame: q(r.turnsPerGame, 0.5), exitRoundMedian: q(r.exitRounds, 0.5), exitRoundP90: q(r.exitRounds, 0.9), exitMonthsMedian: q(r.exitMonths, 0.5), exitMonthsP10: q(r.exitMonths, 0.1), exitMonthsP90: q(r.exitMonths, 0.9), bigMonthsMedian: q(r.bigMonths, 0.5), bigMonthsP10: q(r.bigMonths, 0.1), bigMonthsP90: q(r.bigMonths, 0.9), exitMonthsMean: r.exitMonths.length ? Math.round(r.exitMonths.reduce((a, b) => a + b, 0) / r.exitMonths.length) : null,
     medianCashOfPlayersStillInSmallCircle: Math.round(q(r.stuckCash, 0.5)) };
 }
 if (process.argv[1]?.endsWith("sim.ts")) {

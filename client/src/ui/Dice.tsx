@@ -3,12 +3,15 @@ import { View, Text, Animated } from "react-native";
 import { animationMs, useReducedMotion } from "../motion";
 import { color, radius } from "../theme";
 import { uz } from "../i18n/uz";
+import { hasDom } from "./svg";
+import { Dice3D } from "./Dice3D";
 
 // Nuqtalar joyi (3×3 katak): 1..6
 const PIPS: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 
-/** Kubik yuzi. 7+ (xayriyada 2 kubik yig'indisi) bo'lsa raqam ko'rsatiladi. `n` — har yangi tashlashda o'zgaradi (animatsiya uchun). */
-export function Dice({ value, n, size = 64 }: { value: number | null; n?: number; size?: number }) {
+/** Kubik: veb — 3D (Dice3D), native — tekis yuz. 7+ (xayriyada 2 kubik yig'indisi) bo'lsa raqam ko'rsatiladi. `n` — har yangi tashlashda o'zgaradi (animatsiya uchun). */
+export function Dice(props: { value: number | null; n?: number; size?: number }) { return hasDom ? <Dice3D {...props} /> : <FlatDice {...props} />; }
+function FlatDice({ value, n, size = 64 }: { value: number | null; n?: number; size?: number }) {
   const reduced = useReducedMotion(); const a = useRef(new Animated.Value(1)).current;
   useEffect(() => { if (value === null) return; a.setValue(0); Animated.timing(a, { toValue: 1, duration: animationMs(reduced) * 1.6, useNativeDriver: true }).start(); }, [n, value, reduced, a]);
   const pad = size * 0.12, cell = Math.floor((size - 4 - pad * 2) / 3), dot = cell * 0.62; // 4 = ikki tomondagi ramka

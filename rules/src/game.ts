@@ -34,6 +34,7 @@ export interface DeckState { draw: string[]; discard: string[] }
 export interface HandDebt { id: number; to: string; amount: number; months: number; remindedRound?: number }
 export interface GamePlayer extends Player {
   skipTurns: number; handDebts: HandDebt[]; dreamIdx: number | null; lockedFlow: number; points: number; restarts: number; won: boolean;
+  monthsPlayed?: number; // o'yin boshidan o'tgan jami oylar (har bir «D»/«Yana pullar» katagidan o'tish — 1 oy, §5.1); faqat ko'rsatish uchun, qoidalarga ta'sir qilmaydi
   noSalary?: number;  // «Ishdan bo'shadingiz!» (Q): qolgan oylar — maosh yo'q, xarajat to'lanadi (qo'llanma §06)
   quitJob?: boolean;  // 3-kichik yoki 1-katta biznesdan keyin maosh to'xtaydi (qo'llanma §09)
   shady?: number;     // «Nohalol biznes» katagiga necha marta tushgan (qo'llanma §11)
@@ -130,7 +131,7 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady }; // jahon inqirozi yangi kasbga ham tegishli
+  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
 }
 
 /** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */
@@ -306,7 +307,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   let p = s.players[idx(s, pid)];
   const { pos, months } = monthsFor(ctx, p, die);
   const oldPos = p.pos;
-  p = { ...p, pos };
+  p = { ...p, pos, monthsPlayed: (p.monthsPlayed ?? 0) + months };
   for (let m = 0; m < months; m++) {
     const held = (p.noSalary ?? 0) > 0 ? p.salary : 0; // «Ishdan bo'shadingiz!»: maosh yo'q, xarajat to'lanadi
     const base = playerCashflow(p) - held;

@@ -21,12 +21,12 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
   };
   return (
     <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={480}>
-      <Card style={{ alignItems: "center", gap: space.md }}>
+      <View testID="lobby-code"><Card style={{ alignItems: "center", gap: space.md }}>
         <Text style={s.codeLabel}>{uz.home.code}</Text>
         <Text style={s.code} selectable accessibilityLabel={`${uz.home.code}: ${room.code.split("").join(" ")}`}>{room.code}</Text>
         <View style={{ alignSelf: "stretch" }}><Button label={copied ? uz.lobby.copied : uz.lobby.copy} kind="ghost" onPress={copy} /></View>
         <View accessibilityLiveRegion="polite"><Text style={s.sr}>{copied ? uz.lobby.copied : ""}</Text></View>
-      </Card>
+      </Card></View>
 
       <Card>
         <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${MAX}`} kind={humans >= MIN ? "good" : "warn"} /></View>
@@ -51,7 +51,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
       {host && (
         <Card>
-          <Pressable role="switch" aria-checked={events} aria-label={uz.lobby.events} onPress={() => setEvents((v) => !v)} style={s.switchRow}>
+          <Pressable testID="lobby-events" role="switch" aria-checked={events} aria-label={uz.lobby.events} onPress={() => setEvents((v) => !v)} style={s.switchRow}>
             <View style={{ flex: 1 }}><Text style={s.name}>{uz.lobby.events}</Text><Text style={s.emptyT}>{uz.lobby.eventsHint}</Text></View>
             <View style={[s.track, events && { backgroundColor: GREEN_TEXT }]} aria-hidden><View style={[s.knob, events && { alignSelf: "flex-end" }]} /></View>
           </Pressable>

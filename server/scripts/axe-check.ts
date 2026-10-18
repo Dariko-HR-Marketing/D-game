@@ -22,7 +22,7 @@ const scan = async (p: any, name: string) => {
   console.log(name.padEnd(22), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 80)}`).join(" | ") : "OK");
 };
 for (const [w, h] of [[390, 844], [1024, 768], [1440, 900]] as [number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ua" + w), c = await mk("ub" + w); const tag = `${w}px`;
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await scan(a, `bosh sahifa ${tag}`);
   await a.getByRole("button", { name: "Qoidalar", exact: true }).first().click(); await a.waitForSelector("text=O'yin qoidalari"); await scan(a, `qoidalar ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
@@ -33,7 +33,7 @@ for (const [w, h] of [[390, 844], [1024, 768], [1440, 900]] as [number, number][
   await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
   await scan(a, `xona ${tag}`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await scan(a, `orzu tanlash ${tag}`);
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await scan(a, `yo'riqnoma ${tag}`);
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await a.getByTestId("tour-help").click(); await a.getByRole("dialog").waitFor(); await scan(a, `yo'riqnoma ${tag}`);
   { // klaviatura: fokus oynadan chiqmaydi, Esc yopadi
     let out = 0; for (let k = 0; k < 8; k++) { await a.keyboard.press("Tab"); if (!(await a.evaluate(() => !!document.activeElement?.closest('[role="dialog"]')))) out++; }
     await a.keyboard.press("Escape"); await a.waitForTimeout(200); const still = await a.getByRole("dialog").count();

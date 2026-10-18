@@ -11,7 +11,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 const tryClick = async (l: any) => { try { await l.first().click({ timeout: 2500 }); return true; } catch { return false; } };
 let failed = 0; const fail = (m: string) => { failed++; console.log("✗", m); };
 for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [string, number, number][]) {
-  const c = await b.newContext({ viewport: { width: w, height: h } }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), "e2e-" + tag);
+  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, "e2e-" + tag);
   const p = await c.newPage(); const errors: string[] = [];
   p.on("pageerror", (e) => errors.push("pageerror: " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();

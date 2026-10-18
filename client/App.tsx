@@ -16,6 +16,9 @@ import { Leaderboard } from "./src/ui/Leaderboard";
 import { ShopScreen, ClassScreen, TournamentScreen } from "./src/ui/Biz";
 import { httpBase, makeHttp, makeAuth } from "./src/net/http";
 import { Login } from "./src/ui/Login";
+import { Tour } from "./src/ui/Tour";
+import { gameTourId, type TourId } from "./src/tours";
+import { isMyTurn } from "./src/model";
 import { color } from "./src/theme";
 import { errText, uz } from "./src/i18n/uz";
 import { Button } from "./src/ui/Button";
@@ -73,23 +76,28 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "POYGA"; } }, []);
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
   const room = st.room;
+  // Sahifa yo'riqnomasi: har sahifada birinchi kirishda bir marta; o'yinda — o'yinchi turgan aylana uchun alohida (kichik/katta)
+  const myCircle = room?.state?.players?.find((p: any) => p.id === userId)?.circle as string | undefined;
+  const SCREEN_TOUR: Record<string, TourId | null> = { home: "home", profile: "profile", board: "leaderboard", shop: "shop", class: "class", tournaments: "tournaments", rules: null };
+  const tourId: TourId | null = rulesOpen ? null : !room ? SCREEN_TOUR[screen] ?? null : room.closed ? null : !room.state ? "lobby" : room.state.phase === "dreams" ? "dreams" : room.state.winner ? "result" : gameTourId(myCircle);
   return (
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
       <View role="main" style={{ flex: 1 }}>
       {rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
-        : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} />
+        : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
         : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
         : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
         : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
-        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} />{session.token !== session.userId && <View style={{ padding: 12, alignItems: "center" }}><Button label={uz.login.logout} kind="ghost" onPress={onLogout} /></View>}</>
+        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={() => conn.create()} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} />}
       </View>
+      <Tour id={tourId} defer={!!room?.state && (tourId === "game-small" || tourId === "game-big") && isMyTurn(room, userId)} onRules={() => setRulesOpen(true)} />
     </SafeAreaView>
   );
 }
