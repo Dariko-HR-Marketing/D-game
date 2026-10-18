@@ -15,17 +15,17 @@ const months = (p: any): number => (typeof p?.monthsPlayed === "number" ? p.mont
  */
 export function TimeBar({ room, userId, settled }: { room: RoomView; userId: string; settled: boolean }) {
   const st = room.state, players: any[] = st.players, mine = players.find((p) => p.id === userId);
-  const total = months(mine); const [shown, setShown] = useState(total); const [delta, setDelta] = useState<{ who: string; m: number } | null>(null);
-  const prev = useRef<Record<string, number>>(Object.fromEntries(players.map((p) => [p.id, months(p)]))); const seen = useRef<number | undefined>((st.lastRoll as any)?.n);
+  const total = months(mine); const [shown, setShown] = useState(total); const [pending, setPending] = useState<{ who: string; m: number } | null>(null); const [delta, setDelta] = useState<{ who: string; m: number } | null>(null);
+  const last = useRef<Record<string, number>>(Object.fromEntries(players.map((p) => [p.id, months(p)]))); const seen = useRef<number | undefined>((st.lastRoll as any)?.n);
   const lr = st.lastRoll as { n: number; playerId: string } | null | undefined;
-  useEffect(() => { if (settled) setShown(total); }, [settled, total]);
+  // Har bir holat yangilanishida (fishka yurib bo'lishini kutmasdan) tashlagan o'yinchining oylar farqi olinadi: ketma-ket ikki tashlash birlashib ketmaydi
   useEffect(() => {
-    if (!lr || lr.n === seen.current || !settled) return; seen.current = lr.n;
-    const p = players.find((x) => x.id === lr.playerId), d = months(p) - (prev.current[lr.playerId] ?? 0);
-    prev.current = Object.fromEntries(players.map((x) => [x.id, months(x)]));
-    if (d > 0) { setDelta({ who: lr.playerId, m: d }); const h = setTimeout(() => setDelta(null), 5000); return () => clearTimeout(h); }
-  }, [lr?.n, settled]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (settled) prev.current = Object.fromEntries(players.map((x) => [x.id, months(x)])); }, [settled, st]); // eslint-disable-line react-hooks/exhaustive-deps
+    const now = Object.fromEntries(players.map((p) => [p.id, months(p)]));
+    if (lr && lr.n !== seen.current) { seen.current = lr.n; const d = (now[lr.playerId] ?? 0) - (last.current[lr.playerId] ?? 0); if (d > 0) setPending({ who: lr.playerId, m: d }); }
+    last.current = now;
+  }, [st]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (settled) setShown(total); }, [settled, total]); // jami vaqt fishka yurib bo'lgach yangilanadi (kamaytirilgan harakatda — darrov)
+  useEffect(() => { if (!pending || !settled) return; setDelta(pending); setPending(null); const h = setTimeout(() => setDelta(null), 5000); return () => clearTimeout(h); }, [pending, settled]);
   const { months: inYear, total: all } = splitMonths(shown); const w = { year: uz.time.year, month: uz.time.month };
   const text = monthsText(all, w);
   return (

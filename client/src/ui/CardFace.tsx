@@ -17,7 +17,7 @@ export function CardFace({ file, label, maxH, onState }: { file?: string; label:
   return (
     <Animated.View style={[s.frame, { opacity: ok ? v.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 1, 1] }) : 0, height: ok ? undefined : 0,
       transform: [{ perspective: 1000 }, { rotateY: v.interpolate({ inputRange: [0, 1], outputRange: ["-78deg", "0deg"] }) }, { scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }]}>
-      <Image source={{ uri: url }} accessibilityLabel={label} resizeMode="contain" style={{ height: maxH, aspectRatio: ratio, maxWidth: "100%" }}
+      <Image source={{ uri: url }} role="img" accessibilityLabel={label} resizeMode="contain" style={{ height: maxH, aspectRatio: ratio, maxWidth: "100%" }}
         onLoad={(e: any) => { const w = e?.nativeEvent?.source?.width ?? e?.nativeEvent?.width, h = e?.nativeEvent?.source?.height ?? e?.nativeEvent?.height; if (w && h) setRatio(w / h); setOk(true); onState?.(true); }}
         onError={() => { setOk(false); onState?.(false); }} />
     </Animated.View>

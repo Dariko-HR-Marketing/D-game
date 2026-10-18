@@ -18,7 +18,7 @@ export function useGameSounds({ room, userId, settled, mineTurn, left }: { room:
   const st = room.state; const reduced = useReducedMotion();
   const lr = st.lastRoll as { n: number } | null | undefined, lc = st.lastCard as { n: number } | null | undefined;
   const mine = st.players.find((p: any) => p.id === userId);
-  const seenRoll = useRef(lr?.n), seenCard = useRef(lc?.n), cash = useRef<number | undefined>(mine?.cash), turnKey = useRef<string | null>(null), ended = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]), seenRoll = useRef(lr?.n), seenCard = useRef(lc?.n), cash = useRef<number | undefined>(mine?.cash), turnKey = useRef<string | null>(null), ended = useRef(false);
   useEffect(() => {
     if (!lr || lr.n === seenRoll.current) return; seenRoll.current = lr.n;
     if (reduced) { sfx.play("land"); return; }
@@ -34,8 +34,9 @@ export function useGameSounds({ room, userId, settled, mineTurn, left }: { room:
   useEffect(() => {
     if (!settled || mine?.cash === undefined) return; const prev = cash.current; cash.current = mine.cash;
     if (prev === undefined || prev === mine.cash) return;
-    const name: Sfx = mine.cash > prev ? "gain" : "pay"; const h = setTimeout(() => sfx.play(name), 380); return () => clearTimeout(h);
+    const name: Sfx = mine.cash > prev ? "gain" : "pay"; timers.current.push(setTimeout(() => sfx.play(name), 380)); // bekor qilinmaydi: ketma-ket o'zgarishlarda ham har biri chalinadi
   }, [mine?.cash, settled]);
+  useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
   useEffect(() => { if (mineTurn && !st.winner && left > 0 && left <= 5) sfx.play("tick"); }, [left, mineTurn, st.winner]);
   useEffect(() => { if (!st.winner || ended.current) return; ended.current = true; sfx.play(st.winner === userId ? "win" : "lose"); }, [st.winner, userId]);
 }

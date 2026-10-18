@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pressable } from "react-native";
 import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
@@ -71,11 +71,14 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const sideW = 380, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
   // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
   const pad = boardPad(wide), short = wide && height < 820, reserveH = HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
-  let boardWidth = wide ? Math.min(Math.max(width - sideW - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, 460), tight = false;
-  if (wide) {
-    while (boardWidth > 560 && boardGeometry(boardWidth, true, nCells).H > height - reserveH) boardWidth -= 20;
-    if (boardGeometry(boardWidth, true, nCells).H > height - reserveH) { tight = true; while (boardWidth > 480 && boardGeometry(boardWidth, true, nCells, true).H > height - reserveH) boardWidth -= 20; }
-  }
+  const { boardWidth, tight } = useMemo(() => { // faqat oyna/aylana o'zgarganda qayta hisoblanadi (har kadrda emas)
+    let w = wide ? Math.min(Math.max(width - sideW - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, 460), t = false;
+    if (wide) {
+      while (w > 560 && boardGeometry(w, true, nCells).H > height - reserveH) w -= 20;
+      if (boardGeometry(w, true, nCells).H > height - reserveH) { t = true; while (w > 480 && boardGeometry(w, true, nCells, true).H > height - reserveH) w -= 20; }
+    }
+    return { boardWidth: w, tight: t };
+  }, [wide, width, height, nCells, pad, reserveH]);
   const sheetOpen = !wide && !!card && mineTurn;
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
@@ -161,7 +164,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
               <DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} left={left} die={myDie}
-                layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.hud.ixtiyoriy} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} />
+                layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
         ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={s.sideScroll}>{sideMain}</ScrollView>}
@@ -204,7 +207,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
           <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} sheet left={left} die={myDie}
-            layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.hud.ixtiyoriy} style={{ flexShrink: 1 }}>{body}</ScrollView><View style={s.decideActions}>{actions}</View></View>)} /></CardEnter>
+            layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
         items={[{ key: "field", label: uz.hud.tabs.field, icon: "board" }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart" }, { key: "players", label: uz.hud.tabs.players, icon: "people" }, { key: "rules" as any, label: uz.hud.tabs.rules, icon: "book" }]} />

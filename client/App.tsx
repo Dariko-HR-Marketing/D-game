@@ -18,6 +18,7 @@ import { httpBase, makeHttp, makeAuth } from "./src/net/http";
 import { Login } from "./src/ui/Login";
 import { Tour } from "./src/ui/Tour";
 import { gameTourId, type TourId } from "./src/tours";
+import { isMyTurn } from "./src/model";
 import { color } from "./src/theme";
 import { errText, uz } from "./src/i18n/uz";
 import { Button } from "./src/ui/Button";
@@ -96,7 +97,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} />}
       </View>
-      <Tour id={tourId} onRules={() => setRulesOpen(true)} />
+      <Tour id={tourId} defer={!!room?.state && (tourId === "game-small" || tourId === "game-big") && isMyTurn(room, userId)} onRules={() => setRulesOpen(true)} />
     </SafeAreaView>
   );
 }

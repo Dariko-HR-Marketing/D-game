@@ -3,10 +3,10 @@ export const MONTHS_PER_YEAR = 12;
 export const MONTHS_PER_LAP = 4;
 
 /**
- * Taxminiy davomiylik (oy): `rules/sim` (smart bot, 60 o'yin, ≤ 2500 navbat) o'lchovi — docs/BALANCE.md «O'yin vaqti».
+ * Taxminiy davomiylik (oy): `rules/sim` (smart bot, 40 o'yin, ≤ 9000 navbat) o'lchovi; o'yin birinchi g'olibda tugaydi, shuning uchun mediana faqat chiqib/yutib ulgurgan o'yinchilar bo'yicha — docs/BALANCE.md «O'yin vaqti».
  * Bu — botlar bilan o'lchangan taxmin, qoida emas; haqiqiy o'yinchilarda farq qiladi. Buyurtmachi tasdig'i kutilmoqda (OPEN_QUESTIONS).
  */
-export const ESTIMATE = { smallExitMonths: 172, smallExitRange: [141, 218], bigWinMonths: 58, bigWinRange: [38, 94] } as const;
+export const ESTIMATE = { smallExitMonths: 172, smallExitRange: [141, 218], bigWinMonths: 59, bigWinRange: [38, 94] } as const;
 
 export const splitMonths = (m: number) => { const t = Math.max(0, Math.floor(m)); return { years: Math.floor(t / MONTHS_PER_YEAR), months: t % MONTHS_PER_YEAR, total: t }; };
 /** «2 yil 5 oy», «5 oy», «3 yil». */

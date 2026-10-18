@@ -53,7 +53,7 @@ export function run(games: number, policy: Policy, maxTurns: number, seed0 = 1):
     const n = 2 + (g % 5);
     let s = newGame(ctx, Array.from({ length: n }, (_, i) => `p${i}`), seed0 + g);
     s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % dreams.length)));
-    const exitedAt = new Map<string, number>(), exitedMonths: number[] = [], exitMonthsOf = new Map<string, number>();
+    const exitedAt = new Map<string, number>(), exitMonthsOf = new Map<string, number>(); // o'yinchi → chiqish paytidagi jami oylar
     let t = 0;
     for (; t < maxTurns && !s.winner; t++) {
       const me = currentPlayer(s).id;
@@ -65,10 +65,10 @@ export function run(games: number, policy: Policy, maxTurns: number, seed0 = 1):
         const d = decide(s, policy, cur, e);
         const o2 = reduce(s, ctx, { type: "decide", playerId: me, ...d }); if (!o2.ok) throw new Error(o2.error); s = o2.state;
       }
-      for (const p of s.players) if (p.circle === "big" && !exitedAt.has(p.id)) { exitedAt.set(p.id, s.round); exitedMonths.push((p as any).monthsPlayed ?? 0); exitMonthsOf.set(p.id, (p as any).monthsPlayed ?? 0); }
+      for (const p of s.players) if (p.circle === "big" && !exitedAt.has(p.id)) { exitedAt.set(p.id, s.round); exitMonthsOf.set(p.id, p.monthsPlayed ?? 0); }
     }
-    r.turnsPerGame.push(t); r.players += n; r.exits += exitedAt.size; r.exitRounds.push(...exitedAt.values()); r.exitMonths.push(...exitedMonths);
-    if (s.winner) { r.wins++; const w = s.players.find((p) => p.id === s.winner) as any; if (w && exitMonthsOf.has(w.id)) r.bigMonths.push((w.monthsPlayed ?? 0) - exitMonthsOf.get(w.id)!); } r.restarts += s.players.reduce((a, p) => a + p.restarts, 0);
+    r.turnsPerGame.push(t); r.players += n; r.exits += exitedAt.size; r.exitRounds.push(...exitedAt.values()); r.exitMonths.push(...exitMonthsOf.values());
+    if (s.winner) { r.wins++; const w = s.players.find((p) => p.id === s.winner); if (w && exitMonthsOf.has(w.id)) r.bigMonths.push((w.monthsPlayed ?? 0) - exitMonthsOf.get(w.id)!); } r.restarts += s.players.reduce((a, p) => a + p.restarts, 0);
     for (const p of s.players) if (p.circle === "small") r.stuckCash.push(p.cash);
   }
   return r;

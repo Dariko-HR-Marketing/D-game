@@ -31,11 +31,11 @@ Simulyator `rules` dvigatelining o'zini ishlatadi (alohida nusxa yo'q). 2–6 o'
 ## O'yin vaqti: oyma-oy (yo'riqnoma va vaqt paneli uchun)
 SPEC §5.1: har bir «D» katagidan o'tish yoki tushish — 1 oy (kichik aylanada 4 ta «D» = 4 oy; 3 aylana = 12 oy = 1 yil; inqiroz 9 aylana = 36 oy = 3 yil, §5.7). Katta aylanada oy «Yana pullar» katagida (4 ta). Dvigatel o'yinchi bo'yicha `monthsPlayed` ni sanaydi.
 
-O'lchov: `cd rules && npx tsx sim/sim.ts 60 smart 2500` (smart bot, 60 o'yin, 240 o'yinchi, ≤ 2500 navbat; qayta boshlashlar hisobga olingan):
+O'lchov: `cd rules && npx tsx sim/sim.ts 40 smart 9000` (smart bot, 40 o'yin, 160 o'yinchi, ≤ 9000 navbat; qayta boshlashlar hisobga olingan):
 
 | Bosqich | Median | 10 % | 90 % | Yil (median) |
 |---|---|---|---|---|
 | Kichik aylanadan chiqish (boshidan) | 172 oy | 141 | 218 | ≈ 14.3 yil (≈ 43 aylana) |
-| Katta aylanada g'alabagacha (chiqqandan keyin) | 58 oy | 38 | 94 | ≈ 4.8 yil |
+| Katta aylanada g'alabagacha (chiqqandan keyin) | 59 oy | 38 | 94 | ≈ 4.8 yil |
 
-Ogohlantirishlar: 1) bu bot siyosati — haqiqiy o'yinchilar farq qiladi; 2) faqat chiqqan/yutgan o'yinchilar hisoblanadi (o'lchovda 240 o'yinchidan ~26 % chiqdi, 43 % o'yinda g'olib bor), ya'ni «tez» yo'llar tanlanadi; 3) qoidalar o'zgarsa raqamlar o'zgaradi — `client/src/estimates.ts` ni shu jadvalga mos yangilash kerak. Tasdiq: OPEN_QUESTIONS №114.
+Ogohlantirishlar: 1) bu bot siyosati — haqiqiy o'yinchilar farq qiladi; 2) faqat chiqqan/yutgan o'yinchilar hisoblanadi (o'yin birinchi g'olibda tugaydi, shuning uchun medianlar faqat chiqqan/yutgan o'yinchilar uchun), ya'ni «tez» yo'llar tanlanadi; 3) qoidalar o'zgarsa raqamlar o'zgaradi — `client/src/estimates.ts` ni shu jadvalga mos yangilash kerak. Tasdiq: OPEN_QUESTIONS №114.

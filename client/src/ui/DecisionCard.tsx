@@ -112,7 +112,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
           onPress={() => onAct({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />
         <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={cantFund && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
   </>);
-  if (e?.kind === "deckChoice") return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>;
+  if (e?.kind === "deckChoice") { if (layout) return <>{layout(<View style={{ gap: space.md }}>{inner}</View>, null)}</>; return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>; } // tugmalar DeckChoice ichida; layout bo'lsa ham chap ustun (moliya) saqlanadi
   if (layout) return <>{layout(<View style={{ gap: space.md }}>{body}</View>, <View style={{ gap: space.sm }}>{actions}</View>)}</>;
   const full = <View style={{ gap: space.md }}>{body}{actions}</View>;
   return sheet ? full : <Card accent="gold" style={{ gap: space.md }}>{full}</Card>;

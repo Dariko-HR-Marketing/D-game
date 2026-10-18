@@ -131,7 +131,7 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqiroz; o'tgan oylar yo'qolmaydi (vaqt davom etadi)i yangi kasbga ham tegishli
+  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
 }
 
 /** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */

@@ -23,11 +23,16 @@ const measure = (testID?: string): Rect | null => {
  * Sahifa yo'riqnomasi (onboarding): har bir sahifa uchun alohida, birinchi kirishda BIR MARTA. Veb'da kerakli element yoritiladi (spotlight),
  * karta shu element yonida chiqadi; element ko'rinmasa (masalan, telefonda boshqa bo'limda) — markazda. Esc/«O'tkazib yuborish» yopadi.
  */
-export function Tour({ id, onRules }: { id: TourId | null; onRules: () => void }) {
+export function Tour({ id, onRules, defer }: { id: TourId | null; onRules: () => void; defer?: boolean }) {
   const [open, setOpen] = useState(false); const [i, setI] = useState(0); const [rect, setRect] = useState<Rect | null>(null); const [box, setBox] = useState({ w: 400, h: 280, ready: false });
   const { width: vw, height: vh } = useWindowDimensions(); const reduced = useReducedMotion(); const card = useRef<any>(null);
   const steps = id ? uz.tour[id] ?? [] : []; const meta = id ? TOUR_META[id] : []; const last = i >= steps.length - 1;
-  useEffect(() => { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(!!id && steps.length > 0 && shouldShowTour(tourKV, id)); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const prevId = useRef<TourId | null>(null);
+  // `defer`: o'yinda o'z navbatingiz davomida yo'riqnoma ochilmaydi (server taymeri to'xtamaydi); navbat o'tgach ochiladi. Ochiq yo'riqnoma yopilmaydi.
+  useEffect(() => {
+    const changed = prevId.current !== id; prevId.current = id; const want = !!id && steps.length > 0 && !defer && shouldShowTour(tourKV, id);
+    if (changed) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(want); } else if (want) setOpen(true);
+  }, [id, defer]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => onReplay(() => { if (id && steps.length) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(true); } }), [id, steps.length]);
   const close = () => { if (id) markTourSeen(tourKV, id); setOpen(false); };
   // Maqsadni o'lchash: qadam o'zgarganda, oyna o'zgarganda va joylashuv tinchigach
