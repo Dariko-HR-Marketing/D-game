@@ -42,7 +42,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom); const lastDecide = React.useRef<Record<string, unknown> | null>(null);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
-  const artH = Math.round(sheet ? Math.min(300, vh * 0.34) : Math.min(360, vh * 0.4)); // asl rasm kesilmaydi, ekran balandligiga moslanadi
+  const artH0 = Math.round(sheet ? Math.min(300, vh * 0.34) : Math.min(360, vh * 0.4)); // asl rasm kesilmaydi, ekran balandligiga moslanadi
   const mandatory = card.mode === "mandatory", shares = e?.kind === "buyShares", hod7 = e?.kind === "payOrLoseBusiness", rent = e?.kind === "rentChoice", gamble = e?.kind === "gamble";
   const cashOnly = gamble || String(card.id).startsWith("big-"); // katta aylana biznesi: faqat naqd
   const qty = Number(q) || 0, cost = shares ? qty * (e.pricePerShare) : f.need;
@@ -57,7 +57,8 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const afterCash = me.cash - (cost ?? 0) + gainCash;
   const showChange = !rent && (cost !== null && cost !== undefined && cost > 0 || gainCash > 0 || (f.flowDelta ?? 0) !== 0);
   // Hisob daftari (o'quv rejimi): «oldin → keyin» tayyor ko'rsatilmaydi — o'yinchi o'zi hisoblab kiritadi, server tekshiradi. Natijasi kubikka bog'liq tavakkal biznesda oldindan hisoblab bo'lmaydi.
-  const manual = !!calcMode; const needLedger = manual && !gamble && (showChange || shares || hod7 || calcFb?.error === "calc_required");
+  const manual = !!calcMode; const artH = manual && !gamble ? Math.min(artH0, Math.round(Math.max(150, vh * 0.2))) : artH0; // hisob maydonlari ko'rinadigan joyda qolsin
+  const needLedger = manual && !gamble && (showChange || shares || hod7 || calcFb?.error === "calc_required");
   const act = (a: Record<string, unknown>) => { if (a.type === "decide" && a.accept) lastDecide.current = a; onAct(a); };
   const snap = { cash: me.cash, passive: exitProgress(me).passive, flow: exitProgress(me).cashflow };
   const ledger = useLedger(snap, calcFb);
@@ -90,9 +91,9 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       {lack > 0 && bankOk && <Banner kind="warn">{uz.facts.short}: {money(lack)}. {uz.facts.bankAuto}.</Banner>}
       {lack > 0 && cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {uz.facts.cashOnly}.</Banner>}
       {cantFund && !cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {purchase ? uz.facts.bankNo : uz.facts.cashNeeded}.</Banner>}
-      {lack === 0 && cost ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
+      {lack === 0 && cost && !manual ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
-      {needLedger && <View style={s.ledger} testID="decision-ledger" role="group" aria-label={uz.ledger.decideTitle}><Text style={s.ledgerT} aria-level={3} accessibilityRole="header">{uz.ledger.decideTitle}</Text><Text style={s.noteT}>{uz.ledger.decideHint}</Text>{ledger.body}</View>}
+      {needLedger && <View style={s.ledger} testID="decision-ledger" role="group" aria-label={uz.ledger.decideTitle}><Text style={s.ledgerT} aria-level={3} accessibilityRole="header">{uz.ledger.decideTitle}</Text>{ledger.body}</View>}
       <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>
     </>
   );
@@ -126,7 +127,7 @@ const s = StyleSheet.create({
   input: { minHeight: 44, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, backgroundColor: color.white, color: color.navy },
   note: { flexDirection: "row", gap: space.sm, alignItems: "flex-start", backgroundColor: color.bg, borderRadius: radius.md, padding: space.md }, noteT: { color: tone.muted, fontSize: font.sm, lineHeight: 19, flex: 1 },
   warn: { flexDirection: "row", gap: space.sm, alignItems: "flex-start", backgroundColor: "#FFF6DD", borderRadius: radius.md, padding: space.md }, warnT: { color: "#6B4300", fontSize: font.sm, lineHeight: 19, flex: 1, fontWeight: "600" },
-  ledger: { gap: space.sm, backgroundColor: "#F7FAFB", borderRadius: radius.lg, borderWidth: 2, borderColor: color.navy, padding: space.md }, ledgerT: { color: color.navy, fontWeight: "800", fontSize: font.md },
+  ledger: { gap: space.sm, backgroundColor: "#F7FAFB", borderRadius: radius.lg, borderWidth: 2, borderColor: color.navy, padding: space.sm + 2 }, ledgerT: { color: color.navy, fontWeight: "800", fontSize: font.md },
   deckTitle: { color: color.navy, fontSize: font.xl, fontWeight: "800" },
   deckTile: { flex: 1, borderWidth: 2, borderColor: color.navy, borderRadius: radius.lg, padding: space.sm, gap: 4, backgroundColor: color.white },
   deckArt: { height: 104, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: space.sm }, deckArtT: { fontWeight: "900", fontSize: 18, textAlign: "center", letterSpacing: 0.5 },

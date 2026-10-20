@@ -110,7 +110,7 @@ export const uz = {
   ledger: {
     cash: "Naqd", passive: "Passiv daromad", flow: "Oylik pul oqimi", now: "Hozir", newWord: "yangi", minus: "minus", attempt: "urinish",
     gateTitle: "Hisobingiz o'zgardi — yangilang", gateHint: "Yangi qiymatlarni o'zingiz hisoblab kiriting. Shundan keyin kubik tashlash ochiladi. Ma'lumot: chapdagi «Moliyaviy holat».", gateSubmit: "Tasdiqlash",
-    decideTitle: "Qabul qilsangiz hisobingiz qanday bo'ladi?", decideHint: "Karta ma'lumotlariga qarab o'zingiz hisoblang. «Oldin» qiymatlar yonida ko'rsatilgan.", decideSubmit: "Hisoblab qabul qilish",
+    decideTitle: "Qabul qilsangiz hisobingiz qanday bo'ladi? Hisoblang:", decideHint: "Karta ma'lumotlaridan o'zingiz hisoblang.", decideSubmit: "Hisoblab qabul qilish",
     wrong: "Hisob noto'g'ri. Qayta hisoblang.", solution: "To'g'ri javob", useSolution: "Javobni qo'yish", right: "To'g'ri!", modeLabel: "Hisob", manual: "O'zim hisoblayman", auto: "Avtomatik", manualHint: "Pul o'zgarishini o'zingiz hisoblab kiritasiz — moliyaviy savodxonlik mashqi", autoHint: "Hisob avtomatik",
     gateSide: "Hisobingiz o'zgardi. Yangi qiymatlarni chap tomonda kiriting.", badge: "Hisob", due: "Hisobni yangilash kerak", accuracy: "Hisob aniqligi",
   },

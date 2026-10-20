@@ -71,6 +71,8 @@ docker compose logs -f server       # "tiklangan o'yinlar: 0", "Server listening
 - Server qayta ishga tushirilsa (`docker compose restart server`) faol o'yin bazadan tiklanadi.
 
 ## Karta rasmlari (§2.5)
+**Tayyor yo'l:** dizayner paketi («Kartalar kutubxonasi» maketi, `…maketlari_4.html`) bo'lsa — `python3 deploy/vps/extract-cards.py <paket.html> deploy/vps/cards` rasmlarni `cards.json` dagi `file` nomlari bilan o'zi chiqaradi va tartibni tekshiradi (411 ta; «Reklama agenti» kasb kartasi va 6 ta yangi kartaning rasmi paketda yo'q). Keyin papkani serverga ko'chiring (quyida).
+
 Rasm fayllari (`KB_001.png`, `01_BEGONA_FIRMA_DIREKTORI.png` va h.k.) alohida beriladi va repoga qo'shilmaydi. Hammasini **bitta tekis papkaga** (`deploy/vps/cards/`) qo'ying, masalan: `scp -r cards/* deploy@<server>:~/D-game/deploy/vps/cards/`. Nomlar `content/data/cards.json` dagi `file` maydoniga aynan mos bo'lishi shart (katta-kichik harf ham). Qayta qurish kerak emas: Caddy papkani to'g'ridan-to'g'ri o'qiydi, mijoz `https://game.<domen>/cards/<fayl>` dan oladi. Fayl bo'lmasa karta matn bilan chiqadi.
 
 
