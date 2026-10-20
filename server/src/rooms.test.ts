@@ -95,6 +95,13 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
     await clock.advance(60_000 - DECISION_MS - 5_000);
     expect(rm.rooms.get(r.code)!.seq).toBeGreaterThan(0);
   });
+  it("ko'rinishda aktiv kodi bo'yicha asl karta (matn, tur) beriladi — «Mening kartalarim» uchun", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 3, { dreams: false });
+    const room = rm.rooms.get(r.code)!; const buy = Object.values(room.ctx.effects).map((c) => c.effect as any).find((e) => e.kind === "buy" && e.code)!;
+    expect(rm.view(room).assetCards).toEqual({});
+    room.state!.players[0].assets.push({ kind: "buy", code: buy.code, price: buy.price, monthlyIncome: 100, creditPayment: 0, credit: 0 });
+    const v = rm.view(room).assetCards!; expect(v[buy.code].text.length).toBeGreaterThan(5); expect(v[buy.code].asset).toBe(buy.asset);
+  });
   it("standart qaror vaqti 30 s va saqlangan xona tiklanganda tanlangan vaqt saqlanadi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0;
     expect(rm.rooms.get(r.code)!.turnSeconds).toBe(30);

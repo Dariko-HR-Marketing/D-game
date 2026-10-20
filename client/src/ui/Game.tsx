@@ -8,6 +8,7 @@ import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
 import { FxLayer } from "./FxLayer";
 import { CountText } from "./CountText";
+import { PortfolioCard, PortfolioDetail } from "./Portfolio";
 import { useFx } from "../useFx";
 import { BottomNav } from "./BottomNav";
 import { Icon } from "./Icon";
@@ -62,7 +63,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
 export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules, error, status }: { error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
-  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const { width, height } = useWindowDimensions();
   const wide = width >= 900; // planshet/kompyuter: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
@@ -139,6 +140,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
+      {mine && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
     </View>
   );
@@ -163,6 +165,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       <Text style={s.hSub}>{state.round}-{uz.hud.turnWord}</Text>
       <View style={{ flex: 1 }} />
       {wide && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={s.hBtn} testID="portfolio-open"><Icon name="file" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
       <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={s.hBtn} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.hBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={s.hBtn}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
@@ -173,6 +176,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
     <View style={{ height, overflow: "hidden" as any }}>
       <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
+      {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine ? (
@@ -202,6 +206,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
+      {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
