@@ -154,7 +154,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       <PlayerList room={room} userId={userId} />
       {leaveBlock}
     </ScrollView>);
-  const banners = (<>{status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
+  const banners = (<>{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
     <View style={s.header}>

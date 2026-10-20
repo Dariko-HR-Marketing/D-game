@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Telefon: kirish (telefon/kod) va Bosh sahifa bitta ko'rinishga sig'adimi: `OUT=papka pnpm tsx scripts/fit-phone.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Sahifa aylanishi (scrollHeight > innerHeight) — xato.
 import { chromium } from "playwright-core";
+import { passGate } from "./_seed";
 import { buildApp } from "../src/app";
 import { OtpService, type SmsSender } from "../src/auth";
 
@@ -25,7 +26,7 @@ for (const [w, h] of sizes) {
   await p.getByLabel("Telefon raqami").waitFor({ timeout: 15000 }); await measure("kirish-telefon");
   await p.getByLabel("Telefon raqami").fill(`90 ${String(100 + (n++ % 800)).padStart(3, "0")} 45 67`); await p.getByRole("button", { name: "Kod yuborish" }).click();
   await p.getByLabel("SMS kodi (6 raqam)").waitFor(); await measure("kirish-kod");
-  await p.getByLabel("SMS kodi (6 raqam)").fill(last); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
+  await p.getByLabel("SMS kodi (6 raqam)").fill(last); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.getByTestId("gate-name").waitFor({ timeout: 15000 }); await measure("ism-kiritish"); await passGate(p); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   await measure("bosh-sahifa"); await ctx.close();
 }
 await b.close(); await x.app.close(); console.log(failed ? `FIT-PHONE: ${failed} ta holatda sig'madi` : "FIT-PHONE: hammasi sig'adi"); process.exit(failed ? 1 : 0);

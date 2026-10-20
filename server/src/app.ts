@@ -27,7 +27,7 @@ import { Edu } from "./edu";
 import { Tournaments } from "./tournaments";
 import { registerBiz, registerBizAdmin } from "./biz-routes";
 import type { DocStore } from "./docs";
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 
 /** Kirish xizmati (SMS/Google/Apple) keyin ulanadi: hozir `token` = userId (faqat dev/test). */
 export type Authenticate = (token: string | undefined) => string | null;
@@ -36,7 +36,7 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 /** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
-export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments; ops?: Ops; accounts?: AdminAccounts } = {}) {
+export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments; ops?: Ops; accounts?: AdminAccounts } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
@@ -62,6 +62,9 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const profiles = opts.profiles ?? new ProfileService();
   // Tijorat: telefon tasdig'i, ota-ona roziligi, do'kon/Plus. Production'da to'lov provayderi berilmasa xaridlar yopiq (`payments_unavailable`).
   const secret = opts.authSecret ?? randomBytes(24).toString("hex"); const dev = !opts.otp && !opts.authSecret && !opts.oidc && process.env.NODE_ENV !== "production";
+  // Avatar rasmi: imzolangan manzil faqat xona a'zolariga beriladi (id + versiya + HMAC), shuning uchun boshqa foydalanuvchi rasmini taxmin qilib bo'lmaydi.
+  const photoSig = (id: string, v: number) => createHmac("sha256", secret).update(`avatar:${id}:${v}`).digest("hex").slice(0, 24);
+  const photoUrl = (id: string) => { const v = profiles.photoVersion(id); return v === undefined ? undefined : `/avatar/${encodeURIComponent(id)}?v=${v}&s=${photoSig(id, v)}`; };
   const phones = opts.phones ?? new PhoneLinks(secret, opts.docs);
   const consents = opts.consents ?? new ParentConsents(secret, opts.sms, opts.publicUrl ?? process.env.PUBLIC_URL ?? "http://localhost:3000", opts.docs);
   const commerce = opts.commerce ?? new Commerce({ docs: opts.docs, providers: opts.providers ?? (process.env.NODE_ENV === "production" ? [] : [new DevProvider()]), consents,
@@ -72,7 +75,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
   const rooms = new RoomManager(registry, store, undefined, undefined, {
     restricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.loansBlocked(ids)])], // §2.8: 16 yoshgacha va ota-ona o'chirgan bolalar — qarz/sheriklik yopiq
-    profile: (id) => { const p = profiles.get(id); return p ? { ...p, level: profiles.levelCached(id), cos: commerce.cosmetics(id) } : undefined; },
+    profile: (id) => { const p = profiles.get(id); return p ? { ...p, level: profiles.levelCached(id), cos: commerce.cosmetics(id), photo: photoUrl(id) } : undefined; },
     canJoin: (tag, uid) => (tag.kind === "class" ? edu.canJoinRoom(tag.id, uid) : tournaments.canJoinRoom(tag.id, uid)), // sinf/turnir xonasi — faqat a'zolar
     onStart: () => cGames({ event: "started" }),
     onAbandon: () => cGames({ event: "abandoned" }),
@@ -185,9 +188,9 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
-          case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
+          case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
           case "start": { if (!code) return reply({ type: "error", error: "no_room" });
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
@@ -214,11 +217,24 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
     return h(uid, req, reply);
   };
   const year = () => new Date().getFullYear();
-  app.get("/me/profile", secured((uid) => { const p = profiles.get(uid); return { profile: p ?? null, restricted: p ? profiles.restrictedOf([uid]).length > 0 : false, stats: profiles.stats(uid) }; }));
+  app.get("/me/profile", secured((uid) => { const p = profiles.get(uid); return { profile: p ?? null, photo: photoUrl(uid) ?? null, restricted: p ? profiles.restrictedOf([uid]).length > 0 : false, stats: profiles.stats(uid) }; }));
   app.put("/me/profile", secured((uid, req, reply) => {
     const r = profiles.put(uid, req.body); if (!r.ok) return reply.code(400).send({ error: r.error });
     return { profile: r.profile, restricted: profiles.restrictedOf([uid]).length > 0, year: year() };
   }));
+  app.put("/me/avatar", secured((uid, req, reply) => {
+    const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String((req.body as any)?.image ?? "")); if (!m) return reply.code(400).send({ error: "bad_photo" });
+    const r = profiles.setPhoto(uid, Buffer.from(m[1], "base64")); if (!r.ok) return reply.code(r.error === "photo_too_big" ? 413 : 400).send({ error: r.error });
+    return { ok: true, photo: photoUrl(uid) };
+  }));
+  app.delete("/me/avatar", secured((uid) => { profiles.removePhoto(uid); return { ok: true }; }));
+  app.get("/avatar/:id", async (req: any, reply: any) => {
+    const id = String(req.params.id), v = Number(req.query?.v), sig = String(req.query?.s ?? "");
+    const want = Buffer.from(photoSig(id, v)), got = Buffer.from(sig);
+    if (!Number.isFinite(v) || want.length !== got.length || !timingSafeEqual(want, got) || profiles.photoVersion(id) !== v) return reply.code(404).send({ error: "no_photo" });
+    const b = await profiles.photo(id); if (!b) return reply.code(404).send({ error: "no_photo" });
+    return reply.header("content-type", "image/jpeg").header("cache-control", "public, max-age=31536000, immutable").send(b);
+  });
   // O'yin tahlili (§5.9): faqat ishtirokchi; boshqa o'yinchilar ismi yoki "O'yinchi N" bilan.
   app.get("/me/games/:code/analysis", secured(async (uid, req, reply) => {
     const code = String((req.params as any).code).toUpperCase();

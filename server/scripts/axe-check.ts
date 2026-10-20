@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 // Oldindan: `pnpm --filter @poyga/client export:web` va `cd client/dist && python3 -m http.server 8081`.
 // Ishga tushirish: `cd server && pnpm a11y`  (CHROMIUM=/opt/pw-browsers/chromium, WEB=http://localhost:8081)
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { buildApp } from "../src/app";
@@ -14,6 +15,7 @@ const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.mi
 const onboard = async (p: any) => { const b = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await b.count()) await b.click(); };
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 let total = 0;
 const scan = async (p: any, name: string) => {
   await p.addScriptTag({ content: AXE });

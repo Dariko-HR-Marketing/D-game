@@ -5,19 +5,21 @@ import { Banner, Card, Pill, SectionTitle, Stat } from "./kit";
 import { tourKV } from "./tourStore";
 import { resetTours } from "../tours";
 import { Screen } from "./Screen";
+import { Avatar } from "./Avatar";
+import { PhotoPicker } from "./PhotoPicker";
 import { uz, errText } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, MIN_TAP, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
 import { sameWord, Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
 export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Http; onBack: () => void; onDeleted: () => void; onLogout?: () => void }) {
-  const [name, setName] = useState(""); const [col, setCol] = useState(0); const [year, setYear] = useState("");
+  const [name, setName] = useState(""); const [col, setCol] = useState(0); const [year, setYear] = useState(""); const [photo, setPhoto] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null); const [hist, setHist] = useState<any[]>([]); const [loaded, setLoaded] = useState(false);
   const [msg, setMsg] = useState<string | null>(null); const [err, setErr] = useState<string | null>(null);
   const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false); const [tourReset, setTourReset] = useState(false);
 
   useEffect(() => { (async () => {
-    try { const r = await http.profile(); if (r.profile) { setName(r.profile.name); setCol(r.profile.color); setYear(String(r.profile.birthYear)); } setStats(r.stats); setHist(await http.history()); } catch (e) { setErr((e as HttpError).code ?? "network"); }
+    try { const r = await http.profile(); setPhoto(r.photo ?? null); if (r.profile) { setName(r.profile.name); setCol(r.profile.color); setYear(String(r.profile.birthYear)); } setStats(r.stats); setHist(await http.history()); } catch (e) { setErr((e as HttpError).code ?? "network"); }
     setLoaded(true);
   })(); }, [http]);
 
@@ -35,7 +37,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
     <Screen title={uz.profile.title} onBack={onBack}>
       <Card style={{ gap: space.md }}>
         <View style={s.who}>
-          <View style={[s.avatar, { backgroundColor: hue }]} aria-hidden><Text style={[s.avatarT, { color: readableOn(hue) }]}>{(name.trim()[0] ?? "?").toUpperCase()}</Text></View>
+          <Avatar name={name.trim() || "?"} colorIdx={col} photo={photo ?? undefined} size={56} />
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={s.whoName}>{name.trim() || uz.profile.noName}</Text>
             {stats && <View style={s.pills}><Pill label={`${uz.profile.level} ${stats.level}`} kind="info" /><Pill label={`${"★".repeat(stats.stars)}${"☆".repeat(5 - stats.stars)}`} kind="warn" />{stats.title && <Pill label={uz.profile.titles[stats.title as "employee" | "investor"]} kind="good" />}</View>}
@@ -55,6 +57,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
 
       <Card>
         <SectionTitle>{uz.profile.edit}</SectionTitle>
+        <PhotoPicker http={http} photo={photo} name={name} colorIdx={col} onChange={setPhoto} />
         <Text style={s.l} nativeID="nm">{uz.profile.name}</Text>
         <TextInput accessibilityLabelledBy="nm" aria-label={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} autoComplete="nickname" />
         <Text style={s.l}>{uz.profile.color}</Text>

@@ -3,6 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 
 const WEB = process.env.WEB ?? "http://localhost:8081"; process.env.CORS_ORIGINS = WEB;
@@ -16,6 +17,7 @@ const org = (x.edu.createOrg("12-maktab", Date.now() + 90 * 86_400_000, 30) as a
 const klass = (x.edu.createClass("tch", "7-A") as any).klass; x.edu.join("stu", klass.joinCode);
 const t = (x.tournaments.upsert(null, { title: "Kuz kubogi", sponsor: "Bank X", prize: "Sovg'a", rules: "Qoidalar", format: "Yakkama-yakka", status: "open" }) as any).t;
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 let total = 0;
 const scan = async (p: any, name: string) => {
   await p.addScriptTag({ content: AXE });

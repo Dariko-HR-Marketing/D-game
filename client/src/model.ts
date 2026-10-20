@@ -82,13 +82,14 @@ export function marketOffers(room: any, userId: string): { proposalId: number; t
   return out;
 }
 
-/** Ko'rsatiladigan ism: profil nomi, bo'lmasa «O'yinchi N» (xom identifikator hech qachon ko'rsatilmaydi). */
+/** Ko'rsatiladigan ism: profil nomi; botlar — «Bot 1», «Bot 2» (xom identifikator hech qachon ko'rsatilmaydi). */
 export function nameOf(room: any, id: string | null | undefined): string {
   if (!id) return "";
   const n = room?.names?.[id]?.name; if (n) return n;
-  const i = room?.state?.players?.findIndex((p: any) => p.id === id) ?? -1;
-  if (room?.state?.bots?.includes(id)) return `Bot${i >= 0 ? " " + (i + 1) : ""}`;
-  return i >= 0 ? `O'yinchi ${i + 1}` : "O'yinchi";
+  // Botlar tartib raqami bilan: «Bot 1», «Bot 2». Odamlar uchun ism majburiy (profilsiz xonaga kirib bo'lmaydi), shuning uchun «O'yinchi N» ko'rsatilmaydi.
+  const bots: string[] = (room?.members ?? []).filter((m: any) => m.bot).map((m: any) => m.userId); const bi = bots.length ? bots.indexOf(id) : (room?.state?.bots ?? []).indexOf(id);
+  if (bi >= 0) return `Bot ${bi + 1}`;
+  return "Ismsiz";
 }
 /** Jurnal satridagi xom identifikatorlarni ismlarga almashtiradi (uzunroqlari avval). */
 export function humanize(room: any, line: string): string {

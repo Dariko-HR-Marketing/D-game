@@ -3,13 +3,14 @@ export interface WS { readyState?: number; send(s: string): void; close(): void;
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { turnSeconds?: number; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
+export interface RoomView { turnSeconds?: number; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
 export interface Reaction { id: number; from: string; emoji: string; at: number }
-export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[] }
+/** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
+export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; lost: boolean; restoredAt: number | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
-  state: ConnState = { status: "connecting", room: null, error: null, reactions: [] };
+  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], lost: false, restoredAt: null };
   private rid = 0;
   private ws: WS | null = null;
   private listeners = new Set<(s: ConnState) => void>();
@@ -32,12 +33,13 @@ export class Connection {
     ws.onopen = () => {
       this.retry = 0; this.set({ status: "online", error: null });
       if (this.rejoinCode) { this.expecting = true; this.send({ type: "join", code: this.rejoinCode }); } // §6.3: qayta ulanganda holat tiklanadi
+      else if (this.state.lost) this.set({ lost: false, restoredAt: Date.now() }); // xonada emas: kutiladigan holat yo'q
     };
     ws.onmessage = (e) => {
       let m: any; try { m = JSON.parse(e.data); } catch { return; } // proksi xato sahifasi va h.k. — e'tiborsiz
       if (m.type === "state") {
         if (!this.expecting && !this.state.room) return;
-        this.rejoinCode = m.room.code; this.set({ room: m.room, error: null });
+        this.rejoinCode = m.room.code; this.set({ room: m.room, error: null, ...(this.state.lost ? { lost: false, restoredAt: Date.now() } : {}) });
         // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
         if (this.retryNext && this.lastAct && !this.lastAct.retried) { this.retryNext = false; this.lastAct.retried = true; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
       } else if (m.type === "reaction") {
@@ -49,13 +51,22 @@ export class Connection {
     };
     ws.onclose = (e) => {
       if (e?.code === 4401) { this.closed = true; this.set({ status: "offline", error: "unauthorized" }); return; } // token eskirgan/yaroqsiz: qayta ulanish foydasiz, qayta kirish kerak
-      this.set({ status: "offline" });
+      this.set({ status: "offline", lost: true });
       if (this.closed) return;
       const delay = Math.min(10_000, 500 * 2 ** this.retry++);
       this.setTimer(() => this.connect(), delay);
     };
   }
   close() { this.closed = true; this.ws?.close(); }
+  /** Ilovadan/ustundan chiqib qaytildi (yoki tarmoq qaytdi): eski ulanish jim o'lgan bo'lishi mumkin — «Aloqa uzildi» ko'rsatib, yangi ulanish ochamiz va holatni qayta olamiz. */
+  resume() {
+    if (this.closed) return;
+    this.set({ lost: true });
+    const old = this.ws; if (old) { old.onopen = null; old.onmessage = null; old.onclose = null; try { old.close(); } catch { /* allaqachon yopiq */ } }
+    this.retry = 0; this.connect();
+  }
+  /** Tarmoq uzildi (brauzer «offline» hodisasi): darrov xabar beramiz. */
+  markLost() { if (!this.closed) this.set({ lost: true }); }
   /** Ulanish tayyor bo'lmasa yuborilmaydi (brauzer istisno otmasin); `false` — yuborilmadi. */
   send(o: unknown): boolean {
     const w = this.ws; if (!w || (w.readyState !== undefined && w.readyState !== 1)) { this.set({ error: "offline" }); return false; }

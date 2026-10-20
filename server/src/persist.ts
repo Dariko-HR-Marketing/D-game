@@ -87,7 +87,11 @@ export class PgPersist implements Persist, ProfilePersist, StatsPersist {
     await this.pool.query("insert into profiles(user_id,name,color,birth_year,updated_at) values($1,$2,$3,$4,to_timestamp($5/1000.0)) on conflict (user_id) do update set name=excluded.name, color=excluded.color, birth_year=excluded.birth_year, updated_at=excluded.updated_at",
       [p.userId, p.name, p.color, p.birthYear, p.updatedAt]);
   }
-  async deleteProfile(userId: string) { await this.pool.query("delete from profiles where user_id=$1", [userId]); await this.pool.query("delete from app_users where id=$1", [userId]); }
+  async loadPhotoVersions(): Promise<[string, number][]> { const r = await this.pool.query("select user_id, extract(epoch from updated_at)*1000 as at from profile_photos"); return r.rows.map((x) => [x.user_id, Number(x.at)] as [string, number]); }
+  async loadPhoto(userId: string): Promise<Buffer | null> { const r = await this.pool.query("select jpeg from profile_photos where user_id=$1", [userId]); return r.rows[0]?.jpeg ?? null; }
+  async savePhoto(userId: string, jpeg: Buffer, at: number) { await this.pool.query("insert into profile_photos(user_id,jpeg,updated_at) values($1,$2,to_timestamp($3/1000.0)) on conflict (user_id) do update set jpeg=excluded.jpeg, updated_at=excluded.updated_at", [userId, jpeg, at]); }
+  async deletePhoto(userId: string) { await this.pool.query("delete from profile_photos where user_id=$1", [userId]); }
+  async deleteProfile(userId: string) { await this.pool.query("delete from profile_photos where user_id=$1", [userId]); await this.pool.query("delete from profiles where user_id=$1", [userId]); await this.pool.query("delete from app_users where id=$1", [userId]); }
   async loadResults(): Promise<GameResult[]> {
     const r = await this.pool.query("select room_code, extract(epoch from finished_at)*1000 as at, duration_ms, rounds, winner, content_version, players from game_results order by id");
     return r.rows.map((x) => ({ room: x.room_code, finishedAt: Number(x.at), durationMs: Number(x.duration_ms), rounds: x.rounds, winner: x.winner, contentVersion: x.content_version, players: x.players }));

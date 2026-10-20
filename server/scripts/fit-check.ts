@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // O'yin ekrani (kompyuter/planshet) bitta ko'rinishga sig'adimi: `OUT=papka pnpm tsx scripts/fit-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Sahifa aylanishi (scrollHeight > innerHeight) — xato.
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@poyga/rules";
 
@@ -9,6 +10,7 @@ const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ??
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 const sizes: [number, number][] = [[1024, 768], [1280, 720], [1440, 900], [1593, 890], [1735, 985], [1920, 1080]];
 let failed = 0;
 for (const [w, h] of sizes) {

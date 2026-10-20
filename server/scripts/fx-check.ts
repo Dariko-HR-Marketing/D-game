@@ -2,12 +2,14 @@ import { existsSync, mkdirSync } from "node:fs";
 // Moliya animatsiyasi: naqd/passiv daromad/pul oqimi o'zgarishi va yangi aktiv chiplari (yashil — qo'shildi, qizil — ketdi), raqam sanab o'tadi, chiplar o'zi yo'qoladi.
 // `OUT=papka pnpm tsx scripts/fx-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/fx";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const sizes: [string, number, number, "reduce" | "no-preference"][] = [["tel", 390, 844, "no-preference"], ["kmp", 1440, 900, "no-preference"], ["kmp-kam", 1440, 900, "reduce"]];
 for (const [tag, w, h, motion] of sizes) {

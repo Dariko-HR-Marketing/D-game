@@ -236,3 +236,28 @@ import bigJson from "../../content/data/board_big.json";
 describe("katta aylana kataklari mijozda kontent bilan bir xil", () => {
   it("tur va nom", () => { expect(BIG_CELLS).toEqual((bigJson as any[]).map((c) => ({ t: c.t, name: c.name }))); });
 });
+
+describe("aloqa uzildi / tiklandi", () => {
+  it("ilovadan qaytganda: «uzildi» belgisi, yangi ulanish, xonaga qayta qo'shilish, holat kelgach «tiklandi»", () => {
+    FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect();
+    const w1 = FakeWS.all[0]; w1.onopen(); c.create(); w1.onmessage({ data: JSON.stringify({ type: "state", room: { code: "ABCDEF", seq: 3, members: [], state: null } }) });
+    expect(c.state.lost).toBe(false);
+    c.resume();
+    expect(c.state.lost).toBe(true); expect(FakeWS.all.length).toBe(2);
+    const w2 = FakeWS.all[1]; w2.onopen();
+    expect(w2.sent.some((x) => x.includes('"join"') && x.includes("ABCDEF"))).toBe(true);
+    expect(c.state.lost).toBe(true); // holat hali kelmadi
+    w2.onmessage({ data: JSON.stringify({ type: "state", room: { code: "ABCDEF", seq: 9, members: [], state: null } }) });
+    expect(c.state.lost).toBe(false); expect(c.state.restoredAt).not.toBeNull(); expect(c.state.room?.seq).toBe(9);
+  });
+  it("xonada bo'lmasa ham: ulanish ochilgach «tiklandi»; eski ulanishning kech kelgan yopilishi hech narsani buzmaydi", () => {
+    FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w1 = FakeWS.all[0]; w1.onopen();
+    c.resume(); const w2 = FakeWS.all[1]; w2.onopen(); expect(c.state.lost).toBe(false); expect(c.state.restoredAt).not.toBeNull();
+    w1.onclose?.(); expect(c.state.status).toBe("online"); expect(FakeWS.all.length).toBe(2); // eski socket tinglovchilari olib tashlangan
+  });
+  it("tarmoq uzilganda (markLost) darrov belgilanadi; yopilgan ulanish qayta ochilmaydi", () => {
+    FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); FakeWS.all[0].onopen();
+    c.markLost(); expect(c.state.lost).toBe(true);
+    c.close(); c.resume(); expect(FakeWS.all.length).toBe(1);
+  });
+});
