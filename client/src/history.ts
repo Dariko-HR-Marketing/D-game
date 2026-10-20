@@ -12,7 +12,7 @@ export interface HEv {
   delta: { cash: number; passive: number; flow: number; debt: number };
   assetsAdded: string[]; assetsLost: string[]; log: string[]; calc?: { kind: string; wrong: number; hint: boolean }[];
 }
-export interface HView { events: HEv[]; players: { id: string; isMe: boolean; bot: boolean }[]; truncated: boolean; winner: string | null }
+export interface HView { events: HEv[]; players: { id: string; isMe: boolean; bot: boolean; calc: { firstTry: number; retried: number } | null }[]; truncated: boolean; winner: string | null }
 
 export const cellName = (m: NonNullable<HEv["move"]>): string => m.toCircle === "big" ? (m.cell.name ?? uz.legend.big[m.cell.t] ?? m.cell.t) : (uz.legend.cells[m.cell.t] ?? m.cell.t);
 export const signed = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "") + money(Math.abs(n));
@@ -58,5 +58,7 @@ export function deltasOf(e: HEv): { label: string; value: string; kind: "good" |
   if (d.debt) r.push({ label: h.debt, value: signed(d.debt), kind: k(d.debt, false) });
   return r;
 }
+/** Hisob aniqligi: birinchi urinishda to'g'ri hisoblanganlar ulushi (%), yoki null. */
+export const accuracyOf = (c: { firstTry: number; retried: number } | null) => (c && c.firstTry + c.retried > 0 ? { pct: Math.round((c.firstTry * 100) / (c.firstTry + c.retried)), total: c.firstTry + c.retried, firstTry: c.firstTry } : null);
 /** Tarixni ko'rsatish uchun filtr: faqat o'zimniki yoki hammasi; texnik (xato) yozuvlar chiqmaydi. */
 export const filterEvents = (events: HEv[], onlyMine: boolean) => events.filter((e) => e.ok && (!onlyMine || e.mine));
