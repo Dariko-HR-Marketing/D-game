@@ -68,17 +68,18 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const mv = useMovement(room), settled = mv.settled; // fishka kataklar ustidan yurib bo'lguncha karta/qaror ko'rsatilmaydi
   const card = settled ? cardRaw : null;
   const state = room.state; const cur = currentId(room); const curP = state.players.find((p: any) => p.id === cur);
-  const sideW = 380, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
+  const tri = wide && width >= 1366; // kompyuter (≥ 1366 px): uch ustun — chapda moliya va reaksiyalar, markazda taxta, o'ngda vaqt, voqealar va o'yinchilar
+  const sideW = tri ? 340 : 380, rightW = 300, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
   // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
-  const pad = boardPad(wide), short = wide && height < 820, reserveH = HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
+  const pad = boardPad(wide), short = wide && height < 820, reserveH = tri ? HEADER_H + space.md + space.lg + WIDE_LEGEND_H + WIDE_NOTE_H + 3 * space.md + 2 * pad : HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
   const { boardWidth, tight } = useMemo(() => { // faqat oyna/aylana o'zgarganda qayta hisoblanadi (har kadrda emas)
-    let w = wide ? Math.min(Math.max(width - sideW - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, 460), t = false;
+    let w = wide ? Math.min(Math.max(Math.min(width, 1440) - sideW - (tri ? rightW + space.lg : 0) - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, 460), t = false;
     if (wide) {
       while (w > 560 && boardGeometry(w, true, nCells).H > height - reserveH) w -= 20;
       if (boardGeometry(w, true, nCells).H > height - reserveH) { t = true; while (w > 480 && boardGeometry(w, true, nCells, true).H > height - reserveH) w -= 20; }
     }
     return { boardWidth: w, tight: t };
-  }, [wide, width, height, nCells, pad, reserveH]);
+  }, [wide, tri, width, height, nCells, pad, reserveH, sideW]);
   const sheetOpen = !wide && !!card && mineTurn;
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
@@ -97,7 +98,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   const snd = useSoundPrefs();
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} />;
-  const timeInSide = wide && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
+  const timeInSide = wide && !tri && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
   const hint = mineTurn ? uz.hud.mineHint.replace("{s}", "30").replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
@@ -133,13 +134,21 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard p={mine} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
-      {short && eventsCard(3)}
+      {short && !tri && eventsCard(3)}
     </View>
   );
   // Telefon: hammasi bitta ustunda
   const side = (
     <View style={{ gap: space.md, flex: 1 }}>{sideMain}{eventsCard(6)}{reactRow}{leaveBlock}</View>
   );
+  const reactPanel = (<Card label={uz.react.title}><SectionTitle>{uz.react.title}</SectionTitle>{reactRow}</Card>);
+  const rightCol = (
+    <ScrollView tabIndex={0} role="region" aria-label={uz.hud.playersTitle} style={{ width: rightW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>
+      <TimeBar room={room} userId={userId} settled={settled} />
+      {eventsCard(6)}
+      <PlayerList room={room} userId={userId} />
+      {leaveBlock}
+    </ScrollView>);
   const banners = (<>{status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
@@ -167,17 +176,18 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={s.sideScroll}>{sideMain}</ScrollView>}
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, tri && { gap: space.md }]}>{sideMain}{tri && reactPanel}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
-          <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimeBar room={room} userId={userId} settled={settled} /></View>}</View>
+          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimeBar room={room} userId={userId} settled={settled} /></View>}</View>}
           <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
           <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
-          <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
+          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
             {!short && <View style={{ flex: 1 }}>{eventsCard(3)}</View>}
             <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}<View style={short ? { flex: 1, maxWidth: 260 } : undefined}>{leaveBlock}</View></View>
-          </View>
+          </View>}
         </ScrollView>
+        {tri && rightCol}
       </View>
     </View>
   );

@@ -119,7 +119,7 @@ export const uz = {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
     warn: "Chiqsangiz, siz qaytib kira olmaysiz: o'rningizni bot egallaydi va o'yin sizsiz davom etadi. Bu amalni qaytarib bo'lmaydi.",
   },
-  react: { label: "Reaksiya", from: "dan" },
+  react: { label: "Reaksiya", title: "Reaksiyalar", from: "dan" },
   result: {
     fewData: "Grafik uchun ma'lumot hali kam", chartRange: "oraliq", chartX: "aylanalar bo'yicha pul oqimi →", youWon: "Tabriklaymiz, g'alaba sizniki!", noWinner: "O'yin g'olibsiz tugadi.",
     title: "O'yin natijasi", winner: "G'olib", analysis: "O'yin tahlili", loading: "Tahlil tayyorlanmoqda…", failed: "Tahlilni yuklab bo'lmadi", home: "Bosh sahifa",
