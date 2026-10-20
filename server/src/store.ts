@@ -1,9 +1,10 @@
 import type { Action, GameState } from "@poyga/rules";
 
 /** O'yin jurnali (§6.6): urug' + harakatlar ketma-ketligi — o'yinni to'liq qayta tiklash mumkin. */
-export interface JournalEntry { seq: number; at: number; action: Action | { type: "auto"; reason: string; action: Action } }
+export interface CalcNote { kind: "decide" | "confirm"; wrong: number; hint: boolean }
+export interface JournalEntry { seq: number; at: number; action: Action | { type: "auto"; reason: string; action: Action }; notes?: CalcNote[] }
 export type RoomTag = { kind: "class" | "tournament"; id: string }; // sinf xonasi (o'qituvchi) yoki homiy turniri xonasi
-export interface RoomMeta { tag?: RoomTag; hostId: string; members: { userId: string; bot: boolean; left?: boolean; unreliable?: boolean }[]; contentVersion: number | null; seq: number; createdAt: number; turnSeconds?: number }
+export interface RoomMeta { tag?: RoomTag; hostId: string; members: { userId: string; bot: boolean; left?: boolean; unreliable?: boolean }[]; contentVersion: number | null; seq: number; createdAt: number; turnSeconds?: number; calcMode?: "auto" | "manual" }
 export interface ActiveRoom { code: string; state: GameState; meta: RoomMeta }
 export interface Store {
   /** Tayyorlik tekshiruvi (/ready): saqlagich javob beradimi. */

@@ -5,6 +5,7 @@ import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
 import { AnalysisService, presentable } from "./analysis";
+import { historyCsv, presentHistory } from "./history";
 import { Metrics } from "./metrics";
 import { WriteQueue } from "./persist";
 import { parseMessage } from "./protocol";
@@ -188,7 +189,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30, m.calc === "manual" ? "manual" : "auto"); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
@@ -196,8 +197,8 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
             const r = await rooms.start(code, userId, seed, { events: (m as { events?: boolean }).events }); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
-            const r = await rooms.act(code, userId, { ...m.action, playerId: userId }, m.seq);
-            if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error }); } return; }
+            const r = await rooms.act(code, userId, { ...m.action, playerId: userId } as any, m.seq);
+            if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error, ...("detail" in r && r.detail !== undefined ? { detail: r.detail } : {}) }); } return; }
           case "react": { if (!code) return reply({ type: "error", error: "no_room" });
             if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
             const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
@@ -242,6 +243,15 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
     if (!commerce.analysisAllowed(uid, !profiles.hasResult(code) || profiles.latestRoomOf(uid) === code)) return reply.code(402).send({ error: "plus_required" }); // bepul: faqat oxirgi o'yin tahlili
     return presentable(r.analysis, (id) => profiles.get(id)?.name, uid);
+  }));
+  // O'yin tarixi (har bir amal): faqat ishtirokchi; tugagan va davom etayotgan o'yinlar uchun. ?format=csv — tahlil (Excel/SWOT) uchun.
+  app.get("/me/games/:code/log", secured(async (uid, req, reply) => {
+    const code = String((req.params as any).code).toUpperCase();
+    const r = await analysis.history(code); if (!r) return reply.code(404).send({ error: "no_game" });
+    if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
+    const pres = presentHistory(r.history, r.state, (id) => profiles.get(id)?.name, uid);
+    if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="poyga-${code}.csv"`).send(historyCsv({ ...r.history, events: pres.events as any }, (x) => x));
+    return pres;
   }));
   app.get("/me/history", secured((uid) => { const lim = commerce.historyLimit(uid); return lim === null ? profiles.history(uid) : profiles.history(uid, lim); })); // bepul tarif: oxirgi N o'yin; Plus: to'liq
   app.get("/me/export", secured((uid) => ({ userId: uid, exportedAt: Date.now(), ...profiles.export(uid) })));

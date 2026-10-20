@@ -12,6 +12,7 @@ export function CardFace({ file, label, maxH, onState }: { file?: string; label:
   const url = cardImageUrl(CARD_IMAGES_BASE, file); const [ok, setOk] = useState(false); const [ratio, setRatio] = useState(0.72); const reduced = useReducedMotion();
   const v = useRef(new Animated.Value(reduced ? 1 : 0)).current;
   useEffect(() => { setOk(false); onState?.(false); }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (url) Image.getSize(url, (w, h) => { if (w && h) setRatio(w / h); }, () => {}); }, [url]); // tabiiy nisbat (kartalar gorizontal 480×~309 yoki vertikal 420×608): kesilmaydi, bo'sh joy qolmaydi
   useEffect(() => { if (!ok) return; if (reduced) { v.setValue(1); return; } v.setValue(0); Animated.timing(v, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(); }, [ok, reduced, v]);
   if (!url) return null;
   return (

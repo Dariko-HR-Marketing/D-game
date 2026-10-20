@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Easing, useWindowDimensions } from "react-native";
+import { useReducedMotion } from "../motion";
 import { Icon, type IconName } from "./Icon";
 import { Button } from "./Button";
 import { CardFace } from "./CardFace";
@@ -8,6 +9,7 @@ import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, HEADER_H, MIN_TAP, radius, space, surface, tone } from "../theme";
 
+const seenByRoom = new Map<string, Set<string>>();
 const ICON: Record<string, IconName> = { small_business: "cart", business: "dollar", land: "flag", dacha: "house", apartment: "home", car: "move", collectible: "star", shares: "chart", partner_stake: "people" };
 const iconOf = (a: AssetRow): IconName => (a.kind === "shares" || a.kind === "partner_stake" ? ICON[a.kind] : ICON[a.sub ?? ""] ?? ICON[a.kind] ?? "file");
 /** Aktiv turi bo'yicha rang (taxta kataklari bilan uyg'un): biznes — yashil, qimmatli qog'oz — ko'k, ko'chmas mulk — oltin, sheriklik — binafsha. */
@@ -27,22 +29,34 @@ const stateChips = (a: AssetRow) => [a.pledged ? <Chip key="p" label={uz.portfol
   a.stakeOfName ? <Chip key="so" label={`${uz.portfolio.stakeOf}: ${a.stakeOfName}`} kind="info" /> : null, a.tokens ? <Chip key="t" label={`${a.tokens} ${uz.portfolio.tokens}`} /> : null];
 const incomeText = (a: AssetRow) => (a.income ? `${sg(a.income)} / ${uz.portfolio.perMonth}` : a.shares ? `${a.shares} ${uz.portfolio.sharesWord}` : "—");
 
+/** Yangi sotib olingan aktiv katagi «sakrab» chiqadi va qisqa muddat yorqin hoshiya bilan ajralib turadi (qo'shilganini ko'z bilan ko'rish uchun). */
+function PopIn({ fresh, children, style }: { fresh: boolean; children: React.ReactNode; style?: object }) {
+  const reduced = useReducedMotion(); const isNew = useRef(fresh).current; // faqat paydo bo'lish paytidagi holat hisobga olinadi
+  const v = useRef(new Animated.Value(isNew && !reduced ? 0 : 1)).current; const glow = useRef(new Animated.Value(isNew ? 1 : 0)).current;
+  useEffect(() => { if (!isNew) return; if (!reduced) Animated.spring(v, { toValue: 1, friction: 5, tension: 120, useNativeDriver: false }).start(); const h = setTimeout(() => Animated.timing(glow, { toValue: 0, duration: 600, easing: Easing.out(Easing.quad), useNativeDriver: false }).start(), 1800); return () => clearTimeout(h); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return <Animated.View style={[style, { opacity: v.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }), transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }], shadowColor: "#11835A", shadowOpacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.65] }), shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 0 }]}>{children}</Animated.View>;
+}
+
 /** Chap ustun/«Blank»: doimiy ko'rinadigan, ixcham «Mening kartalarim»: har bir aktiv — rangli katak; qarzlar va faol kartalar belgilar bilan. */
 export function PortfolioCard({ room, userId, onOpen, onAct }: { room: any; userId: string; onOpen: () => void; onAct: (a: Record<string, unknown>) => void }) {
   const p = portfolioOf(room, userId); if (!p) return null;
+  // Xona bo'yicha eslab qolinadi (chap ustun qaror ko'rinishi ↔ oddiy ko'rinish almashganda katak qayta paydo bo'lib «yangi» deb sakramasin)
+  const seen = { current: seenByRoom.get(room.code) ?? new Set(p.assets.map((a) => `${a.code}${a.idx}`)) }; seenByRoom.set(room.code, seen.current);
+  const fresh = new Set(p.assets.map((a) => `${a.code}${a.idx}`).filter((k) => !seen.current.has(k))); useEffect(() => { for (const k of fresh) seen.current.add(k); });
   const hasDebts = p.lent.length + p.owed.length + p.bank.length + p.lombards.length > 0 || p.owe > 0;
   return (
     <View style={s.card} testID="portfolio" role="region" aria-label={uz.portfolio.title}>
       <View style={s.head}><Text style={s.h} aria-level={2} accessibilityRole="header">{uz.portfolio.title}</Text><Chip label={`${p.totals.count} ${uz.portfolio.count}`} kind={p.totals.count ? "good" : "plain"} /></View>
       {p.assets.length === 0 ? <Text style={s.muted}>{uz.portfolio.empty}</Text> : (
         <View style={s.grid}>
-          {p.assets.map((a) => { const l = lookOf(a); return (
-            <Pressable key={`${a.code}${a.idx}`} accessibilityRole="button" accessibilityLabel={`${a.label}: ${a.title}. ${incomeText(a)}`} onPress={onOpen} style={({ pressed }) => [s.tile, { backgroundColor: l.bg, borderColor: l.border }, pressed && { opacity: 0.85 }]}>
+          {p.assets.map((a) => { const l = lookOf(a); const key = `${a.code}${a.idx}`; return (
+            <PopIn key={key} fresh={fresh.has(key)} style={s.tileWrap}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${a.label}: ${a.title}. ${incomeText(a)}`} onPress={onOpen} style={({ pressed }) => [s.tile, { backgroundColor: l.bg, borderColor: l.border, width: "100%" }, pressed && { opacity: 0.85 }]}>
               <View style={s.tileTop} aria-hidden><Icon name={iconOf(a)} size={16} color={l.fg} /><Text style={[s.tileKind, { color: l.fg }]} numberOfLines={1}>{a.label}</Text></View>
               <Text style={s.tileTitle} numberOfLines={2} aria-hidden>{a.title}</Text>
               <Text style={[s.tileInc, { color: a.net < 0 ? tone.bad : l.fg }]} aria-hidden>{incomeText(a)}</Text>
               {a.pledged || a.partnerName || a.stakeOfName ? <View style={s.tileFlags} aria-hidden>{stateChips(a)}</View> : null}
-            </Pressable>); })}
+            </Pressable></PopIn>); })}
         </View>)}
       {p.offers.map((o) => (
         <View key={`${o.proposalId}${o.assetCode}`} style={s.offer}>
@@ -170,7 +184,8 @@ const s = StyleSheet.create({
   card: { backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: "#E6ECEF", shadowColor: "#082238", shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }, h: { color: color.navy, fontWeight: "800", fontSize: font.lg }, muted: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  tile: { width: "48.5%", flexGrow: 1, minWidth: 130, borderWidth: 1.5, borderRadius: radius.md, padding: space.sm, gap: 3 }, tileTop: { flexDirection: "row", alignItems: "center", gap: 5 },
+  tileWrap: { width: "48.5%", flexGrow: 1, minWidth: 130 },
+  tile: { minWidth: 130, borderWidth: 1.5, borderRadius: radius.md, padding: space.sm, gap: 3 }, tileTop: { flexDirection: "row", alignItems: "center", gap: 5 },
   tileKind: { fontSize: 11, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase", flexShrink: 1 }, tileTitle: { color: color.navy, fontSize: font.sm, fontWeight: "700", lineHeight: 17 }, tileInc: { fontSize: font.md, fontWeight: "900", fontVariant: ["tabular-nums"] }, tileFlags: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
   chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }, chipT: { fontSize: 12, fontWeight: "800" }, chips: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
   offer: { flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: "#FFF6DD", borderWidth: 1.5, borderColor: "#E9A64B", borderRadius: radius.md, padding: space.sm }, offerK: { color: "#6B4300", fontSize: 11, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" }, offerT: { color: color.navy, fontSize: font.sm, fontWeight: "600", lineHeight: 17 }, offerP: { color: "#6B4300", fontWeight: "800", fontSize: font.sm },

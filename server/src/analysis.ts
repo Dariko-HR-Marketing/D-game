@@ -1,3 +1,4 @@
+import { buildHistory, type History } from "./history";
 // O'yin tahlili va karta statistikasi: jurnaldan qayta o'ynab hisoblanadi (§5.9, §12).
 import { analyzeGame, type Action, type Analysis, type GameState } from "@poyga/rules";
 import type { ContentRegistry } from "./registry";
@@ -24,6 +25,13 @@ export class AnalysisService {
     const actions = journal.map((e) => ("reason" in e.action ? e.action.action : e.action) as Action);
     const { analysis } = analyzeGame(ctx, { playerIds: state.players.map((p: any) => p.id), seed: state.seed, bots: state.bots, restricted: state.restricted ?? [], dreamPhase: !!state.dreamPhase }, actions);
     return { analysis, state };
+  }
+
+  /** Har bir amalning tarixi (katakdan-katakka, karta, qaror, pul o'zgarishi). */
+  async history(code: string): Promise<{ history: History; state: GameState } | null> {
+    const room = await this.store.loadRoom(code); if (!room) return null;
+    const ctx = this.registry.ctxFor(room.meta?.contentVersion ?? this.registry.activeVersion); if (!ctx) return null;
+    return { history: buildHistory(ctx, room.state, await this.store.journal(code)), state: room.state };
   }
 
   /** O'yin tugaganda: karta statistikasi umumiy hisobga qo'shiladi (shaxssiz). */

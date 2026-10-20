@@ -231,3 +231,53 @@ describe("xona egasi chiqsa", () => {
     expect((await rm.start(r.code, "b", 1, { dreams: false })).ok).toBe(true);
   });
 });
+
+describe("Hisob daftari (o'quv rejimi)", () => {
+  const mk = async (mode: "auto" | "manual") => {
+    const r = rm.create("a", undefined, 30, mode); if (!r.ok) throw 0; rm.join(r.code, "b"); await rm.start(r.code, "a", 3, { dreams: false });
+    const room: any = rm.rooms.get(r.code)!; return { code: r.code, room, cur: (): string => currentPlayer(room.state).id };
+  };
+  const roll = (g: { code: string; room: any }, id: string) => rm.act(g.code, id, { type: "roll", playerId: id } as any, g.room.seq);
+  it("boshida hisob to'g'ri: kubik tashlash mumkin; ko'rinishda rejim va «kutilayotganlar» ro'yxati bor", async () => {
+    const g = await mk("manual"); expect(rm.view(g.room).calc).toMatchObject({ mode: "manual", due: [] });
+    expect((await roll(g, g.cur())).ok).toBe(true);
+  });
+  it("pul o'zgardi — o'yinchi hisobini kiritmaguncha kubik tashlay olmaydi; noto'g'ri javob 3 martadan keyin yechimni ko'rsatadi", async () => {
+    const g = await mk("manual"); const id = g.cur(), p = g.room.state.players.find((x: any) => x.id === id);
+    p.cash += 500; expect(rm.view(g.room).calc!.due).toEqual([id]);
+    expect(await roll(g, id)).toMatchObject({ ok: false, error: "calc_due" });
+    const act = (calc: any) => rm.act(g.code, id, { type: "confirm_calc", calc, playerId: id } as any, g.room.seq);
+    const bad = await act({ cash: 1, passive: 0, flow: 0 }); expect(bad).toMatchObject({ ok: false, error: "calc_wrong" }); expect((bad as any).detail.fields.cash).toBe(false); expect((bad as any).detail.solution).toBeUndefined();
+    await act({ cash: 2, passive: 0, flow: 0 }); const third: any = await act({ cash: 3, passive: 0, flow: 0 }); expect(third.detail.tries).toBe(3); expect(third.detail.solution.cash).toBe(p.cash);
+    expect((await act(third.detail.solution)).ok).toBe(true); expect(rm.view(g.room).calc!.due).toEqual([]);
+    expect((await roll(g, id)).ok).toBe(true); expect(g.room.calcStats[id]).toEqual({ firstTry: 0, retried: 1 });
+  });
+  it("to'g'ri javob birinchi urinishda hisoblanadi (aniqlik statistikasi)", async () => {
+    const g = await mk("manual"); const id = g.cur(), p = g.room.state.players.find((x: any) => x.id === id); p.cash -= 20;
+    const ok = await rm.act(g.code, id, { type: "confirm_calc", calc: { cash: p.cash, passive: 0, flow: p.salary - 0 - p.baseExpenses }, playerId: id } as any, g.room.seq);
+    if (!ok.ok) { const sol = (ok as any).detail; throw new Error("kutilmagan: " + JSON.stringify(sol)); }
+    expect(g.room.calcStats[id]).toEqual({ firstTry: 1, retried: 0 });
+  });
+  it("karta qarori: pul o'zgarsa hisob shart; o'tkazish (rad) uchun shart emas; to'g'ri hisob bilan qabul qilinadi", async () => {
+    const g = await mk("manual"); let id = g.cur(); const P = (i: string) => g.room.state.players.find((x: any) => x.id === i);
+    for (let i = 0; i < 600; i++) {
+      id = g.cur();
+      if (g.room.state.pending) { const e = g.room.ctx.effects[g.room.state.pending.cardId]?.effect as any; if (e?.kind === "buy" && P(id).cash >= (e.down ?? e.price)) break; await rm.act(g.code, id, { type: "decide", accept: false, playerId: id } as any, g.room.seq); }
+      else { P(id).cash += 100_000; g.room.ledger[id] = { ...g.room.ledger[id], cash: P(id).cash }; await roll(g, id); }
+    }
+    expect(g.room.state.pending).toBeTruthy(); id = g.cur(); const me = g.room.state.players.find((x: any) => x.id === id);
+    g.room.ledger[id] = { cash: me.cash, passive: g.room.ledger[id].passive, flow: g.room.ledger[id].flow };
+    const dec = (calc?: any) => rm.act(g.code, id, { type: "decide", accept: true, ...(calc ? { calc } : {}), playerId: id } as any, g.room.seq);
+    expect(await dec()).toMatchObject({ ok: false, error: "calc_required" });
+    let last: any; for (let i = 0; i < 3; i++) last = await dec({ cash: 7, passive: 7, flow: 7 }); expect(last.detail.solution).toBeTruthy();
+    expect((await dec(last.detail.solution)).ok).toBe(true); expect(g.room.ledger[id].cash).toBe(g.room.state.players.find((x: any) => x.id === id).cash);
+  });
+  it("avto rejimda hisob so'ralmaydi", async () => {
+    const g = await mk("auto"); const id = g.cur(); g.room.state.players.find((x: any) => x.id === id).cash += 500;
+    expect(rm.view(g.room).calc!.due).toEqual([]); expect((await roll(g, id)).ok).toBe(true);
+  });
+  it("vaqt tugab avtomatik harakat bajarilsa — daftar o'zi yangilanadi (o'yin to'xtab qolmaydi)", async () => {
+    const g = await mk("manual"); const id = g.cur(); g.room.state.players.find((x: any) => x.id === id).cash += 500;
+    await clock.advance(DECISION_MS + 10); expect(rm.view(g.room).calc!.due).not.toContain(id);
+  });
+});
