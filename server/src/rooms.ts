@@ -31,8 +31,21 @@ export function publicState(st: GameState | null) {
   const { seed: _s, rngState: _r, decks, ...rest } = st;
   return { ...rest, deckCounts: Object.fromEntries(Object.entries(decks).map(([k, d]) => [k, { draw: d.draw.length, discard: d.discard.length }])) };
 }
+/** Aktiv kodi → asl karta (matn, rasm, tur): «Mening kartalarim» ro'yxati uchun. Kontekst bo'yicha bir marta quriladi. */
+export interface AssetCard { text: string; file: string; asset?: string }
+const codeIndex = new WeakMap<Ctx, Map<string, AssetCard>>();
+function assetCardOf(ctx: Ctx, code: string): AssetCard | undefined {
+  let m = codeIndex.get(ctx);
+  if (!m) {
+    m = new Map();
+    for (const ce of Object.values(ctx.effects)) { const e: any = ce.effect; if ((e?.kind === "buy" || e?.kind === "buyShares" || e?.kind === "gamble") && e.code && !m.has(e.code)) m.set(e.code, { text: ce.text ?? "", file: ce.file, asset: e.asset }); }
+    codeIndex.set(ctx, m);
+  }
+  if (code.startsWith("big-")) { const c = ctx.bigBoard[Number(code.slice(4))]; return c ? { text: c.name, file: "", asset: "business" } : undefined; }
+  return m.get(code);
+}
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; turnSeconds?: number; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
+export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; turnSeconds?: number; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -61,6 +74,7 @@ export class RoomManager {
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
     return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, turnSeconds: r.turnSeconds,
+      assetCards: r.state ? Object.fromEntries([...new Set(r.state.players.flatMap((p) => p.assets.map((a) => a.code)))].flatMap((c) => { const x = assetCardOf(r.ctx, c); return x ? [[c, x]] : []; })) : undefined,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: ce.effect, mode: ce.mode, file: ce.file }; })() : null,
       professions: r.state ? Object.fromEntries(r.state.players.map((p) => [p.id, r.ctx.kasb[p.profession]?.name ?? ""])) : undefined,
       dreams: r.state?.phase === "dreams" ? r.ctx.dreams.map((d) => ({ name: d.name, price: d.price })) : undefined,
