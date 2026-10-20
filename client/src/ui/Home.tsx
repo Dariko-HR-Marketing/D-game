@@ -28,6 +28,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
   const [me, setMe] = useState<{ name: string; color: number; level: number } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0 }); }).catch(() => {}); return () => { off = true; }; }, [http]);
+  const [active, setActive] = useState<{ code: string; started: boolean; round: number; players: number } | null>(null);
+  useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
   const online = status === "online", ready = code.length === 6; const { height } = useWindowDimensions(); const compact = height < 700; // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
@@ -45,6 +47,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {notes.map((n) => <Banner key={n.id} kind={n.kind === "warn" ? "warn" : "info"}>{n.text}</Banner>)}
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
+            {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
             <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn, calc)} disabled={!online} />
             {compact && (
               <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${turnLabel(turn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">

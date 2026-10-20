@@ -253,6 +253,13 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="poyga-${code}.csv"`).send(historyCsv({ ...r.history, events: pres.events as any }, (x) => x));
     return pres;
   }));
+  // Faol o'yin (§7: bir hisob — bitta faol o'yin): ilova yangidan ochilganda «Davom etish» uchun.
+  app.get("/me/active", secured((uid) => {
+    const code = rooms.activeRoomOf.get(uid); const r = code ? rooms.rooms.get(code) : undefined;
+    const m = r?.members.find((x) => x.userId === uid);
+    if (!r || !m || m.left) return { active: null };
+    return { active: { code: r.code, started: !!r.state, round: r.state?.round ?? 0, players: r.members.length } };
+  }));
   app.get("/me/history", secured((uid) => { const lim = commerce.historyLimit(uid); return lim === null ? profiles.history(uid) : profiles.history(uid, lim); })); // bepul tarif: oxirgi N o'yin; Plus: to'liq
   app.get("/me/export", secured((uid) => ({ userId: uid, exportedAt: Date.now(), ...profiles.export(uid) })));
   app.delete("/me", secured((uid, req, reply) => {
