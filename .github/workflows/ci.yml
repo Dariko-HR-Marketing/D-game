@@ -60,3 +60,4 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/e2e-play.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/identity-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/portfolio-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/calc-check.ts

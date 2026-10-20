@@ -3,7 +3,8 @@ export function autoProfiles(x: { profiles: { put(id: string, p: unknown): unkno
   const orig = b.newContext.bind(b);
   b.newContext = async (...a: any[]) => {
     const c = await orig(...a); const oi = c.addInitScript.bind(c);
-    c.addInitScript = (fn: unknown, arg: unknown) => { if (typeof arg === "string" && arg && !x.profiles.get(arg)) x.profiles.put(arg, { name: `Sinov ${arg.slice(-6)}`, color: [...arg].reduce((s, ch) => s + ch.charCodeAt(0), 0) % 6, birthYear: 1990 }); return oi(fn, arg); };
+    // Mavjud skriptlar hisobni avtomatik rejimda sinaydi (o'quv rejimi alohida `calc-check` skriptida): bot kabi tugma bosib o'tadi
+    c.addInitScript = (fn: unknown, arg: unknown) => { if (typeof arg === "string" && arg && process.env.CALC_MANUAL !== "1") oi(() => localStorage.setItem("poyga-calc", "auto")); if (typeof arg === "string" && arg && !x.profiles.get(arg)) x.profiles.put(arg, { name: `Sinov ${arg.slice(-6)}`, color: [...arg].reduce((s, ch) => s + ch.charCodeAt(0), 0) % 6, birthYear: 1990 }); return oi(fn, arg); };
     return c;
   };
 }

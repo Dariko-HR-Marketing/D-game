@@ -5,3 +5,9 @@ const KEY = "poyga-turn-seconds";
 export const getTurnPref = (): TurnSeconds => (tourKV.get(KEY) === "60" ? 60 : 30);
 export const setTurnPref = (v: TurnSeconds) => tourKV.set(KEY, String(v));
 export const turnLabel = (s: number) => (s === 60 ? "1 daqiqa" : `${s} soniya`);
+
+/** Hisob rejimi: «O'zim hisoblayman» (standart, o'quv rejimi) yoki «Avtomatik». Oxirgi tanlov qurilmada eslab qolinadi. */
+export type CalcMode = "manual" | "auto";
+const CKEY = "poyga-calc";
+export const getCalcPref = (): CalcMode => (tourKV.get(CKEY) === "auto" ? "auto" : "manual");
+export const setCalcPref = (v: CalcMode) => tourKV.set(CKEY, v);

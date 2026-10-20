@@ -3,15 +3,15 @@ export interface WS { readyState?: number; send(s: string): void; close(): void;
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { turnSeconds?: number; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
+export interface RoomView { turnSeconds?: number; calc?: { mode: "auto" | "manual"; due: string[]; ledger?: Record<string, { cash: number; passive: number; flow: number }>; stats: Record<string, { firstTry: number; retried: number }> }; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
 export interface Reaction { id: number; from: string; emoji: string; at: number }
 /** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
-export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; lost: boolean; restoredAt: number | null }
+export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
-  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], lost: false, restoredAt: null };
-  private rid = 0;
+  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], lost: false, restoredAt: null, calcFb: null };
+  private rid = 0; private fbN = 0;
   private ws: WS | null = null;
   private listeners = new Set<(s: ConnState) => void>();
   private retry = 0;
@@ -45,7 +45,8 @@ export class Connection {
       } else if (m.type === "reaction") {
         this.set({ reactions: [...this.state.reactions, { id: ++this.rid, from: m.from, emoji: m.emoji, at: Date.now() }].slice(-3) }); // so'nggi 3 tasi
       } else if (m.type === "error") {
-        if (m.error === "stale_seq" && this.lastAct && !this.lastAct.retried) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
+        if (typeof m.error === "string" && m.error.startsWith("calc_")) this.set({ calcFb: { error: m.error, n: ++this.fbN, detail: m.detail } }); // hisob javobi: shaklda ko'rsatiladi, umumiy xato emas
+        else if (m.error === "stale_seq" && this.lastAct && !this.lastAct.retried) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
         else this.set({ error: m.error });
       }
     };
@@ -73,7 +74,7 @@ export class Connection {
     try { w.send(JSON.stringify(o)); return true; } catch { this.set({ error: "offline" }); return false; }
   }
 
-  create(turnSeconds: 30 | 60 = 30) { this.expecting = true; this.send({ type: "create", turnSeconds }); }
+  create(turnSeconds: 30 | 60 = 30, calc: "auto" | "manual" = "manual") { this.expecting = true; this.send({ type: "create", turnSeconds, calc }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
   leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [] }); }

@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, useWindowDimensions } fro
 import { Button } from "./Button";
 import { Banner, Card, Pill, Row } from "./kit";
 import { Dice } from "./Dice";
+import { useLedger, type CalcFeedback } from "./Ledger";
 import { Icon, type IconName } from "./Icon";
 import { TimerRing } from "./TimerRing";
 import { CardFace } from "./CardFace";
@@ -37,8 +38,8 @@ function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
 /** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
-export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30 }: { turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
-  const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
+export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30, calcMode, calcFb }: { calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
+  const e0 = card.effect; const f = cardFacts(e0, me, bankRoom); const lastDecide = React.useRef<Record<string, unknown> | null>(null);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
   const artH = Math.round(sheet ? Math.min(300, vh * 0.34) : Math.min(360, vh * 0.4)); // asl rasm kesilmaydi, ekran balandligiga moslanadi
@@ -55,6 +56,12 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const gainCash = e?.kind === "gain" ? e.amount : 0;
   const afterCash = me.cash - (cost ?? 0) + gainCash;
   const showChange = !rent && (cost !== null && cost !== undefined && cost > 0 || gainCash > 0 || (f.flowDelta ?? 0) !== 0);
+  // Hisob daftari (o'quv rejimi): «oldin → keyin» tayyor ko'rsatilmaydi — o'yinchi o'zi hisoblab kiritadi, server tekshiradi. Natijasi kubikka bog'liq tavakkal biznesda oldindan hisoblab bo'lmaydi.
+  const manual = !!calcMode; const needLedger = manual && !gamble && (showChange || shares || hod7 || calcFb?.error === "calc_required");
+  const act = (a: Record<string, unknown>) => { if (a.type === "decide" && a.accept) lastDecide.current = a; onAct(a); };
+  const snap = { cash: me.cash, passive: exitProgress(me).passive, flow: exitProgress(me).cashflow };
+  const ledger = useLedger(snap, calcFb);
+  const ledgerBase = lastDecide.current && calcFb?.error === "calc_required" ? lastDecide.current : { type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) };
   const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} turnSeconds={turnSeconds} /> : null;
   const body = (
     <>
@@ -69,7 +76,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
       <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
       {artOk ? <Text style={s.sr} aria-hidden>{card.text}</Text> : <CardPaper look={H} text={card.text} />}
-      {showChange && (
+      {!manual && showChange && (
         <View style={{ gap: space.xs }}>
           <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>
           <View style={s.change}><Text style={s.chL}>{uz.facts.yourCash.replace("Sizning naqdingiz", "Naqd")}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(me.cash)}</Text> → <Text style={{ color: afterCash < 0 ? tone.bad : tone.good }}>{money(afterCash)}</Text></Text></View>
@@ -85,17 +92,20 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       {cantFund && !cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {purchase ? uz.facts.bankNo : uz.facts.cashNeeded}.</Banner>}
       {lack === 0 && cost ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
+      {needLedger && <View style={s.ledger} testID="decision-ledger" role="group" aria-label={uz.ledger.decideTitle}><Text style={s.ledgerT} aria-level={3} accessibilityRole="header">{uz.ledger.decideTitle}</Text><Text style={s.noteT}>{uz.ledger.decideHint}</Text>{ledger.body}</View>}
       <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>
     </>
   );
+  const submitLedger = () => { if (ledger.ready && !(cantFund || (shares && (qty < e.min || qty > e.max)))) act({ ...ledgerBase, calc: ledger.values() }); }; ledger.bindSubmit(submitLedger);
   const actions = (<>
+      {needLedger && <Button label={uz.ledger.decideSubmit} onPress={submitLedger} disabled={!ledger.ready || cantFund || (shares && (qty < e.min || qty > e.max))} />}
       {!mandatory && rent && (<View style={{ gap: space.sm }}>
-        <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => onAct({ type: "decide", accept: true })} />
+        <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => act({ type: "decide", accept: true })} />
         <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
       {!mandatory && !rent && (<View style={{ gap: space.sm }}>
-        <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
+        {!needLedger && <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund}
-          onPress={() => onAct({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />
+          onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />}
         <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={cantFund && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
   </>);
   if (e?.kind === "deckChoice") { if (layout) return <>{layout(<View style={{ gap: space.md }}>{inner}</View>, null)}</>; return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>; } // tugmalar DeckChoice ichida; layout bo'lsa ham chap ustun (moliya) saqlanadi
@@ -116,6 +126,7 @@ const s = StyleSheet.create({
   input: { minHeight: 44, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, backgroundColor: color.white, color: color.navy },
   note: { flexDirection: "row", gap: space.sm, alignItems: "flex-start", backgroundColor: color.bg, borderRadius: radius.md, padding: space.md }, noteT: { color: tone.muted, fontSize: font.sm, lineHeight: 19, flex: 1 },
   warn: { flexDirection: "row", gap: space.sm, alignItems: "flex-start", backgroundColor: "#FFF6DD", borderRadius: radius.md, padding: space.md }, warnT: { color: "#6B4300", fontSize: font.sm, lineHeight: 19, flex: 1, fontWeight: "600" },
+  ledger: { gap: space.sm, backgroundColor: "#F7FAFB", borderRadius: radius.lg, borderWidth: 2, borderColor: color.navy, padding: space.md }, ledgerT: { color: color.navy, fontWeight: "800", fontSize: font.md },
   deckTitle: { color: color.navy, fontSize: font.xl, fontWeight: "800" },
   deckTile: { flex: 1, borderWidth: 2, borderColor: color.navy, borderRadius: radius.lg, padding: space.sm, gap: 4, backgroundColor: color.white },
   deckArt: { height: 104, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: space.sm }, deckArtT: { fontWeight: "900", fontSize: 18, textAlign: "center", letterSpacing: 0.5 },

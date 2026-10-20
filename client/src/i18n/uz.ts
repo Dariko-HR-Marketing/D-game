@@ -2,7 +2,7 @@
 export const uz = {
   app: { name: "POYGA" },
   sound: { label: "Tovush", on: "Tovushni yoqish", off: "Tovushni o'chirish" },
-  home: { turnLabel: "Qaror vaqti", turn30: "30 soniya", turn60: "1 daqiqa", hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
+  home: { roomSettings: "Xona sozlamalari", turnLabel: "Qaror vaqti", turn30: "30 soniya", turn60: "1 daqiqa", hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
     how: ["Xona oching yoki kod bilan qo'shiling (2–6 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
   dreams: { title: "Orzuingizni tanlang", hint: "Har bir o'yinchi o'z orzusini tanlaydi. Bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi.", taken: "band", yours: "Sizning tanlovingiz", waiting: "Boshqa o'yinchilar tanlashini kutyapmiz", timeLeft: "Qolgan vaqt", pick: "Tanlash", change: "Shuni tanlash", chosen: "tanlagan", choosing: "tanlayapti", price: "Narxi" },
   onboarding: { next: "Keyingisi", back: "Orqaga", skip: "O'tkazib yuborish", done: "Tushunarli", rules: "To'liq qoidalarni o'qish", replay: "Yo'riqnomani qayta ko'rsatish", replayHint: "Hamma sahifalardagi qisqa yo'riqnomalar qaytadan chiqadi.", help: "Yo'riqnoma", step: "qadam" },
@@ -107,6 +107,13 @@ export const uz = {
     before: "Oldin", after: "Keyin",
   },
   conn: { lost: "Aloqa uzildi. Qayta ulanmoqda…", restored: "Aloqa tiklandi" },
+  ledger: {
+    cash: "Naqd", passive: "Passiv daromad", flow: "Oylik pul oqimi", now: "Hozir", newWord: "yangi", minus: "minus", attempt: "urinish",
+    gateTitle: "Hisobingiz o'zgardi — yangilang", gateHint: "Yangi qiymatlarni o'zingiz hisoblab kiriting. Shundan keyin kubik tashlash ochiladi. Ma'lumot: chapdagi «Moliyaviy holat».", gateSubmit: "Tasdiqlash",
+    decideTitle: "Qabul qilsangiz hisobingiz qanday bo'ladi?", decideHint: "Karta ma'lumotlariga qarab o'zingiz hisoblang. «Oldin» qiymatlar yonida ko'rsatilgan.", decideSubmit: "Hisoblab qabul qilish",
+    wrong: "Hisob noto'g'ri. Qayta hisoblang.", solution: "To'g'ri javob", useSolution: "Javobni qo'yish", right: "To'g'ri!", modeLabel: "Hisob", manual: "O'zim hisoblayman", auto: "Avtomatik", manualHint: "Pul o'zgarishini o'zingiz hisoblab kiritasiz — moliyaviy savodxonlik mashqi", autoHint: "Hisob avtomatik",
+    gateSide: "Hisobingiz o'zgardi. Yangi qiymatlarni chap tomonda kiriting.", badge: "Hisob", due: "Hisobni yangilash kerak", accuracy: "Hisob aniqligi",
+  },
   portfolio: {
     title: "Mening kartalarim", open: "Batafsil va tahlil", close: "Yopish", empty: "Hali aktiv yo'q. Karta sotib olsangiz, shu yerda ko'rinadi.", count: "ta",
     kinds: { buy: "Aktiv", business: "Biznes", shares: "Aksiyalar", partner_stake: "Sheriklik ulushi", other: "Aktiv" } as Record<string, string>,
@@ -156,7 +163,7 @@ export const uz = {
   },
   errors: {
     bad_photo: "Rasm o'qilmadi. JPEG yoki PNG rasm tanlang", photo_too_big: "Rasm juda katta. Kichikroq rasm tanlang", no_photo: "Rasm topilmadi",
-    maintenance: "Texnik ishlar olib borilmoqda. Birozdan keyin urinib ko'ring", sales_paused: "Xaridlar vaqtincha to'xtatilgan. Keyinroq urinib ko'ring", paused: "Bu amal vaqtincha to'xtatilgan",
+    calc_wrong: "Hisob noto'g'ri. Qayta hisoblang", calc_required: "Avval hisobni kiriting", calc_due: "Avval hisobingizni yangilang", maintenance: "Texnik ishlar olib borilmoqda. Birozdan keyin urinib ko'ring", sales_paused: "Xaridlar vaqtincha to'xtatilgan. Keyinroq urinib ko'ring", paused: "Bu amal vaqtincha to'xtatilgan",
     room_limit: "Bepul tarifda kuniga xona yaratish chegarasi tugadi. Plus bilan cheklov yo'q", not_allowed: "Bu xonaga faqat sinf yoki turnir a'zolari kira oladi", plus_required: "Bu imkoniyat POYGA Plus uchun", price_unset: "Bu mahsulot narxi hali belgilanmagan",
     payments_unavailable: "To'lov hozircha ulanmagan. Keyinroq urinib ko'ring", phone_required: "Avval telefon raqamingizni tasdiqlang", profile_required: "Avval profilni to'ldiring", parent_phone_required: "Ota-onangizning telefon raqamini kiriting", same_phone: "Ota-ona raqami sizning raqamingizdan farq qilishi kerak",
      phone_taken: "Bu raqam boshqa hisobga bog'langan",  sms_unavailable: "SMS xizmati hozircha ulanmagan",  unavailable: "Bu mahsulot hozircha sotilmaydi", already_owned: "Bu narsa sizda bor", not_owned: "Bu narsa sizda yo'q", not_plus: "Bu imkoniyat Plus egalari uchun", already_claimed: "Bu oyning sovg'asi olingan", plus_already_long: "Plus muddati yetarlicha uzun",

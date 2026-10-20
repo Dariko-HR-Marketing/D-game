@@ -188,7 +188,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30, m.calc === "manual" ? "manual" : "auto"); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
@@ -196,8 +196,8 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
             const r = await rooms.start(code, userId, seed, { events: (m as { events?: boolean }).events }); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
-            const r = await rooms.act(code, userId, { ...m.action, playerId: userId }, m.seq);
-            if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error }); } return; }
+            const r = await rooms.act(code, userId, { ...m.action, playerId: userId } as any, m.seq);
+            if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error, ...("detail" in r && r.detail !== undefined ? { detail: r.detail } : {}) }); } return; }
           case "react": { if (!code) return reply({ type: "error", error: "no_room" });
             if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
             const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }

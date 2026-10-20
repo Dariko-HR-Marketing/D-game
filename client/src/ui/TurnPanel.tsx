@@ -10,7 +10,7 @@ import { color, font, space, tone } from "../theme";
 import type { RoomView } from "../net/connection";
 
 /** Taxta markazi (maket N11): turgan katak nomi, kubik natijasi, kimning navbati. Kompyuterda taymer va asosiy tugma ham shu yerda. */
-export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide, moving }: { room: RoomView; userId: string; mineTurn: boolean; hasCard: boolean; left: number; onRoll: () => void; wide?: boolean; moving?: boolean }) {
+export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide, moving, gate }: { gate?: React.ReactNode; room: RoomView; userId: string; mineTurn: boolean; hasCard: boolean; left: number; onRoll: () => void; wide?: boolean; moving?: boolean }) {
   const st = room.state; const lr = st.lastRoll as { playerId: string; die: number; n: number } | null | undefined;
   const cur = st.players[st.turn % st.players.length]; const curId: string = cur.id;
   const who = lr ? (lr.playerId === userId ? uz.result.you : nameOf(room, lr.playerId)) : null;
@@ -28,7 +28,8 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
           {left > 0 && <TimerRing left={left} total={room.turnSeconds ?? 30} size={48} label={`${left} ${uz.game.seconds}`} />}
           <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
         </View>)}
-      {wide && mineTurn && !hasCard && !moving && <View style={{ alignSelf: "stretch", paddingHorizontal: space.md }}><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View>}
+      {wide && gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : null}
+      {wide && !gate && mineTurn && !hasCard && !moving && <View style={{ alignSelf: "stretch", paddingHorizontal: space.md }}><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View>}
       {mineTurn && hasCard && !moving && <Text style={s.sub}>{uz.game.decideBelow}</Text>}
     </View>
   );
