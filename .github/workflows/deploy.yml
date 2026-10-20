@@ -1,0 +1,41 @@
+name: deploy
+# CI `main` da yashil tugagach serverni yangilaydi (SSH orqali). Qo'lda ham ishga tushadi.
+# Kerakli sirlar (Settings → Secrets and variables → Actions): DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY,
+# DEPLOY_KNOWN_HOSTS (`ssh-keyscan -t ed25519 <host>` natijasi), ixtiyoriy: DEPLOY_PATH (standart ~/D-game), DEPLOY_READY_URL.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+concurrency: { group: deploy, cancel-in-progress: false }
+permissions: { contents: read }
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      READY_URL: ${{ secrets.DEPLOY_READY_URL }}
+    steps:
+      - name: Sirlar to'ldirilganini tekshirish
+        env: { KEY: "${{ secrets.DEPLOY_SSH_KEY }}", KH: "${{ secrets.DEPLOY_KNOWN_HOSTS }}" }
+        run: |
+          for v in HOST DEPLOY_USER KEY KH; do [ -n "${!v}" ] || { echo "::error::$v sirri yo'q"; exit 1; }; done
+      - name: SSH sozlash
+        env: { KEY: "${{ secrets.DEPLOY_SSH_KEY }}", KH: "${{ secrets.DEPLOY_KNOWN_HOSTS }}" }
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts
+      - name: Serverni yangilash
+        run: |
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$DEPLOY_USER@$HOST" \
+            "set -e; cd ${DEPLOY_PATH:-~/D-game} && git pull --ff-only origin main && cd deploy/vps && docker compose up -d --build && docker compose ps"
+      - name: Tayyorlikni tekshirish
+        run: |
+          [ -n "$READY_URL" ] || { echo "DEPLOY_READY_URL berilmagan, tekshiruv o'tkazib yuborildi"; exit 0; }
+          for i in $(seq 1 24); do curl -fsS -m 10 "$READY_URL" && exit 0; sleep 5; done
+          echo "::error::/ready javob bermadi"; exit 1
