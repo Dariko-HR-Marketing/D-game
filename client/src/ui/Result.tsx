@@ -1,3 +1,4 @@
+import { HistoryDetail } from "./History";
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Button } from "./Button";
@@ -31,7 +32,7 @@ function Chart({ values }: { values: number[] }) {
 export function Result({ http, code, onHome }: { http: Http; code: string; onHome: () => void }) {
   const [a, setA] = useState<any>(null); const [err, setErr] = useState(false);
   useEffect(() => { http.analysis(code).then(setA).catch(() => setErr(true)); }, [http, code]);
-  const me = a?.players.find((p: any) => p.isMe);
+  const me = a?.players.find((p: any) => p.isMe); const [hist, setHist] = useState(false);
   return (
     <Screen title={uz.result.title} subtitle={a ? `${uz.result.analysis} · ${a.rounds} ${uz.result.round}` : undefined} maxWidth={720}>
       {a?.winner ? (
@@ -55,7 +56,9 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
             </Card>
           </View>))}
       </View>
+      {a && <Button label={uz.history.title} kind="ghost" onPress={() => setHist(true)} />}
       <Button label={uz.result.home} onPress={onHome} />
+      {hist && <HistoryDetail http={http} code={code} onClose={() => setHist(false)} />}
     </Screen>
   );
 }

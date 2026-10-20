@@ -12,7 +12,8 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
   return {
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number }) => call("PUT", "/me/profile", p),
     uploadAvatar: (image: string) => call("PUT", "/me/avatar", { image }) as Promise<{ photo: string }>, removeAvatar: () => call("DELETE", "/me/avatar"),
-    history: () => call("GET", "/me/history"), analysis: (code: string) => call("GET", `/me/games/${code}/analysis`), leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
+    history: () => call("GET", "/me/history"), analysis: (code: string) => call("GET", `/me/games/${code}/analysis`), gameLog: (code: string) => call("GET", `/me/games/${code}/log`),
+    gameLogCsv: async (code: string) => { const r = await f(base + `/me/games/${code}/log?format=csv`, { headers: { authorization: `Bearer ${token}` } }); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.text(); }, leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
     announcements: () => call("GET", "/me/announcements"), status: () => call("GET", "/status"),
     account: () => call("GET", "/me/account"), phoneRequest: (phone: string) => call("POST", "/me/phone/request", { phone }), phoneVerify: (phone: string, code: string) => call("POST", "/me/phone/verify", { phone, code }),
     shop: () => call("GET", "/shop"), order: (sku: string, parentPhone?: string) => call("POST", "/shop/order", { sku, channel: "web", ...(parentPhone ? { parentPhone } : {}) }), orderGet: (id: string) => call("GET", `/shop/orders/${id}`),

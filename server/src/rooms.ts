@@ -23,7 +23,7 @@ export interface Member { userId: string; bot: boolean; online: boolean; left?: 
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
-  calcMode: CalcMode; ledger: Record<string, Snap>; calcTries: Record<string, number>; calcStats: Record<string, { firstTry: number; retried: number }>;
+  calcMode: CalcMode; ledger: Record<string, Snap>; calcTries: Record<string, number>; calcNotes: Record<string, { kind: "decide" | "confirm"; wrong: number; hint: boolean }[]>; calcStats: Record<string, { firstTry: number; retried: number }>;
   ctx: Ctx; contentVersion: number | null; // o'yin boshlanganda qulflanadi (§11)
   createdAt: number; endedAt: number | null;
   offlineSince: number | null; // hamma odam oflayn bo'lgan vaqt (tashlab ketilgan xonani yopish uchun)
@@ -104,7 +104,7 @@ export class RoomManager {
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
       const r: Room = { tag: a.meta.tag, code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable, online: false })), state: a.state, seq: a.meta.seq,
-        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", ledger: {}, calcTries: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
+        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.ledgerSync(r); this.armProposals(r); this.arm(r); n++;
@@ -122,7 +122,7 @@ export class RoomManager {
   create(hostId: string, tag?: RoomTag, turnSeconds: TurnSeconds = 30, calcMode: CalcMode = "auto"): { ok: true; code: string } | { ok: false; error: Err } {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
     const code = this.newCode();
-    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, ledger: {}, calcTries: {}, calcStats: {},
+    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
       ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null, tag });
     this.activeRoomOf.set(hostId, code);
     return { ok: true, code };
@@ -188,10 +188,10 @@ export class RoomManager {
     if (!r.state) return [];
     return r.state.players.filter((p) => !r.state!.bots.includes(p.id) && r.ledger[p.id] && !sameSnap(r.ledger[p.id], snapOf(p))).map((p) => p.id);
   }
-  private calcCheck(r: Room, userId: string, given: Snap | undefined, expected: Snap): { ok: false; error: Err; detail?: unknown } | null {
+  private calcCheck(r: Room, userId: string, given: Snap | undefined, expected: Snap, kind: "decide" | "confirm"): { ok: false; error: Err; detail?: unknown } | null {
     if (!given) return { ok: false, error: "calc_required", detail: { tries: r.calcTries[userId] ?? 0 } };
     const tries = r.calcTries[userId] ?? 0, st = (r.calcStats[userId] ??= { firstTry: 0, retried: 0 });
-    if (sameSnap(given, expected)) { if (tries === 0) st.firstTry++; else st.retried++; r.calcTries[userId] = 0; return null; }
+    if (sameSnap(given, expected)) { if (tries === 0) st.firstTry++; else st.retried++; r.calcTries[userId] = 0; (r.calcNotes[userId] ??= []).push({ kind, wrong: tries, hint: tries >= CALC_HINT_AFTER }); return null; }
     r.calcTries[userId] = tries + 1;
     return { ok: false, error: "calc_wrong", detail: { fields: { cash: given.cash === expected.cash, passive: given.passive === expected.passive, flow: given.flow === expected.flow }, tries: tries + 1, solution: tries + 1 >= CALC_HINT_AFTER ? expected : undefined } };
   }
@@ -200,7 +200,7 @@ export class RoomManager {
     if (!r.state || r.state.bots.includes(userId)) return null;
     const me = r.state.players.find((p) => p.id === userId); if (!me) return null;
     if ((a.type as string) === "confirm_calc") {
-      const bad = this.calcCheck(r, userId, calc, snapOf(me)); if (bad) return { done: bad };
+      const bad = this.calcCheck(r, userId, calc, snapOf(me), "confirm"); if (bad) return { done: bad };
       r.ledger[userId] = snapOf(me); this.emit(r); return { done: { ok: true } };
     }
     if (a.type === "roll" && this.dueOf(r).includes(userId)) return { done: { ok: false, error: "calc_due" } };
@@ -210,7 +210,7 @@ export class RoomManager {
       const out = reduce(r.state, r.ctx, a); if (!out.ok) return null; // xatoni oddiy yo'l qaytaradi
       const np = out.state.players.find((p) => p.id === userId)!; const exp = snapOf(np);
       if (sameSnap(snapOf(me), exp)) return null; // pulga ta'siri yo'q — hisob kerak emas
-      const bad = this.calcCheck(r, userId, calc, exp); return bad ? { done: bad } : { verified: true };
+      const bad = this.calcCheck(r, userId, calc, exp, "decide"); return bad ? { done: bad } : { verified: true };
     }
     return null;
   }
@@ -225,7 +225,8 @@ export class RoomManager {
     this.armProposals(r);
     // Saqlash xatosi o'yinni to'xtatmaydi (xotirada davom etadi, xato jurnal va ko'rsatkichga tushadi) — aks holda taymer va tarqatish to'xtab qolardi.
     try {
-      await this.store.append(r.code, { seq: r.seq, at: this.clock.now(), action: auto ? { type: "auto", reason: auto, action } : action });
+      const who = (action as { playerId: string }).playerId; const notes = r.calcNotes[who]; if (notes?.length) delete r.calcNotes[who]; // hisob daftari izohlari keyingi jurnal yozuviga qo'shiladi
+      await this.store.append(r.code, { seq: r.seq, at: this.clock.now(), action: auto ? { type: "auto", reason: auto, action } : action, ...(notes?.length ? { notes } : {}) });
       await this.store.saveSnapshot(r.code, r.state!, this.meta(r));
     } catch (e) { this.hooks.onError?.("persist", e); }
     if (r.state!.winner) this.finish(r); else this.arm(r);
