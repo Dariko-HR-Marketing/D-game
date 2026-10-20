@@ -25,10 +25,11 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
     if (await deck.count()) { if (await tryClick(deck)) idle = 0; }
     else if (await rentA.count()) { if (await tryClick(rentA)) idle = 0; }
     else if (await accept.count()) { if ((rolls + accepted) % 3 === 0 && await accept.first().isEnabled({ timeout: 1000 }).catch(() => false)) { if (await tryClick(accept)) accepted++; } else { if (await tryClick(no)) skipped++; } idle = 0; }
+    else if (await pay.count()) { // «Pul to'layman / Biznesdan voz kechaman» (kutilmagan hodisa): navbat bilan to'laymiz yoki biznesdan voz kechamiz
+      const lose = p.getByRole("button", { name: /^Biznesdan voz kechaman/ }); if ((rolls + accepted) % 2 === 0 && await pay.first().isEnabled({ timeout: 1000 }).catch(() => false)) { if (await tryClick(pay)) accepted++; } else if (await tryClick(lose)) skipped++; idle = 0; }
     else if (await roll.count()) { if (await tryClick(roll)) rolls++; idle = 0; }
     else { await p.waitForTimeout(150); if (idle === 40) { await p.screenshot({ path: `/tmp/stall-${tag}.png` }); console.log(`${tag}: kutilmoqda, tugmalar:`, await p.getByRole('button').evaluateAll((es) => es.map((e) => e.getAttribute('aria-label')).filter(Boolean).slice(0, 12))); } if (++idle > 120) { fail(`${tag}: o'yin qotib qoldi (rolls=${rolls})`); break; } }
     if (await p.getByText("O'yin natijasi").count()) break;
-    void pay;
   }
   // ikkilamchi bo'limlar xatosiz ochilsin
   const fin = p.getByRole("button", { name: /Moliya amallari/ }); if (await fin.count()) { await fin.click(); await p.waitForTimeout(200); }
