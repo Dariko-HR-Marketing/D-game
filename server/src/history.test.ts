@@ -25,6 +25,7 @@ describe("o'yin tarixi", () => {
     expect(h.events.every((e: any) => ["Siz", "Bobur"].includes(e.by))).toBe(true);
     expect(JSON.stringify(h)).not.toMatch(/\balice\b|\bbob\b/);
     for (const e of h.events) if (e.ok) expect(e.delta.cash).toBe(e.after.cash - e.before.cash);
+    expect(h.players.every((p: any) => p.calc === null)).toBe(true); // avtomatik rejimda hisob izohi yo'q
     const csv = await x.app.inject({ method: "GET", url: `/me/games/${r.code}/log?format=csv`, headers: H("alice") });
     expect(csv.headers["content-type"]).toContain("text/csv"); expect(csv.body.split("\n").length).toBe(h.events.length + 1);
     expect((await x.app.inject({ method: "GET", url: `/me/games/${r.code}/log`, headers: H("eve") })).statusCode).toBe(403);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deltasOf, filterEvents, titleOf, whyOf, cellName, type HEv } from "./history";
+import { accuracyOf, deltasOf, filterEvents, titleOf, whyOf, cellName, type HEv } from "./history";
 
 const base = (o: Partial<HEv>): HEv => ({ n: 1, seq: 1, at: 0, round: 1, by: "Siz", mine: true, type: "roll", auto: null, ok: true,
   before: { cash: 1000, passive: 0, flow: 500, debt: 0, assets: 0, months: 0 }, after: { cash: 1000, passive: 0, flow: 500, debt: 0, assets: 0, months: 0 },
@@ -21,5 +21,9 @@ describe("tarix matnlari", () => {
     expect(deltasOf(e).map((d) => [d.label, d.kind])).toEqual([["Naqd", "bad"], ["Pul oqimi", "good"], ["Qarz", "bad"]]);
     const list = [e, base({ n: 2, seq: 2, mine: false }), base({ n: 3, seq: 3, ok: false })];
     expect(filterEvents(list, true)).toHaveLength(1); expect(filterEvents(list, false)).toHaveLength(2);
+  });
+  it("hisob aniqligi: birinchi urinishdagi ulush", () => {
+    expect(accuracyOf(null)).toBeNull(); expect(accuracyOf({ firstTry: 0, retried: 0 })).toBeNull();
+    expect(accuracyOf({ firstTry: 3, retried: 1 })).toEqual({ pct: 75, total: 4, firstTry: 3 });
   });
 });

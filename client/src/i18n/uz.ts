@@ -133,7 +133,7 @@ export const uz = {
     stage: { drawn: "Karta chiqdi", applied: "Karta darhol qo'llandi", decided: "Qaror shu karta bo'yicha" } as Record<string, string>,
     price: "Narxi", down: "Boshlang'ich to'lov", bank: "Bank krediti", income: "Daromad / oy", yearly: "Yillik daromad", payback: "Qoplanish", months: "oy",
     cash: "Naqd", passive: "Passiv daromad", flow: "Pul oqimi", debt: "Qarz", added: "Qo'shildi", lost: "Yo'qoldi", assetsWord: "aktiv",
-    calcRight: "Hisob: birinchi urinishda to'g'ri", calcWrong: "Hisobda xato soni",
+    accuracyOf: "birinchi urinishda to'g'ri", accuracyNote: "Hisob daftari: qo'lda hisoblagan amallaringiz", calcRight: "Hisob: birinchi urinishda to'g'ri", calcWrong: "Hisobda xato soni",
     types: { roll: "Kubik tashladi", decide: "Qaror", choose_dream: "Orzuni tanladi", auto_dreams: "Orzular avtomatik tanlandi", expire: "Muddat tugadi", bank_loan: "Bank kreditini oldi", bank_repay: "Bank kreditini to'ladi", lombard: "Lombardga topshirdi", market_sell: "Bozorda sotdi", loan_request: "Qarz so'radi", loan_accept: "Qarz berdi", loan_remind: "Qarzni eslatdi", loan_repay: "Qarzni qaytardi", partner_offer: "Sheriklik taklif qildi", partner_accept: "Sheriklikni qabul qildi", partner_buyout: "Ulushni sotib oldi", suyunchi: "Suyunchi berdi", confirm_calc: "Hisobni tasdiqladi", leave: "O'yindan chiqdi" } as Record<string, string>,
     auto: { timeout: "Vaqt tugadi — avtomatik bajarildi", bot: "Bot o'ynadi", left: "O'yinchi chiqib ketgan — avtomatik", dream_timeout: "Orzu avtomatik tanlandi", proposal_timeout: "Taklif muddati tugadi" } as Record<string, string>,
   },

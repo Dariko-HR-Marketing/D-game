@@ -76,5 +76,7 @@ export function presentHistory(h: History, final: GameState, nameOf: (id: string
   for (const id of h.players) label.set(id, id === me ? "Siz" : bots.has(id) ? `Bot ${++nb}` : nameOf(id) ?? `O'yinchi ${++n}`);
   const nm = (id: string) => label.get(id) ?? id;
   const swap = (t: string) => { let o = t; for (const [id, l] of label) o = o.split(`${id}:`).join(`${l}:`); return o; };
-  return { ...h, winner: h.winner ? nm(h.winner) : null, players: h.players.map((id) => ({ id: nm(id), isMe: id === me, bot: bots.has(id) })), events: h.events.map((e) => ({ ...e, by: nm(e.by), mine: e.by === me, log: e.log.map(swap) })) };
+  // Hisob aniqligi: hisob daftari izohlaridan (faqat «o'zim hisoblayman» rejimida bo'ladi)
+  const acc = (id: string) => { let first = 0, retried = 0; for (const e of h.events) if (e.by === id) for (const c of e.calc ?? []) c.wrong === 0 ? first++ : retried++; return first + retried ? { firstTry: first, retried } : null; };
+  return { ...h, winner: h.winner ? nm(h.winner) : null, players: h.players.map((id) => ({ id: nm(id), isMe: id === me, bot: bots.has(id), calc: acc(id) })), events: h.events.map((e) => ({ ...e, by: nm(e.by), mine: e.by === me, log: e.log.map(swap) })) };
 }
