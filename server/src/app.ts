@@ -185,7 +185,7 @@ export function buildApp(opts: { store?: Store; auth?: Authenticate; adminAuth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }

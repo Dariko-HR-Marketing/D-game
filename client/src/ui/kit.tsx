@@ -1,5 +1,6 @@
 // Umumiy UI to'plami: barcha ekranlar bir xil bo'shliq, burchak va ranglardan foydalanadi.
 import React from "react";
+import { CountText } from "./CountText";
 import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
 import { color, font, radius, shadow, space, surface, tone } from "../theme";
 
@@ -14,10 +15,10 @@ export function Pill({ label, kind = "plain" }: { label: string; kind?: "good" |
   return <View style={[k.pill, { backgroundColor: surface[kind] }]}><Text style={[k.pillText, { color: fg }]}>{label}</Text></View>;
 }
 /** Katta raqam + izoh (naqd, pul oqimi va h.k.) */
-export function Stat({ label, value, kind = "neutral", big, text }: { label: string; value: string; kind?: "good" | "bad" | "neutral"; big?: boolean; text?: boolean }) {
+export function Stat({ label, value, kind = "neutral", big, text, count }: { label: string; value: string; kind?: "good" | "bad" | "neutral"; big?: boolean; text?: boolean; count?: { value: number; signed?: boolean } }) {
   const fg = kind === "good" ? tone.good : kind === "bad" ? tone.bad : color.navy;
   return (<View style={k.stat} role="group" accessible aria-label={`${label}: ${value}`}>
-    <Text style={[big ? k.statBig : k.statVal, text && { fontSize: font.md, lineHeight: 28 }, { color: text ? tone.muted : fg }]} aria-hidden>{value}</Text><Text style={k.statLabel} aria-hidden>{label}</Text></View>);
+    {count ? <CountText value={count.value} signed={count.signed} style={[big ? k.statBig : k.statVal, { color: fg }]} /> : <Text style={[big ? k.statBig : k.statVal, text && { fontSize: font.md, lineHeight: 28 }, { color: text ? tone.muted : fg }]} aria-hidden>{value}</Text>}<Text style={k.statLabel} aria-hidden>{label}</Text></View>);
 }
 export function Row({ l, v, kind }: { l: string; v: string; kind?: "good" | "bad" | "neutral" }) {
   const fg = kind === "good" ? tone.good : kind === "bad" ? tone.bad : color.navy;

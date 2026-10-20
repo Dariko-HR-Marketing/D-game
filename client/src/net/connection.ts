@@ -3,7 +3,7 @@ export interface WS { readyState?: number; send(s: string): void; close(): void;
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
+export interface RoomView { turnSeconds?: number; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
 export interface Reaction { id: number; from: string; emoji: string; at: number }
 export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[] }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
@@ -62,7 +62,7 @@ export class Connection {
     try { w.send(JSON.stringify(o)); return true; } catch { this.set({ error: "offline" }); return false; }
   }
 
-  create() { this.expecting = true; this.send({ type: "create" }); }
+  create(turnSeconds: 30 | 60 = 30) { this.expecting = true; this.send({ type: "create", turnSeconds }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
   leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [] }); }

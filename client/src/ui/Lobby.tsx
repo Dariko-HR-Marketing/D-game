@@ -5,6 +5,7 @@ import { Banner, Card, Pill } from "./kit";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
 import { Screen } from "./Screen";
+import { turnLabel } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../theme";
 import { readableOn } from "../contrast";
@@ -48,6 +49,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
           <View key={`e${i}`} style={[s.player, s.empty]} aria-hidden><View style={[s.dot, { borderStyle: "dashed", borderColor: color.line, backgroundColor: "transparent" }]} /><Text style={s.emptyT}>{uz.lobby.waitingPlayer}</Text></View>))}
       </Card>
 
+      {room.turnSeconds ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
       {host && (
         <Card>

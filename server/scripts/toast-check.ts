@@ -18,7 +18,7 @@ await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
 await a.waitForSelector("text=Naqd");
-const room = x.rooms.rooms.get(code)!; const toast = a.getByRole("status");
+const room = x.rooms.rooms.get(code)!; const toast = a.locator('[role="status"][aria-label]'); // xabar kartasi (moliya chiplarining jonli xabari aria-label'siz)
 // «c» o'yinchisi navbatida karta tortilguncha: «a» ning sahifasida xabar chiqadi
 let seenAt = 0;
 for (let i = 0; i < 300 && !seenAt; i++) {

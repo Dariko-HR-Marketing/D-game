@@ -2,7 +2,7 @@
 export const uz = {
   app: { name: "POYGA" },
   sound: { label: "Tovush", on: "Tovushni yoqish", off: "Tovushni o'chirish" },
-  home: { hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
+  home: { turnLabel: "Qaror vaqti", turn30: "30 soniya", turn60: "1 daqiqa", hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
     how: ["Xona oching yoki kod bilan qo'shiling (2–6 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
   dreams: { title: "Orzuingizni tanlang", hint: "Har bir o'yinchi o'z orzusini tanlaydi. Bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi.", taken: "band", yours: "Sizning tanlovingiz", waiting: "Boshqa o'yinchilar tanlashini kutyapmiz", timeLeft: "Qolgan vaqt", pick: "Tanlash", change: "Shuni tanlash", chosen: "tanlagan", choosing: "tanlayapti", price: "Narxi" },
   onboarding: { next: "Keyingisi", back: "Orqaga", skip: "O'tkazib yuborish", done: "Tushunarli", rules: "To'liq qoidalarni o'qish", replay: "Yo'riqnomani qayta ko'rsatish", replayHint: "Hamma sahifalardagi qisqa yo'riqnomalar qaytadan chiqadi.", help: "Yo'riqnoma", step: "qadam" },
@@ -24,7 +24,7 @@ export const uz = {
     ],
     "game-small": [
       { title: "Kichik aylana", text: "Taxtada 48 katak, harakat soat yo'nalishida. Maqsad — kichik aylanadan chiqish: naqd kamida 1 000 000, oylik passiv pul oqimi kamida 25 000 va qarz hamda kreditlar bo'lmasligi kerak." },
-      { title: "Kubik tashlang", text: "Navbatingiz kelganda «Kubikni tashlash» ni bosing (kompyuterda — probel tugmasi). Fishkangiz kubikdagi songa teng katak yuradi. 30 soniya ichida tashlamasangiz navbat o'tadi." },
+      { title: "Kubik tashlang", text: "Navbatingiz kelganda «Kubikni tashlash» ni bosing (kompyuterda — probel tugmasi). Fishkangiz kubikdagi songa teng katak yuradi. Xona vaqti (30 yoki 60 soniya) ichida tashlamasangiz navbat o'tadi." },
       { title: "Vaqt oyma-oy hisoblanadi", text: "Har bir «D» (Daromad) katagidan o'tsangiz yoki unga tushsangiz bitta oy o'tadi va pul oqimi naqdingizga qo'shiladi. Aylanada 4 ta shunday katak bor: 4 oy — 1 aylana, 3 aylana — 1 yil. O'tgan vaqt shu yerda ko'rinib turadi." },
       { title: "Katak turlari", text: "Daromad (oy o'tadi), Imkoniyat (sarmoya kartasi), Xarajat, Bozor, Farzand (suyunchi), «Ishdan bo'shadingiz» va «O'yinni boshidan boshlang!». To'liq ro'yxat taxta ostidagi «Katak turlari» da." },
       { title: "Kartaga qarab qaror qiling", text: "Katakka qarab karta chiqadi. Ixtiyoriy kartada narx, oylik daromad va pul oqimiga ta'sir ko'rsatiladi: foydali bo'lsa «Qabul qilaman», bo'lmasa «O'tkazaman». 30 soniya ichida javob bermasangiz ixtiyoriy karta o'tkaziladi, majburiy karta avtomatik qabul qilinadi." },
@@ -79,7 +79,12 @@ export const uz = {
   } as Record<string, { name: string; desc: string }>,
   login: { boardAlt: "POYGA o'yin maydoni", welcomeLead: "Moliyaviy erkinlikka erish. O'yna va boy bo'l.", welcomeText: "Kasb kartasi bilan boshlang, pul oqimini oshiring, kichik aylanadan chiqib orzuingizni sotib oling.", start: "Boshlash", haveAccount: "Hisobim bor", brandLine: "DARIKO ekotizimining o'yin brendi", resend: "Kodni qayta yuborish", resendIn: "Qayta yuborish mumkin:", title: "Kirish", phone: "Telefon raqami", phoneHint: "Masalan: 90 123 45 67 yoki +998 90 123 45 67", send: "Kod yuborish", code: "SMS kodi (6 raqam)", confirm: "Tasdiqlash", back: "Raqamni o'zgartirish", sentTo: "Kod yuborildi", logout: "Chiqish", wait: "Tekshirilmoqda…",
     note: "Telefon raqamingiz saqlanmaydi — faqat kirish uchun ishlatiladi." },
-  lobby: { events: "«Kutilmagan hodisa!» kartalari", eventsHint: "Yoqilsa, «Boshidan boshlang» katagi hodisa kartasini ochadi (katta to‘lov bo‘lishi mumkin). O‘chirilsa — oddiy katak.", title: "Xona", players: "O'yinchilar", start: "O'yinni boshlash", wait: "Xona egasi o'yinni boshlashini kuting", bot: "Bot", you: "Siz", offline: "oflayn", hint: "Odam yetmasa bot qo'shiladi",
+  fx: {
+    region: "Moliyaviy o'zgarishlar", cash: "Naqd", passive: "Passiv daromad", flow: "Pul oqimi", debt: "Qarz", added: "Sizga qo'shildi", lost: "Aktiv yo'qoldi", perMonth: "oyiga",
+    moreAssets: "Yana {n} ta aktiv qo'shildi", lostMany: "{n} ta aktiv yo'qoldi",
+    assetKinds: { buy: "Yangi aktiv", business: "Biznes", shares: "Aksiyalar", partner_stake: "Sheriklik ulushi", other: "Aktiv" } as Record<string, string>,
+  },
+  lobby: { turnBadge: "Qaror vaqti", events: "«Kutilmagan hodisa!» kartalari", eventsHint: "Yoqilsa, «Boshidan boshlang» katagi hodisa kartasini ochadi (katta to‘lov bo‘lishi mumkin). O‘chirilsa — oddiy katak.", title: "Xona", players: "O'yinchilar", start: "O'yinni boshlash", wait: "Xona egasi o'yinni boshlashini kuting", bot: "Bot", you: "Siz", offline: "oflayn", hint: "Odam yetmasa bot qo'shiladi",
     share: "Kodni do'stlaringizga yuboring — ular «Kirish» orqali qo'shiladi.", copy: "Kodni nusxalash", copied: "Nusxalandi", leave: "Xonadan chiqish", hostWord: "xona egasi", playerN: "O'yinchi", waitingPlayer: "O'yinchi kutilmoqda…", botsNote: "Kamida 2 ta ishtirokchi kerak: yetishmayotgan {n} ta o'rinni bot egallaydi." },
   hud: {
     tabs: { field: "Maydon", blank: "Blank", players: "O'yinchilar", rules: "Qoidalar", nav: "O'yin bo'limlari" },
@@ -88,8 +93,8 @@ export const uz = {
     yourTurn: "Navbatingiz.", mineHint: "{s} soniyada kubik tashlanmasa, navbat {name}ga o'tadi.", otherHint: "Navbat {name}da. U {s} soniyada tashlamasa, navbat o'tadi.", otherNoTimer: "Navbat {name}da.",
     onTurn: "Navbatda", online: "Onlayn", offline: "Oflayn", autoNote: "qarorlar avtomatik", you: "siz", dream: "Orzu", cashLabel: "Naqd", incomeAll: "Umumiy daromad", expensesAll: "Umumiy xarajat",
     welcomeTitle: "Olmaxon doirasiga xush kelibsiz!", ownCircleNote: "Siz faqat o'z aylanangizni ko'rasiz. Kichik va katta aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi bo'lmaydi.",
-    playersTitle: "O'yinchilar", changes: "O'zgarishlar", before: "Oldin", after: "Keyin", timeNote: "30 soniya ichida tasdiqlang. Tasdiqlanmasa — ixtiyoriy karta o'tkaziladi, majburiy karta avtomatik qabul qilinadi (−2 ball).",
-    deckChoiceTitle: "Qaysi dekadan karta olasiz?", deckChoiceNote: "30 soniya ichida tanlang. Tanlanmasa — karta o'tkazib yuboriladi va «Kichik sarmoyalar» ochiladi.", deckCards: "ta karta", deckSmall: "Kichik sarmoyalar", deckBig: "Katta sarmoyalar",
+    playersTitle: "O'yinchilar", changes: "O'zgarishlar", before: "Oldin", after: "Keyin", timeNote: "{s} soniya ichida tasdiqlang. Tasdiqlanmasa — ixtiyoriy karta o'tkaziladi, majburiy karta avtomatik qabul qilinadi (−2 ball).",
+    deckChoiceTitle: "Qaysi dekadan karta olasiz?", deckChoiceNote: "{s} soniya ichida tanlang. Tanlanmasa — karta o'tkazib yuboriladi va «Kichik sarmoyalar» ochiladi.", deckCards: "ta karta", deckSmall: "Kichik sarmoyalar", deckBig: "Katta sarmoyalar",
     deckChoiceWhy: "Naqdingiz 25 000 dan ko'p, shuning uchun dekani o'zingiz tanlaysiz. Kam bo'lsa — «Kichik sarmoyalar» darhol ochiladi.", majburiy: "Majburiy · rad etilmaydi", ixtiyoriy: "Ixtiyoriy",
     prevTurn: "Oldingi navbat", flowNote: "Pul oqimi = barcha daromad − barcha xarajat.", rollNow: "Kubik tashlang",
   },

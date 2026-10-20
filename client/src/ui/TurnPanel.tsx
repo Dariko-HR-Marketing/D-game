@@ -25,7 +25,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
       <Text style={s.sub}>{hint}</Text>
       {wide && (
         <View style={s.wideRow}>
-          {left > 0 && <TimerRing left={left} size={48} label={`${left} ${uz.game.seconds}`} />}
+          {left > 0 && <TimerRing left={left} total={room.turnSeconds ?? 30} size={48} label={`${left} ${uz.game.seconds}`} />}
           <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
         </View>)}
       {wide && mineTurn && !hasCard && !moving && <View style={{ alignSelf: "stretch", paddingHorizontal: space.md }}><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View>}

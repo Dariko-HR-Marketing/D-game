@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
+import { getTurnPref, setTurnPref, type TurnSeconds } from "../turnPref";
 import { BottomNav } from "./BottomNav";
 import { uz, errText } from "../i18n/uz";
 import { color, font, radius, space, tone, MIN_TAP } from "../theme";
@@ -22,8 +23,9 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
 }
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
-export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: () => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
-  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false);
+export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
+  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref);
+  const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
   const [me, setMe] = useState<{ name: string; color: number; level: number } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0 }); }).catch(() => {}); return () => { off = true; }; }, [http]);
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
@@ -39,11 +41,18 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
         <Pressable accessibilityRole="button" accessibilityLabel={uz.profile.title} onPress={onProfile} style={s.avatarBtn}><Avatar name={me?.name ?? "?"} colorIdx={me?.color ?? 0} level={me?.level} size={34} /></Pressable>
       </View>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
-        <View style={s.wrap}>
+        <View style={[s.wrap, compact && { gap: space.md, padding: space.md }]}>
           {notes.map((n) => <Banner key={n.id} kind={n.kind === "warn" ? "warn" : "info"}>{n.text}</Banner>)}
-          <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text>
+          {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={onCreate} disabled={!online} />
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn)} disabled={!online} />
+            <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
+              <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
+              {([30, 60] as const).map((v) => (
+                <Pressable key={v} role="radio" aria-checked={turn === v} accessibilityLabel={v === 60 ? uz.home.turn60 : uz.home.turn30} onPress={() => pickTurn(v)} style={[s.seg, turn === v && s.segOn]}>
+                  <Text style={[s.segT, turn === v && { color: color.white }]} aria-hidden>{v === 60 ? uz.home.turn60 : uz.home.turn30}</Text>
+                </Pressable>))}
+            </View>
             <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
             {joinOpen && (
               <View style={s.join}>
@@ -72,6 +81,9 @@ const s = StyleSheet.create({
   header: { height: 56, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
   brand: { flexDirection: "row", alignItems: "center", gap: space.sm }, logoT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 2 }, avatarBtn: { minWidth: MIN_TAP, minHeight: MIN_TAP, alignItems: "center", justifyContent: "center" },
   scroll: { flexGrow: 1 }, wrap: { gap: space.lg, padding: space.lg, maxWidth: 560, width: "100%", alignSelf: "center" },
+  turnRow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, turnL: { flex: 1, color: tone.muted, fontSize: font.sm, fontWeight: "700" },
+  seg: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, segOn: { backgroundColor: color.green, borderColor: color.green }, segT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
+  sr: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 },
   h1: { fontSize: 26, fontWeight: "800", color: color.navy, letterSpacing: -0.2 },
   row: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
   rowIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#F4F7F8", alignItems: "center", justifyContent: "center" }, rowT: { fontSize: 15, fontWeight: "800", color: color.navy }, rowS: { fontSize: 13, color: tone.muted },
