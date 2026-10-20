@@ -6,6 +6,9 @@ import { Banner, Card, Pill, SectionTitle } from "./kit";
 import { Board, boardGeometry, boardPad } from "./Board";
 import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
+import { FxLayer } from "./FxLayer";
+import { CountText } from "./CountText";
+import { useFx } from "../useFx";
 import { BottomNav } from "./BottomNav";
 import { Icon } from "./Icon";
 import { TimerRing } from "./TimerRing";
@@ -94,23 +97,25 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       if (e.code === "Space" && !interactive && !doc.querySelector('[role="dialog"]') && !["input", "textarea", "button", "select", "a"].includes(tag) && !e.repeat) { e.preventDefault(); onAct({ type: "roll" }); } };
     doc.addEventListener("keydown", h); return () => doc.removeEventListener("keydown", h);
   }, [canRoll, onAct]);
+  const lcMine = state.lastCard && (state.lastCard as any).playerId === userId ? room.lastCard?.text ?? null : null;
+  const fx = useFx(mine, lcMine, settled);
   useGameSounds({ room, userId, settled, mineTurn, left });
   const snd = useSoundPrefs();
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} />;
   const timeInSide = wide && !tri && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
-  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", "30").replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
+  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(room.turnSeconds ?? 30)).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
   const stats = mine && e && (
     <View style={s.stats} role="group" aria-label={uz.game.finance}>
-      <View style={s.stat} role="group" accessible aria-label={`${uz.hud.cashLabel}: ${money(mine.cash)}`}><Text style={s.statL} aria-hidden>{uz.hud.cashLabel}</Text><Text style={s.statV} aria-hidden>{money(mine.cash)}</Text></View>
-      <View style={s.stat} role="group" accessible aria-label={`${big ? uz.hud.flowMonthly : uz.game.cashflow}: ${money(e.cashflow)}`}><Text style={s.statL} aria-hidden>{big ? uz.hud.flowMonthly : uz.game.cashflow}</Text><Text style={[s.statV, { color: e.cashflow < 0 ? tone.bad : tone.good }]} aria-hidden>{e.cashflow > 0 ? "+" : ""}{money(e.cashflow)}</Text></View>
+      <View style={s.stat} role="group" accessible aria-label={`${uz.hud.cashLabel}: ${money(mine.cash)}`}><Text style={s.statL} aria-hidden>{uz.hud.cashLabel}</Text><CountText value={fx.shown?.cash ?? mine.cash} style={s.statV} /></View>
+      <View style={s.stat} role="group" accessible aria-label={`${big ? uz.hud.flowMonthly : uz.game.cashflow}: ${money(e.cashflow)}`}><Text style={s.statL} aria-hidden>{big ? uz.hud.flowMonthly : uz.game.cashflow}</Text><CountText value={fx.shown?.flow ?? e.cashflow} signed style={[s.statV, { color: (fx.shown?.flow ?? e.cashflow) < 0 ? tone.bad : tone.good }]} /></View>
       {big ? (
         <View style={s.stat} role="group" accessible aria-label={`${uz.hud.toWin}: ${money(e.cashflow)} / ${money(RULES.winCashflow)}`}><Text style={s.statL} aria-hidden>{uz.hud.toWin}</Text>
           <View style={s.bar} aria-hidden><View style={[s.fill, { width: `${Math.round(Math.max(0, Math.min(1, e.cashflow / RULES.winCashflow)) * 100)}%` }]} /></View><Text style={s.statS} aria-hidden>{money(e.cashflow)} / {money(RULES.winCashflow)}</Text></View>
       ) : (
-        <View style={s.stat} role="group" accessible aria-label={`${uz.game.passive}: ${money(e.passive)}`}><Text style={s.statL} aria-hidden>{uz.game.passive}</Text><Text style={s.statV} aria-hidden>{money(e.passive)}</Text></View>)}
+        <View style={s.stat} role="group" accessible aria-label={`${uz.game.passive}: ${money(e.passive)}`}><Text style={s.statL} aria-hidden>{uz.game.passive}</Text><CountText value={fx.shown?.passive ?? e.passive} style={s.statV} /></View>)}
     </View>
   );
 
@@ -132,7 +137,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       {timeInSide && <TimeBar room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
-      {mine && <View testID="finance"><FinanceCard p={mine} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
+      {mine && <View testID="finance"><FinanceCard p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {short && !tri && eventsCard(3)}
     </View>
@@ -149,7 +154,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       <PlayerList room={room} userId={userId} />
       {leaveBlock}
     </ScrollView>);
-  const banners = (<>{status === "offline" && <Banner kind="warn">{uz.game.offlineBanner}</Banner>}{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
+  const banners = (<>{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
     <View style={s.header}>
@@ -167,12 +172,13 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
       <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
+      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
-              <DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} left={left} die={myDie}
+              <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} onAct={onAct} left={left} die={myDie}
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
@@ -195,6 +201,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
+      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
@@ -204,7 +211,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
           <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
-            {left > 0 && <TimerRing left={left} size={52} label={`${left} ${uz.game.seconds}`} />}
+            {left > 0 && <TimerRing left={left} total={room.turnSeconds ?? 30} size={52} label={`${left} ${uz.game.seconds}`} />}
             <Text style={s.turnHint} accessibilityLiveRegion="polite"><Text style={{ fontWeight: "800", color: mineTurn ? tone.good : color.navy }}>{mineTurn ? uz.hud.yourTurn : ""}</Text>{mineTurn ? " " : ""}{hint}</Text>
           </View>
         </>)}
@@ -216,7 +223,7 @@ export function Game({ room, userId, onAct, onReact, onLeave, reactions, onRules
       {sheetOpen && mine && (
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
-          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} onAct={onAct} sheet left={left} die={myDie}
+          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} onAct={onAct} sheet left={left} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}

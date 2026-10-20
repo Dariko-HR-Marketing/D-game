@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Onboarding (sahifa yo'riqnomalari) tekshiruvi — yo'riqnomalar YOQILGAN: `OUT=papka pnpm tsx scripts/tour-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Har sahifada bir marta; kichik va katta aylana uchun alohida; qayta ko'rsatish.
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@poyga/rules";
 
@@ -9,6 +10,7 @@ const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ??
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const sizes: [string, number, number][] = [["tel", 390, 844], ["kmp", 1440, 900]];
 for (const [tag, w, h] of sizes) {

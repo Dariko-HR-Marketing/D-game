@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 // Kirish ekrani rasmlari (haqiqiy rejim): `OUT=papka pnpm tsx scripts/screens-login.ts`
 import { chromium } from "playwright-core";
+import { passGate } from "./_seed";
 import { mkdirSync } from "node:fs";
 import { buildApp } from "../src/app";
 import { OtpService, type SmsSender } from "../src/auth";
@@ -22,7 +23,7 @@ for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number
   await p.getByLabel("Telefon raqami").fill(tag === "n" ? "90 123 45 67" : "91 765 43 21"); await p.getByRole("button", { name: "Kod yuborish" }).click();
   await p.getByLabel("SMS kodi (6 raqam)").waitFor(); await p.getByLabel("SMS kodi (6 raqam)").fill("000000"); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.waitForTimeout(500);
   await p.screenshot({ path: `${OUT}/${tag}-login-2-error.png` }); await scan(p, `kod xato ${tag}`);
-  await p.getByLabel("SMS kodi (6 raqam)").fill(last); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await p.getByRole("button", { name: "Yangi o'yin" }).waitFor();
+  await p.getByLabel("SMS kodi (6 raqam)").fill(last); await p.getByRole("button", { name: "Tasdiqlash" }).click(); await passGate(p); await p.getByRole("button", { name: "Yangi o'yin" }).waitFor();
   await p.screenshot({ path: `${OUT}/${tag}-login-3-home.png` });
 }
 await b.close(); await x.app.close(); console.log(total === 0 ? "AXE: buzilish yo'q" : `AXE: ${total} ta buzilish`); process.exit(total === 0 ? 0 : 1);

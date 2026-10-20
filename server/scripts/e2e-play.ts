@@ -2,11 +2,13 @@ import { existsSync } from "node:fs";
 // Sinov: brauzerda haqiqiy o'yin — odam tugmalarni bosib (kubik, karta, bank, qoidalar) bot bilan ko'p navbat o'ynaydi.
 // Konsol/sahifa xatosi yoki «qotib qolish» bo'lsa xato bilan chiqadi.  Ishlatish: `pnpm tsx scripts/e2e-play.ts` (oldindan veb eksport 8081 da).
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 
 const WEB = process.env.WEB ?? "http://localhost:8081"; process.env.CORS_ORIGINS = WEB;
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 // Holat tez o'zgaradi (bot): bosish oldidan element yo'qolishi mumkin — qisqa kutish bilan urinamiz
 const tryClick = async (l: any) => { try { await l.first().click({ timeout: 2500 }); return true; } catch { return false; } };
 let failed = 0; const fail = (m: string) => { failed++; console.log("✗", m); };

@@ -17,7 +17,7 @@ import { color, font, radius, space, tone } from "../theme";
 
 const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
-function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
+function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number; e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
   const Tile = ({ deck, label, n, bg, fg }: { deck: "kichik" | "katta"; label: string; n: number; bg: string; fg: string }) => (
     <Pressable accessibilityRole="button" accessibilityLabel={`${label}, ${n} ${uz.hud.deckCards}`} onPress={() => onAct({ type: "decide", accept: false, deck })} style={({ pressed }) => [s.deckTile, pressed && { opacity: 0.85 }]}>
       <View style={[s.deckArt, { backgroundColor: bg }]} aria-hidden><Text style={[s.deckArtT, { color: fg }]}>{label.toUpperCase()}</Text></View>
@@ -29,7 +29,7 @@ function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unkn
       <View style={{ flexDirection: "row", gap: space.md }}>
         <Tile deck="kichik" label={uz.hud.deckSmall} n={e.kichik} bg="#1E9E4A" fg="#fff" /><Tile deck="katta" label={uz.hud.deckBig} n={e.katta} bg="#E8892B" fg="#2B1500" />
       </View>
-      <View style={s.note}><Icon name="clock" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceNote}</Text></View>
+      <View style={s.note}><Icon name="clock" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceNote.replace("{s}", String(turnSeconds))}</Text></View>
       <View style={s.note}><Icon name="info" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceWhy}</Text></View>
     </View>
   );
@@ -37,7 +37,7 @@ function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unkn
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
 /** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
-export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout }: { card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
+export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30 }: { turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
@@ -55,7 +55,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const gainCash = e?.kind === "gain" ? e.amount : 0;
   const afterCash = me.cash - (cost ?? 0) + gainCash;
   const showChange = !rent && (cost !== null && cost !== undefined && cost > 0 || gainCash > 0 || (f.flowDelta ?? 0) !== 0);
-  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} /> : null;
+  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} turnSeconds={turnSeconds} /> : null;
   const body = (
     <>
       <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
@@ -64,7 +64,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
           <Text style={[s.headEyebrow, { color: H.fg }]}>{typeof die === "number" ? `${uz.gamble.die} ${die} · ` : ""}{deckOf(card.id)}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name={H.icon} size={20} color={H.fg} /><Text style={[s.headTitle, { color: H.fg }]} aria-level={2} accessibilityRole="header">{H.title}</Text></View>
         </View>
-        {left ? <TimerRing left={left} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
+        {left ? <TimerRing left={left} total={turnSeconds} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
       </View>
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
       <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
@@ -85,7 +85,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       {cantFund && !cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {purchase ? uz.facts.bankNo : uz.facts.cashNeeded}.</Banner>}
       {lack === 0 && cost ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
-      <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote}</Text></View>
+      <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>
     </>
   );
   const actions = (<>

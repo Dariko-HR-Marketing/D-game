@@ -19,7 +19,7 @@ export function PlayerList({ room, userId }: { room: RoomView; userId: string })
         return (
           <Card key={p.id} label={`${name}${isMe ? `, ${uz.hud.you}` : ""}: ${uz.game.cash} ${money(p.cash)}, ${uz.game.cashflow} ${money(e.cashflow)}`} style={p.id === cur ? { borderColor: color.green, borderWidth: 2 } : undefined}>
             <View style={s.head} aria-hidden>
-              <Avatar name={name} colorIdx={room.names?.[p.id]?.color ?? k} level={levelOf(room, p.id)} online={room.state.bots.includes(p.id) ? undefined : mem?.online !== false} size={44} frame={room.names?.[p.id]?.cos?.frame} bgColor={room.names?.[p.id]?.cos?.avatar} />
+              <Avatar name={name} colorIdx={room.names?.[p.id]?.color ?? k} level={levelOf(room, p.id)} online={room.state.bots.includes(p.id) ? undefined : mem?.online !== false} size={44} frame={room.names?.[p.id]?.cos?.frame} photo={room.names?.[p.id]?.photo} bgColor={room.names?.[p.id]?.cos?.avatar} />
               <View style={{ flex: 1 }}><Text style={s.name}>{name}{isMe ? ` (${uz.hud.you})` : ""}</Text><Text style={s.sub}>{room.professions?.[p.id] ?? ""}</Text></View>
               <Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />
             </View>

@@ -25,7 +25,7 @@ export const ActionIn = z.discriminatedUnion("type", [
 ]);
 
 export const Message = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("create") }).strict(),
+  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional() }).strict(), // qaror vaqti: 30 yoki 60 soniya (standart 30)
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),

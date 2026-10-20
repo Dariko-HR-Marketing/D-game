@@ -11,6 +11,7 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
   };
   return {
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number }) => call("PUT", "/me/profile", p),
+    uploadAvatar: (image: string) => call("PUT", "/me/avatar", { image }) as Promise<{ photo: string }>, removeAvatar: () => call("DELETE", "/me/avatar"),
     history: () => call("GET", "/me/history"), analysis: (code: string) => call("GET", `/me/games/${code}/analysis`), leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
     announcements: () => call("GET", "/me/announcements"), status: () => call("GET", "/status"),
     account: () => call("GET", "/me/account"), phoneRequest: (phone: string) => call("POST", "/me/phone/request", { phone }), phoneVerify: (phone: string, code: string) => call("POST", "/me/phone/verify", { phone, code }),

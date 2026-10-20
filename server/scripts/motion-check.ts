@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Animatsiya tekshiruvi (harakat kamaytirilmagan holda): kubik 3D aylanadi va natija yuzida to'xtaydi; fishka har bir katak ustidan yuradi;
 // karta fishka yetib kelgachgina chiqadi; tovush tugmasi ishlaydi. `OUT=papka pnpm tsx scripts/motion-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
+import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@poyga/rules";
 
@@ -9,6 +10,7 @@ const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ??
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
+autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: 1440, height: 900 } }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
 const a = await mk("ma"), c = await mk("mb");

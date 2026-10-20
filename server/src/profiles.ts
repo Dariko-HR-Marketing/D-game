@@ -12,6 +12,7 @@ export interface GameResult { tag?: { kind: "class" | "tournament"; id: string }
 
 export interface ProfilePersist {
   loadProfiles(): Promise<Profile[]>; saveProfile(p: Profile): Promise<void>; deleteProfile(userId: string): Promise<void>;
+  loadPhotoVersions?(): Promise<[string, number][]>; loadPhoto?(userId: string): Promise<Buffer | null>; savePhoto?(userId: string, jpeg: Buffer, at: number): Promise<void>; deletePhoto?(userId: string): Promise<void>;
   loadResults(): Promise<GameResult[]>; saveResult(r: GameResult): Promise<void>; anonymizeResults(userId: string): Promise<void>;
 }
 
@@ -37,6 +38,14 @@ export function validateProfile(i: any, year: number): { ok: true; value: Omit<P
   if (!Number.isInteger(i?.color) || i.color < 0 || i.color >= PROFILE_COLORS) return { ok: false, error: "bad_color" };
   if (!Number.isInteger(i?.birthYear) || i.birthYear < 1900 || i.birthYear > year) return { ok: false, error: "bad_birth_year" };
   return { ok: true, value: { name, color: i.color, birthYear: i.birthYear } };
+}
+/** Avatar rasmi: faqat JPEG (mijoz 256 px gacha kichraytirib yuboradi), ko'pi bilan 80 KB. */
+export const MAX_PHOTO_BYTES = 80 * 1024;
+export function validatePhoto(b: Buffer): { ok: true } | { ok: false; error: string } {
+  if (!Buffer.isBuffer(b) || b.length < 200) return { ok: false, error: "bad_photo" };
+  if (b.length > MAX_PHOTO_BYTES) return { ok: false, error: "photo_too_big" };
+  if (!(b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff)) return { ok: false, error: "bad_photo" };
+  return { ok: true };
 }
 export const ageOf = (p: Pick<Profile, "birthYear">, year: number) => year - p.birthYear;
 export const isRestricted = (p: Pick<Profile, "birthYear"> | undefined, year: number) => !!p && ageOf(p, year) < MIN_AGE_RESTRICT;
@@ -83,10 +92,28 @@ export class ProfileService {
   static async restore(persist: ProfilePersist, year?: () => number) {
     const s = new ProfileService(persist, year);
     for (const p of await persist.loadProfiles()) s.profiles.set(p.userId, p);
+    for (const [id, at] of (await persist.loadPhotoVersions?.()) ?? []) s.photoAt.set(id, at);
     s.results = await persist.loadResults(); return s;
   }
 
   get(userId: string) { return this.profiles.get(userId); }
+
+  /** Foydalanuvchi rasmi (JPEG): versiya (`photoAt`) xotirada, baytlar — kichik keshda, qolgani bazadan so'raladi. */
+  private photoAt = new Map<string, number>(); private photoCache = new Map<string, Buffer>();
+  photoVersion(userId: string) { return this.photoAt.get(userId); }
+  private cachePhoto(userId: string, jpeg: Buffer) { this.photoCache.delete(userId); this.photoCache.set(userId, jpeg); if (this.photoCache.size > 300) this.photoCache.delete(this.photoCache.keys().next().value as string); }
+  setPhoto(userId: string, jpeg: Buffer) {
+    if (!this.profiles.has(userId)) return { ok: false as const, error: "profile_required" };
+    const v = validatePhoto(jpeg); if (!v.ok) return v;
+    const at = this.now(); this.photoAt.set(userId, at); this.cachePhoto(userId, jpeg);
+    this.writes.push(async () => this.persist?.savePhoto?.(userId, jpeg, at)); return { ok: true as const, version: at };
+  }
+  async photo(userId: string): Promise<Buffer | null> {
+    if (!this.photoAt.has(userId)) return null;
+    const c = this.photoCache.get(userId); if (c) return c;
+    const b = (await this.persist?.loadPhoto?.(userId)) ?? null; if (b) this.cachePhoto(userId, b); return b;
+  }
+  removePhoto(userId: string) { if (!this.photoAt.delete(userId)) return; this.photoCache.delete(userId); this.writes.push(async () => this.persist?.deletePhoto?.(userId)); }
   invalidate() { this.lvl.clear(); }
   allProfiles() { return [...this.profiles.entries()]; }
   put(userId: string, input: unknown) {
@@ -138,7 +165,7 @@ export class ProfileService {
   /** Hisobni o'chirish: profil o'chadi, natijalardagi shaxsiy ID anonimlashadi (§7). */
   delete(userId: string) {
     this.lvl.clear();
-    this.profiles.delete(userId);
+    this.profiles.delete(userId); this.removePhoto(userId);
     for (const r of this.results) { if (r.winner === userId) r.winner = "deleted"; for (const p of r.players) if (p.id === userId) p.id = "deleted"; }
     this.writes.push(async () => { await this.persist?.deleteProfile(userId); await this.persist?.anonymizeResults(userId); });
   }

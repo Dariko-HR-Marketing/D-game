@@ -5,6 +5,8 @@ import { Banner, Card, Pill } from "./kit";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
 import { Screen } from "./Screen";
+import { nameOf } from "../model";
+import { turnLabel } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../theme";
 import { readableOn } from "../contrast";
@@ -31,9 +33,9 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       <Card>
         <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${MAX}`} kind={humans >= MIN ? "good" : "warn"} /></View>
         {room.members.map((m, i) => {
-          const label = m.bot ? uz.lobby.bot : room.names?.[m.userId]?.name ?? `${uz.lobby.playerN} ${i + 1}`; const lvl = room.names?.[m.userId]?.level; const stars = Math.min(5, lvl ?? 0);
+          const label = nameOf(room, m.userId); const lvl = room.names?.[m.userId]?.level; const stars = Math.min(5, lvl ?? 0);
           return (<View key={m.userId} style={s.player} role="group" accessible aria-label={`${i + 1}. ${label}${m.userId === userId ? `, ${uz.lobby.you}` : ""}${lvl !== undefined ? `, ${lvl}-daraja` : ""}${i === 0 ? `, ${uz.lobby.hostWord}` : ""}${m.online ? "" : `, ${uz.lobby.offline}`}`}>
-            <Avatar name={label} colorIdx={room.names?.[m.userId]?.color ?? i} level={m.bot ? undefined : lvl} online={m.bot ? undefined : m.online} size={40} frame={room.names?.[m.userId]?.cos?.frame} bgColor={room.names?.[m.userId]?.cos?.avatar} />
+            <Avatar name={label} colorIdx={room.names?.[m.userId]?.color ?? i} level={m.bot ? undefined : lvl} online={m.bot ? undefined : m.online} size={40} frame={room.names?.[m.userId]?.cos?.frame} photo={room.names?.[m.userId]?.photo} bgColor={room.names?.[m.userId]?.cos?.avatar} />
             <View style={{ flex: 1, gap: 2 }} aria-hidden>
               <Text style={s.name}>{label}{m.userId === userId ? ` (${uz.lobby.you})` : ""}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -48,6 +50,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
           <View key={`e${i}`} style={[s.player, s.empty]} aria-hidden><View style={[s.dot, { borderStyle: "dashed", borderColor: color.line, backgroundColor: "transparent" }]} /><Text style={s.emptyT}>{uz.lobby.waitingPlayer}</Text></View>))}
       </Card>
 
+      {room.turnSeconds ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
       {host && (
         <Card>

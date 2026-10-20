@@ -172,7 +172,7 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
   // Ism moderatsiyasi: haqoratli ismni majburan almashtirish
   app.post("/admin/users/:id/rename", guard("users.ban", (req) => {
     const id = String((req.params as any).id); const p = profiles.get(id); if (!p) return { error: "no_user" };
-    const r = profiles.put(id, { name: `O'yinchi ${id.slice(-4)}`, color: p.color, birthYear: p.birthYear }); return r.ok ? { ok: true } : { error: "bad_name" };
+    profiles.removePhoto(id); const r = profiles.put(id, { name: `O'yinchi ${id.slice(-4)}`, color: p.color, birthYear: p.birthYear }); return r.ok ? { ok: true } : { error: "bad_name" };
   }, "user.rename", { reason: true }));
   void ERR_STATUS;
 }

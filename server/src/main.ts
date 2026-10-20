@@ -44,7 +44,7 @@ const ids = (v?: string) => (v ?? "").split(",").map((x) => x.trim()).filter(Boo
 const oidc: Partial<Record<"google" | "apple", OidcVerifier>> = {};
 if (authSecret && ids(process.env.GOOGLE_CLIENT_IDS).length) oidc.google = new OidcVerifier(GOOGLE(ids(process.env.GOOGLE_CLIENT_IDS)));
 if (authSecret && ids(process.env.APPLE_CLIENT_ID).length) oidc.apple = new OidcVerifier(APPLE(ids(process.env.APPLE_CLIENT_ID)));
-const { app, rooms, ready, flush } = buildApp({ docs, ops, sms: smsSender, publicUrl: process.env.PUBLIC_URL, webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET, otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
+const { app, rooms, ready, flush } = buildApp({ requireProfile: true, docs, ops, sms: smsSender, publicUrl: process.env.PUBLIC_URL, webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET, otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
 await ready;
 process.on("unhandledRejection", (e) => app.log.error({ err: String((e as Error)?.message ?? e) }, "unhandledRejection"));
 process.on("uncaughtException", (e) => { app.log.fatal({ err: e.message }, "uncaughtException"); process.exit(1); });

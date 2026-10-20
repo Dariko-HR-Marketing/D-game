@@ -58,3 +58,4 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/screens-login.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/screens-admin.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/e2e-play.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/identity-check.ts

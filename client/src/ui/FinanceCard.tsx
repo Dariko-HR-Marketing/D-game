@@ -11,7 +11,7 @@ function Bar({ ratio, ok }: { ratio: number; ok: boolean }) {
 }
 
 /** Moliyaviy holat: katta raqamlar (naqd, oylik pul oqimi), tafsilot va kichik aylanadan chiqish shartlari (progress bilan). */
-export function FinanceCard({ p, profession, dream }: { p: any; profession?: string; dream?: { name: string; price: number } | null }) {
+export function FinanceCard({ p, profession, dream, shown }: { p: any; profession?: string; dream?: { name: string; price: number } | null; shown?: { cash: number; flow: number } | null }) {
   const e = exitProgress(p);
   const conds: { k: "cash" | "flow" | "debt" | "partner"; label: string; ratio: number | null; detail?: string }[] = [
     { k: "cash", label: uz.game.exitCash, ratio: p.cash / 1_000_000, detail: `${money(p.cash)} / ${money(1_000_000)}` },
@@ -23,8 +23,8 @@ export function FinanceCard({ p, profession, dream }: { p: any; profession?: str
       <SectionTitle right={profession ? <Pill label={profession} kind="info" /> : undefined}>{uz.game.finance}</SectionTitle>
       {dream && <Text style={s.dream}>{uz.hud.dream}: {dream.name} · {money(dream.price)}</Text>}
       <View style={s.stats}>
-        <Stat big label={uz.game.cash} value={money(p.cash)} />
-        <Stat big label={uz.game.cashflow} value={`${e.cashflow > 0 ? "+" : ""}${money(e.cashflow)}`} kind={e.cashflow < 0 ? "bad" : "good"} />
+        <Stat big label={uz.game.cash} value={money(p.cash)} count={{ value: shown?.cash ?? p.cash }} />
+        <Stat big label={uz.game.cashflow} value={`${e.cashflow > 0 ? "+" : ""}${money(e.cashflow)}`} kind={(shown?.flow ?? e.cashflow) < 0 ? "bad" : "good"} count={{ value: shown?.flow ?? e.cashflow, signed: true }} />
       </View>
       <View style={{ gap: 2 }}>
         <Row l={uz.game.salary} v={money(p.salary)} /><Row l={uz.game.passive} v={money(e.passive)} /><Row l={uz.game.expenses} v={money(e.expenses)} kind="bad" />

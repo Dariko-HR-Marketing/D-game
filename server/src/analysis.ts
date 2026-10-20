@@ -45,8 +45,8 @@ export class AnalysisService {
 
 /** Mijozga: ID lar o'rniga ismlar (maxfiylik: boshqa o'yinchi — ism yoki "O'yinchi N"). */
 export function presentable(a: Analysis, nameOf: (id: string) => string | undefined, me: string) {
-  const label = new Map<string, string>(); let n = 0;
-  const nm = (id: string, bot: boolean) => label.get(id) ?? (label.set(id, id === me ? "Siz" : bot ? "Bot" : nameOf(id) ?? `O'yinchi ${++n}`), label.get(id)!);
+  const label = new Map<string, string>(); let n = 0, nb = 0;
+  const nm = (id: string, bot: boolean) => label.get(id) ?? (label.set(id, id === me ? "Siz" : bot ? `Bot ${++nb}` : nameOf(id) ?? `O'yinchi ${++n}`), label.get(id)!);
   const bots = new Map(a.players.map((p) => [p.id, p.bot]));
   return {
     ...a, winner: a.winner ? nm(a.winner, !!bots.get(a.winner)) : null,

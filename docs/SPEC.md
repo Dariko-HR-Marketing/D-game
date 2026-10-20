@@ -48,7 +48,7 @@ Bu bitta fayl Claude Code'ga POYGA stol o'yinining onlayn versiyasini profession
 ## 5. O'yin qoidalari (server mantiqi)
 **5.1 Navbat.** Bitta kubik; tushgan songa teng qadam. Kichik aylana 48, katta 53 katak. Har bir «D» (daromad) katagidan o'tilganda yoki tushilganda bitta oy o'tadi va pul oqimi naqdga qo'shiladi.
 
-**5.2 Karta qarori.** Har bir karta uchun 30 soniya. Ixtiyoriy karta — vaqt tugasa o'tkaziladi. Majburiy karta — avtomatik qabul qilinib blankka yoziladi, navbat o'tadi. Deka qaytarmasdan tortiladi; tashlanma qoziq deka tugagach aralashtiriladi. Har bir qarorda «oldin → keyin» pul oqimi farqi ko'rsatiladi.
+**5.2 Karta qarori.** Har bir karta uchun 30 soniya (buyurtmachi qarori, 2026-10-20: xona ochganda egasi 30 soniya yoki 1 daqiqa tanlaydi, hamma o'yinchiga bir xil; standart 30; hamkorlik takliflari muddati §5.6 o'zgarmaydi). Ixtiyoriy karta — vaqt tugasa o'tkaziladi. Majburiy karta — avtomatik qabul qilinib blankka yoziladi, navbat o'tadi. Deka qaytarmasdan tortiladi; tashlanma qoziq deka tugagach aralashtiriladi. Har bir qarorda «oldin → keyin» pul oqimi farqi ko'rsatiladi.
 
 **5.3 Pul yetmasa.** Bank (limit 10 000 sh.b.), so'ng o'zaro qarz va sheriklik. Bank kredit oylik to'lovi = summa / 36 + summa × 20 % / 12. Limitdan oshsa — yangi kasb bilan boshidan.
 

@@ -23,7 +23,7 @@ export function PlayersLane({ room, userId, wide }: { room: RoomView; userId: st
         return (
           <View key={p.id} role="group" accessible aria-label={`${k + 1}. ${name}${isMe ? `, ${uz.hud.you}` : ""}${lvl !== undefined ? `, ${lvl}-daraja` : ""}. ${status}. ${uz.game.cash}: ${money(p.cash)}. ${p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle}`}
             style={[s.card, wide && s.cardWide, isCur && s.cur, off && { opacity: 0.9 }]}>
-            <Avatar name={name} colorIdx={cidx} level={lvl} online={bot ? undefined : !off} size={wide ? 44 : 44} frame={room.names?.[p.id]?.cos?.frame} bgColor={room.names?.[p.id]?.cos?.avatar} />
+            <Avatar name={name} colorIdx={cidx} level={lvl} online={bot ? undefined : !off} size={wide ? 44 : 44} frame={room.names?.[p.id]?.cos?.frame} photo={room.names?.[p.id]?.photo} bgColor={room.names?.[p.id]?.cos?.avatar} />
             <View aria-hidden style={{ flexShrink: 1 }}>
               <Text style={s.name} numberOfLines={1}>{name}{isMe ? ` (${uz.hud.you})` : ""}</Text>
               <Text style={[s.status, isCur && { color: tone.good }, off && { color: tone.bad }]}>{status}{off ? ` · ${uz.hud.autoNote}` : ""}</Text>

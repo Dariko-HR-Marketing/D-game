@@ -86,6 +86,23 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
     await clock.advance(1);
     expect(rm.rooms.get(r.code)!.seq).toBeGreaterThan(0);
   });
+  it("xona egasi 60 s tanlasa — navbat 60 s dan keyin avtomatik, ko'rinishda turnSeconds", async () => {
+    const r = rm.create("a", undefined, 60); if (!r.ok) throw 0; rm.join(r.code, "b");
+    await rm.start(r.code, "a", 3, { dreams: false });
+    expect(rm.view(rm.rooms.get(r.code)!).turnSeconds).toBe(60);
+    await clock.advance(DECISION_MS + 5_000);
+    expect(rm.rooms.get(r.code)!.seq).toBe(0); // 30 s o'tdi, lekin 60 s kutiladi
+    await clock.advance(60_000 - DECISION_MS - 5_000);
+    expect(rm.rooms.get(r.code)!.seq).toBeGreaterThan(0);
+  });
+  it("standart qaror vaqti 30 s va saqlangan xona tiklanganda tanlangan vaqt saqlanadi", async () => {
+    const r = rm.create("a"); if (!r.ok) throw 0;
+    expect(rm.rooms.get(r.code)!.turnSeconds).toBe(30);
+    const r2 = rm.create("c", undefined, 60); if (!r2.ok) throw 0; rm.join(r2.code, "d");
+    await rm.start(r2.code, "c", 3, { dreams: false });
+    const rm2 = new RoomManager(ctx, store, clock, () => 0.5); await rm2.restore();
+    expect(rm2.rooms.get(r2.code)!.turnSeconds).toBe(60);
+  });
   it("vaqt tugasa ixtiyoriy karta o'tkaziladi (qabul qilinmaydi)", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
     await rm.start(r.code, "a", 3, { dreams: false });
