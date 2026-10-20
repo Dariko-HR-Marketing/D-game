@@ -73,6 +73,13 @@ docker compose logs -f server       # "tiklangan o'yinlar: 0", "Server listening
 ## Karta rasmlari (§2.5)
 Rasm fayllari (`KB_001.png`, `01_BEGONA_FIRMA_DIREKTORI.png` va h.k.) alohida beriladi va repoga qo'shilmaydi. Hammasini **bitta tekis papkaga** (`deploy/vps/cards/`) qo'ying, masalan: `scp -r cards/* deploy@<server>:~/D-game/deploy/vps/cards/`. Nomlar `content/data/cards.json` dagi `file` maydoniga aynan mos bo'lishi shart (katta-kichik harf ham). Qayta qurish kerak emas: Caddy papkani to'g'ridan-to'g'ri o'qiydi, mijoz `https://game.<domen>/cards/<fayl>` dan oladi. Fayl bo'lmasa karta matn bilan chiqadi.
 
+
+## Avtomatik yangilash (GitHub Actions)
+`.github/workflows/deploy.yml`: `main` da CI yashil tugagach serverga SSH orqali kirib `git pull --ff-only` va `docker compose up -d --build` ni bajaradi, so'ng `DEPLOY_READY_URL` ni tekshiradi. Qo'lda: Actions → deploy → Run workflow.
+1. Serverda faqat deploy uchun kalit yarating (`ssh-keygen -t ed25519 -f deploy_key -N ""`), ochiq qismini deploy foydalanuvchisining `~/.ssh/authorized_keys` ga qo'shing (foydalanuvchi `docker` guruhida bo'lsin).
+2. GitHub → Settings → Secrets and variables → Actions: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` (yopiq kalit), `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan -t ed25519 <host>`), ixtiyoriy `DEPLOY_PATH`, `DEPLOY_READY_URL` (`https://api.<domen>/ready`). Kalitni chatga yoki repoga yozmang.
+3. Sirlar bo'sh bo'lsa ish aniq xato bilan to'xtaydi, server o'zgarmaydi.
+
 ## Kundalik ish
 | Vazifa | Buyruq |
 |---|---|
