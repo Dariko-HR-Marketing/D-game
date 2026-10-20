@@ -6,6 +6,8 @@ import { Dice } from "./Dice";
 import { Icon, type IconName } from "./Icon";
 import { TimerRing } from "./TimerRing";
 import { CardFace } from "./CardFace";
+import { CardPaper } from "./CardPaper";
+import { headOf } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
 import { crisisAdjusted } from "@poyga/rules";
@@ -14,22 +16,6 @@ import { uz } from "../i18n/uz";
 import { color, font, radius, space, tone } from "../theme";
 
 const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
-/** Karta turi → sarlavha rangi va ikonka (maket N13: Imkoniyat — yashil, Bozor — ko'k, Xarajat — qizil). */
-const HEAD: Record<string, { bg: string; border: string; fg: string; icon: IconName; title: string }> = {
-  kichik: { bg: "#DCEEC4", border: "#A9CF7E", fg: "#0A5C3B", icon: "move", title: "Imkoniyat" }, katta: { bg: "#DCEEC4", border: "#A9CF7E", fg: "#0A5C3B", icon: "move", title: "Imkoniyat" },
-  choose: { bg: "#DCEEC4", border: "#A9CF7E", fg: "#0A5C3B", icon: "move", title: "Imkoniyat" },
-  bozor: { bg: "#C9EBFA", border: "#7CC3E3", fg: "#0E5F85", icon: "cart", title: "Bozor" }, xar: { bg: "#FFD2D5", border: "#E8939B", fg: "#8F2434", icon: "search", title: "Xarajatlar" },
-  kxar: { bg: "#FFD2D5", border: "#E8939B", fg: "#8F2434", icon: "star", title: "Orzu · katta xarajat" }, hod: { bg: "#EDF0F3", border: "#C3CBD3", fg: "#1B2733", icon: "alert", title: "Kutilmagan hodisa" },
-  big: { bg: "#C9EBFA", border: "#7CC3E3", fg: "#0E5F85", icon: "house", title: "Katta aylana biznesi" }, rent: { bg: "#FFE3B8", border: "#E9A64B", fg: "#6B4300", icon: "house", title: "Birovning biznesi" },
-};
-const headOf = (id: string, e: any) => {
-  if (e?.kind === "gamble") return { ...HEAD.big, bg: "#FFE3B8", border: "#E9A64B", fg: "#6B4300", icon: "dice" as IconName, title: "Tavakkal biznes" };
-  const known = HEAD[id.split("-")[0]]; if (known) return known;
-  // Yangi kartalar («new») o'z dekasiga ko'ra: sarmoya/xarajat/bozor/hodisa
-  return e?.kind === "pay" || e?.kind === "carInsurance" || e?.kind === "floodCarRepair" ? HEAD.xar : e?.kind === "buy" || e?.kind === "courseSalaryPlus" || e?.kind === "charity" ? HEAD.kichik : e?.kind === "marketSale" || e?.kind === "debtRepaid" || e?.kind === "tenantLeft" ? HEAD.bozor : HEAD.big;
-};
-
-
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
 function DeckChoice({ e, onAct, left }: { e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
   const Tile = ({ deck, label, n, bg, fg }: { deck: "kichik" | "katta"; label: string; n: number; bg: string; fg: string }) => (
@@ -82,7 +68,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       </View>
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
       <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
-      <Text style={artOk ? s.sr : s.text} aria-hidden={artOk}>{card.text}</Text>
+      {artOk ? <Text style={s.sr} aria-hidden>{card.text}</Text> : <CardPaper look={H} text={card.text} />}
       {showChange && (
         <View style={{ gap: space.xs }}>
           <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, useWindowDimensions } from "react-native";
 import { Pill, Row } from "./kit";
 import { CardFace } from "./CardFace";
+import { CardPaper } from "./CardPaper";
+import { headOf } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { nameOf } from "../model";
 import { uz } from "../i18n/uz";
@@ -33,15 +35,19 @@ export function CardToast({ room, userId, hold }: { room: RoomView; userId: stri
     <View style={s.wrap} pointerEvents="box-none">
       <View style={[s.toast, { maxHeight: vh - HEADER_H - 2 * space.md }]} role="status" accessibilityLiveRegion="polite" aria-label={`${who}: ${deckOf(lc.cardId)}. ${card.text}`}>
         <View style={s.head}>
-          <View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.game.drew}`} kind={lc.playerId === userId ? "bad" : "info"} /><Pill label={deckOf(lc.cardId)} kind="plain" /></View>
+          <View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.game.drew}`} kind={lc.playerId === userId ? "bad" : "info"} />{art ? <Pill label={deckOf(lc.cardId)} kind="plain" /> : null}</View>
           <Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={() => setSeen(lc.n)} style={s.x}><Text style={s.xT} aria-hidden>✕</Text></Pressable>
         </View>
-        <ScrollView tabIndex={0} role="region" aria-label={uz.game.drew} style={{ flexShrink: 1 }} contentContainerStyle={{ flexDirection: vw >= 520 ? "row" : "column", gap: space.md, alignItems: vw >= 520 ? "flex-start" : "stretch" }}>
+        <ScrollView tabIndex={0} role="region" aria-label={uz.game.drew} style={{ flexShrink: 1 }} contentContainerStyle={{ flexDirection: art && vw >= 520 ? "row" : "column", gap: space.md, alignItems: art && vw >= 520 ? "flex-start" : "stretch" }}>
           <CardFace key={lc.n} file={card.file} label={card.text} maxH={Math.round(Math.min(vw >= 520 ? 230 : 200, vh * 0.3))} onState={setArt} />
-          <View style={{ flex: 1, gap: space.sm, minWidth: 0 }}>
-            <Text style={art ? s.sr : s.text} aria-hidden={art}>{card.text}</Text>
-            {f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}
-          </View>
+          {art ? (
+            <View style={{ flex: 1, gap: space.sm, minWidth: 0 }}>
+              <Text style={s.sr} aria-hidden>{card.text}</Text>
+              {f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}
+            </View>
+          ) : (
+            <View style={{ minWidth: 0 }}><CardPaper look={headOf(lc.cardId, card.effect)} deck={deckOf(lc.cardId)} text={card.text} rows={f.rows} /></View>
+          )}
         </ScrollView>
       </View>
     </View>
