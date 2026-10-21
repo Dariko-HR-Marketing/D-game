@@ -126,6 +126,18 @@ export const uz = {
     act: { qar: "Qarov kartasi", insuredCar: "Avtomobil sug'urtasi", twoDice: "Xayriya: 2 kubik", crisis: "Inqiroz", noSalary: "Maosh yo'q" } as Record<string, string>,
     actNote: { qar: "Qarov kartasi egalariga tegishli hodisalar sizga ham qo'llanadi", insuredCar: "Avtomobil ta'miri sug'urta bilan", twoDice: "navbat qoldi", crisis: "oy qoldi", noSalary: "oy qoldi" } as Record<string, string>,
   },
+  sheet: {
+    title: "Hisob varag'i", open: "Hisob varag'i", close: "Yopish", small: "KICHIK AYLANA", big: "KATTA AYLANA", tabs: "Varaq", smallSub: "O'yin hisob varag'i · Doiradagi olmaxon", bigSub: "Pul oqimi · Katta aylanadagi bizneslarning hisobi",
+    player: "O'yinchi nomi", position: "Mansabi", dream: "Sizning orzuyingiz", dreamPrice: "Uning qiymati", none: "—",
+    incomes: "DAROMADLAR", salary: "Ish haqi (aktiv)", realty: "Ko'chmas mulkdan daromad (passiv)", smallBiz: "Kichik biznesdan daromad (passiv)", bigBiz: "Katta biznesdan daromad (passiv)", other: "Boshqa aktivdan daromad (passiv)",
+    active: "Aktiv daromad", passive: "Passiv daromad (cash flow)", total: "Umumiy daromad (aktiv + passiv)", expenses: "Umumiy xarajat", flow: "Har oylik pul oqimi",
+    shares: "AKSIYALAR", code: "Kod", count: "Soni", buyPrice: "Sotib olish narxi", debts: "QARZLAR:", debtNote: "Faqat «Xarajatlar» kartochkasi bo'yicha xaridlar qarzga yoziladi. Qarzingiz 10 000 sh.b.dan oshmasligi lozim. Agar qarzingiz bu summadan oshsa, boshqa kasbni tanlab o'yinni boshidan boshlang! Agar qarz va kreditlaringiz bo'lsa, ikkinchi aylanaga o'ta olmaysiz.",
+    expensesTitle: "XARAJATLAR", baseExp: "Kasb kartasi bo'yicha xarajatlar", children: "Farzandlar soni", childExp: "Farzandlar xarajati", creditExp: "Kvartira, avtomobil va boshqa kreditlar to'lovi", bankExp: "Bank kreditlari to'lovi", lombExp: "Lombard to'lovi", qarExp: "Qarovga ketadigan xarajatlar",
+    extraCredits: "Qo'shimcha olingan kreditlar", sumLombard: "Summa (lombard)", sumBank: "Summa (bank)", pledge: "Garovga mulk (lombard)", newCredits: "Yangi kreditlar uchun foizlar", payLombard: "Oylik to'lov (lombard)", payBank: "Oylik to'lov (bank)",
+    months: "Bosib o'tilgan oylar soni", exitNote: "Ikkinchi aylanaga o'tish uchun", exitNote2: "naqd pul yig'ish va har oylik pul oqimi", exitNote3: "ga ega bo'lish kerak.",
+    lockedFlow: "Ikkinchi aylanaga o'tgandagi har oylik pul oqimi", bizTable: "BIZNESLARNING HISOBI", bizName: "Biznes nomi", bizValue: "Qiymati", bizIncome: "Daromad", debtBig: "QARZ:", bigGoal: "G'olib chiqishingiz uchun orzuyingizni sotib olishingiz va har oylik pul oqimi",
+    bigGoal2: "ga yetishi lozim.", notYet: "Hali katta aylanadasiz emassiz", now: "Hozirgi pul oqimi", cash: "Naqd",
+  },
   history: {
     title: "O'yin tarixi", open: "Tarix", close: "Yopish", loading: "Tarix yuklanmoqda…", failed: "Bajarilmadi", empty: "Hali amal yo'q.", error: "Tarixni yuklab bo'lmadi. Keyinroq urinib ko'ring.",
     mine: "Mening amallarim", all: "Hammasi", csv: "CSV yuklab olish", count: "ta amal", truncated: "Tarix uzun: faqat boshidan 5 000 ta amal ko'rsatilgan.", hint: "Har bir amal: qaysi katakdan qayerga yurildi, qaysi karta chiqdi, nima qaror qilindi va pul qanday o'zgardi.",
