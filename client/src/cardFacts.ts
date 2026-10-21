@@ -1,5 +1,5 @@
 // Karta qarori uchun raqamlar: o'yinchi narx, boshlang'ich to'lov, daromad va pul oqimiga ta'sirni ko'rib qaror qiladi.
-import { crisisAdjusted, passiveIncome, RULES } from "@poyga/rules";
+import { crisisAdjusted, newAssetIncome, passiveIncome, RULES } from "@poyga/rules";
 import { uz } from "./i18n/uz";
 import { opsFacts, offerFacts, depositFacts } from "./opsFacts";
 
@@ -32,7 +32,8 @@ export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
       need = e.down ?? e.price;
       rows.push({ label: F.price, value: fmt(e.price) });
       if (e.credit) { rows.push({ label: F.down, value: fmt(need!) }); rows.push({ label: F.credit, value: fmt(e.credit) }); }
-      const income = e.monthlyIncome ?? 0, pay = -(e.creditPayment ?? 0); // kartada foiz manfiy yoziladi
+      const income = newAssetIncome(p, e), pay = -(e.creditPayment ?? 0); // kartada foiz manfiy yoziladi; daromad — faol bozor ta'sirlari bilan (server shunday hisoblaydi)
+      if (income !== (e.monthlyIncome ?? 0)) notes.push(F.incomeModNote.replace("{n}", fmt(e.monthlyIncome ?? 0)));
       if (income) rows.push({ label: F.income, value: signed(income), tone: "good" });
       if (pay) rows.push({ label: F.creditPay, value: signed(-pay), tone: "bad" });
       flow = income - pay; if (flow !== 0 || income || pay) rows.push({ label: F.flowDelta, value: signed(flow), tone: flow >= 0 ? "good" : "bad" });

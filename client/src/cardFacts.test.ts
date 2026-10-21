@@ -34,3 +34,21 @@ describe("karta raqamlari", () => {
     }
   });
 });
+
+describe("faol daromad ta'siri karta raqamlarida (server natijasi bilan bir xil)", () => {
+  it("«Savdo va chakana» +25 % faol bo'lsa, savdo aktivi kartasida daromad ham, pul oqimi o'zgarishi ham shu bilan ko'rsatiladi", async () => {
+    const { applyEffect, passiveIncome, playerCashflow } = await import("@poyga/rules");
+    const buy = { kind: "buy", asset: "small_business", code: "KB-T", price: 1700, monthlyIncome: 300, sector: "Savdo va chakana" };
+    const mods = [{ t: "income", sel: { any: [{ sector: "Savdo va chakana" }] }, mode: "pct", value: 5, months: 7, wait: false, src: "t", id: 1 }, { t: "income", sel: { any: [{ sector: "Savdo va chakana" }] }, mode: "pct", value: 20, months: 3, wait: false, src: "t", id: 2 }];
+    const p: any = { id: "t", cash: 100000, salary: 700, assets: [], mods, baseExpenses: 400, children: 0, childCost: 0, bankLoans: [], lombards: [], bankDebt: 0 };
+    const f = cardFacts(buy, p, 0); const r: any = applyEffect(p, buy as any);
+    expect(r.ok).toBe(true); const gained = passiveIncome(r.player) - passiveIncome(p);
+    expect(gained).toBe(375); expect(f.flowDelta).toBe(gained); // 300 × 1,25
+    expect(f.rows.find((x) => x.label === "Oylik daromad")?.value).toBe("+375"); expect(f.notes.join(" ")).toContain("daromad o'zgargan");
+    expect(playerCashflow(r.player) - playerCashflow(p)).toBe(gained);
+  });
+  it("faol ta'sir bo'lmasa daromad kartadagidek, izoh yo'q", () => {
+    const buy = { kind: "buy", asset: "small_business", code: "KB-T", price: 1700, monthlyIncome: 300, sector: "Savdo va chakana" };
+    const f = cardFacts(buy, { cash: 5000, salary: 700, assets: [] } as any, 0); expect(f.flowDelta).toBe(300); expect(f.notes.join(" ")).not.toContain("daromad o'zgargan");
+  });
+});

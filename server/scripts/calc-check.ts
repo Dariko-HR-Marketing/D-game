@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Hisob daftari (o'quv rejimi) brauzerda: kubik → karta → o'yinchi o'zi hisoblab kiritadi (noto'g'ri → qayta, 3 xatodan keyin yechim), pul o'zgarsa hisobni yangilamaguncha kubik tashlanmaydi.
 // `OUT=papka pnpm tsx scripts/calc-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { currentPlayer, passiveIncome, playerCashflow } from "@poyga/rules";
+import { applyEffect, crisisAdjusted, currentPlayer, passiveIncome, playerCashflow } from "@poyga/rules";
 import { buildApp } from "../src/app";
 import { autoProfiles, slowTimers } from "./_seed";
 
@@ -61,12 +61,12 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check((await a.getByRole("button", { name: /sh\.b\. olish$/ }).count()) === 0, `${tag} tayyor «olish» tugmasi o'rniga hisob maydonlari`);
   check(!((await a.locator("body").innerText()).includes("→")) || true, `${tag} «oldin → keyin» tayyor ko'rsatilmaydi`);
   await a.screenshot({ path: `${OUT}/${tag}-3-karta.png` });
-  const pend = room.state!.pending!; const e: any = room.ctx.effects[pend.cardId].effect; const exp = (() => { const p = JSON.parse(JSON.stringify(P())); const cost = e.down ?? e.price; return { cash: p.cash - cost - 0, passive: passiveIncome(p) + (e.monthlyIncome ?? 0), flow: playerCashflow(p) + (e.monthlyIncome ?? 0) - (e.creditPayment ?? 0) }; })();
+  const pend = room.state!.pending!; const e: any = room.ctx.effects[pend.cardId].effect; const exp = (() => { const p = JSON.parse(JSON.stringify(P())); const r = applyEffect(p, crisisAdjusted(e, p)); if (!r.ok) throw new Error("sotib olish mumkin emas"); return { cash: r.player.cash, passive: passiveIncome(r.player), flow: playerCashflow(r.player) }; })();
   await led.getByTestId("led-cash").fill("1"); await led.getByTestId("led-passive").fill("1"); await led.getByTestId("led-flow").fill("1"); await a.getByRole("button", { name: "Hisoblab qabul qilish" }).click(); await a.waitForTimeout(400);
   check(((await led.innerText()) ?? "").includes("Hisob noto'g'ri"), `${tag} noto'g'ri hisob: «Hisob noto'g'ri. Qayta hisoblang.»`); check(room.state!.pending?.cardId === pend.cardId, `${tag} noto'g'ri hisobda karta qabul qilinmadi`);
   await led.getByTestId("led-cash").fill(String(exp.cash)); await led.getByTestId("led-passive").fill(String(exp.passive)); await led.getByTestId("led-flow").fill(String(Math.abs(exp.flow))); if (exp.flow < 0) await led.getByRole("button", { name: /Oylik pul oqimi: minus/ }).click();
   const hadAssets = P().assets.length; await a.getByRole("button", { name: "Hisoblab qabul qilish" }).click(); await a.waitForTimeout(1200);
-  if (P().assets.length !== hadAssets + 1) console.log(`DIAG ${tag} karta=${pend.cardId} effekt=${JSON.stringify(e)} kutilgan=${JSON.stringify(exp)} qolgan=${JSON.stringify(room.state!.pending)} xato=${JSON.stringify(room.calc?.error ?? null)} matn=${(await led.innerText()).replace(/\s+/g, " ").slice(0, 200)}`);
+  if (P().assets.length !== hadAssets + 1) console.log(`DIAG ${tag} mods=${JSON.stringify((P() as any).mods ?? [])} karta=${pend.cardId} effekt=${JSON.stringify(e)} kutilgan=${JSON.stringify(exp)} qolgan=${JSON.stringify(room.state!.pending)} xato=${JSON.stringify(room.calc?.error ?? null)} matn=${(await led.innerText()).replace(/\s+/g, " ").slice(0, 200)}`);
   check(P().assets.length === hadAssets + 1, `${tag} to'g'ri hisob bilan karta qabul qilindi (yangi aktiv qo'shildi)`);
   check(room.calcStats[me].firstTry + room.calcStats[me].retried >= 2, `${tag} hisob statistikasi yangilandi`);
   const ov = await a.evaluate(() => document.documentElement.scrollHeight - window.innerHeight); check(ov <= 1, `${tag} sahifa aylanmaydi (${ov})`);

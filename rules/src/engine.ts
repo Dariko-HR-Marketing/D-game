@@ -112,6 +112,9 @@ export const assetIncome = (p: WithMods, a: Asset) => {
   const mult = ms.reduce((f, m) => (m.mode === "mult" ? f * m.value : f), 1), pct = ms.reduce((s, m) => s + (m.mode === "pct" ? m.value : 0), 0);
   return Math.round(a.monthlyIncome * mult * (1 + pct / 100));
 };
+/** Sotib olinadigan aktivning (xarid kartasi) sotib olgandan keyingi oylik daromadi: faol daromad o'zgarishlari bilan — `applyEffect` shu aktivni yaratadi. */
+export const newAssetIncome = (p: WithMods, e: { asset: string; code: string; monthlyIncome?: number; sector?: string; name?: string; tags?: string[] }) =>
+  assetIncome(p, { kind: e.asset, code: e.code, price: 0, monthlyIncome: e.monthlyIncome ?? 0, creditPayment: 0, credit: 0, ...(e.sector ? { sector: e.sector } : {}), ...(e.name ? { name: e.name } : {}), ...(e.tags ? { tags: e.tags } : {}) });
 export const passiveIncome = (p: Player) => p.assets.reduce((s, a) => s + assetIncome(p, a), 0);
 const sumPct = (p: WithMods, t: "expense" | "credit") => activeMods(p).reduce((s, m) => s + (m.t === t ? m.pct : 0), 0);
 export const monthlyBonus = (p: WithMods) => activeMods(p).reduce((s, m) => s + (m.t === "monthly" && m.amount > 0 ? m.amount : 0), 0);
