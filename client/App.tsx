@@ -26,6 +26,7 @@ import { isMyTurn } from "./src/model";
 import { color } from "./src/theme";
 import { errText, uz } from "./src/i18n/uz";
 import { Button } from "./src/ui/Button";
+import { ClaimSeat } from "./src/ui/ClaimSeat";
 import { installTypography } from "./src/typography";
 
 installTypography();
@@ -84,6 +85,15 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
   useForeground(() => conn.resume(), () => conn.markLost()); // ilovadan/ustundan qaytilganda yoki tarmoq qaytganda: «Aloqa uzildi» → qayta ulanish
   const room = st.room;
+  // Sinov rejimi (token = qurilma identifikatori): boshlangan o'yinga kod bilan kirilsa-yu, bu qurilma o'yinchisi emas bo'lsa — o'z o'rnini qaytarib olish
+  const devMode = session.token === session.userId; const [joinTry, setJoinTry] = useState<string | null>(null); const [claim, setClaim] = useState<string | null>(null);
+  const tryJoin = (c: string) => { setJoinTry(c.trim().toUpperCase()); conn.join(c); };
+  useEffect(() => { if (st.error === "already_started" && devMode && joinTry && !room) setClaim(joinTry); }, [st.error, devMode, joinTry, room]);
+  useEffect(() => { if (room) { setClaim(null); setJoinTry(null); } }, [room]);
+  const claimSeat = (uid: string) => { store.set("poyga-dev-user", uid); store.set("poyga-autojoin", claim); (globalThis as any).location?.reload?.(); };
+  useEffect(() => { // o'rin qaytarib olingach sahifa yangilanadi: o'yinga o'zi qaytadi
+    const code = store.get("poyga-autojoin"); if (code && st.status === "online" && !room) { store.set("poyga-autojoin", null); conn.join(code); }
+  }, [st.status, room, conn]);
   // Ism majburiy: profilsiz foydalanuvchi avval ismini kiritadi (xonaga kirishdan oldin)
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   useEffect(() => { let off = false; http.profile().then((r: any) => { if (!off) setHasProfile(!!r.profile); }).catch(() => { if (!off) setHasProfile(true); }); return () => { off = true; }; }, [http]); // tarmoq xatosida to'smaymiz: server baribir tekshiradi
@@ -100,12 +110,13 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
       <View role="main" style={{ flex: 1 }}>
       {hasProfile === null && !room ? null : gated ? <NameGate http={http} onDone={() => setHasProfile(true)} />
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
+        : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
         : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
         : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
         : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
-        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n) => conn.create(t, c, n)} onJoin={(c) => conn.join(c)} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
+        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n) => conn.create(t, c, n)} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />

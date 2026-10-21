@@ -19,7 +19,7 @@
 | `ADMIN_TOKENS` | eski statik tokenlar (JSON); bo'sh qoldiring — 2FA/qulf ostida emas |
 | `BACKUP_MARKER` | ixtiyoriy: zaxira oxirida yangilanadigan fayl (panelda ko'rsatiladi) |
 | `METRICS_TOKEN` | `/metrics` uchun (bo'sh bo'lsa o'chirilgan) |
-| `LOG_LEVEL`, `ROOM_IDLE_MINUTES`, `WS_CONNECT_RATE`, `WS_CONNECT_BURST`, `WS_PING_MS` | ixtiyoriy sozlamalar |
+| `LOG_LEVEL`, `ROOM_IDLE_MINUTES`, `ROOM_IDLE_STARTED_HOURS`, `WS_CONNECT_RATE`, `WS_CONNECT_BURST`, `WS_PING_MS` | ixtiyoriy sozlamalar |
 
 Konteyner sog'liq tekshiruvi: `GET /ready` (200 = server va baza ishlayapti).
 

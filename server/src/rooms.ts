@@ -255,6 +255,7 @@ export class RoomManager {
 
   /** Navbat taymeri (§5.2, §6.3): 30 s ichida qaror bo'lmasa — avtomatik. Bot va oflayn o'yinchi ham shu yo'ldan. */
   private arm(r: Room) {
+    if (!this.humansOnline(r)) { this.pause(r); return; } // hech bir odam onlayn emas: o'yin to'xtab turadi (birinchi qaytgan bilan davom etadi)
     if (r.state!.phase === "dreams") { // orzu bosqichi: bitta mutlaq muddat (har harakatda uzaymaydi), so'ng tanlamaganlarga avtomatik
       if (r.timer && r.deadline) return;
       const ms = RULES.dreamSeconds * 1000;
@@ -270,9 +271,16 @@ export class RoomManager {
     r.timer = this.clock.setTimeout(() => { this.autoMove(r).catch((e) => { this.hooks.onError?.("autoMove", e); if (r.state && !r.state.winner && !r.endedAt) this.arm(r); }); }, delay);
   }
 
+  /** Onlayn odam bormi (botlar va ixtiyoriy chiqqanlar hisobga kirmaydi). */
+  private humansOnline(r: Room) { return r.members.some((m) => !m.bot && !m.left && m.online); }
+  /** Hamma odam uzilgan (tok/internet o'chdi): taymerlar to'xtaydi — oflayn o'yinchining navbatlari «o'tkazib yuborilmaydi», botlar o'ynab ketmaydi. */
+  private pause(r: Room) { if (r.timer) this.clock.clearTimeout(r.timer); r.timer = null; r.deadline = null; }
+
   private async autoMove(r: Room) {
     r.timer = null;
-    if (!r.state || r.state.winner || r.state.phase === "dreams") return;
+    if (!r.state || r.state.winner) return;
+    if (!this.humansOnline(r)) { r.deadline = null; return; }
+    if (r.state.phase === "dreams") return;
     const cur = currentPlayer(r.state);
     const bot = r.members.find((x) => x.userId === cur.id)?.bot;
     if (!r.state.pending) return void (await this.apply(r, bot ? { type: "roll", playerId: cur.id } : { type: "roll", playerId: cur.id, auto: true }, bot ? "bot" : "timeout"));
@@ -294,7 +302,7 @@ export class RoomManager {
 
   disconnect(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
-    if (r && m) { m.online = false; this.markOffline(r); this.emit(r); }
+    if (r && m) { m.online = false; this.markOffline(r); if (r.state && !r.state.winner && !this.humansOnline(r)) this.pause(r); this.emit(r); }
   }
 
   /** §6.3: qayta ulanganda holat to'liq tiklanadi (snapshot + seq). */
@@ -302,7 +310,9 @@ export class RoomManager {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (!r || !m) return { ok: false, error: "not_member" };
     if (m.left) return { ok: false, error: "left_game" }; // ixtiyoriy chiqish qaytarilmaydi: o'rnini bot egallagan
-    m.online = true; r.offlineSince = null; this.emit(r);
+    m.online = true; r.offlineSince = null;
+    if (r.state && !r.state.winner && !r.endedAt && !r.timer) this.arm(r); // to'xtab turgan o'yin davom etadi
+    this.emit(r);
     return { ok: true };
   }
 
@@ -318,7 +328,8 @@ export class RoomManager {
       const gp = r.state.players.find((p) => p.id === userId);
       m.unreliable = !r.endedAt && !!gp && (gp.handDebts.length > 0 || openPartnerships(gp) > 0);
       m.bot = true; m.left = true; m.online = false;
-      if (r.state.phase === "dreams") void this.apply(r, { type: "auto_dreams", playerId: "server", only: [userId] }, "left").catch((e) => this.hooks.onError?.("autoMove", e)); // chiqqan odam orzusi darrov beriladi
+      if (!this.humansOnline(r)) this.pause(r);
+      else if (r.state.phase === "dreams") void this.apply(r, { type: "auto_dreams", playerId: "server", only: [userId] }, "left").catch((e) => this.hooks.onError?.("autoMove", e)); // chiqqan odam orzusi darrov beriladi
       else if (currentPlayer(r.state).id === userId) this.arm(r); }
     this.emit(r);
   }
@@ -329,10 +340,12 @@ export class RoomManager {
   }
 
   /** Tashlab ketilgan xonalarni yopadi: hamma odam `idleMs` dan ortiq oflayn. Davriy chaqiriladi (main.ts). Qaytadi: yopilganlar soni. */
-  async sweep(idleMs: number): Promise<number> {
+  async sweep(idleMs: number, startedIdleMs: number = idleMs): Promise<number> {
     let n = 0; const now = this.clock.now();
     for (const [code, r] of [...this.rooms]) {
-      if (r.endedAt || r.offlineSince === null || now - r.offlineSince < idleMs) continue;
+      // Boshlangan o'yin, unda hali chiqmagan odam bor: uzoq kutiladi (tok/internet o'chishi); zal va odamsiz qolgan o'yin — qisqa muddat
+      const limit = r.state && r.members.some((m) => !m.bot && !m.left) ? Math.max(idleMs, startedIdleMs) : idleMs;
+      if (r.endedAt || r.offlineSince === null || now - r.offlineSince < limit) continue;
       if (r.timer) this.clock.clearTimeout(r.timer);
       for (const [k, h] of this.proposalTimers) if (k.startsWith(`${code}:`)) { this.clock.clearTimeout(h); this.proposalTimers.delete(k); }
       r.timer = null; r.deadline = null; r.endedAt = now;

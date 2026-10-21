@@ -253,6 +253,13 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="poyga-${code}.csv"`).send(historyCsv({ ...r.history, events: pres.events as any }, (x) => x));
     return pres;
   }));
+  // Sinov rejimi (kirish xizmati ulanmagan; token = qurilma identifikatori): boshqa brauzer/ilovadan kirilsa, oflayn o'yinchi o'z o'rnini qaytarib oladi.
+  // Haqiqiy kirishda (SMS/Google) hisob qurilmaga bog'liq emas — shu hisob bilan kirilsa o'rin o'zi tiklanadi, bu yo'l yopiq.
+  app.get("/dev/seats/:code", async (req: any, reply: any) => {
+    if (opts.otp || opts.authSecret || opts.oidc) return reply.code(404).send({ error: "not_found" });
+    const r = rooms.rooms.get(String(req.params.code).toUpperCase()); if (!r || !r.state || r.endedAt) return reply.code(404).send({ error: "room_not_found" });
+    return { seats: r.members.filter((m) => !m.bot && !m.left).map((m) => ({ userId: m.userId, name: profiles.get(m.userId)?.name ?? null, online: m.online })) };
+  });
   // Faol o'yin (§7: bir hisob — bitta faol o'yin): ilova yangidan ochilganda «Davom etish» uchun.
   app.get("/me/active", secured((uid) => {
     const code = rooms.activeRoomOf.get(uid); const r = code ? rooms.rooms.get(code) : undefined;

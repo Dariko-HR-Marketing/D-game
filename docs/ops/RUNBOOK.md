@@ -30,7 +30,7 @@ Admin panel → Xonalar → O'yin jurnali. O'yin urug' va harakatlardan to'liq q
 Admin → Kontent → oldingi versiyani "Nashr qilish". Boshlangan o'yinlar o'z versiyasida qoladi.
 
 ## Tashlab ketilgan xonalar
-Hamma odam `ROOM_IDLE_MINUTES` (standart 30) dan ortiq oflayn bo'lsa xona har daqiqa ishlaydigan tozalash bilan yopiladi (`poyga_games_total{event="abandoned"}`). Server qayta ishga tushganda tiklangan, hech kim ulanmagan xonalar ham shu muddatdan keyin yopiladi.
+Hamma odam oflayn bo'lsa o'yin to'xtab turadi; zal va odamsiz qolgan xona `ROOM_IDLE_MINUTES` (standart 30), boshlangan o'yin `ROOM_IDLE_STARTED_HOURS` (standart 24) dan ortiq oflayn bo'lsa har daqiqa ishlaydigan tozalash bilan yopiladi (`poyga_games_total{event="abandoned"}`). Server qayta ishga tushganda tiklangan, hech kim ulanmagan xonalar ham shu muddatdan keyin yopiladi.
 
 ## Yuk va cheklovlar
 Hozirgi arxitektura bitta jarayon (xonalar xotirada, taymerlar jarayonda). Gorizontal masshtablash uchun xona→jarayon biriktirish (sticky routing yoki xona egasi qulfi) kerak — hali yo'q (OPEN_QUESTIONS #46).
