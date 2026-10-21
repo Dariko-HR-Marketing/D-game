@@ -17,6 +17,16 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
   const big = cur.circle === "big";
   if (st.winner) return (<><Text style={s.eyebrow}>{uz.game.winner}</Text><Text style={s.title}>{nameOf(room, st.winner)}</Text></>);
   const hint = big ? uz.hud.hintBig : uz.hud.hintSmall;
+  if (compact) return ( // yotiq telefon: taxta markazi kichik — kubik, taymer, qisqa matn va tugma
+    <View style={s.wrapC} testID="turn-panel">
+      <View style={s.rowC}>
+        <Dice value={lr?.die ?? null} n={lr?.n} size={36} />
+        {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={40} label={`${left} ${uz.game.seconds}`} />}
+      </View>
+      <Text style={[s.turnC, mineTurn && { color: tone.good }]} numberOfLines={2} accessibilityLiveRegion="polite">{lr && !mineTurn ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? (hasCard && !moving ? uz.game.decideBelow : lr ? `${who} ${uz.game.rolled}: ${lr.die}` : uz.game.yourTurn) : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
+      {gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : mineTurn && !hasCard && !moving ? <View style={{ alignSelf: "stretch", paddingHorizontal: space.sm }}><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View> : null}
+    </View>
+  );
   return (
     <View style={s.wrap} testID="turn-panel">
       {!compact && <Text style={s.eyebrow}>{cellLabel(cur.circle, cur.pos)}</Text>}
@@ -38,5 +48,6 @@ const s = StyleSheet.create({
   wrap: { alignItems: "center", gap: space.sm, paddingHorizontal: space.md },
   eyebrow: { color: tone.muted, fontSize: 12, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
   title: { color: color.navy, fontSize: font.xl, fontWeight: "800", textAlign: "center", lineHeight: 26 }, sub: { color: tone.muted, fontSize: font.sm, textAlign: "center" },
+  wrapC: { alignItems: "center", gap: 4, paddingHorizontal: space.sm }, rowC: { flexDirection: "row", alignItems: "center", gap: space.md }, turnC: { color: color.navy, fontSize: font.sm, fontWeight: "800", textAlign: "center" },
   wideRow: { flexDirection: "row", alignItems: "center", gap: space.md }, turn: { fontSize: font.lg, fontWeight: "800", color: color.navy },
 });
