@@ -15,7 +15,7 @@ export function FinanceCard({ p, profession, dream, shown }: { p: any; professio
   const e = exitProgress(p);
   const conds: { k: "cash" | "flow" | "debt" | "partner"; label: string; ratio: number | null; detail?: string }[] = [
     { k: "cash", label: uz.game.exitCash, ratio: p.cash / 1_000_000, detail: `${money(p.cash)} / ${money(1_000_000)}` },
-    { k: "flow", label: uz.game.exitFlow, ratio: (e.passive - e.expenses) / 25_000, detail: `${money(e.passive - e.expenses)} / ${money(25_000)}` },
+    { k: "flow", label: uz.game.exitFlow, ratio: e.passive / 25_000, detail: `${money(e.passive)} / ${money(25_000)}` },
     { k: "debt", label: uz.game.exitDebt, ratio: null }, { k: "partner", label: uz.game.exitPartner, ratio: null },
   ];
   return (

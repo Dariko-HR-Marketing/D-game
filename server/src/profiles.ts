@@ -3,7 +3,7 @@ import type { GamePlayer } from "@poyga/rules";
 import { RULES, POINTS } from "@poyga/rules";
 import { WriteQueue } from "./persist";
 
-export interface Profile { userId: string; name: string; color: number; birthYear: number; updatedAt: number }
+export interface Profile { userId: string; name: string; color: number; birthYear: number; /** Ixtiyoriy: faqat standart avatar ko'rinishi uchun */ gender?: "m" | "f"; updatedAt: number }
 export interface ResultPlayer {
   id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean;
   left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
@@ -37,7 +37,8 @@ export function validateProfile(i: any, year: number): { ok: true; value: Omit<P
   if (/[<>]/.test(name)) return { ok: false, error: "bad_name" };
   if (!Number.isInteger(i?.color) || i.color < 0 || i.color >= PROFILE_COLORS) return { ok: false, error: "bad_color" };
   if (!Number.isInteger(i?.birthYear) || i.birthYear < 1900 || i.birthYear > year) return { ok: false, error: "bad_birth_year" };
-  return { ok: true, value: { name, color: i.color, birthYear: i.birthYear } };
+  if (i?.gender !== undefined && i.gender !== null && i.gender !== "m" && i.gender !== "f") return { ok: false, error: "bad_gender" };
+  return { ok: true, value: { name, color: i.color, birthYear: i.birthYear, ...(i?.gender === "m" || i?.gender === "f" ? { gender: i.gender as "m" | "f" } : {}) } };
 }
 /** Avatar rasmi: faqat JPEG (mijoz 256 px gacha kichraytirib yuboradi), ko'pi bilan 80 KB. */
 export const MAX_PHOTO_BYTES = 80 * 1024;

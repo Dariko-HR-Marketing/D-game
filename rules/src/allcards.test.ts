@@ -35,7 +35,7 @@ describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
   });
 
   it.each(by("buy"))("%s: sotib olish — aktiv, boshlang'ich to'lov, kredit, daromad kartadagidek", (id) => {
-    const e = ctx.effects[id].effect as any; const { s, before } = run(id);
+    const e = ctx.effects[id].effect as any; const { s, before } = run(id, (p) => { p.handDebts.push({ id: 1, to: "p1", amount: 1, months: 1 } as any); }); // ochiq qarz: o'yinchi kichik aylanadan chiqib bizneslarni topshirmasin
     const p = s.players[0], b = before[0]; const a = p.assets.find((x) => x.code === e.code)!;
     expect(a, "aktiv qo'shilmadi").toBeDefined(); expect(a.kind).toBe(e.asset);
     expect(b.cash - p.cash).toBe(e.down ?? e.price); expect(a.price).toBe(e.price);
@@ -59,7 +59,14 @@ describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
     const e = ctx.effects[id].effect as any; const { s, before } = run(id); expect(s.players[0].cash - before[0].cash).toBe(e.amount);
   });
   it.each([...by("pay")])("%s: majburiy to'lov — naqd kartadagicha kamayadi", (id) => {
-    const e = ctx.effects[id].effect as any; const { s, before } = run(id); expect(before[0].cash - s.players[0].cash).toBe(e.amount);
+    const e = ctx.effects[id].effect as any;
+    const { s, before } = run(id, (p) => { if (e.needs === "child") p.children = 1; if (e.needs === "car") p.assets.push(car as any); }); // shartli xarajat: sharti bajarilgan o'yinchi to'laydi
+    expect(before[0].cash - s.players[0].cash).toBe(e.amount);
+  });
+  it.each(by("pay").filter((id) => (ctx.effects[id].effect as any).needs))("%s: shartli xarajat — sharti yo'q o'yinchi to'lamaydi", (id) => {
+    const e = ctx.effects[id].effect as any;
+    const { s, before } = run(id, (p) => { p.children = 0; p.assets = []; p.insuredCar = false; p.profession = Number(Object.values(ctx.kasb).find((k: any) => !(k.car > 0))?.n ?? 0); });
+    expect(s.players[0].cash).toBe(before[0].cash); expect(e.needs === "child" || e.needs === "car").toBe(true);
   });
   it.each(by("lendRequest"))("%s: qarz so'rovi — beriladi va «qarz» hisoblanadi", (id) => {
     const e = ctx.effects[id].effect as any; const { s, before } = run(id); expect(before[0].cash - s.players[0].cash).toBe(e.amount); expect(s.players[0].handLoans).toBe(1);
@@ -101,8 +108,9 @@ describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
     const e = ctx.effects[id].effect as any;
     const r = run(id, (p, s) => { p.qar = true; if (e.scope === "holders") { s.players[1].qar = true; } });
     const d = (i: number) => ({ cash: r.before[i].cash - r.s.players[i].cash, exp: r.s.players[i].baseExpenses - r.before[i].baseExpenses });
-    expect(d(0)).toEqual({ cash: e.payNow ?? 0, exp: e.monthlyExpenseIncrease ?? 0 });
-    expect(d(1)).toEqual(e.scope === "holders" ? { cash: e.payNow ?? 0, exp: e.monthlyExpenseIncrease ?? 0 } : { cash: 0, exp: 0 });
+    const eff = { cash: (e.payNow ?? 0) - (e.gainNow ?? 0), exp: e.monthlyExpenseIncrease ?? 0 }; // gainNow: meros kvartira sotuvi (qarov egalari naqd oladi)
+    expect(d(0)).toEqual(eff);
+    expect(d(1)).toEqual(e.scope === "holders" ? eff : { cash: 0, exp: 0 });
     expect(d(2)).toEqual({ cash: 0, exp: 0 });           // qarovsiz o'yinchiga ta'sir qilmaydi
   });
   it.each(by("debtRepaid"))("%s: qarz qaytdi — faqat qarz bergan o'yinchilarga", (id) => {

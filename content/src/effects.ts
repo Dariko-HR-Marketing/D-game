@@ -9,11 +9,11 @@ export type Effect =
       price: number; down?: number; credit?: number; creditPayment?: number; monthlyIncome?: number; marketValue?: number | null }
   | { kind: "buyShares"; code: string; pricePerShare: number; min: number; max: number }
   | { kind: "gain"; amount: number }
-  | { kind: "pay"; amount: number; to: "bank" | "bank_insurable_car" }
+  | { kind: "pay"; amount: number; to: "bank" | "bank_insurable_car"; needs?: "child" | "car" } // needs: karta matnidagi «(agar bolangiz/mashinangiz bo'lsa)» sharti — qo'llanma §07: faqat bola yoki avtomobili borlar to'laydi
   | { kind: "lendRequest"; amount: number; returnAmount: number }
   | { kind: "qarOffer"; monthlyExpense: number }
-  | { kind: "qarEvent"; payNow?: number; monthlyExpenseIncrease?: number; scope: "drawer" | "holders" } // drawer: faqat kartani olgan (qarovi bo'lsa); holders: qarov kartasi egalari hammasi
-  | { kind: "marketSale"; targets: string[]; amount: number | Record<string, number> | { addByType: Record<string, number> } | { multiply: number } | { percent: number } }
+  | { kind: "qarEvent"; payNow?: number; gainNow?: number; monthlyExpenseIncrease?: number; scope: "drawer" | "holders" } // drawer: faqat kartani olgan (qarovi bo'lsa); holders: qarov kartasi egalari hammasi
+  | { kind: "marketSale"; forced?: boolean; targets: string[]; amount: number | Record<string, number> | { addByType: Record<string, number> } | { multiply: number } | { percent: number } }
   | { kind: "businessIncomeIncrease"; amount: number }
   | { kind: "marketCrash"; factor: 0.5 }
   | { kind: "payOrLoseBusiness"; amount: number } // hod #7: pul to'lang YOKI kichik biznesingizdan birini qaytaring (tanlov)
@@ -39,12 +39,14 @@ function bozorEffect(c: Cards["bozor"][number]): Effect {
   if (c.kind === "Daromad oshadi") return { kind: "businessIncomeIncrease", amount: c.amount as number };
   if (c.kind === "Majburiy to‘lov") return { kind: "qarEvent", payNow: c.amount as number, scope: c.who === "Qarov kartasi egasi" ? "holders" : "drawer" };
   if (c.kind === "Xarajat oshadi") return { kind: "qarEvent", monthlyExpenseIncrease: c.amount as number, scope: c.who === "Qarov kartasi egasi" ? "holders" : "drawer" };
+  if (t === "QAR" && c.kind === "Sotish imkoniyati") return { kind: "qarEvent", gainNow: c.amount as number, scope: "holders" }; // №90: kampir meros qoldirgan kvartirani qarov egalari 25 000 ga sotadi (kartada aktiv yo'q — naqd tushadi)
   if (c.kind !== "Sotish imkoniyati") return { kind: "unresolved", reason: `noma'lum bozor turi: ${c.kind}` };
   const a = c.amount;
-  if (typeof a === "number") return { kind: "marketSale", targets: [t], amount: a };
+  const forced = /kuyib ket/i.test(c.text) ? { forced: true as const } : {}; // «aks holda aksiyalar kuyib ketadi» — qo'llanma §07: majburiy sotuv
+  if (typeof a === "number") return { kind: "marketSale", ...forced, targets: [t], amount: a };
   if (t === "KV1s / KV2s") {
     const [x, y] = a.split("/").map(num);
-    return { kind: "marketSale", targets: ["KV1s", "KV2s"], amount: { KV1s: x, KV2s: y } };
+    return { kind: "marketSale", forced: true, targets: ["KV1s", "KV2s"], amount: { KV1s: x, KV2s: y } }; // eski uy buzilganda kompensatsiya — majburiy
   }
   if (a.startsWith("+") && a.includes("/")) {
     const v = a.split("/").map(num);
@@ -85,8 +87,9 @@ export function deriveEffects(c: Cards): CardEffect[] {
     return push("katta", id, k.file, "optional", { kind: "buy", asset: assetOf(k.code), code: k.code, price: k.full, down: k.down, credit: k.credit, creditPayment: k.interest, monthlyIncome: k.rent, marketValue: real(k.real) });
   });
 
-  c.bozor.forEach((b, i) => push("bozor", `bozor-${i + 1}`, b.file, b.kind === "Sotish imkoniyati" ? "optional" : "mandatory", bozorEffect(b)));
-  c.xar.forEach((x) => push("xar", `xar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank" }));
+  c.bozor.forEach((b, i) => push("bozor", `bozor-${i + 1}`, b.file, b.kind === "Sotish imkoniyati" && b.code !== "QAR" ? "optional" : "mandatory", bozorEffect(b)));
+  const needsOf = (t: string): "child" | "car" | undefined => { const m = /\(agar ([^)]*)bo[‘'’]lsa\)/i.exec(t)?.[1] ?? ""; return /mashina/i.test(m) ? "car" : /bola|farzand/i.test(m) ? "child" : undefined; };
+  c.xar.forEach((x) => { const needs = needsOf(x.text); push("xar", `xar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank", ...(needs ? { needs } : {}) }); });
   c.kxar.forEach((x) => push("kxar", `kxar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank" }));
   c.hod.forEach((h) => {
     // «Aks holda KB laringizdan birini aylanaga qaytaring» — pul yoki biznes: o'yinchi tanlaydi (karta qaroriga aylanadi)

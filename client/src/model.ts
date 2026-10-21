@@ -10,7 +10,7 @@ export function exitProgress(p: any) {
   const handDebt = (p.handDebts ?? []).reduce((s: number, d: any) => s + d.amount, 0);
   const debt = allDebt(p) + handDebt;
   const checks = {
-    cash: p.cash >= 1_000_000, flow: passive - exp >= 25_000, debt: debt === 0, partner: openPartnerships(p) === 0,
+    cash: p.cash >= 1_000_000, flow: passive >= 25_000, debt: debt === 0, partner: openPartnerships(p) === 0,
   };
   return { checks, passive, expenses: exp, cashflow: playerCashflow(p), debt, canExit: canExitSmallCircle({ cash: p.cash, salary: p.salary, passiveIncome: passive, expenses: exp, bankDebt: p.bankDebt, otherDebt: debt - p.bankDebt, openPartnerships: openPartnerships(p) }) };
 }

@@ -103,9 +103,13 @@ describe("Katta aylana qarzi: yetmasa qarz yoziladi, Yana pullar da yopiladi", (
     const s = land("big", 26, (g) => { Object.assign(g.players[0], { cash: 0, lockedFlow: 0, bigDebt: 900_000, bigDebtY: 3, assets: [biz("A", 500), { ...biz("B", 100), price: 1_000_000 }] }); });
     expect(s.players[0].assets.map((a) => a.code)).toEqual(["A"]); expect(s.players[0].bigDebt).toBe(0); expect(s.players[0].cash).toBeGreaterThanOrEqual(100_000);
   });
-  it("sotadigan biznes ham yo'q — yumshatilgan: naqd va mulk bilan kichik aylanaga (yangi kasb emas)", () => {
-    const s = land("big", 26, (g) => { Object.assign(g.players[0], { cash: 0, lockedFlow: 0, bigDebt: 900_000, bigDebtY: 3, assets: [] }); });
-    expect(s.players[0].circle).toBe("small"); expect(s.players[0].restarts).toBe(0);
+  it("sotadigan biznes ham yo'q — asl qo'llanma: yangi kasb kartasi bilan kichik aylanaga; naqd, bolalar va mulk saqlanadi, maosh qaytadi", () => {
+    const apt = { kind: "apartment", code: "KV1", price: 5000, monthlyIncome: 200, creditPayment: 0, credit: 0 };
+    const s = land("big", 26, (g) => { Object.assign(g.players[0], { cash: 1234, lockedFlow: 0, bigDebt: 900_000, bigDebtY: 3, assets: [apt], children: 2, quitJob: true, salary: 0 }); });
+    const p = s.players[0];
+    expect(p.circle).toBe("small"); expect(p.restarts).toBe(0); expect(p.children).toBe(2); expect(p.assets.map((a) => a.code)).toEqual(["KV1"]);
+    expect(p.quitJob).toBe(false); expect(p.salary).toBe(ctx.kasb[p.profession].salary); expect(p.salary).toBeGreaterThan(0); expect(p.baseExpenses).toBe(ctx.kasb[p.profession].total);
+    expect(p.cash).toBe(0); expect(p.bigDebt ?? 0).toBe(0); // naqd avval qarzga ketadi (qarz darhol yopiladi), qolgani bo'lsa saqlanadi
   });
 });
 

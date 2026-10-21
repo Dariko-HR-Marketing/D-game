@@ -2310,7 +2310,7 @@
    "file": "013_KV2o.webp",
    "code": "KV2o",
    "group": "Uy-joy (ofis uchun)",
-   "text": "Xaridor ofis uchun ikki xonali kvartira qqidirmoqda. U 50000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
+   "text": "Xaridor ofis uchun ikki xonali kvartira qidirmoqda. U 50000 sh.b. miqdorida pul to‘lashga tayyor. Kvartiraga ega har qanday kishi shu narxda sotishi mumkin.",
    "amount": 50000,
    "who": "Mos aktivi bor barcha o‘yinchilar",
    "kind": "Sotish imkoniyati",
@@ -3053,7 +3053,7 @@
    "text": "Siz qarovingizga olgan qariya yangi televizor talab qilayapti. Darhol unga 200 sh.b.ga televizor olib bering, aks holda u siz bilan shartnomani bekor qiladi.",
    "amount": 200,
    "who": "Faqat kartani olgan o‘yinchi",
-   "kind": "Sotish imkoniyati",
+   "kind": "Majburiy to‘lov",
    "note": ""
   },
   {

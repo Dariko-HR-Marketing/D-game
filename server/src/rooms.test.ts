@@ -44,6 +44,7 @@ describe("xonalar (§6.1)", () => {
     rm.join(r.code, "u1"); rm.leave(r.code, "u1");
     expect(await rm.start(r.code, "u1", 1, { dreams: false })).toEqual({ ok: false, error: "not_host" });
     expect((await rm.start(r.code, "u0", 1, { dreams: false })).ok).toBe(true);
+    expect(rm.view(rm.rooms.get(r.code)!).dreams?.length).toBeGreaterThan(0); // orzular ro'yxati o'yin davomida ham beriladi (hisob varag'i va moliyaviy karta uchun)
     const room = rm.rooms.get(r.code)!;
     expect(room.members.map((m) => m.bot)).toEqual([false, true]);
   });

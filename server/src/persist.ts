@@ -80,12 +80,12 @@ export class PgPersist implements Persist, ProfilePersist, StatsPersist {
   }
 
   async loadProfiles(): Promise<Profile[]> {
-    const r = await this.pool.query("select user_id, name, color, birth_year, extract(epoch from updated_at)*1000 as at from profiles");
-    return r.rows.map((x) => ({ userId: x.user_id, name: x.name, color: x.color, birthYear: x.birth_year, updatedAt: Number(x.at) }));
+    const r = await this.pool.query("select user_id, name, color, birth_year, gender, extract(epoch from updated_at)*1000 as at from profiles");
+    return r.rows.map((x) => ({ userId: x.user_id, name: x.name, color: x.color, birthYear: x.birth_year, ...(x.gender ? { gender: x.gender } : {}), updatedAt: Number(x.at) }));
   }
   async saveProfile(p: Profile) {
-    await this.pool.query("insert into profiles(user_id,name,color,birth_year,updated_at) values($1,$2,$3,$4,to_timestamp($5/1000.0)) on conflict (user_id) do update set name=excluded.name, color=excluded.color, birth_year=excluded.birth_year, updated_at=excluded.updated_at",
-      [p.userId, p.name, p.color, p.birthYear, p.updatedAt]);
+    await this.pool.query("insert into profiles(user_id,name,color,birth_year,gender,updated_at) values($1,$2,$3,$4,$5,to_timestamp($6/1000.0)) on conflict (user_id) do update set name=excluded.name, color=excluded.color, birth_year=excluded.birth_year, gender=excluded.gender, updated_at=excluded.updated_at",
+      [p.userId, p.name, p.color, p.birthYear, p.gender ?? null, p.updatedAt]);
   }
   async loadPhotoVersions(): Promise<[string, number][]> { const r = await this.pool.query("select user_id, extract(epoch from updated_at)*1000 as at from profile_photos"); return r.rows.map((x) => [x.user_id, Number(x.at)] as [string, number]); }
   async loadPhoto(userId: string): Promise<Buffer | null> { const r = await this.pool.query("select jpeg from profile_photos where user_id=$1", [userId]); return r.rows[0]?.jpeg ?? null; }

@@ -10,7 +10,7 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     return j as any;
   };
   return {
-    profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number }) => call("PUT", "/me/profile", p),
+    profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number; gender?: "m" | "f" | null }) => call("PUT", "/me/profile", p),
     uploadAvatar: (image: string) => call("PUT", "/me/avatar", { image }) as Promise<{ photo: string }>, removeAvatar: () => call("DELETE", "/me/avatar"),
     active: () => call("GET", "/me/active") as Promise<{ active: { code: string; started: boolean; round: number; players: number } | null }>, history: () => call("GET", "/me/history"), analysis: (code: string) => call("GET", `/me/games/${code}/analysis`), gameLog: (code: string) => call("GET", `/me/games/${code}/log`),
     gameLogCsv: async (code: string) => { const r = await f(base + `/me/games/${code}/log?format=csv`, { headers: { authorization: `Bearer ${token}` } }); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.text(); }, leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),

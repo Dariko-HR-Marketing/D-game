@@ -39,7 +39,7 @@ export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
     }
     case "buyShares": need = e.min * e.pricePerShare; rows.push({ label: F.perShare, value: fmt(e.pricePerShare) }, { label: F.range, value: `${e.min}–${e.max}` }, { label: F.minCost, value: fmt(need!) }); break;
     case "gain": rows.push({ label: F.gain, value: signed(e.amount), tone: "good" }); break;
-    case "pay": rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); need = e.amount; break;
+    case "pay": rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); need = e.amount; if (e.needs) notes.push(e.needs === "car" ? F.needsCar : F.needsChild); break;
     case "lendRequest": need = e.amount; rows.push({ label: F.lend, value: fmt(e.amount) }, { label: F.lendBack, value: fmt(e.returnAmount), tone: "good" }); notes.push(F.lendNote); break;
     case "qarOffer": rows.push({ label: F.qarMonthly, value: signed(-e.monthlyExpense), tone: "bad" }); flow = -e.monthlyExpense; notes.push(F.qarNote); break;
     case "courseSalaryPlus": need = e.price; rows.push({ label: F.price, value: fmt(e.price) }, { label: F.salaryPlus, value: signed(e.salaryPlus), tone: "good" }); flow = e.salaryPlus; break;
