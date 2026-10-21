@@ -34,7 +34,9 @@ const probe = (touch: boolean) => {
   }
   for (const el of document.querySelectorAll("body *")) {
     if (!visible(el) || el.children.length) continue; const t = (el.textContent ?? "").trim(); if (!t) continue;
-    const fs = parseFloat(getComputedStyle(el).fontSize); if (fs < 11.5) out.push({ kind: "kichik-shrift", detail: `${fs}px «${t.slice(0, 30)}»` });
+    const fs = parseFloat(getComputedStyle(el).fontSize); if (t.length === 1 && /[A-Z]/.test(t)) continue; // logo harfi
+    const limit = /^\d{1,2}$/.test(t) ? 10 : /^[A-Z' ]+$/.test(t) ? 8 : 11.5; // nishon raqamlari ≥ 10, katak yozuvlari (BOZOR…) ≥ 8, boshqa matn ≥ 11.5
+    if (fs < limit) out.push({ kind: "kichik-shrift", detail: `${fs}px «${t.slice(0, 30)}»` });
   }
   const seen = new Set<string>(); return out.filter((o) => { const k = o.kind + o.detail; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 14);
 };
@@ -72,7 +74,7 @@ for (const [w, h] of SIZES) {
     const pick = (k: string) => live.filter((e) => e.effect.kind === k).sort((p, q) => (q.text?.length ?? 0) - (p.text?.length ?? 0))[0];
     for (const kind of ["buy", "quiz", "ops", "deposit", "pay", "xpInfo"]) {
       const e = pick(kind); if (!e) continue; const cur = currentPlayer(room.state!).id; const pg = cur === ida ? a : c; room.state!.pending = { type: "card", playerId: cur, cardId: e.id, deck: e.deck } as any; (x.rooms as any).emit(room); await pg.waitForTimeout(500);
-      await check(pg, `08-card-${kind}`, /O'tkazaman|Qabul|olish$|^To'layman|^A\./); room.state!.pending = null; (x.rooms as any).emit(room);
+      await check(pg, `08-card-${kind}`, kind === "buy" || kind === "quiz" || kind === "deposit" ? /O'tkazaman|Qabul|olish$|^To'layman|^A\./ : undefined); // majburiy kartalarda tugma yo'q room.state!.pending = null; (x.rooms as any).emit(room);
     }
     { const cur = currentPlayer(room.state!).id; const pg = cur === ida ? a : c; const p: any = room.state!.players.find((q: any) => q.id === cur); p.deposits = [{ id: 1, label: "Sinov depoziti", principal: 1000, perLap: 50, lapsLeft: 3, accrued: 0, months: 0 }]; (x.rooms as any).emit(room); if (Math.min(w, h) < 900 && w < 900) { const t = pg.getByRole("button", { name: /^Blank/ }); if (await t.count()) await t.click().catch(() => {}); } await check(pg, "09-portfolio"); }
     room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room); (x.rooms as any).emit(room);

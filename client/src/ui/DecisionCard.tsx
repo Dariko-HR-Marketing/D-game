@@ -38,7 +38,7 @@ function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
 /** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
-export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30, calcMode, calcFb }: { calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
+export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30, calcMode, calcFb }: { horizontal?: boolean; calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom); const lastDecide = React.useRef<Record<string, unknown> | null>(null);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
@@ -116,11 +116,11 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
         <Text style={s.label}>{uz.ops.quiz.pick}</Text>
         {(["A", "B", "V"] as const).map((k) => <Button key={k} label={`${k}. ${e[k.toLowerCase()]}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: true, choice: k })} />)}
         <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
-      {!mandatory && !rent && e?.kind !== "quiz" && (<View style={{ gap: space.sm }}>
-        {!needLedger && <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
+      {!mandatory && !rent && e?.kind !== "quiz" && (<View style={{ gap: space.sm, flexDirection: horizontal ? "row" : "column" }}>{/* yotiq telefon: ikki tugma yonma-yon, balandlik tejaladi */}
+        {!needLedger && <View style={horizontal ? { flex: 1 } : undefined}><Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund || noSlot}
-          onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />}
-        <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={(cantFund || noSlot) && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+          onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} /></View>}
+        <View style={horizontal ? { flex: 1 } : undefined}><Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={(cantFund || noSlot) && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View></View>)}
   </>);
   if (e?.kind === "deckChoice") { if (layout) return <>{layout(<View style={{ gap: space.md }}>{inner}</View>, null)}</>; return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>; } // tugmalar DeckChoice ichida; layout bo'lsa ham chap ustun (moliya) saqlanadi
   if (layout) return <>{layout(<View style={{ gap: space.md }}>{body}</View>, <View style={{ gap: space.sm }}>{actions}</View>)}</>;
