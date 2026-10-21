@@ -51,7 +51,7 @@ describe("sheriklik: ulush qaytgach 24 oy dividend, so'ng bepul o'tadi", () => {
 describe("oxirgi kubik holatda saqlanadi", () => {
   it("roll natijasi lastRoll ga yoziladi va tartib raqami oshadi", () => {
     let s: any = newGame(ctx, ["a", "b", "c"], 3); expect(s.lastRoll ?? null).toBeNull();
-    const r1: any = reduce(s, ctx, { type: "roll", playerId: "a" }); expect(r1.state.lastRoll).toEqual({ playerId: "a", die: r1.die, n: 1 });
+    const r1: any = reduce(s, ctx, { type: "roll", playerId: "a" }); expect(r1.state.lastRoll).toEqual({ playerId: "a", die: r1.die, dice: [r1.die], n: 1 });
     if (!r1.state.pending) { const r2: any = reduce(r1.state, ctx, { type: "roll", playerId: "b" }); expect(r2.state.lastRoll).toMatchObject({ playerId: "b", n: 2 }); }
   });
 });

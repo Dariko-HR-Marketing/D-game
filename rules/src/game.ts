@@ -68,7 +68,7 @@ export interface GameState {
   /** Boshlovchi kubik bo'yicha aniqlangan (qo'llanma): `openingDice` — jurnaldan qayta o'ynash uchun; `first` — birinchi yuruvchi indeksi (tur shundan hisoblanadi); `opening` — tashlangan kubiklar (tenglikda qayta tashlanadi). */
   openingDice?: boolean; first?: number; opening?: Record<string, number>[];
   /** Oxirgi tashlangan kubik (mijoz ko'rsatishi uchun): kim, nechta, va qaysi tartib raqamda. */
-  lastRoll?: { playerId: string; die: number; n: number } | null;
+  lastRoll?: { playerId: string; die: number; dice?: number[]; n: number } | null; // die — yig'indi; dice — har bir kubik (1 yoki 2 ta; eski saqlangan o'yinlarda yo'q)
   /** Oxirgi tortilgan karta (majburiy karta darhol qo'llanib `pending` bo'lmagani uchun ham ko'rsatiladi). */
   lastCard?: { playerId: string; cardId: string; n: number } | null;
   /** «Kutilmagan hodisa!» (K katagi) xona egasi tomonidan yoqilganmi (qo'llanma §07). O'chirilgan bo'lsa K — oddiy katak. */
@@ -231,9 +231,10 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
     if (s.pending) return { ok: false, error: "decision_pending" };
     // Xayriya (§5.10): keyingi 3 navbatda 2 ta kubik (yig'indisi bo'yicha yuriladi)
     const two = cur.circle === "big" || (cur.twoDice ?? 0) > 0; // katta aylanada 2 kubik (qo'llanma §04); xayriya — kichik aylanada 3 navbat 2 kubik
-    const die = withRng(s, (r) => (two ? rollDie(r) + rollDie(r) : rollDie(r)));
+    const dice = withRng(s, (r) => { const a = rollDie(r); return two ? [a, rollDie(r)] : [a]; }); // tasodifiy tartib avvalgidek (avval birinchi, so'ng ikkinchi kubik)
+    const die = dice.reduce((x, y) => x + y, 0);
     if (two && (cur.twoDice ?? 0) > 0) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
-    s.lastRoll = { playerId: cur.id, die, n: (s.lastRoll?.n ?? 0) + 1 };
+    s.lastRoll = { playerId: cur.id, die, dice, n: (s.lastRoll?.n ?? 0) + 1 };
     land(s, ctx, cur.id, die);
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s, die };

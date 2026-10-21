@@ -1,3 +1,4 @@
+import { diceOf, placeholderCount } from "../dice";
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Button } from "./Button";
@@ -10,6 +11,11 @@ import { color, font, space, tone } from "../theme";
 import type { RoomView } from "../net/connection";
 
 /** Taxta markazi (maket N11): turgan katak nomi, kubik natijasi, kimning navbati. Kompyuterda taymer va asosiy tugma ham shu yerda. */
+/** Oxirgi tashlangan kubik(lar) yoki tashlashdan oldin «?» (katta aylanada ikkita). */
+function DiceRow({ lr, circle, twoDice, size }: { lr: { die: number; dice?: number[]; n: number } | null | undefined; circle: string; twoDice?: number; size: number }) {
+  const list: (number | null)[] = diceOf(lr, false) ?? Array.from({ length: placeholderCount(circle, twoDice) }, () => null); const sz = list.length > 1 ? Math.round(size * 0.86) : size;
+  return <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }} testID="turn-dice">{list.map((v, i) => <Dice key={i} value={v} n={lr ? lr.n * 2 + i : undefined} size={sz} />)}</View>;
+}
 export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide, compact, moving, gate }: { compact?: boolean; gate?: React.ReactNode; room: RoomView; userId: string; mineTurn: boolean; hasCard: boolean; left: number; onRoll: () => void; wide?: boolean; moving?: boolean }) {
   const st = room.state; const lr = st.lastRoll as { playerId: string; die: number; n: number } | null | undefined;
   const cur = st.players[st.turn % st.players.length]; const curId: string = cur.id;
@@ -20,7 +26,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
   if (compact) return ( // yotiq telefon: taxta markazi kichik — kubik, taymer, qisqa matn va tugma
     <View style={s.wrapC} testID="turn-panel">
       <View style={s.rowC}>
-        <Dice value={lr?.die ?? null} n={lr?.n} size={36} />
+        <DiceRow lr={lr} circle={cur.circle} twoDice={cur.twoDice} size={36} />
         {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={40} label={`${left} ${uz.game.seconds}`} />}
       </View>
       <Text style={[s.turnC, mineTurn && { color: tone.good }]} numberOfLines={2} accessibilityLiveRegion="polite">{lr && !mineTurn ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? (hasCard && !moving ? uz.game.decideBelow : lr ? `${who} ${uz.game.rolled}: ${lr.die}` : uz.game.yourTurn) : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
@@ -30,7 +36,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
   return (
     <View style={s.wrap} testID="turn-panel">
       {!compact && <Text style={s.eyebrow}>{cellLabel(cur.circle, cur.pos)}</Text>}
-      <Dice value={lr?.die ?? null} n={lr?.n} size={compact ? 36 : wide ? 56 : 44} />
+      <DiceRow lr={lr} circle={cur.circle} twoDice={cur.twoDice} size={wide ? 56 : 44} />
       <Text style={s.title} accessibilityLiveRegion="polite">{lr ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? uz.hud.rollNow : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
       {!compact && <Text style={s.sub}>{hint}</Text>}
       {wide && (
