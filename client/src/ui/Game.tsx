@@ -27,6 +27,7 @@ import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
 import { TimePanel } from "./TimeBar";
 import { TutorialCoach } from "./TutorialCoach";
+import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -181,6 +182,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
     </ScrollView>);
   const autoMe = !!room.members.find((m) => m.userId === userId)?.autopilot;
   const banners = (<>
+    <QuizResult room={room} userId={userId} />
     {room.mode === "tutorial" && !state.winner && <TutorialCoach room={room} userId={userId} />}
     {autoMe && <View testID="autopilot-banner" role="alert"><Banner kind="warn"><Text style={{ fontWeight: "800", color: tone.warn }}>{uz.hud.autopilot.title}. </Text>{uz.hud.autopilot.text}</Banner>{onResume && <View style={{ marginTop: space.sm }}><Button label={uz.hud.autopilot.back} onPress={onResume} /></View>}</View>}
     {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);

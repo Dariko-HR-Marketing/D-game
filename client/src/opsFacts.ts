@@ -26,6 +26,7 @@ export function opRow(op: Op): OpRow | null {
     case "salaryPct": return { label: O.salary, value: `${pct(op.pct)} · ${spanText(op.months)}`, tone: tone(op.pct) };
     case "salaryAdd": return { label: O.salary, value: `${signed(op.amount)} / ${O.perMonth} · ${O.permanent}`, tone: "good" };
     case "salaryZero": return { label: O.salary, value: `${O.none} · ${spanText(op.months)}`, tone: "bad" };
+    case "policy": return { label: O.policy, value: `${O.covers}: ${(op.covers as string[]).map((h) => O.hazard[h] ?? h).join(", ")} · ${spanText(op.months)}`, tone: "good" };
     case "monthly": return { label: O.monthly, value: `${signed(op.amount)} · ${spanText(op.months)}`, tone: tone(op.amount) };
     case "expensePct": return { label: O.expense, value: `${pct(op.pct)} · ${spanText(op.months)}`, tone: op.pct <= 0 ? "good" : "bad" };
     case "creditPct": return { label: O.credit, value: `${pct(op.pct)} · ${spanText(op.months)}`, tone: op.pct <= 0 ? "good" : "bad" };
@@ -43,6 +44,7 @@ export function opsFacts(e: any): OpsFacts {
   if (e.cost) rows.push({ label: O.cost, value: fmt(e.cost), tone: "bad" });
   for (const op of e.ops as Op[]) { const r = opRow(op); if (r) rows.push(r); if (op.op === "income" && op.sel?.pick && !notes.includes(O.pickBest)) notes.push(O.pickBest); }
   const to = (e.ops as Op[]).some((o) => o.to === "all" || ["expensePct", "creditPct", "priceNow", "priceMod"].includes(o.op)) ? "all" : "drawer";
+  if ((e.ops as Op[]).some((o) => o.op === "cash" && o.hazard)) notes.push(O.insuredNote);
   notes.push(O.to[to]); if (e.requires) notes.push(O.skip);
   return { rows, notes, cost: e.cost ?? null };
 }
@@ -58,9 +60,16 @@ export function modLine(m: any): { text: string; left: string } {
   const M = O.mods; const v = (n: number) => pct(n);
   const left = m.wait ? M.waiting : m.months === null ? O.permanent : M.left.replace("{n}", String(m.months));
   const a = selLabel(m.sel);
-  const text = m.t === "salary" ? M.salaryPct.replace("{v}", v(m.pct)) : m.t === "salaryZero" ? M.salaryZero : m.t === "monthly" ? M.monthly.replace("{v}", signed(m.amount))
+  const text = m.t === "policy" ? `${O.policy}: ${(m.covers as string[]).map((h) => O.hazard[h] ?? h).join(", ")}` : m.t === "salary" ? M.salaryPct.replace("{v}", v(m.pct)) : m.t === "salaryZero" ? M.salaryZero : m.t === "monthly" ? M.monthly.replace("{v}", signed(m.amount))
     : m.t === "expense" ? M.expense.replace("{v}", v(m.pct)) : m.t === "credit" ? M.credit.replace("{v}", v(m.pct))
     : m.t === "income" ? (m.mode === "zero" ? M.incomeZero.replace("{a}", a) : m.mode === "mult" ? M.incomeMult.replace("{a}", a).replace("{v}", String(m.value)) : M.income.replace("{a}", a).replace("{v}", v(m.value)))
     : M.price.replace("{a}", a).replace("{v}", v(m.pct));
   return { text, left };
+}
+
+/** Depozit kartasi: qatorlar. */
+export function depositFacts(e: any): OpsFacts {
+  const rows: OpRow[] = [{ label: O.deposit.principal, value: fmt(e.principal), tone: "bad" }, { label: O.deposit.perLap, value: signed(e.perLap), tone: "good" },
+    { label: O.deposit.term, value: e.laps === null ? O.deposit.demand : O.laps.replace("{n}", String(e.laps)) }];
+  return { rows, notes: e.laps === null ? [] : [O.deposit.early], cost: e.principal };
 }

@@ -12,8 +12,8 @@ const asset = (o: Partial<Asset> & { code: string }): Asset => ({ kind: "small_b
 const P = (s: GameState, i = 0) => s.players[i] as GamePlayer;
 /** Dvigatel bo'yicha oylar o'tkazish: «D» katagidan o'tishlar o'rniga to'g'ridan-to'g'ri oy hisobi (tick + oylik pul oqimi). */
 const monthsLater = (s: GameState, pid: string, n: number) => {
-  const { tickMods, tickLoans } = require_engine(); const i = s.players.findIndex((p) => p.id === pid); let q = s.players[i];
-  for (let k = 0; k < n; k++) q = tickMods(tickLoans({ ...q, cash: q.cash + playerCashflow(q) }));
+  const { tickMods, tickLoans, tickDeposits } = require_engine(); const i = s.players.findIndex((p) => p.id === pid); let q = s.players[i];
+  for (let k = 0; k < n; k++) q = tickDeposits(tickMods(tickLoans({ ...q, cash: q.cash + playerCashflow(q) })));
   s.players[i] = q;
 };
 import * as engine from "./engine"; const require_engine = () => engine;
@@ -24,7 +24,7 @@ const sold = (s: GameState, pid: string, proposalId: number, code?: string) => r
 describe("katalog: ta'sirlar jonli va dvigatelda ishlaydi", () => {
   it("jonli katalog kartalari: xarid, to'lov, tuzilgan ta'sir (ops), sotish taklifi; ushlab turilganlar kolodada yo'q", () => {
     const live = Object.values(ctx.effects).filter((e) => e.info?.catalog && !e.info.held); const kinds = new Set(live.map((e) => e.effect.kind));
-    expect([...kinds].sort()).toEqual(["buy", "gain", "ops", "pay", "sellOffer"]); expect(live.length).toBeGreaterThan(300);
+    expect([...kinds].sort()).toEqual(["buy", "deposit", "gain", "ops", "pay", "quiz", "sellOffer", "xpInfo"]); expect(live.length).toBeGreaterThan(300);
   });
 
   it("SOTISH_FOIZ (BZ001, +25 %, ≥ 1 aylana ushlab turilgan): yangi aktiv sotilmaydi; 4 oydan keyin sotib olingan narx × 1,25 − kredit", () => {
@@ -118,6 +118,40 @@ describe("katalog: ta'sirlar jonli va dvigatelda ishlaydi", () => {
   it("«Barcha o'yinchilar» kartalari hamma o'yinchiga, «O'yinchi» — faqat tortgan o'yinchiga", () => {
     const s = mk(); force(s, "Y302"); expect(s.players.every((p) => (p.mods ?? []).length === 1)).toBe(true);
     const s2 = mk(); force(s2, "Y272"); expect((P(s2, 0).mods ?? []).length).toBe(1); expect((P(s2, 1).mods ?? []).length).toBe(0);
+  });
+});
+
+describe("katalog: sug'urta, depozit, XP, viktorina", () => {
+  const decide = (s: GameState, id: string, extra: Record<string, unknown> = { accept: true }) => { s.pending = { type: "card", playerId: "p0", cardId: `cat-${id}`, deck: ctx.effects[`cat-${id}`].deck as any }; return reduce(s, ctx, { type: "decide", playerId: "p0", ...extra } as any) as any; };
+  it("SUGURTA: premiya to'lanadi, polis qoladi; mos xavf (Y113 tabiiy, −25 000) polis bilan faqat −5 000, polissiz to'liq; boshqa xavf qoplanmaydi", () => {
+    const s = mk(); const r = decide(s, "Y144"); expect(r.ok).toBe(true); expect(r.state.players[0].cash).toBe(1_000_000 - 500); expect(r.state.players[0].mods[0]).toMatchObject({ t: "policy", covers: ["tabiiy"], months: 20 });
+    const withPolicy = r.state as GameState; const before = P(withPolicy).cash; forceCard(withPolicy, ctx, P(withPolicy), "cat-Y113"); expect(P(withPolicy).cash).toBe(before - 5000);
+    const without = mk(); forceCard(without, ctx, P(without), "cat-Y113"); expect(P(without).cash).toBe(1_000_000 - 25_000);
+    const fire = decide(mk(), "Y144").state as GameState; const c0 = P(fire).cash; forceCard(fire, ctx, P(fire), "cat-Y115"); expect(P(fire).cash).toBe(c0 - 40_000); // yong'in — boshqa polis
+  });
+  it("SUGURTA: polis 5 aylana (20 oy) turadi, so'ng tugaydi; 100 % qoplash (Y071 oilaviy operatsiya, polis Y146)", () => {
+    const s = decide(mk(), "Y146").state as GameState; const c0 = P(s).cash; forceCard(s, ctx, P(s), "cat-Y071"); expect(P(s).cash).toBe(c0); // to'liq qoplandi
+    monthsLater(s, "p0", 20); expect(P(s).mods!.filter((m) => m.t === "policy")).toEqual([]);
+  });
+  it("DEPOZIT (Y161: 3 000, +30/aylana, 3 aylana): asosiy summa to'lanadi; muddat oxirida asosiy + 3×30; muddatidan oldin yechilsa foiz yo'qoladi", () => {
+    const s = decide(mk(), "Y161").state as GameState; expect(P(s).cash).toBe(1_000_000 - 3000); expect(P(s).deposits).toHaveLength(1);
+    const early = structuredClone(s); monthsLater(early, "p0", 8); const cEarly = P(early).cash; early.turn = 0;
+    const w: any = reduce(early, ctx, { type: "deposit_withdraw", playerId: "p0", depositId: 1 }); expect(w.ok).toBe(true); expect(w.state.players[0].cash).toBe(cEarly + 3000); expect(w.state.players[0].deposits).toEqual([]); // foiz yo'q
+    const cash0 = P(s).cash; const flow = playerCashflow(P(s)); monthsLater(s, "p0", 12); expect(P(s).deposits).toEqual([]); expect(P(s).cash).toBe(cash0 + 12 * flow + 3000 + 90);
+  });
+  it("DEPOZIT talab bo'yicha (Y163: +10/aylana): foiz har aylanada naqdga tushadi, asosiy summa yechilgunicha turadi; pul yetmasa depozit ochilmaydi", () => {
+    const s = decide(mk(), "Y163").state as GameState; const cash0 = P(s).cash, flow = playerCashflow(P(s)); monthsLater(s, "p0", 8); expect(P(s).cash).toBe(cash0 + 8 * flow + 20); expect(P(s).deposits).toHaveLength(1);
+    const poor = mk(); P(poor).cash = 100; const r = decide(poor, "Y163"); expect(r.state.players[0].deposits ?? []).toEqual([]); expect(r.state.players[0].cash).toBe(100);
+  });
+  it("HOMIY (Y361): pulga ta'sir qilmaydi, +5 XP; 16 yoshgacha homiy kartalari tushmaydi (reklama yo'q, SPEC §2.8)", () => {
+    const s = mk(); const c0 = P(s).cash; forceCard(s, ctx, P(s), "cat-Y361"); expect(P(s).cash).toBe(c0); expect(P(s).xp).toBe(5);
+    expect(ctx.adult).toContain("cat-Y361");
+  });
+  it("VIKTORINA (Y241, to'g'ri javob B): to'g'ri javob XP sozlamasiga qarab beriladi, noto'g'ri/vaqt tugasa yo'q; pulga ta'sir qilmaydi; javob faqat natijada ochiladi", () => {
+    const e: any = ctx.effects["cat-Y241"].effect; expect(e).toMatchObject({ kind: "quiz", correct: "B", seconds: 30 }); expect(e.a && e.b && e.v).toBeTruthy();
+    const ok = decide(mk(), "Y241", { accept: true, choice: "B" }); expect(ok.state.lastQuiz).toMatchObject({ playerId: "p0", correct: true, choice: "B", answer: "B" }); expect(ok.state.players[0].cash).toBe(1_000_000);
+    const bad = decide(mk(), "Y241", { accept: true, choice: "A" }); expect(bad.state.lastQuiz).toMatchObject({ correct: false, choice: "A" });
+    const late = decide(mk(), "Y241", { accept: false }); expect(late.state.lastQuiz).toMatchObject({ correct: false, choice: null });
   });
 });
 

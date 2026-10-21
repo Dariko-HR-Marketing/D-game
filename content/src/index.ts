@@ -31,7 +31,8 @@ export function parseBundle(raw: unknown): Bundle {
   return { cards: Cards.parse(r.cards), bigBoard: z.array(BigCell).length(53).parse(r.bigBoard), dreams: z.array(Dream).parse(r.dreams), cellRules: CellRules.parse(r.cellRules ?? {}) };
 }
 
-const OPTIONAL_FIELDS = new Set(["down", "credit", "creditPayment", "monthlyIncome", "marketValue", "shares", "scope", "optional", "sector", "name", "tags", "needs"]);
+const OPTIONAL_FIELDS = new Set(["down", "credit", "creditPayment", "monthlyIncome", "marketValue", "shares", "scope", "optional", "sector", "name", "tags", "needs", "correct", "requires", "cost", "label"]);
+const NULLABLE_FIELDS = new Set(["marketValue", "laps"]); // null — ma'noli qiymat (qiymati noma'lum; talab bo'yicha depozit)
 
 /** O'yinni buzadigan mantiqiy xatolar (sxemadan tashqari). Bo'sh ro'yxat = nashr qilish mumkin. */
 export function validateBundle(b: Bundle): string[] {
@@ -43,7 +44,7 @@ export function validateBundle(b: Bundle): string[] {
   if (b.bigBoard[34]?.name !== "Start") problems.push("katta aylana START (34) katagi o'zgargan");
   // Sxemadan o'tgan, lekin o'yinni buzadigan ma'lumot: bo'sh deka, narx/daromad yo'q (NaN) kartalar
   for (const d of ["kichik", "katta", "bozor", "xar", "kxar", "hod"] as const) if (!(b.cards as any)[d]?.length) problems.push(`"${d}" dekasi bo'sh`);
-  for (const e of deriveEffects(b.cards)) if (isLive(e)) for (const [k, v] of Object.entries(e.effect)) if ((v === null && k !== "marketValue") || (typeof v === "number" && !Number.isFinite(v)) || (v === undefined && !OPTIONAL_FIELDS.has(k))) problems.push(`${e.id}: "${k}" qiymati yo'q yoki noto'g'ri`);
+  for (const e of deriveEffects(b.cards)) if (isLive(e)) for (const [k, v] of Object.entries(e.effect)) if ((v === null && !NULLABLE_FIELDS.has(k)) || (typeof v === "number" && !Number.isFinite(v)) || (v === undefined && !OPTIONAL_FIELDS.has(k))) problems.push(`${e.id}: "${k}" qiymati yo'q yoki noto'g'ri`);
   if (b.dreams.length < 6) problems.push(`orzular ${b.dreams.length} ta — kamida 6 ta kerak (har bir o'yinchiga alohida orzu)`);
   if (b.cards.kasb.length === 0) problems.push("kasblar yo'q");
   // Katak qoidalari: mavjud bo'lmagan katak, bo'sh deka, narxsiz katakka sotib olish taklifi

@@ -6,7 +6,7 @@ import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
 import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
-  salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, type Mod,
+  salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, policyFor, tickDeposits, withdrawDeposit, type Mod,
   passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
@@ -44,6 +44,8 @@ export interface GamePlayer extends Player {
   shady?: number;     // «Nohalol biznes» katagiga necha marta tushgan (qo'llanma §11)
   autos?: number;     // vaqt tugab avtomatik qabul qilingan/o'tkazilgan qarorlar soni (ball: −2, §15)
   bigDebt?: number; bigDebtY?: number; // katta aylana qarzi va «Yana pullar» nechta o'tgan (§11)
+  xp?: number;        // o'yin davomida topilgan XP (homiy kartalari, viktorina): o'yin tugagach profilga qo'shiladi (botlarga emas)
+  depSeq?: number;    // depozitlar uchun keyingi ID
 }
 export type Pending =
   | null
@@ -73,6 +75,8 @@ export interface GameState {
   events?: boolean;
   /** Oxirgi tavakkal kubik natijasi (mijoz ko'rsatishi uchun). */
   lastGamble?: { playerId: string; cell: number; die: number; won: boolean; n: number } | null;
+  /** Oxirgi viktorina natijasi (mijoz ko'rsatishi uchun). `choice` — tanlangan variant (yo'q = vaqt tugadi). To'g'ri javob faqat shu yerda, javobdan keyin. */
+  lastQuiz?: { playerId: string; cardId: string; choice: string | null; correct: boolean; answer: string; n: number } | null;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -204,7 +208,8 @@ export type Action =
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "time_up"; playerId: "server" }
-  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; auto?: true };
+  | { type: "deposit_withdraw"; playerId: string; depositId: number }
+  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; choice?: "A" | "B" | "V"; auto?: true };
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
@@ -364,7 +369,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
     const held = (p.noSalary ?? 0) > 0 ? salaryOf(p) : 0; // «Ishdan bo'shadingiz!»: maosh yo'q, xarajat to'lanadi
     const base = playerCashflow(p) - held;
     const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
-    p = tickMods(tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary }));
+    p = tickDeposits(tickMods(tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary })));
     if (p.cash < 0 && (p.lombards ?? []).length) { // lombard foizi to'lanmadi: garov yo'qoladi (qo'llanma §08)
       logf(s, `${p.id}: lombard foizi kechikdi — garov yo'qoldi`);
       p = { ...p, assets: p.assets.filter((x) => x.pledged !== "lombard"), lombards: [] };
@@ -420,7 +425,12 @@ function applyOpsCard(s: GameState, ctx: Ctx, drawerId: string, ce: CardEffect, 
 }
 function applyOp(s: GameState, ctx: Ctx, p: GamePlayer, op: Op, src: string): GamePlayer {
   switch (op.op) {
-    case "cash": return op.amount >= 0 ? { ...p, cash: p.cash + op.amount } : forcePay(s, ctx, p, -op.amount);
+    case "cash": {
+      let amount = op.amount;
+      if (amount < 0 && op.hazard && policyFor(p, op.hazard)) { amount = op.insured ?? 0; logf(s, `${p.id}: sug'urta qopladi (${op.hazard})`); } // polis xavfni qoplaydi: to'lov `insured` gacha kamayadi
+      return amount >= 0 ? { ...p, cash: p.cash + amount } : forcePay(s, ctx, p, -amount);
+    }
+    case "policy": return addMod(p, { t: "policy", covers: op.covers, label: op.label, months: op.months, src });
     case "salaryPct": return addMod(p, { t: "salary", pct: op.pct, months: op.months, src });
     case "salaryAdd": return { ...p, salary: p.salary + op.amount };
     case "salaryZero": return addMod(p, { t: "salaryZero", months: op.months, src });
@@ -453,6 +463,7 @@ function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
 function autoMandatory(s: GameState, ctx: Ctx, p: GamePlayer, ce: CardEffect) {
   s.pending = null;
   if (ce.effect.kind === "ops") { applyOpsCard(s, ctx, p.id, ce); return; }
+  if (ce.effect.kind === "xpInfo") { setP(s, { ...p, xp: (p.xp ?? 0) + ce.effect.amount }); logf(s, `${p.id}: +${ce.effect.amount} XP`); return; }
   // Karta matni "barcha o'yinchilar" / "qarov kartasi egasi" / "qarz bergan o'yinchi" ga tegishli deb aytsa — hammasiga (faqat tortgan o'yinchiga emas)
   const k = ce.effect.kind;
   const allPlayers = k === "marketCrash" || k === "debtRepaid" || (ce.effect.kind === "qarEvent" && ce.effect.scope === "holders");
@@ -640,6 +651,14 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
     else { setP(s, { ...p, assets: p.assets.filter((x) => x !== biz[0]) }); logf(s, `${p.id}: ${biz[0].code} biznesini qaytardi`); }
     return;
   }
+  if (ce.effect.kind === "quiz") { // viktorina: to'g'ri javob XP beradi (miqdori sozlamada), pulga ta'sir qilmaydi; vaqt tugasa — javob yo'q
+    const ok = a.accept && a.choice === ce.effect.correct; s.lastQuiz = { playerId: pid, cardId: pend.cardId, choice: a.accept ? a.choice ?? null : null, correct: ok, answer: ce.effect.correct ?? "", n: (s.lastQuiz?.n ?? 0) + 1 };
+    if (ok && !s.bots.includes(pid)) setP(s, { ...p, xp: (p.xp ?? 0) + (RULES.quizXp ?? 0) }); logf(s, `${pid}: viktorina — ${ok ? "to'g'ri" : "noto'g'ri"}`); return;
+  }
+  if (ce.effect.kind === "deposit") { // depozit: asosiy summa darhol to'lanadi; pul yetmasa ta'sir yo'q
+    if (!a.accept || p.cash < ce.effect.principal) return; const id = (p.depSeq ?? 0) + 1;
+    setP(s, { ...p, cash: p.cash - ce.effect.principal, depSeq: id, deposits: [...(p.deposits ?? []), { id, label: ce.effect.label, principal: ce.effect.principal, perLap: ce.effect.perLap, lapsLeft: ce.effect.laps, accrued: 0, months: 0 }] }); return;
+  }
   if (ce.effect.kind === "ops") { // ixtiyoriy katalog kartasi (kurs, malaka...): to'lov bor — qabul qilinsa to'lanadi va ta'sir qo'llanadi
     if (!a.accept) return; const cost = ce.effect.cost ?? 0;
     if (ce.effect.requires && !hasMatch(p, ce.effect.requires)) return; if (p.cash < cost) return;
@@ -755,6 +774,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
       const r = repayBankLoan(P(a.playerId), a.loanIdx); if (!r.ok) return err(P(a.playerId).bankLoans[a.loanIdx] ? (P(a.playerId).cash < r.cost ? "insufficient_cash" : "too_early") : "no_loan");
       setP(s, r.player as GamePlayer); return ok();
+    }
+    case "deposit_withdraw": { // muddatidan oldin yechish: asosiy summa qaytadi, foiz yo'qoladi (faqat o'z navbatida)
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const r = withdrawDeposit(P(a.playerId), a.depositId); if (!r.ok) return err("no_deposit");
+      setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: depozit yechildi (${r.amount})`); return ok();
     }
     case "lombard": { // aktivni garovga qo'yib qiymatining 50 % ini olish
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");

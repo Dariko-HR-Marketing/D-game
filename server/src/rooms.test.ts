@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { buildCtx } from "./ctx";
 import { MemoryStore } from "./store";
 import { Clock, RoomManager, DECISION_MS, publicState } from "./rooms";
-import { currentPlayer, newGame, reduce, chooseDream, RULES } from "@poyga/rules";
+import { currentPlayer, newGame, reduce, chooseDream, RULES, passiveIncome, playerCashflow } from "@poyga/rules";
 
 const ctx = buildCtx();
 
@@ -270,7 +270,7 @@ describe("Hisob daftari (o'quv rejimi)", () => {
     for (let i = 0; i < 600; i++) {
       id = g.cur();
       if (g.room.state.pending) { const e = g.room.ctx.effects[g.room.state.pending.cardId]?.effect as any; if (e?.kind === "buy" && P(id).cash >= (e.down ?? e.price)) break; await rm.act(g.code, id, { type: "decide", accept: false, playerId: id } as any, g.room.seq); }
-      else { P(id).cash += 100_000; g.room.ledger[id] = { ...g.room.ledger[id], cash: P(id).cash }; await roll(g, id); }
+      else { P(id).cash += 100_000; for (const q of g.room.state.players) g.room.ledger[q.id] = { cash: q.cash, passive: passiveIncome(q), flow: playerCashflow(q) }; await roll(g, id); } // katalog kartalari (faol ta'sirlar) pul oqimini o'zgartiradi: daftar to'liq yangilanadi
     }
     expect(g.room.state.pending).toBeTruthy(); id = g.cur(); const me = g.room.state.players.find((x: any) => x.id === id);
     g.room.ledger[id] = { cash: me.cash, passive: g.room.ledger[id].passive, flow: g.room.ledger[id].flow };

@@ -1,7 +1,7 @@
 // Karta qarori uchun raqamlar: o'yinchi narx, boshlang'ich to'lov, daromad va pul oqimiga ta'sirni ko'rib qaror qiladi.
 import { crisisAdjusted, passiveIncome, RULES } from "@poyga/rules";
 import { uz } from "./i18n/uz";
-import { opsFacts, offerFacts } from "./opsFacts";
+import { opsFacts, offerFacts, depositFacts } from "./opsFacts";
 
 export interface FactRow { label: string; value: string; tone?: "good" | "bad" | "neutral" }
 export interface Facts {
@@ -55,6 +55,9 @@ export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
     }
     case "rentChoice": need = null; rows.push({ label: F.income, value: signed(-e.income), tone: "bad" }, { label: F.rentMult, value: `${e.mult}× · ${fmt(e.buyPrice)}` }); notes.push(F.rentNote.replace("{n}", String(e.mult))); break;
     case "ops": { const o = opsFacts(e); rows.push(...o.rows); notes.push(...o.notes); need = o.cost; break; }
+    case "deposit": { const o = depositFacts(e); rows.push(...o.rows); notes.push(...o.notes); need = o.cost; break; }
+    case "xpInfo": rows.push({ label: uz.ops.xp.title, value: uz.ops.xp.value.replace("{n}", String(e.amount)), tone: "good" }); notes.push(e.sponsor ? uz.ops.xp.sponsor : uz.ops.xp.note); break;
+    case "quiz": notes.push(uz.ops.quiz.note); break;
     case "sellOffer": { const o = offerFacts(e); rows.push(...o.rows); notes.push(...o.notes); break; }
     default: break;
   }

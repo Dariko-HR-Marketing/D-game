@@ -10,7 +10,8 @@ export type Mode = "optional" | "mandatory";
 /** Katalog kartasining bitta ta'siri (TZ §6.1). `to`: kimga tegishli — kartani tortgan o'yinchiga yoki hamma o'yinchiga (har kim o'z aktivlari bo'yicha). `months`: ta'sir muddati (1 aylana = 4 oy), `null` — doimiy.
  *  `wait`: ta'sir keyingi aylana boshida (START dan o'tganda) boshlanadi (alomat, TZ §6.3). */
 export type Op =
-  | { op: "cash"; amount: number; to: "drawer" | "all" }                                  // NAQD_BONUS (+) / NAQD_XARAJAT, NAQD_JARIMA (−)
+  | { op: "cash"; amount: number; to: "drawer" | "all"; hazard?: string; insured?: number } // NAQD_BONUS (+) / NAQD_XARAJAT, NAQD_JARIMA (−). `hazard`: xavf turi — mos sug'urta polisi bo'lsa to'lov `insured` ga (standart 0 — 100 % qoplanadi) kamayadi (TZ §6.5)
+  | { op: "policy"; covers: string[]; months: number | null; label?: string }               // SUGURTA_QOPLASH: polis o'yinchida qoladi, `covers` xavflarni qoplaydi
   | { op: "salaryPct"; pct: number; months: number | null; to: "drawer" | "all" }       // ISH_HAQI_FOIZ
   | { op: "salaryAdd"; amount: number }                                                    // ISH_HAQI_QOSHISH (doimiy)
   | { op: "salaryZero"; months: number }                                                   // ISH_HAQI_NOL
@@ -48,6 +49,12 @@ export type Effect =
   | { kind: "rentChoice"; cell: number; owner: string; income: number; buyPrice: number; mult: 2 | 3 } // birovning biznesi (§13): A — oylik daromadni to'lash; B — mult × narxda sotib olish
   /** Katalog kartasi: tuzilgan ta'sirlar ketma-ket. `requires`: kartani tortgan o'yinchida mos aktiv bo'lmasa karta o'tkaziladi. `cost`: oldindan to'lov (ixtiyoriy karta: o'yinchi qaror qiladi). */
   | { kind: "ops"; ops: Op[]; requires?: Selector; cost?: number }
+  /** Muddatli depozit/obligatsiya (DEPOZIT_FOIZ): `principal` to'lanadi; har aylanada +`perLap`. Muddat (`laps`) tugaganda asosiy summa + foiz qaytadi; muddatidan oldin yechilsa foiz yo'qoladi. `laps: null` — talab bo'yicha (foiz har aylanada naqdga tushadi). */
+  | { kind: "deposit"; principal: number; perLap: number; laps: number | null; label: string }
+  /** Homiy/ma'lumot kartasi: pulga ta'sir qilmaydi, XP beradi (TZ §6.6). */
+  | { kind: "xpInfo"; amount: number; sponsor: boolean }
+  /** Viktorina (TZ §6.6): savol kartaning matnida; variantlar A/B/V; to'g'ri javob (`correct`) faqat serverda — mijozga yuborilmaydi. */
+  | { kind: "quiz"; a: string; b: string; v: string; correct?: "A" | "B" | "V"; seconds: number }
   /** Bozor «sotish taklifi» (TZ §6.1): mos aktivni `sotish bazasi × (1 + value/100)` yoki qat'iy narxda sotish. `first`: faqat birinchi rozi bo'lgan o'yinchi. `holdMonths`: aktiv kamida shuncha oy ushlab turilgan bo'lsin. */
   | { kind: "sellOffer"; sel: Selector; mode: "pct" | "fixed"; value: number; first: boolean; holdMonths: number; label?: string }
   | { kind: "unresolved"; reason: string };

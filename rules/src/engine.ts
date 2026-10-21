@@ -72,7 +72,10 @@ export type ModBase = { id: number; months: number | null; wait?: boolean; src?:
 export type Mod = ModBase & (
   | { t: "salary"; pct: number } | { t: "salaryZero" } | { t: "monthly"; amount: number } | { t: "expense"; pct: number } | { t: "credit"; pct: number }
   | { t: "income"; sel: Selector; mode: "pct" | "zero" | "mult"; value: number }
-  | { t: "price"; sel: Selector; pct: number; side: "buy" | "sell" | "both" });
+  | { t: "price"; sel: Selector; pct: number; side: "buy" | "sell" | "both" }
+  | { t: "policy"; covers: string[]; label?: string });
+/** Depozit: `principal` joylangan; har aylana (4 oy) oxirida +`perLap` (muddatli — hisoblanadi, muddat oxirida to'lanadi; talab bo'yicha — darhol naqdga). `lapsLeft: null` — talab bo'yicha. */
+export interface Deposit { id: number; label: string; principal: number; perLap: number; lapsLeft: number | null; accrued: number; months: number }
 /** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
 export interface BankLoan { amount: number; left: number; collateral?: { code: string; price: number }[] }
 /** Lombard (qo'llanma §08): garov qiymatining 50 % i; foiz oyiga 10 % (xarajatga qo'shiladi), asosiy qarz 12 oydan keyin birdaniga. */
@@ -84,7 +87,8 @@ export interface Player {
   // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
   qar: boolean; insuredCar: boolean; handLoans: number;
   lombards?: Lombard[]; owe?: number; // owe: kichik aylanadagi qarz (naqd yetmaganda yoziladi, naqd paydo bo'lishi bilan yopiladi; chegara 10 000)
-  mods?: Mod[]; modSeq?: number;      // faol ta'sirlar (katalog kartalari): ish haqi, oylik, daromad, narx; `modSeq` — keyingi ID
+  mods?: Mod[]; modSeq?: number;      // faol ta'sirlar (katalog kartalari): ish haqi, oylik, daromad, narx, sug'urta polislari; `modSeq` — keyingi ID
+  deposits?: Deposit[];               // muddatli depozitlar/obligatsiyalar (katalog)
 }
 
 export function newPlayer(id: string, k: { n: number; salary: number; total: number; save: number; child: number }): Player {
@@ -311,3 +315,23 @@ export const tickMods = <T extends Player>(p: T): T => {
 };
 /** Aylana boshi (START dan o'tish): kutayotgan ta'sirlar (alomat) boshlanadi. */
 export const startLap = <T extends Player>(p: T): T => (p.mods?.some((m) => m.wait) ? { ...p, mods: p.mods.map((m) => (m.wait ? { ...m, wait: false } : m)) as Mod[] } : p);
+
+// ---------- Sug'urta va depozit ----------
+/** Xavfni qoplaydigan faol polis (bo'lsa). */
+export const policyFor = (p: WithMods, hazard: string) => activeMods(p).find((m) => m.t === "policy" && m.covers.includes(hazard));
+/** Bir oy o'tdi: depozit foizi. Har 4-oyda (aylana oxiri): talab bo'yicha — foiz naqdga tushadi; muddatli — foiz yig'iladi, muddat tugasa asosiy summa + foiz qaytadi. */
+export const tickDeposits = <T extends Player>(p: T): T => {
+  if (!p.deposits?.length) return p; let cash = p.cash; const keep: Deposit[] = [];
+  for (const d0 of p.deposits) {
+    const d = { ...d0, months: d0.months + 1 }; if (d.months % 4 !== 0) { keep.push(d); continue; }
+    if (d.lapsLeft === null) { cash += d.perLap; keep.push(d); continue; }
+    d.accrued += d.perLap; d.lapsLeft -= 1;
+    if (d.lapsLeft <= 0) cash += d.principal + d.accrued; else keep.push(d);
+  }
+  return { ...p, cash, deposits: keep };
+};
+/** Muddatidan oldin yechish: asosiy summa qaytadi, to'plangan foiz yo'qoladi. */
+export function withdrawDeposit<T extends Player>(p: T, id: number): { player: T; ok: boolean; amount: number } {
+  const d = p.deposits?.find((x) => x.id === id); if (!d) return { player: p, ok: false, amount: 0 };
+  return { ok: true, amount: d.principal, player: { ...p, cash: p.cash + d.principal, deposits: p.deposits!.filter((x) => x.id !== id) } };
+}

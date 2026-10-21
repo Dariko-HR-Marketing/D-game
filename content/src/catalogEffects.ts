@@ -58,6 +58,21 @@ const who = (t: string): "drawer" | "all" | null => {
   if (n === "barcha o‘yinchilar" || n === "barcha") return "all"; if (OWNER[n]) return "drawer"; return null;
 };
 
+// ---------- Sug'urta: xavf turlari ----------
+/** Polis qoplaydigan xavf kalitlari — polisning `target` matnidagi hodisa turi bo'yicha (TZ §6.5). Aniqlanmasa — `[]` (karta ushlab turiladi). */
+export function policyCovers(target: string): string[] {
+  const t = target.toLowerCase(); const out: string[] = [];
+  const has = (...w: string[]) => w.some((x) => t.includes(x));
+  if (has("yth")) out.push("yth"); if (has("yong‘in")) out.push("yongin"); if (has("tabiiy ofat")) out.push("tabiiy"); if (has("o‘g‘irlik")) out.push("ogirlik");
+  if (has("tibbiy")) out.push(has("oila a’zolari") ? "tibbiy_oila" : "tibbiy"); if (has("oila a’zolari tibbiy")) out.push("tibbiy");
+  if (has("kiberhujum")) out.push("kiber"); if (has("qurilma buzilishi")) out.push("qurilma"); if (has("qurg‘oqchilik", "dovul")) out.push("ob-havo");
+  if (has("chorva")) out.push("chorva"); if (has("ijara uyida")) out.push("ijara-zarar"); if (has("uchinchi shaxs")) out.push("fuqarolik"); if (has("biznes to‘xtash")) out.push("biznes-tuxtash");
+  return [...new Set(out)];
+}
+/** Hodisa kartasining xavf turi: jadvalda alohida ustun yo'q, shuning uchun faqat kartaning o'zida «sug'urta himoya qiladi» deb yozilgan hodisalar belgilanadi
+ *  (xavf turi karta matnidan: dovul — ob-havo; yong'in; tabiiy xavf; oila a'zosining operatsiyasi). Jadvalga `hazard` ustuni qo'shilsa shu ro'yxat unga o'tadi (OPEN_QUESTIONS). */
+const HAZARD_OF: Record<string, string> = { Y067: "ob-havo", Y071: "tibbiy_oila", Y072: "yongin", Y113: "tabiiy", Y115: "yongin" };
+
 type Compiled = { ops: Op[]; requires?: Selector; cost?: number } | { held: string };
 
 /** Bitta karta effektlarini `Op` ro'yxatiga aylantiradi. Aniq bo'lmasa — `held` sababi bilan. */
@@ -75,6 +90,7 @@ function compileOps(c: CatalogCardT, universe: AssetDesc[]): Compiled {
       if (g) { if (requires && JSON.stringify(requires) !== JSON.stringify(g)) return hold("bir nechta shart"); requires = g; }
       else if (cond === "Mos aktivi bor") { /* nishon aktivi bor o'yinchilarga tegishli: tanlagich o'zi chegaralaydi */ }
       else if (/ushlab turilgan|faqat birinchi rozi/.test(cond)) { /* sotish kartalarida alohida */ }
+      else if (/^sug‘urta (bo‘lsa|bilan) -?[\d ]+$/.test(cond)) { /* sug'urtalangan bo'lsa to'lov kamayadi: pastda (NAQD_*) */ }
       else return hold(`shart tushunarsiz: «${cond}»`);
     }
     switch (e.type) {
@@ -84,7 +100,9 @@ function compileOps(c: CatalogCardT, universe: AssetDesc[]): Compiled {
         if (!d?.once) return hold(`muddat «${e.duration}» (bir martalik kutilgan)`);
         const amount = e.type === "NAQD_BONUS" ? Math.abs(v) : -Math.abs(v);
         if (hasCost && e.type === "NAQD_XARAJAT") { cost += Math.abs(v); break; }
-        ops.push({ op: "cash", amount, to }); break;
+        const hazard = HAZARD_OF[c.id], ins = /^sug‘urta (?:bo‘lsa|bilan) -?([\d ]+)$/.exec(cond)?.[1];
+        if (/^sug‘urta/.test(cond) && !hazard) return hold("sug‘urta sharti bor, xavf turi aniqlanmagan");
+        ops.push({ op: "cash", amount, to, ...(hazard ? { hazard, insured: ins ? -Number(ins.replace(/ /g, "")) : 0 } : {}) }); break;
       }
       case "ISH_HAQI_FOIZ": {
         const to = who(e.target); if (!to) return hold(`kasb guruhi/nishon aniqlanmagan: «${e.target}»`); if (!Number.isFinite(v) || !d) return hold("qiymat/muddat noto‘g‘ri");
@@ -152,11 +170,32 @@ export function catalogEffect(c: CatalogCardT, universe: AssetDesc[] = []): Cata
     const hold = /ushlab turilgan/.test(e.condition ?? "") ? LAP_MONTHS : 0, first = e.type === "SOTISH_FOIZ_BIRINCHI" || /birinchi rozi/.test(e.condition ?? "");
     return { mode: "optional", effect: { kind: "sellOffer", sel, mode: e.type === "SOTISH_NARX" ? "fixed" : "pct", value: v, first, holdMonths: hold, label: e.target === "Mos aktiv" ? c.cardType : e.target } };
   }
+  if (c.kind === "INSURANCE") { // sug'urta: premiya (oldindan to'lov) + polis (tanlangan xavflar, muddat); polis o'yinchida qoladi
+    const [prem, pol] = c.effects; if (c.effects.length !== 2 || prem?.type !== "SUGURTA_PREMIYA" || pol?.type !== "SUGURTA_QOPLASH") return un(`sug‘urta: ta’sirlar ${types.join("+")} kutilgan tuzilishga mos emas`);
+    const cost = Math.abs(intOf(prem.value)); if (!Number.isFinite(cost) || cost <= 0) return un("sug‘urta: premiya noto‘g‘ri"); if (intOf(pol.value) !== 100) return un("sug‘urta: qoplash ulushi 100 % emas (qisman qoplash hali yo‘q)");
+    const d = parseDur(pol.duration); if (!d || (d.once && pol.duration !== "")) return un(`sug‘urta: muddat tushunarsiz («${pol.duration}»)`);
+    const covers = policyCovers(pol.target); if (!covers.length) return un(`sug‘urta: qoplanadigan xavf turi aniqlanmagan («${pol.target}»)`);
+    return { mode: "optional", effect: { kind: "ops", cost, ops: [{ op: "policy", covers, months: d.months, label: pol.target }] } };
+  }
+  if (c.kind === "DEPOSIT") {
+    const e = c.effects[0]; if (!e || c.effects.length !== 1 || e.type !== "DEPOZIT_FOIZ" || !c.price) return un("depozit: ta’sir/narx tuzilishi mos emas");
+    if (/zar|cheklangan|sug‘urta/i.test(c.display ?? "")) return un("depozit: qo‘shimcha shart (zar xavfi / chiqish cheklovi / sug‘urta) qoidasi aniqlanmagan");
+    if (e.condition && !/^Muddatidan oldin yechilsa foiz yo‘qoladi$/.test(e.condition)) return un(`depozit: shart tushunarsiz («${e.condition}»)`);
+    const v = intOf(e.value); if (!Number.isFinite(v) || v <= 0) return un("depozit: foiz noto‘g‘ri");
+    const m = /^(\d+) aylana$/.exec(e.duration ?? ""), demand = /^Istalgan vaqt$/.test(e.duration ?? ""); if (!m && !demand) return un(`depozit: muddat tushunarsiz («${e.duration}»)`);
+    return { mode: "optional", effect: { kind: "deposit", principal: c.price, perLap: v, laps: demand ? null : Number(m![1]), label: c.title ?? c.id } };
+  }
+  if (c.kind === "SPONSOR_INFO") { const e = c.effects[0]; const v = intOf(e?.value ?? ""); if (e?.type !== "XP_BONUS" || !Number.isFinite(v)) return un("homiy: XP qiymati noto‘g‘ri"); return { mode: "mandatory", effect: { kind: "xpInfo", amount: v, sponsor: true } }; }
+  if (c.kind === "QUIZ") {
+    const e = c.effects[0]; const ans = (e?.value ?? "").trim().toUpperCase(); const sec = /^(\d+) soniya$/.exec(e?.duration ?? "")?.[1];
+    if (e?.type !== "VIKTORINA_JAVOB" || !["A", "B", "V"].includes(ans) || !c.optionA || !c.optionB || !c.optionV || !sec) return un("viktorina: variantlar/javob/muddat to‘liq emas");
+    return { mode: "optional", effect: { kind: "quiz", a: c.optionA, b: c.optionB, v: c.optionV, correct: ans as "A" | "B" | "V", seconds: Number(sec) } };
+  }
   const OPS_KINDS = new Set(["EXPENSE", "EVENT", "ONE_TIME_INCOME", "INCOME_CHANGE", "MARKET_EVENT", "MARKET_SIGNAL", "DEVELOPMENT", "CAREER_EVENT"]);
   if (OPS_KINDS.has(c.kind)) {
     // eng oddiy holat — bitta pul ta'siri: mavjud `pay`/`gain` mexanizmi (qarz/kredit/restart oqimi bilan)
     const only = c.effects.length === 1 ? c.effects[0] : null;
-    if (only && (only.type === "NAQD_XARAJAT" || only.type === "NAQD_JARIMA" || only.type === "NAQD_BONUS") && !(only.condition ?? "").trim() && who(only.target) === "drawer" && parseDur(only.duration)?.once) {
+    if (only && !HAZARD_OF[c.id] && (only.type === "NAQD_XARAJAT" || only.type === "NAQD_JARIMA" || only.type === "NAQD_BONUS") && !(only.condition ?? "").trim() && who(only.target) === "drawer" && parseDur(only.duration)?.once) {
       const a = Math.abs(intOf(only.value)); if (Number.isFinite(a) && a > 0) {
         if (only.type !== "NAQD_BONUS" && (c.kind === "EXPENSE" || c.kind === "EVENT" || c.kind === "MARKET_EVENT")) return { mode: "mandatory", effect: { kind: "pay", amount: a, to: "bank", ...(needsOf(c.text ?? "") ? { needs: needsOf(c.text ?? "") } : {}) } };
         if (only.type === "NAQD_BONUS" && c.kind === "ONE_TIME_INCOME") return { mode: "optional", effect: { kind: "gain", amount: a } };

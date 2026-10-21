@@ -81,7 +81,7 @@ describe("qo'llangan kontent: havzalar va holatlar", () => {
     const asl = fx.filter((e) => !e.info?.catalog && !pools.extended.includes(e.id) && e.deck !== "kasb"); expect(asl.length).toBeGreaterThan(350);
   });
   it("16+ kartalar 16 yoshgacha o'yinchilarga tushmasligi uchun belgilangan (TZ §9.9)", () => {
-    expect(pools.adult.length).toBeGreaterThanOrEqual(24); for (const id of pools.adult) expect(byId.get(id)!.info?.age).toMatch(/^16\+/);
+    expect(pools.adult.length).toBeGreaterThanOrEqual(24); for (const id of pools.adult) { const e = byId.get(id)!; expect(e.info?.age?.startsWith("16+") || e.info?.kind === "SPONSOR_INFO", id).toBe(true); } // 16+ kartalar va homiy (reklama) kartalari
   });
   it("jonli karta ta'siri aniq; ushlab turilganlarning sababi hisobotda", () => {
     const s = catalogSummary(fx); expect(s.active).toBe(1013); expect(s.live + s.held).toBe(1013); expect(s.live).toBeGreaterThan(500);

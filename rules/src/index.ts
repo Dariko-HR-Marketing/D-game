@@ -13,6 +13,7 @@ export const RULES = {
   exitCash: 1_000_000, // §5.4
   exitPassiveFlow: 25_000,
   winCashflow: 100_000, // §5.5
+  quizXp: 0, // viktorinada to'g'ri javob uchun XP: jadvalda berilmagan — sozlamada bo'sh (0), buyurtmachi belgilaydi (SPEC §16)
   suyunchiBank: 500, // §5.6
   suyunchiMin: 10,
   suyunchiMax: 500,

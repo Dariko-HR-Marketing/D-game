@@ -20,6 +20,7 @@ export interface Portfolio {
   lent: DebtRow[]; owed: DebtRow[]; bank: DebtRow[]; lombards: DebtRow[]; owe: number;
   active: { key: "qar" | "insuredCar" | "twoDice" | "crisis" | "noSalary"; value?: number }[];
   offers: ReturnType<typeof marketOffers>;
+  deposits: { id: number; label: string; principal: number; perLap: number; lapsLeft: number | null; accrued: number }[];
   totals: { count: number; invested: number; passive: number; payments: number; netPassive: number; expenses: number; debt: number; lent: number; netWorth: number; coverage: number | null };
   shares: { code: string; label: string; income: number; pct: number }[];
   best: AssetRow | null; slowest: AssetRow | null;
@@ -49,7 +50,7 @@ export function portfolioOf(room: any, userId: string): Portfolio | null {
   const withIncome = assets.filter((a) => a.income > 0), totalIncome = withIncome.reduce((s, a) => s + a.income, 0);
   const ranked = assets.filter((a) => a.yearly !== null);
   return {
-    assets, lent, owed, bank, lombards, owe: p.owe ?? 0, active, offers: marketOffers(room, userId),
+    assets, lent, owed, bank, lombards, owe: p.owe ?? 0, active, offers: marketOffers(room, userId), deposits: (p.deposits ?? []).map((d: any) => ({ id: d.id, label: d.label, principal: d.principal, perLap: d.perLap, lapsLeft: d.lapsLeft, accrued: d.accrued })),
     totals: { count: assets.length, invested, passive, payments, netPassive: passive - payments, expenses, debt, lent: lentSum, netWorth: p.cash + invested - debt + lentSum, coverage: expenses > 0 ? Math.round((passive / expenses) * 100) : null },
     shares: withIncome.map((a) => ({ code: a.code, label: `${a.title} (+${a.income})`, income: a.income, pct: totalIncome ? Math.round((a.income / totalIncome) * 100) : 0 })).sort((a, b) => b.income - a.income),
     best: ranked.length ? ranked.reduce((m, a) => (a.yearly! > m.yearly! ? a : m)) : null, slowest: ranked.length > 1 ? ranked.reduce((m, a) => (a.payback! > m.payback! ? a : m)) : null,

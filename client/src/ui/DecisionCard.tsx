@@ -106,7 +106,11 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       {!mandatory && rent && (<View style={{ gap: space.sm }}>
         <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => act({ type: "decide", accept: true })} />
         <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
-      {!mandatory && !rent && (<View style={{ gap: space.sm }}>
+      {!mandatory && e?.kind === "quiz" && (<View style={{ gap: space.sm }} testID="quiz-options">
+        <Text style={s.label}>{uz.ops.quiz.pick}</Text>
+        {(["A", "B", "V"] as const).map((k) => <Button key={k} label={`${k}. ${e[k.toLowerCase()]}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: true, choice: k })} />)}
+        <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+      {!mandatory && !rent && e?.kind !== "quiz" && (<View style={{ gap: space.sm }}>
         {!needLedger && <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund || noSlot}
           onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />}
