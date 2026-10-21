@@ -5,6 +5,11 @@ import { nameOf } from "./model";
 
 /** Qog'oz blankdagi qatorlar soni: bo'sh qatorlar ham ko'rinadi (o'yinchi blankni to'ldirayotgandek). */
 export const SLOTS = { realty: 5, small: 6, big: 7, lombard: 2, bank: 2 } as const;
+/** Kasb kartasidagi xarajat satrlari (`exp[0..8]`, kartadagi tartibda) → blankdagi satr nomi va o'rni. Blankdagi «Uy ijarasi» va «O'qish xarajatlari» kartada yo'q: bo'sh qoladi. */
+export const EXP_ROWS: { key: string; exp: number | null }[] = [
+  { key: "flat", exp: 0 }, { key: "rent", exp: null }, { key: "flatCredit", exp: 2 }, { key: "food", exp: 1 }, { key: "carCredit", exp: 3 }, { key: "study", exp: null },
+  { key: "training", exp: 5 }, { key: "phone", exp: 4 }, { key: "clothes", exp: 6 }, { key: "road", exp: 7 }, { key: "tax", exp: 8 },
+];
 export const SHARE_CODES = ["TAPOiCh", "KCH", "ZA", "UTK", "GZ"] as const;
 const REALTY = new Set(["land", "dacha", "apartment"]);
 
@@ -16,7 +21,7 @@ export interface SheetSmall {
   totals: { active: number; passive: number; income: number; expenses: number; cashflow: number };
   shares: { code: string; count: number; price: number }[];
   debt: number;
-  expenses: { base: number; children: number; childCost: number; childTotal: number; credits: number; bank: number; lombard: number; qar: number };
+  expenses: { lines: { key: string; value: number | null }[]; base: number; children: number; childCost: number; childTotal: number; credits: number; bank: number; lombard: number; qar: number };
   lombards: { amount: number; payment: number }[]; banks: { amount: number; payment: number }[]; collateral: string[];
   months: number;
   exit: { cash: number; cashGoal: number; flow: number; flowGoal: number; debt: number };
@@ -49,7 +54,7 @@ export function sheetOf(room: any, userId: string): Sheet | null {
   const sm: SheetSmall = {
     name, profession, dream, salary: p.salary, realty, small: smallBiz, big: bigBiz, other,
     totals: { active: p.salary, passive, income: p.salary + passive, expenses, cashflow }, shares, debt,
-    expenses: { base: p.baseExpenses, children: p.children, childCost: p.childCost, childTotal: p.children * p.childCost, credits, bank: bankPay, lombard: lombPay, qar: p.qar ? RULES.qarMonthly : 0 },
+    expenses: { lines: EXP_ROWS.map((r) => ({ key: r.key, value: r.exp === null ? null : room.professionExp?.[userId]?.[r.exp] ?? null })), base: p.baseExpenses, children: p.children, childCost: p.childCost, childTotal: p.children * p.childCost, credits, bank: bankPay, lombard: lombPay, qar: p.qar ? RULES.qarMonthly : 0 },
     lombards: (p.lombards ?? []).map((l: any) => ({ amount: l.amount, payment: l.amount * RULES.lombardMonthlyRate })), banks: (p.bankLoans ?? []).map((l: any) => ({ amount: l.amount, payment: bankMonthlyPayment(l.amount) })),
     collateral: small.filter((a) => a.pledged === "lombard").map((a) => a.title), months: p.monthsPlayed ?? 0,
     exit: { cash: p.cash, cashGoal: 1_000_000, flow: passive - expenses, flowGoal: 25_000, debt },

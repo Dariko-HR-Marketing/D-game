@@ -36,7 +36,8 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
       <Line tint bold l={uz.sheet.debts} v={money(d.debt)} kind={d.debt > 0 ? "bad" : undefined} /></Box>
     <Text style={s.note}>{uz.sheet.debtNote}</Text></View>);
   const exp = (<Box title={uz.sheet.expensesTitle}>
-    <Line l={uz.sheet.baseExp} v={money(e.base)} /><Line l={`${uz.sheet.children}: ${e.children}`} v={e.children ? `${money(e.childCost)} × ${e.children} = ${money(e.childTotal)}` : money(0)} />
+    {e.lines.every((x) => x.value === null) ? <Line l={uz.sheet.baseExp} v={money(e.base)} /> : e.lines.map((x) => <Line key={x.key} l={uz.sheet.exp[x.key]} v={x.value === null ? "" : x.value === 0 ? uz.sheet.none : money(x.value)} />)}
+    <Line l={`${uz.sheet.children}: ${e.children}`} v={e.children ? `${money(e.childCost)} × ${e.children} = ${money(e.childTotal)}` : money(0)} />
     <Line l={uz.sheet.creditExp} v={money(e.credits)} /><Line l={uz.sheet.bankExp} v={money(e.bank)} /><Line l={uz.sheet.lombExp} v={money(e.lombard)} /><Line l={uz.sheet.qarExp} v={money(e.qar)} />
     <Line tint bold l={uz.sheet.expenses} v={money(d.totals.expenses)} kind="bad" /></Box>);
   const credits = (<View style={{ gap: space.md }}>

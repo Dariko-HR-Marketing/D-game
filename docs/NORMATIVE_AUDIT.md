@@ -1,0 +1,68 @@
+# Normativ hujjatlar tekshiruvi — ziddiyatlar reestri va yechimlar
+
+Sana: 2026-10-21. Buyurtmachi yuklagan hamma fayl (qo'llanma lotin/kirill, TZ, arxitektura, yagona spetsifikatsiya, UX/UI V2, maketlar, doskalar, hisob varaqlari, 7 ta karta arxivi, kupyuralar) normativ deb qabul qilindi va mavjud tizim (CLAUDE.md, SPEC.md, qoidalar dvigateli, kontent, mijoz) bilan solishtirildi.
+Batafsil dalillar: `docs/audit/` (A1 qo'llanma lotin, A2 qo'llanma kirill, B TZ+arxitektura+yagona spetsifikatsiya, C UX V2+doska, D maketlar, E karta rasmlari). Kartalar CSV (Xarajatlar, Kichik/Katta sarmoyalar, Katta aylana xarajatlari) bilan `cards.json` dasturiy solishtirildi.
+
+## 0. Natija bir qarashda
+- **Mos:** kichik aylana 48/48 va katta aylana 53/53 katak (doska, qo'llanma); 28 kasb (maosh, 9 xarajat satri, jami, pul oqimi, jamg'arma, kredit, bola xarajati) 100 %; 418 kartaning soni, tartibi, matni va summalari (xarajat, katta xarajat, kichik/katta sarmoya CSV'lari — 0 farq; faqat «100 + 50» yozuvlari yig'indi sifatida saqlangan); bozor 98/98; hodisa 9/9; chegaralar 1 000 000 / 25 000 / 100 000 / 10 000.
+- **Hal qilindi (shu PRda):** kasb xarajat satrlari nomlari aniqlandi (hisob varag'ida); «agar bolangiz/mashinangiz bo'lsa» 13 ta karta; №19 «Reklama agenti» rasmi bor; `qqidirmoqda` imlo xatosi; rasmlarni import qiluvchi skript (`deploy/vps/import-cards.py`).
+- **Qaror kerak:** quyidagi §1–§3. Har bir band uchun **Tavsiya** — men taklif qiladigan professional yechim; «Qaror» ustuni sizniki.
+
+## 1. Loyiha asosi: hujjatlar o'zaro zid (avval shularni hal qilish kerak)
+| № | Mavzu | Zid manbalar | Hozirgi tizim | Tavsiya | Qaror |
+|---|---|---|---|---|---|
+| D1 | Hujjatlar ustunligi | yagona spetsifikatsiya (9-okt, «ziddiyatda shu amal qiladi»; Claude Docs'da tirik hujjat) ↔ TZ va arxitektura (14-okt) | SPEC.md | Tartib: 1) yozma buyurtmachi qarorlari (shu sessiya) → 2) TZ + arxitektura (MVP) → 3) yagona spetsifikatsiya (ko'rinish va MVP'dan keyingi backlog) → 4) Tajriba24 maketlari. Bitta «Qarorlar reestri» yuritiladi (shu fayl). | ☐ |
+| D2 | Valyuta | «$»: yagona spets., kirill qo'llanma, UX V2, doska; «sh.b.»: TZ («$ ishlatilmaydi»), SPEC, lotin qo'llanma, **hisob varaqlari**, hamma karta matni | sh.b. | **sh.b.** (blanklar va kartalar shunday). `$` faqat tashqi tavsif matnlarida. Valyuta bitta i18n tokenida bo'ladi, keyin bir joydan almashadi. | ☐ |
+| D3 | Yosh cheklovi | yagona spets., TZ, arxitektura: «yosh cheklovi yo'q, yosh tekshiruvisiz himoya» ↔ CLAUDE §2.8 (16 yoshgacha) | `profiles.ts` majburiy tug'ilgan yil | Yurist qarori chiqquncha **himoya saqlansin**, lekin bitta konfiguratsiya bayrog'iga olinadi (`ageRestrictions`); yagona spets.dagi «oilaviy kartalar + 30 tayyor ibora» baribir qo'llanadi. | ☐ |
+| D4 | Kirill yozuvi, Google bilan kirish | yagona spets.: lotin + kirill, telefon/Google; UX V2: «Lotin/Кирилл» tugmasi ↔ CLAUDE §2.2 (faqat lotin) | lotin, telefon | MVP: lotin. Kirill — alohida tarjima jadvali (`uz-Cyrl`) sifatida beta'da (matnlar allaqachon kodda emas). Google — beta; Apple (do'kon siyosati bo'yicha) tekshirilsin. | ☐ |
+| D5 | O'yinchilar soni, rejimlar, davomiylik | yagona spets./V2: 2–8, 8 rejim, 60–180 daq; TZ/arxitektura/kod: 2–6; TZ: 3–8 soat; BALANCE: ≈14 yil | MAX=6, 6 rang | MVP: 2–6 (taxta va 6 fishka rangi shunga qurilgan). 8 ga kengaytirish — konfiguratsiyada qoldiriladi. Rejimlar (tez, reytingli, ssenariy…) — beta; «vaqt» qoidasi (6 soat) hali manbasiz — §16. | ☐ |
+| D6 | Ball, XP, malaka, liga, mukofotlar katalogi, ota-ona paneli, Akademiya, kunlik vaziyat | yagona spets. + V2 maketi (XP/OpenSkill/6 malaka/12 dars) ↔ TZ + SPEC (ball = reyting, har 100 ball = daraja) | SPEC §5.9 | MVP'ga kirmaydi (beta/pilot yo'l xaritasi o'zida shunday). Ball «sarflanadi, sotib olinmaydi, pulga almashtirilmaydi» — CLAUDE §1 bilan mos. | ☐ |
+| D7 | Monetizatsiya | TZ: «ichki to'lovlar yo'q» ↔ yagona spets.: bepul, daromad trening/litsenziya/stol o'yini ↔ SPEC/kod: Plus, kosmetika | `commerce.ts` tayyor | Asosiy o'yin bepul va natijaga ta'sir qilmaydi (hammasi mos). Plus/kosmetika — narx bo'sh, `salesPaused` bayrog'i bilan o'chirib qo'yish mumkin. | ☐ |
+| D8 | Chat | TZ/arxitektura: erkin chat yo'q ↔ yagona spets.: do'stlar xonasida erkin chat + filtr | 4 emoji | MVP: tayyor reaksiyalar/iboralar (TZ: 6 emoji + 4 ibora). Erkin chat — yurist + moderatsiya tayyor bo'lgach. | ☐ |
+| D9 | Profilga jins | arxitektura/TZ: «jins, avatar» ↔ SPEC/kod: yo'q | yo'q | Ixtiyoriy maydon, faqat standart avatar tanlash uchun; ma'lumot eksport/o'chirishga qo'shiladi. | ☐ |
+
+## 2. O'yin qoidalari: manba va dvigatel o'rtasida (yuqori ta'sir)
+| № | Mavzu | Manba | Dvigatel | Tavsiya | Qaror |
+|---|---|---|---|---|---|
+| R1 | **Kichik aylanadan chiqish sharti** | qo'llanma, kirill, TZ, yagona spets.: «passiv daromad ≥ 25 000» (xarajat ayrilmaydi); hisob varag'i: «pul oqimi 25 000» | `passiv − barcha xarajat ≥ 25 000` (qattiqroq), `index.ts` | Ziddiyat jiddiy: probada passiv 25 000, xarajat 290 bo'lsa chiqib bo'lmaydi. **Tavsiya: manbalarga ergashish — passiv ≥ 25 000** (+ naqd ≥ 1 000 000 + qarzsiz). Ammo SPEC namunasi («pul oqimi 25 400») va varaqdagi «Passiv daromad (cash flow)» atamasi noaniq — aniq so'z kerak. | ☐ |
+| R2 | Chiqishda bizneslar bankka topshiriladi | qo'llanma §10, kirill | topshirilmaydi (`game.ts` 558–564) | Kodlash (Bankrot va katta aylana qarzi «topshiriladigan» kichik bizneslarga tayanadi). | ☐ |
+| R3 | Katta aylanadan qaytish | kirill: **yangi kasb** olinadi, bolalar va mulk qoladi | #95: kasb o'zgarmaydi, ish haqi 0 → daromadsiz «o'lim spirali» | **Kodlash: yangi kasb** (kod hozirgi holatda o'yinchini daromadsiz qoldiradi — xato deb hisoblanadi). | ☐ |
+| R4 | Kvartira/ipoteka kreditini yopish | kirill §167–171 | harakat yo'q; `a.credit` kamaymaydi, `allDebt` chiqish shartida → ipotekali o'yinchi chiqa olmaydi | **Xato — kodlash kerak** (kreditni to'liq/qisman to'lash harakati). | ☐ |
+| R5 | Shartli xarajat kartalari | qo'llanma §07 | hammaga shartsiz | **Tuzatildi** (13 karta: 8 bola, 5 avtomobil). «agar pulingiz bo'lsa» (2 karta, №25 va №27) — ma'nosi noaniq, o'zgarmadi. | ✔ |
+| R6 | Bank to'lovi yaxlitlanishi | qo'llanma kalkulyatori: 5 000 → 139 + 84 = **223**, qoldiq **3 332** | 222,22 va 3 333,33 | Manba kalkulyatoriga ergashish (har qism yuqoriga yaxlitlanadi); «Hisob daftari» tekshiruvi ham shunga mos bo'ladi. | ☐ |
+| R7 | Majburiy bozor kartalari, TD, qarovdan voz kechish | kirill §160, §179–193 | ixtiyoriy | Qo'llanma bo'yicha majburiy qilish; QAR №087 va №090 ta'siri tekshirilsin (№087: rasmda majburiy to'lov, JSON `kind` «Sotish imkoniyati»). | ☐ |
+| R8 | K katagida to'lov usuli tanlovi | qo'llanma §06 | majburiy karta darhol, qarzga yoziladi | Tanlov: naqd/lombard/bank/qarz. | ☐ |
+| R9 | Musodara (2× mulk), «ishonchsiz» (36 oy −50 ball), 3 guvoh, sheriklik «bir juftga 2 ta» | qo'llanma, TZ FR-802/803 | kodlanmagan | Qoidalar dvigateli backlog'iga, testlar bilan. | ☐ |
+| R10 | Birinchi yuruvchi | qo'llanma: kubik bo'yicha | xonaga qo'shilish tartibi | Kubik bo'yicha (serverda, jurnalga yoziladi). | ☐ |
+| R11 | Imkoniyat katagi 25 000 chegarasi, g'alaba 10 000/100 000, bank muddati «1 yil»/36 oy | manbaning o'zida zid | `<=`, 100 000, 36 oy | 100 000 va 36 oy saqlanadi (SPEC bilan mos); chegara belgisi (`<`/`≤`) metodika kengashiga. | ☐ |
+| R12 | Karta soni | kirill 455 ↔ 412 + 6 | 418 | 43 ta farq (4 kasb, +20 xarajat, +4 bozor, +9 kichik, +6 katta); 39 tasi tushuntirilmagan — to'liq `donishmand-ota-kartalar.xlsx` kerak. | ☐ |
+
+## 3. Taxta, kartalar va ko'rinish
+| № | Mavzu | Topilma | Tavsiya | Qaror |
+|---|---|---|---|---|
+| B1 | Doska varianti | «Asl doska» va «Frame236» chap ustunda (10 katak) teskari; tizim Frame236 ga mos | **Asl doskani normativ deb qabul qilish** (nomi shunday); katta aylana i43–i52 teskari, «Nohalol» i47 → i48, `cell_rules.json` kaliti o'zgaradi. Tasdiq kerak. | ☐ |
+| B2 | Harakat yo'nalishi | doskada START strelkalari soat mili teskarisiga; qo'llanma/dvigatel — soat mili bo'yicha; indekslar doskaga soat bo'yicha mos | Bosma nomuvofiqlik deb hisoblanadi, dvigatel o'zgarmaydi. Tasdiq kerak. | ☐ |
+| B3 | Chiqindi zavodi (i6) | doska: «sotish narxi 30 000», JSON/qo'llanma: 1 000 000 | Bosma xato bo'lishi mumkin — doskaning o'zidan tekshirish. | ☐ |
+| B4 | «SHIT HAPPENS!» ↔ «KUTILMAGAN HODISA!» | rasm sarlavhasi 9 old tomonda ham «SHIT HAPPENS!»; CLAUDE §2.6 | Rasm qayta chizilmaydi (§2.5) → ikki yo'l: dizayner qayta chizadi YOKI §2.6 «karta nomi rasmda berilgan» deb o'zgaradi. | ☐ |
+| B5 | UTK: «Uztelekom» (rasm, 5 karta) ↔ «O'zbektelekom» (SPEC) | Dizayner qayta chizadi yoki SPEC o'zgaradi. | ☐ |
+| B6 | Karta rasmlari | 408/418 rasm bor (PNG, 1400–1600 px); kupyuralar 12 ta nominal (500 000 ham bor, 50 000 yo'q); 6 yangi karta rasmi yo'q | `import-cards.py` rasmlarni WebP qiladi (960 px). Qolgan 6 karta — dizayner. | ☐ |
+| B7 | Qimorga yaqin kartalar | `cards.json`: «O'yin avtomatlari saloni» ×2 (KS-037, KS-042), Xarajat_031 ↔ yagona spets.: kazino/lotereya yo'q, 7 karta almashtirilgan | 7 kartalik ro'yxat `donishmand-ota-kartalar.xlsx` da — yuklanmagan; ro'yxatsiz o'zgartirilmaydi. | ☐ |
+| B8 | Hodisa #8 matni | rasm: «kvartira aksiyalari narxi»; JSON: «kvartira va aksiyalar narxi» (qaror bilan aniqlashtirilgan) | Rasmga qaytarish yoki qarorni tasdiqlash. | ☐ |
+| B9 | KV2-012 | yangi CSV: «to'rt xonali», JSON: «ikki xonali» (SPEC §16 ochiq savoli) | Rasmdagi matn bo'yicha hal qilinadi — rasmni ko'rib tasdiqlang. | ☐ |
+| B10 | Katta aylana ekran maketi | burchaklar Y kataklari emas; START yuqori qatorda (asl doskada pastda); V2 telefon maketi 36 katakli halqa | Asl doskaga (16/10/17/10 ustun) moslash — B1 hal bo'lgach. | ☐ |
+| B11 | Summa yozuvi | V2: «$550K», «$3M» ↔ CLAUDE §2.3 «to'liq yoziladi» | §2.3 saqlanadi. | ☐ |
+| B12 | Karta yuzi qayta chizilgan (V2 b.29) | ↔ CLAUDE §2.5 asl rasm | §2.5 saqlanadi: ilova rasmni qayta chizmaydi. | ☐ |
+| B13 | Dizayn tokenlari | xato rangi #B72F40 (V2) ↔ #9E2A30 (theme); fokus halqasi, tugma 52 px, shrift (Manrope yuklanadi, qo'llanmaydi), logo vektori | UX V2 bo'yicha bitta tokenlar jadvali; `fontFamily` ulanadi. | ☐ |
+| B14 | Hisob varag'i | kasb kartasidagi 9 satr nomi aniqlandi | **Tuzatildi.** «Uy ijarasi» va «O'qish xarajatlari» kartada yo'q — bo'sh qatorlar. «Yana pullar» ustuni dvigatelda yo'q. | ✔ |
+
+## 4. Yetishmaydigan materiallar
+- `poyga-platforma-tuzilmasi.xlsx` (rollar, ruxsatlar, ball katalogi, qiymatlar) va `donishmand-ota-kartalar.xlsx` (7 almashtirilgan karta, balans) — yagona spetsifikatsiya havola qiladi, yuklanmagan.
+- Lotin qo'llanma jadvalida 4 biznes ko'rinmaydi (Ofis mebeli, kiyim tikish, UzDigital TV, gaz quyish) — asl HTML bilan tasdiqlash.
+- «Zotdor sigirlar fermasi» (150 000, +120 000/oy, qoplanish 1,25 oy) — 8× chetlanish: asl doska bilan tasdiqlansin.
+- 6 ta yangi karta rasmi; «Reklama agenti» rasmi endi bor (yopildi).
+
+## 5. Keyingi qadamlar (qaror kelgach)
+1. D1–D9 va B1–B5 ni belgilang → shunga qarab SPEC.md/CLAUDE.md yangilanadi (hujjat tuzatishlari).
+2. Dvigatel: R1–R4 (eng muhim), keyin R6–R10, har biri testlar bilan.
+3. Doska va katta aylana ko'rinishi (B1, B2, B10).
+4. Kupyuralar bilan «sanab to'lash» rejimi (12 nominal, `RULES`dagi son bilan).

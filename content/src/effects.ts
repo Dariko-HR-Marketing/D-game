@@ -9,7 +9,7 @@ export type Effect =
       price: number; down?: number; credit?: number; creditPayment?: number; monthlyIncome?: number; marketValue?: number | null }
   | { kind: "buyShares"; code: string; pricePerShare: number; min: number; max: number }
   | { kind: "gain"; amount: number }
-  | { kind: "pay"; amount: number; to: "bank" | "bank_insurable_car" }
+  | { kind: "pay"; amount: number; to: "bank" | "bank_insurable_car"; needs?: "child" | "car" } // needs: karta matnidagi «(agar bolangiz/mashinangiz bo'lsa)» sharti — qo'llanma §07: faqat bola yoki avtomobili borlar to'laydi
   | { kind: "lendRequest"; amount: number; returnAmount: number }
   | { kind: "qarOffer"; monthlyExpense: number }
   | { kind: "qarEvent"; payNow?: number; monthlyExpenseIncrease?: number; scope: "drawer" | "holders" } // drawer: faqat kartani olgan (qarovi bo'lsa); holders: qarov kartasi egalari hammasi
@@ -86,7 +86,8 @@ export function deriveEffects(c: Cards): CardEffect[] {
   });
 
   c.bozor.forEach((b, i) => push("bozor", `bozor-${i + 1}`, b.file, b.kind === "Sotish imkoniyati" ? "optional" : "mandatory", bozorEffect(b)));
-  c.xar.forEach((x) => push("xar", `xar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank" }));
+  const needsOf = (t: string): "child" | "car" | undefined => { const m = /\(agar ([^)]*)bo[‘'’]lsa\)/i.exec(t)?.[1] ?? ""; return /mashina/i.test(m) ? "car" : /bola|farzand/i.test(m) ? "child" : undefined; };
+  c.xar.forEach((x) => { const needs = needsOf(x.text); push("xar", `xar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank", ...(needs ? { needs } : {}) }); });
   c.kxar.forEach((x) => push("kxar", `kxar-${x.n}`, x.file, "mandatory", { kind: "pay", amount: x.amount, to: "bank" }));
   c.hod.forEach((h) => {
     // «Aks holda KB laringizdan birini aylanaga qaytaring» — pul yoki biznes: o'yinchi tanlaydi (karta qaroriga aylanadi)

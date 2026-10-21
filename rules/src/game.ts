@@ -14,7 +14,7 @@ export const CONFIG = {
 } as const;
 
 export interface BigCell { i: number; t: string; name: string; income: number | null; price: number | null; faces?: number[]; lump?: number }
-export interface Kasb { n: number; name?: string; salary: number; total: number; save: number; child: number }
+export interface Kasb { n: number; name?: string; salary: number; total: number; save: number; child: number; car?: number; kv?: number; exp?: number[] }
 export interface Dream { name: string; price: number }
 
 /** O'zgarmas kontent: serverda yuklanadi, holatga kirmaydi. */
@@ -357,9 +357,16 @@ function autoMandatory(s: GameState, ctx: Ctx, p: GamePlayer, ce: CardEffect) {
   setP(s, applyMandatory(s, ctx, s.players[idx(s, p.id)], ce.effect));
 }
 
-function applyMandatory(s: GameState, ctx: Ctx, p: GamePlayer, e: Effect): GamePlayer {
+/** Avtomobili bormi: kasb kartasidagi mashina krediti, sotib olingan avtomobil yoki sug'urtalangan mashina. */
+export const hasCar = (ctx: Ctx, p: GamePlayer) => p.insuredCar || p.assets.some((a) => a.kind === "car") || (ctx.kasb[p.profession]?.car ?? 0) > 0;
+
+export function applyMandatory(s: GameState, ctx: Ctx, p: GamePlayer, e: Effect): GamePlayer {
   switch (e.kind) {
-    case "pay": return forcePay(s, ctx, p, e.amount);
+    case "pay": { // shartli xarajat: bolasi/avtomobili yo'q o'yinchi to'lamaydi (qo'llanma §07)
+      if (e.needs === "child" && !(p.children > 0)) return p;
+      if (e.needs === "car" && !hasCar(ctx, p)) return p;
+      return forcePay(s, ctx, p, e.amount);
+    }
     case "floodCarRepair": {
       const r = applyEffect(p, e);
       if (r.ok) return { ...p, ...r.player } as GamePlayer;
