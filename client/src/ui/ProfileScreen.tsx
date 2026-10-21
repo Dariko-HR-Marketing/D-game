@@ -32,7 +32,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
   };
   const del = async () => { try { await http.deleteAccount(word); onDeleted(); } catch (e) { setErr((e as HttpError).code ?? "network"); } };
   const canSave = validName(name) && validYear(year);
-  const hue = PLAYER_COLORS[col % PLAYER_COLORS.length]; const lvlProgress = stats ? (stats.points % 100) / 100 : 0;
+  const hue = PLAYER_COLORS[col % PLAYER_COLORS.length]; const lvlProgress = stats && stats.xpNeed > 0 ? stats.xpInto / stats.xpNeed : 1;
 
   return (
     <Screen title={uz.profile.title} onBack={onBack}>
@@ -41,16 +41,16 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
           <Avatar name={name.trim() || "?"} colorIdx={col} photo={photo ?? undefined} gender={gender} size={56} />
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={s.whoName}>{name.trim() || uz.profile.noName}</Text>
-            {stats && <View style={s.pills}><Pill label={`${uz.profile.level} ${stats.level}`} kind="info" /><Pill label={`${"★".repeat(stats.stars)}${"☆".repeat(5 - stats.stars)}`} kind="warn" />{stats.title && <Pill label={uz.profile.titles[stats.title as "employee" | "investor"]} kind="good" />}</View>}
+            {stats && <View style={s.pills}><Pill label={`${uz.profile.level} ${stats.level}`} kind="info" />{stats.rank && <Pill label={uz.progress.ranks[stats.rank]} kind="plain" />}{stats.league && <Pill label={`${uz.progress.leagues[stats.league]}${stats.donishmand ? " · " + uz.progress.leagues.master : ""} · ${stats.rating}`} kind="good" />}<Pill label={`${"★".repeat(stats.stars)}${"☆".repeat(5 - stats.stars)}`} kind="warn" />{stats.title && <Pill label={uz.profile.titles[stats.title as "employee" | "investor"]} kind="good" />}</View>}
           </View>
         </View>
         {stats && (<>
-          <View role="group" accessible aria-label={`${uz.profile.nextLevel}: ${stats.points % 100} / 100`} style={{ gap: 4 }}>
+          <View role="group" accessible aria-label={stats.xpNeed > 0 ? `${uz.profile.nextLevel}: ${stats.xpInto} / ${stats.xpNeed} XP` : uz.progress.maxLevel} style={{ gap: 4 }}>
             <View style={s.bar} aria-hidden><View style={[s.fill, { width: `${Math.round(lvlProgress * 100)}%` }]} /></View>
-            <Text style={s.muted} aria-hidden>{uz.profile.nextLevel}: {stats.points % 100} / 100</Text>
+            <Text style={s.muted} aria-hidden>{stats.xpNeed > 0 ? `${uz.profile.nextLevel}: ${stats.xpInto} / ${stats.xpNeed} XP` : uz.progress.maxLevel}</Text>
           </View>
           <View style={s.stats}>
-            <Stat label={uz.profile.games} value={String(stats.games)} /><Stat label={uz.profile.wins} value={String(stats.wins)} kind="good" /><Stat label={uz.profile.big} value={String(stats.reachedBig)} />
+            <Stat label={uz.progress.points} value={String(stats.points)} kind="good" /><Stat label={uz.profile.games} value={String(stats.games)} /><Stat label={uz.profile.wins} value={String(stats.wins)} kind="good" /><Stat label={uz.profile.big} value={String(stats.reachedBig)} />
             {stats.unreliable > 0 && <Stat label={uz.profile.unreliableShort} value={String(stats.unreliable)} kind="bad" />}
           </View>
         </>)}

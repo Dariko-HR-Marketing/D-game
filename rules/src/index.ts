@@ -126,6 +126,17 @@ export function partnerBuyoutPrice(fullPrice: number, monthlyProfit: number) {
 }
 
 /** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja. */
+// Platforma: Ball, XP va liga (platforma fayli, buyurtmachi tasdig'i). Hisoblash — server/src/progress.ts.
+export const BALL = {
+  finish: 50, exit: 80, win: 150, firstOfDay: 20, tutorial: 50, place: [100, 60, 30], placeBase: 6,
+  dailyCap: 500, expireDays: 365, minHumansFinish: 3, minHumans: 2,
+} as const;
+export const XP = { game: 100, botGame: 60, tutorial: 150, base: 200, step: 50, maxLevel: 50 } as const;
+/** Liga chegaralari (reyting): platforma faylidagi jadval. */
+export const LEAGUES = [
+  { key: "bronze", from: 0 }, { key: "silver", from: 1100 }, { key: "gold", from: 1300 }, { key: "platinum", from: 1500 }, { key: "diamond", from: 1700 },
+] as const;
+
 export const POINTS = { finish: 10, asset: 5, quitJob: 20, exitSmallCircle: 40, win: 100, second: 30, third: 15, auto: -2, abandon: -20, unreliable: -50 } as const;
 
 /** §5.8 Qarov: oylik xarajat +100. */

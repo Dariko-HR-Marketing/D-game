@@ -5,7 +5,7 @@ To'liq spetsifikatsiya: `docs/SPEC.md` (A–D ilovalar ham shu yerda). Quyida §
 ## 1. Mahsulot
 - **Nomi:** POYGA onlayn (D-game, DARIKO ekotizimi o'yin brendi). Stol o'yinining onlayn versiyasi: moliyaviy savodxonlik, pul oqimi va passiv daromad yaratishni o'rgatadi.
 - **Maqsad:** stol o'yinidagi tajribani saqlab, qalam, o'chirg'ich va qo'lda hisobni olib tashlash.
-- **Auditoriya:** o'yinchilar (16+, 16 yoshgacha cheklovlar bilan), ta'lim muassasalari, bank va kompaniyalar.
+- **Auditoriya:** o'yinchilar (yosh cheklovi yo'q; 16 yoshgacha to'lov/qarz/chat himoyasi yurist xulosasigacha saqlanadi), ta'lim muassasalari, bank va kompaniyalar.
 - **Platforma:** iOS, Android va veb (planshet va kompyuter, veb-to'lov shu yerda). Bitta kod bazasi tavsiya etiladi.
 - **Asosiy tamoyil:** asosiy o'yin bepul. Pulli qo'shimchalar o'yin natijasiga ta'sir qilmaydi, loot box yo'q. Ballar pulga almashtirilmaydi va bu haqda hech qayerda gap bo'lmaydi.
 - **Prototip (ko'rinish manbasi):** https://claude.ai/artifact/KeUb5G2eTvY86cGJPESv2b — 53 mobil, 18 planshet/kompyuter ekrani. **TZ:** https://claude.ai/code/artifact/8b277748-5a1a-440a-9ff9-e577fa426f71. Ko'rinish prototipdan, xatti-harakat shu fayldan olinadi; ular zid bo'lsa shu fayl ustun.
@@ -18,7 +18,7 @@ To'liq spetsifikatsiya: `docs/SPEC.md` (A–D ilovalar ham shu yerda). Quyida §
 5. Kartalar asl rasmi bilan chiqadi; ilova kartani qayta chizmaydi, faqat ta'sirini hisoblaydi.
 6. Karta nomi: «KUTILMAGAN HODISA!».
 7. Kichik va katta aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi yo'q.
-8. 16 yoshgacha: to'lov ota-ona tasdig'i bilan, o'zaro qarz/sheriklik va erkin chat yopiq, reklama yo'q.
+8. 16 yoshgacha (yurist xulosasigacha): to'lov ota-ona tasdig'i bilan, o'zaro qarz/sheriklik va erkin chat yopiq, reklama yo'q.
 9. Ilovada faqat do'kon to'lovi (App Store / Google Play); Payme, Click, Uzcard/Humo faqat veb-versiyada.
 
 

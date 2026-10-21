@@ -99,3 +99,11 @@ Qarorlar bosqichma-bosqich amalga oshiriladi; kodda o'zgargani «Amalga oshirild
 - **Q21 (B12)** Karta yuzi asl rasm bilan chiqadi (§2.5), summalar ilova matnida bo'shliq bilan formatlanadi.
 - **Q22 (B13) Dizayn tokenlari.** UX V2 bo'yicha bitta tokenlar jadvali (xato rangi, fokus halqasi, tugma balandligi, shrift). **Amalga oshirildi** (№138): xato rangi bitta (#9E2A30), tugma 52 px, fokus halqasi, Manrope ulandi; logo vektori — dizayner materiali.
 - **Q23 Karta raqamlari (rasm ↔ ma'lumot).** Kichik sarmoya 82/82 va katta sarmoya 83/85 to'liq mos (KS 51/51, KV 25/26, DX 7/8; `docs/audit/F_*`, `G_*`). Ikki farq — KV4-006 (rasmda kredit 90 000, ma'lumotda 80 000: 20 000 + 90 000 ≠ 100 000) va DX-005 (rasmda bo'nak 3 500, ma'lumotda 15 000) — rasmning ichki xatosi; avvalgi qaror bo'yicha **ma'lumot to'g'ri** (hisob ichki mantiqqa mos), rasm dizayner ro'yxatiga. Kontent testiga «bo'nak + kredit = to'liq qiymat» tekshiruvi qo'shildi.
+
+**Yangi yuklangan fayllar bo'yicha qarorlar (2026-10-21, buyurtmachi javoblari; tafsilot — `docs/OPEN_QUESTIONS.md` №141–146)**
+- **Q24 Yosh (D3 qayta ko'rildi).** Yangi «rollar va darajalar» fayli: yosh cheklovi yo'q, kartalar hamma uchun oilaviy mazmunda. Qaror: shunday; to'lov, o'zaro qarz/sheriklik va erkin chat himoyasi yurist xulosasigacha 16 yoshgacha saqlanadi.
+- **Q25 Valyuta (D2 tasdiqlandi).** «sh.b.» qoladi; fayllardagi «$»/«USD»/«so'm» ilovaga o'tmaydi.
+- **Q26 O'yinchilar (D5 qayta ko'rildi).** 2–8 (avval 2–6). Tez 2–6, reytingli 4–6.
+- **Q27 Rejimlar, ball/XP/liga, taymerlar.** Amalga oshirildi (№144–146). Malaka/Akademiya/ssenariy/oilaviy/trener — keyingi bosqich.
+- **Q28 Kartalar.** «donishmand-ota-kartalar» — namuna to'plam (USD, 0.2): undagi ichkilik/kazino/lotereya matnlarini almashtirish tamoyili asosiy to'plamga qo'llandi (№142); 4 yangi kasb tayyorlandi (kasb 28 → 32, kartalar 422).
+

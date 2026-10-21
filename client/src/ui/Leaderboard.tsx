@@ -18,11 +18,11 @@ export function Leaderboard({ http, onBack }: { http: Http; onBack: () => void }
       {rows && rows.length > 0 && (
         <Card style={{ padding: 0 }} raised>
           <View role="list">{rows.map((r, i) => { const hue = PLAYER_COLORS[r.color % PLAYER_COLORS.length]; return (
-            <View key={r.rank} role="listitem" accessible aria-label={`${r.rank}. ${r.name}. ${uz.profile.wins}: ${r.wins}, ${uz.profile.games}: ${r.games}, ${uz.profile.level} ${r.level}`} style={[s.row, i > 0 && { borderTopWidth: 1, borderTopColor: color.line }]}>
+            <View key={r.rank} role="listitem" accessible aria-label={`${r.rank}. ${r.name}. ${uz.profile.wins}: ${r.wins}, ${uz.profile.games}: ${r.games}, ${r.league ? `${uz.progress.leagues[r.league]}, ${r.rating}` : `${uz.profile.level} ${r.level}`}`} style={[s.row, i > 0 && { borderTopWidth: 1, borderTopColor: color.line }]}>
               <View style={[s.rank, r.rank <= 3 && { backgroundColor: color.gold }]} aria-hidden><Text style={s.rankT}>{r.rank}</Text></View>
               <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={{ color: readableOn(hue), fontWeight: "800", fontSize: 12 }}>{(r.name[0] ?? "?").toUpperCase()}</Text></View>
               <View style={{ flex: 1 }} aria-hidden><Text style={s.name} numberOfLines={1}>{r.name}</Text><Text style={s.muted}>{r.games} {uz.profile.gamesWord}</Text></View>
-              <View style={{ alignItems: "flex-end", gap: 2 }} aria-hidden><Text style={s.wins}>{r.wins} {uz.profile.winsWord}</Text><Pill label={`${uz.profile.level} ${r.level}`} kind="info" /></View>
+              <View style={{ alignItems: "flex-end", gap: 2 }} aria-hidden><Text style={s.wins}>{r.wins} {uz.profile.winsWord}</Text>{r.league ? <Pill label={`${uz.progress.leagues[r.league]} · ${r.rating}`} kind="good" /> : <Pill label={`${uz.profile.level} ${r.level}`} kind="info" />}</View>
             </View>); })}</View>
         </Card>)}
     </Screen>

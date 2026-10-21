@@ -15,7 +15,7 @@ describe("qoidalar ekrani (§15): manba bilan, dvigatel konstantalaridan", () =>
     expect(t("win")).toContain("100 000");
     expect(t("suyunchi")).toMatch(/500 sh\.b\./); expect(t("suyunchi")).toContain("10–500");
     expect(t("loan")).toContain("5 o'yinchi"); expect(t("loan")).toContain("20 %"); expect(t("loan")).toContain("50 %");
-    expect(t("card")).toContain("30 soniya"); expect(t("qar")).toContain("100"); expect(t("level")).toContain("100 ball");
+    expect(t("card")).toContain("30 soniya"); expect(t("qar")).toContain("100"); expect(t("level")).toContain("+150"); expect(t("level")).toContain("200 + 50");
   });
   it("konstanta o'zgarsa matn ham o'zgaradi (qo'lda yozilgan raqam yo'q)", () => {
     const changed = ruleItems({ ...RULES, bankLimit: 12_345 }).find((i) => i.id === "debt")!.text;

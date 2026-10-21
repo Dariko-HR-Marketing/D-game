@@ -1,6 +1,6 @@
 // §15: qoidalar ilovada manbasi (SPEC bo'limi) bilan ko'rinadi. Raqamlar dvigatelning RULES konstantalaridan olinadi — qo'lda yozilmaydi.
 import type { RULES } from "@poyga/rules";
-import { POINTS } from "@poyga/rules";
+import { POINTS, BALL, XP } from "@poyga/rules";
 import { money } from "../format";
 
 export interface RuleItem { id: string; title: string; text: string; source: string }
@@ -37,8 +37,8 @@ export function ruleItems(r: R): RuleItem[] {
       text: `«Kutilmagan hodisa» inqirozi har bir o'yinchida ${r.crisisLaps} aylana (${r.crisisLaps * 4} oy) davom etadi: shu paytda yer, dala-hovli, kvartira va aksiyalarni sotish ham, sotib olish ham narxi 2 baravar past. Tugaganda sizga xabar keladi.` },
     { id: "qar", title: "Qarov (QAR)", source: "SPEC §5.8",
       text: `Oyiga ${m(r.qarMonthly)} sh.b. to'laysiz (oylik xarajat + ${m(r.qarMonthly)}).` },
-    { id: "level", title: "Ball va daraja", source: "SPEC §5.9",
-      text: `Har ${m(r.pointsPerLevel)} ball — bitta daraja. O'yinni oxirigacha o'ynash +${POINTS.finish}, har bir aktiv +${POINTS.asset}, ishdan bo'shash +${POINTS.quitJob}, katta aylanaga chiqish +${POINTS.exitSmallCircle}, g'alaba +${POINTS.win}, 2-o'rin +${POINTS.second}, 3-o'rin +${POINTS.third}. Avtomatik qaror ${POINTS.auto}, o'yinni tashlab ketish ${POINTS.abandon}, qaytarilmagan o'zaro qarz ${POINTS.unreliable}.` },
+    { id: "level", title: "Ball, daraja va liga", source: "SPEC §5.9",
+      text: `Ball: o'yinni oxirigacha o'ynash +${BALL.finish} (kamida ${BALL.minHumansFinish} odam), kichik aylanadan chiqish +${BALL.exit}, g'alaba +${BALL.win}, 1/2/3-o'rin +${BALL.place.join("/")} (6 kishilikda; kamroqda o'yinchilar soniga mutanosib), kunning birinchi o'yini +${BALL.firstOfDay}, o'quv o'yini +${BALL.tutorial} (bir marta). Kunlik chegara ${BALL.dailyCap} ball, ball ${BALL.expireDays / 30 | 0} oy amal qiladi; botlar bilan o'yin ball bermaydi. Avtomatik qaror ${POINTS.auto}, o'yinni tashlab ketish ${POINTS.abandon}, qaytarilmagan o'zaro qarz ${POINTS.unreliable}. Daraja XP dan: tugatilgan o'yin +${XP.game} XP (botlar bilan +${XP.botGame}, birinchi o'quv o'yini +${XP.tutorial}); keyingi daraja uchun ${XP.base} + ${XP.step} × joriy daraja XP, eng yuqori daraja ${XP.maxLevel}. Liga faqat «Reytingli» o'yinlar natijasidan: Bronza 0–1099, Kumush 1100–1299, Oltin 1300–1499, Platina 1500–1699, Olmos 1700+; mavsum 3 oy; mavsumning eng yaxshi 100 o'yinchisi «Donishmand». Reytingli o'yinda daraja yoki toifa ustunlik bermaydi.` },
     { id: "smallcells", title: "Kichik aylana kataklari", source: "Qo'llanma §06",
       text: "Imkoniyat — kichik yoki katta sarmoya kartasi (naqd 25 000 dan ko'p bo'lsa tanlaysiz). Bozor — karta hammaga tegishli bo'lishi mumkin. Xarajatlar — to'lanadi. Daromad — pul oqimi. «Siz ota bo'ldingiz» — suyunchi. «Ishdan bo'shadingiz» — bir aylana (4 oy) maosh yo'q, xarajat to'lanadi. «Boshidan boshlang» — xona egasi yoqsa «Kutilmagan hodisa» kartasi; o'chirilgan bo'lsa oddiy katak." },
     { id: "job", title: "Ishdan bo'shash", source: "Qo'llanma §09",

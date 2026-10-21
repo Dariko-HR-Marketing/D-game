@@ -199,6 +199,11 @@ export const uz = {
     none: "Qaytarib oladigan o'rin yo'q: hamma o'yinchi onlayn yoki o'yindan chiqqan. Uzilgan o'yinchi bir daqiqadan keyin oflayn bo'ladi — keyinroq qayta urinib ko'ring.",
     failed: "O'yinchilar ro'yxatini olib bo'lmadi", unnamed: "ismsiz o'yinchi",
   },
+  progress: {
+    points: "Ball", maxLevel: "Eng yuqori daraja (50)",
+    ranks: { newbie: "Yangi boshlovchi", active: "Faol o'yinchi", experienced: "Tajribali", veteran: "Faxriy o'yinchi" } as Record<string, string>,
+    leagues: { bronze: "Bronza", silver: "Kumush", gold: "Oltin", platinum: "Platina", diamond: "Olmos", master: "Donishmand" } as Record<string, string>,
+  },
   slots: {
     names: { realty: "ko'chmas mulk", small_business: "kichik biznes", business: "katta biznes" } as Record<string, string>,
     full: "Hisob varag'ida {kind} uchun joy qolmagan ({n}/{n}). Avval birini soting yoki kartani o'tkazib yuboring.",
