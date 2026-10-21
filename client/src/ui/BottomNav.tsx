@@ -40,7 +40,7 @@ export function BottomNav<K extends string>({ items, active, onChange, label, te
 const s = StyleSheet.create({
   nav: { height: 62, flexDirection: "row", borderTopWidth: 1, borderTopColor: "#E6ECEF", backgroundColor: color.white },
   item: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3, minHeight: 44 },
-  t: { fontSize: 11, fontWeight: "600", color: tone.muted },
+  t: { fontSize: 12, fontWeight: "600", color: tone.muted },
   badge: { position: "absolute", top: -7, right: -13, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: color.white },
-  badgeT: { color: color.white, fontSize: 11, fontWeight: "800", lineHeight: 14, fontVariant: ["tabular-nums"] },
+  badgeT: { color: color.white, fontSize: 12, fontWeight: "800", lineHeight: 14, fontVariant: ["tabular-nums"] },
 });

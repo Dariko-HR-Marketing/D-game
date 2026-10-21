@@ -46,7 +46,7 @@ export function Login({ auth, onDone }: { auth: ReturnType<typeof makeAuth>; onD
           {err && <Banner kind="bad">{errText(err)}</Banner>}
         </Card>
         <Text style={[s.note, { textAlign: "center" }]}>{uz.login.note}</Text>
-        {roomy && <Text style={[s.note, { textAlign: "center", fontSize: 11 }]}>{uz.login.brandLine}</Text>}
+        {roomy && <Text style={[s.note, { textAlign: "center", fontSize: 12 }]}>{uz.login.brandLine}</Text>}
       </View>
     </ScrollView>
   );

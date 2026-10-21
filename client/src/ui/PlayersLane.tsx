@@ -40,5 +40,5 @@ const s = StyleSheet.create({
   card: { flexDirection: "row", alignItems: "center", gap: space.sm, padding: space.sm, paddingRight: space.md, backgroundColor: color.white, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", minWidth: 104 },
   cardWide: { minWidth: 200, flex: 1 },
   cur: { borderColor: color.green, borderWidth: 2, backgroundColor: "#EEF8F2" },
-  name: { color: color.navy, fontWeight: "800", fontSize: font.sm, maxWidth: 110 }, status: { color: tone.muted, fontSize: 11, fontWeight: "700" }, sub: { color: tone.muted, fontSize: 11 },
+  name: { color: color.navy, fontWeight: "800", fontSize: font.sm, maxWidth: 110 }, status: { color: tone.muted, fontSize: 12, fontWeight: "700" }, sub: { color: tone.muted, fontSize: 12 },
 });

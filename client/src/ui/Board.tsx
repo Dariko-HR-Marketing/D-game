@@ -40,29 +40,30 @@ const lookOf = (circle: "small" | "big", i: number): Look => {
 export const cellLabel = (circle: "small" | "big", i: number) => (circle === "small" ? SMALL_LOOK[SMALL_BOARD[i]].label : BIG_CELLS[i].t === "O" ? `ORZU: ${BIG_CELLS[i].name}` : lookOf("big", i).label);
 
 /** Yozuv o'lchami: eng uzun so'z katakka sig'adigan eng katta o'lcham (so'z o'rtasidan bo'linmasin). */
-const labelSize = (label: string, w: number) => { const longest = Math.max(...label.split(" ").map((x) => x.length), 4); return Math.max(6, Math.min(10, Math.floor(((w - 8) / (longest * 0.78)) * 2) / 2)); };
+/** Katakka sig'adigan eng katta o'lcham; 8 dan kichik bo'lsa yozuv ko'rsatilmaydi (ikonka + rang + «Katak turlari» izohi qoladi). */
+const labelSize = (label: string, w: number) => { const longest = Math.max(...label.split(" ").map((x) => x.length), 4); return Math.min(10, Math.floor(((w - 8) / (longest * 0.78)) * 2) / 2); };
 
 /** Fishka o'lchami va taxta atrofidagi bo'sh joy (fishka ramka bo'ylab, katak chetida yuradi — chetdan tashqariga chiqadi). */
 export const pawnSize = (wide: boolean) => (wide ? 30 : 24);
 export const boardPad = (wide: boolean) => Math.round(pawnSize(wide) * 0.75);
 
 /** Taxta o'lchamlari: telefonda tor va baland (10 ustun), planshet/kompyuterda keng (16 ustun). */
-export function boardGeometry(width: number, wide: boolean, n: number, tight = false) {
+export function boardGeometry(width: number, wide: boolean, n: number, tight = false, compact = false) {
   const cols = n === 48 ? (wide ? 16 : 10) : wide ? 17 : 11;
   const side = n - 2 * cols, rows = Math.ceil(side / 2) + 2; // o'ng ustun chapdan bitta ko'p bo'lishi mumkin
   // tight: past ekran (balandlik kam) — kataklar kichikroq (yozuvlar yashirinadi, ikonka va rang qoladi)
-  const c = wide ? Math.max(tight ? 34 : 48, Math.min(72, Math.round(width / (cols + 1.2)))) : Math.round(Math.max(36, Math.min(48, width * 0.128)));
-  const sideH = wide ? Math.max(tight ? 30 : 40, c * 0.9) : Math.max(19, c * 0.46);
+  const c = wide ? Math.max(compact ? 22 : tight ? 34 : 48, Math.min(72, Math.round(width / (cols + 1.2)))) : Math.round(Math.max(36, Math.min(48, width * 0.128)));
+  const sideH = wide ? Math.max(compact ? 20 : tight ? 30 : 40, c * 0.9) : Math.max(19, c * 0.46);
   return { cols, c, W: width, H: Math.round(2 * c + rows * 0 + Math.ceil(side / 2) * sideH) };
 }
 
 /** Taxta: kvadrat halqa (soat yo'nalishida), ikonkali kataklar, o'yinchi fishkalari; markazda — kubik/navbat paneli (`children`). */
-export function Board({ room, width, wide, currentId, tight, movement, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
+export function Board({ room, width, wide, currentId, tight, compact, movement, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; compact?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
   const players: any[] = room.state.players;
   const anySmall = players.some((p) => p.circle === "small"), anyBig = players.some((p) => p.circle === "big");
   const circle: "small" | "big" = anySmall ? "small" : "big";
   const n = circle === "small" ? 48 : 53;
-  const g = boardGeometry(width, wide, n, tight), { W, H, c } = g;
+  const g = boardGeometry(width, wide, n, tight, compact), { W, H, c } = g;
   const offset = circle === "small" ? (wide ? 4 : 12) : 24;
   const tiles = squareRing(n, g.cols, W, H, c);
   const mixed = anySmall && anyBig;
@@ -92,7 +93,7 @@ export function Board({ room, width, wide, currentId, tight, movement, children 
             return (
               <View key={pi} aria-hidden style={[s.tile, { left: t.x + 1, top: t.y + 1, width: t.w - 2, height: t.h - 2, backgroundColor: L.bg, borderColor: here ? color.navy : L.border, borderWidth: here ? 3 : 1, zIndex: here ? 2 : 0 }, dream && { borderStyle: "dashed", borderColor: "#A82F3E", borderWidth: 2 }]}>
                 <Icon name={L.icon} size={small ? 12 : t.corner ? 22 : 18} color={L.fg} />
-                {!small && (wide || t.corner === false) && t.w > 44 && <Text style={[s.tileT, { color: L.fg, fontSize: labelSize(L.label, t.w) }]} numberOfLines={2}>{L.label}</Text>}
+                {!small && (wide || t.corner === false) && t.w > 44 && labelSize(L.label, t.w) >= 8 && <Text style={[s.tileT, { color: L.fg, fontSize: labelSize(L.label, t.w) }]} numberOfLines={2}>{L.label}</Text>}
               </View>);
           })}
           {mixed && innerTiles.map((t, pi) => <View key={`b${pi}`} aria-hidden style={{ position: "absolute", left: inset + t.x + 1, top: inset + t.y + 1, width: t.w - 2, height: t.h - 2, borderRadius: 3, backgroundColor: color.line }} />)}
@@ -150,8 +151,8 @@ function Pawn({ x, y, size, hue, label, isCur, testID, inward }: { x: number; y:
         shadowColor: "#000", shadowOpacity: isCur ? 0.4 : 0.25, shadowRadius: isCur ? 6 : 3, shadowOffset: { width: 0, height: 1 } }}>
         <Icon name="person" size={Math.round(size * 0.62)} color={fg} stroke={2.2} fill={fg} />
       </View>
-      <View style={{ position: "absolute", right: -size * 0.16, bottom: -size * 0.16, minWidth: Math.round(size * 0.46), height: Math.round(size * 0.46), borderRadius: size, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", paddingHorizontal: 2, borderWidth: 1.5, borderColor: "#fff" }}>
-        <Text style={{ color: "#fff", fontSize: Math.max(9, Math.round(size * 0.32)), fontWeight: "800", lineHeight: Math.max(11, Math.round(size * 0.4)) }}>{label}</Text>
+      <View style={{ position: "absolute", right: -size * 0.16, bottom: -size * 0.16, minWidth: Math.max(14, Math.round(size * 0.46)), height: Math.max(14, Math.round(size * 0.46)), borderRadius: size, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", paddingHorizontal: 2, borderWidth: 1.5, borderColor: "#fff" }}>
+        <Text style={{ color: "#fff", fontSize: Math.max(10, Math.round(size * 0.32)), fontWeight: "800", lineHeight: Math.max(12, Math.round(size * 0.4)) }}>{label}</Text>
       </View>
     </Animated.View>
   );

@@ -66,6 +66,20 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const ledger = useLedger(snap, calcFb);
   const ledgerBase = lastDecide.current && calcFb?.error === "calc_required" ? lastDecide.current : { type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) };
   const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} turnSeconds={turnSeconds} /> : null;
+  const faceBlock = (<>
+      <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
+      {artOk ? <Text style={s.sr} aria-hidden>{card.text}</Text> : <CardPaper look={H} text={card.text} />}
+  </>);
+  const numbers = (<>
+      {!manual && showChange && (
+        <View style={{ gap: space.xs }}>
+          <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>
+          <View style={s.change}><Text style={s.chL}>{uz.facts.yourCash.replace("Sizning naqdingiz", "Naqd")}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(me.cash)}</Text> → <Text style={{ color: afterCash < 0 ? tone.bad : tone.good }}>{money(afterCash)}</Text></Text></View>
+          {f.flowDelta !== null && f.flowDelta !== 0 && <View style={s.change}><Text style={s.chL}>{uz.game.cashflow}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(flow)}</Text> → <Text style={{ color: flow + f.flowDelta < 0 ? tone.bad : tone.good }}>{money(flow + f.flowDelta)}</Text></Text></View>}
+        </View>)}
+      {f.rows.length > 0 && (<View style={s.facts} accessibilityLabel={uz.facts.title}>{f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}</View>)}
+  </>);
+  const numbersFirst = !!sheet && vh < 700; // past telefonda qaror raqamlari (o'zgarishlar, narx, kredit) hikoya matnidan oldin: aylantirmasdan ko'rinsin
   const body = (
     <>
       <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
@@ -77,15 +91,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
         {left ? <TimerRing left={left} total={turnSeconds} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
       </View>
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
-      <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
-      {artOk ? <Text style={s.sr} aria-hidden>{card.text}</Text> : <CardPaper look={H} text={card.text} />}
-      {!manual && showChange && (
-        <View style={{ gap: space.xs }}>
-          <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>
-          <View style={s.change}><Text style={s.chL}>{uz.facts.yourCash.replace("Sizning naqdingiz", "Naqd")}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(me.cash)}</Text> → <Text style={{ color: afterCash < 0 ? tone.bad : tone.good }}>{money(afterCash)}</Text></Text></View>
-          {f.flowDelta !== null && f.flowDelta !== 0 && <View style={s.change}><Text style={s.chL}>{uz.game.cashflow}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(flow)}</Text> → <Text style={{ color: flow + f.flowDelta < 0 ? tone.bad : tone.good }}>{money(flow + f.flowDelta)}</Text></Text></View>}
-        </View>)}
-      {f.rows.length > 0 && (<View style={s.facts} accessibilityLabel={uz.facts.title}>{f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}</View>)}
+      {numbersFirst ? <>{numbers}{faceBlock}</> : <>{faceBlock}{numbers}</>}
       {shares && (<View style={{ gap: space.sm }}>
         <Text style={s.label} nativeID="qtyL">{uz.coop.shares} ({e.min}–{e.max})</Text>
         <TextInput accessibilityLabelledBy="qtyL" aria-label={uz.coop.shares} value={q} keyboardType="number-pad" onChangeText={(t) => setQ(t.replace(/\D/g, ""))} style={s.input} />
