@@ -112,8 +112,22 @@ export class RoomManager {
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.ledgerSync(r); this.armProposals(r); this.arm(r); n++;
     }
+    // Zallar (boshlanmagan xonalar): a'zolar va sozlamalar tiklanadi; o'yinchilar qayta ulanib davom etadi
+    for (const l of await this.store.loadLobbies()) {
+      if (this.rooms.has(l.code)) continue;
+      const { ctx } = this.activeCtx(); const m = l.meta;
+      const r: Room = { tag: m.tag, code: l.code, hostId: m.hostId, members: m.members.map((x) => ({ userId: x.userId, bot: x.bot, online: false })), state: null, seq: 0, timer: null, deadline: null, turnSeconds: m.turnSeconds === 60 ? 60 : 30, calcMode: m.calcMode === "manual" ? "manual" : "auto",
+        ...(m.seats !== undefined ? { seats: m.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: null, createdAt: m.createdAt, endedAt: null, offlineSince: this.clock.now() };
+      this.rooms.set(l.code, r);
+      for (const x of r.members) if (!x.bot) this.activeRoomOf.set(x.userId, l.code);
+      n++;
+    }
     return n;
   }
+
+  /** Zal o'zgarganda (yaratildi, odam qo'shildi/chiqdi) saqlanadi: server qayta ishga tushsa ham yo'qolmaydi. */
+  private saveLobby(r: Room) { if (!r.state) void this.store.saveLobby(r.code, this.meta(r)).catch((e) => this.hooks.onError?.("lobby", e)); }
+  private dropLobby(code: string) { void this.store.deleteLobby(code).catch((e) => this.hooks.onError?.("lobby", e)); }
 
   private newCode() {
     for (;;) {
@@ -128,7 +142,7 @@ export class RoomManager {
     const code = this.newCode();
     this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
       ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null, tag });
-    this.activeRoomOf.set(hostId, code);
+    this.activeRoomOf.set(hostId, code); this.saveLobby(this.rooms.get(code)!);
     return { ok: true, code };
   }
 
@@ -141,7 +155,7 @@ export class RoomManager {
     if (r.tag && this.hooks.canJoin && !this.hooks.canJoin(r.tag, userId)) return { ok: false, error: "not_allowed" }; // sinf/turnir xonasi: faqat a'zolar
     if (r.members.length >= (r.seats ?? MAX_PLAYERS)) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
     r.members.push({ userId, bot: false, online: true });
-    this.activeRoomOf.set(userId, r.code);
+    this.activeRoomOf.set(userId, r.code); this.saveLobby(r);
     this.emit(r);
     return { ok: true };
   }
@@ -158,7 +172,7 @@ export class RoomManager {
     let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false, openingDice: opts.dreams !== false && opts.opening !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
     if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz
     r.state = s; this.ledgerSync(r);
-    await this.store.saveSnapshot(code, s, this.meta(r));
+    await this.store.saveSnapshot(code, s, this.meta(r)); this.dropLobby(code);
     this.hooks.onStart?.(code, r);
     this.arm(r);
     this.emit(r);
@@ -322,7 +336,7 @@ export class RoomManager {
     if (!r || !m || m.left) return; // takroriy chiqish hech narsani o'zgartirmaydi
     this.activeRoomOf.delete(userId);
     this.markOffline(r, userId);
-    if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) this.rooms.delete(code); else if (r.hostId === userId) r.hostId = r.members.find((x) => !x.bot)?.userId ?? r.members[0].userId; /* xona egasi chiqsa — keyingi odam egasi bo'ladi */ }
+    if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) { this.rooms.delete(code); this.dropLobby(code); } else if (r.hostId === userId) r.hostId = r.members.find((x) => !x.bot)?.userId ?? r.members[0].userId; /* xona egasi chiqsa — keyingi odam egasi bo'ladi */ if (r.members.length) this.saveLobby(r); }
     else {
       // «Ishonchsiz» (qaror #66): ochiq qarz yoki sheriklik bilan chiqib ketish
       const gp = r.state.players.find((p) => p.id === userId);

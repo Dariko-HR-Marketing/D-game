@@ -82,3 +82,30 @@ describe("tashlab ketish muddati", () => {
     await g.c.advance(SHORT + 1000); expect(await g.rm.sweep(SHORT, LONG)).toBe(1);
   });
 });
+
+describe("zal server qayta ishga tushsa ham saqlanadi", () => {
+  const next = (store: MemoryStore) => new RoomManager(new ContentRegistry(), store, new FakeClock());
+  it("a'zolar, o'rinlar soni va sozlamalar tiklanadi; o'yinchilar qaytadi; yangi odam o'rin bo'lsa qo'shiladi", async () => {
+    const store = new MemoryStore(); const rm = new RoomManager(new ContentRegistry(), store, new FakeClock());
+    const r = rm.create("a", undefined, 60, "auto", 4); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.join(r.code, "c");
+    await new Promise((x) => setImmediate(x));
+    const rm2 = next(store); expect(await rm2.restore()).toBe(1);
+    const room = rm2.rooms.get(r.code)!; expect(room.state).toBeNull(); expect(room.seats).toBe(4); expect(room.turnSeconds).toBe(60); expect(room.hostId).toBe("a");
+    expect(room.members.map((m) => m.userId)).toEqual(["a", "b", "c"]); expect(room.members.every((m) => !m.online)).toBe(true);
+    expect(rm2.activeRoomOf.get("b")).toBe(r.code);
+    expect(rm2.join(r.code, "b")).toEqual({ ok: true }); expect(rm2.join(r.code, "d")).toEqual({ ok: true }); expect(rm2.join(r.code, "e")).toEqual({ ok: false, error: "room_full" });
+    expect((await rm2.start(r.code, "a", 5, { dreams: false })).ok).toBe(true);
+  });
+  it("chiqqan o'yinchi saqlangan zaldan ham chiqadi; hamma chiqsa zal o'chadi; o'yin boshlangach zal yozuvi o'chadi", async () => {
+    const store = new MemoryStore(); const rm = new RoomManager(new ContentRegistry(), store, new FakeClock());
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b"); rm.leave(r.code, "b"); await new Promise((x) => setImmediate(x));
+    expect((await next(store).restore()) && store.lobbies.get(r.code)!.members.map((m) => m.userId)).toEqual(["a"]);
+    rm.leave(r.code, "a"); await new Promise((x) => setImmediate(x)); expect(store.lobbies.size).toBe(0);
+    const g = await setup(["a", "b"], 2); expect(g.store.lobbies.size).toBe(0);
+  });
+  it("tashlab ketilgan zal yopilganda saqlagichdan ham o'chadi", async () => {
+    const store = new MemoryStore(); const clock = new FakeClock(); const rm = new RoomManager(new ContentRegistry(), store, clock);
+    const r = rm.create("a"); if (!r.ok) throw 0; rm.disconnect(r.code, "a"); await new Promise((x) => setImmediate(x));
+    await clock.advance(31 * 60_000); expect(await rm.sweep(30 * 60_000, 24 * HOUR)).toBe(1); expect(store.lobbies.size).toBe(0);
+  });
+});
