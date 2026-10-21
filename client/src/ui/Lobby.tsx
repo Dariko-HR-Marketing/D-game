@@ -12,10 +12,10 @@ import { color, font, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../
 import { readableOn } from "../contrast";
 import type { RoomView } from "../net/connection";
 
-const MAX = 6, MIN = 2;
+const MAX = 6, MIN = 2; // eski xonalar uchun (o'rinlar soni belgilanmagan)
 export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: (events: boolean) => void; onLeave: () => void }) {
   const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false); const [events, setEvents] = useState(true);
-  const humans = room.members.length, bots = Math.max(0, MIN - humans);
+  const humans = room.members.length, seats = room.seats ?? MIN, bots = Math.max(0, seats - humans); // bo'sh o'rinlarni boshlanganda botlar egallaydi
   const copy = async () => {
     const text = room.code;
     try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
@@ -31,7 +31,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       </Card></View>
 
       <Card>
-        <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${MAX}`} kind={humans >= MIN ? "good" : "warn"} /></View>
+        <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${room.seats ?? MAX}`} kind={humans >= seats ? "good" : "warn"} /></View>
         {room.members.map((m, i) => {
           const label = nameOf(room, m.userId); const lvl = room.names?.[m.userId]?.level; const stars = Math.min(5, lvl ?? 0);
           return (<View key={m.userId} style={s.player} role="group" accessible aria-label={`${i + 1}. ${label}${m.userId === userId ? `, ${uz.lobby.you}` : ""}${lvl !== undefined ? `, ${lvl}-daraja` : ""}${i === 0 ? `, ${uz.lobby.hostWord}` : ""}${m.online ? "" : `, ${uz.lobby.offline}`}`}>
@@ -46,12 +46,13 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
             {!m.online && <Text style={{ color: tone.bad, fontWeight: "800", fontSize: font.sm }} aria-hidden>{uz.lobby.offline}</Text>}
           </View>);
         })}
-        {Array.from({ length: Math.max(0, MIN - humans) }, (_, i) => (
+        {Array.from({ length: bots }, (_, i) => (
           <View key={`e${i}`} style={[s.player, s.empty]} aria-hidden><View style={[s.dot, { borderStyle: "dashed", borderColor: color.line, backgroundColor: "transparent" }]} /><Text style={s.emptyT}>{uz.lobby.waitingPlayer}</Text></View>))}
       </Card>
 
       {room.turnSeconds ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
       {room.calc ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-calc"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.ledger.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{room.calc.mode === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text></View> : null}
+      {room.seats ? <Text style={s.emptyT} testID="lobby-seats">{uz.lobby.slotsNote.replace("{n}", String(room.seats))}</Text> : null}
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
       {host && (
         <Card>

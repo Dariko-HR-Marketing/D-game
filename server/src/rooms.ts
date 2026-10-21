@@ -23,6 +23,8 @@ export interface Member { userId: string; bot: boolean; online: boolean; left?: 
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
+  /** Xona egasi oldindan belgilagan o'yinchilar soni (2–6); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 6 gacha qo'shilish, 2 tagacha bot. */
+  seats?: number;
   calcMode: CalcMode; ledger: Record<string, Snap>; calcTries: Record<string, number>; calcNotes: Record<string, { kind: "decide" | "confirm"; wrong: number; hint: boolean }[]>; calcStats: Record<string, { firstTry: number; retried: number }>;
   ctx: Ctx; contentVersion: number | null; // o'yin boshlanganda qulflanadi (§11)
   createdAt: number; endedAt: number | null;
@@ -53,7 +55,7 @@ function assetCardOf(ctx: Ctx, code: string): AssetCard | undefined {
   return m.get(code);
 }
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
+export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -81,7 +83,7 @@ export class RoomManager {
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color, level: pf.level, photo: pf.photo, ...(pf.gender ? { gender: pf.gender } : {}), cos: pf.cos }; }
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
-    return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, turnSeconds: r.turnSeconds,
+    return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds,
       calc: (() => { const due = r.calcMode === "manual" ? this.dueOf(r) : []; return { mode: r.calcMode, due, ledger: Object.fromEntries(due.map((id) => [id, r.ledger[id]])), stats: r.calcStats }; })(),
       assetCards: r.state ? Object.fromEntries([...new Set(r.state.players.flatMap((p) => p.assets.map((a) => a.code)))].flatMap((c) => { const x = assetCardOf(r.ctx, c); return x ? [[c, x]] : []; })) : undefined,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: ce.effect, mode: ce.mode, file: ce.file }; })() : null,
@@ -92,7 +94,7 @@ export class RoomManager {
   }
 
   private meta(r: Room): RoomMeta {
-    return { tag: r.tag, hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt, turnSeconds: r.turnSeconds, calcMode: r.calcMode };
+    return { tag: r.tag, hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt, turnSeconds: r.turnSeconds, calcMode: r.calcMode, ...(r.seats !== undefined ? { seats: r.seats } : {}) };
   }
 
   /** Server qayta ishga tushganda tugamagan o'yinlarni tiklaydi (§6.3). O'yinchilar oflayn deb belgilanadi va qayta ulanganda davom etadi. */
@@ -105,7 +107,7 @@ export class RoomManager {
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
       const r: Room = { tag: a.meta.tag, code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable, online: false })), state: a.state, seq: a.meta.seq,
-        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
+        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", ...(a.meta.seats !== undefined ? { seats: a.meta.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.ledgerSync(r); this.armProposals(r); this.arm(r); n++;
@@ -120,10 +122,11 @@ export class RoomManager {
     }
   }
 
-  create(hostId: string, tag?: RoomTag, turnSeconds: TurnSeconds = 30, calcMode: CalcMode = "auto"): { ok: true; code: string } | { ok: false; error: Err } {
+  create(hostId: string, tag?: RoomTag, turnSeconds: TurnSeconds = 30, calcMode: CalcMode = "auto", seats?: number): { ok: true; code: string } | { ok: false; error: Err } {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
+    if (seats !== undefined && (!Number.isInteger(seats) || seats < MIN_PLAYERS || seats > MAX_PLAYERS)) return { ok: false, error: "bad_seats" };
     const code = this.newCode();
-    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
+    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
       ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null, tag });
     this.activeRoomOf.set(hostId, code);
     return { ok: true, code };
@@ -136,7 +139,7 @@ export class RoomManager {
     if (this.activeRoomOf.has(userId)) return { ok: false, error: "already_in_game" };
     if (r.state) return { ok: false, error: "already_started" };
     if (r.tag && this.hooks.canJoin && !this.hooks.canJoin(r.tag, userId)) return { ok: false, error: "not_allowed" }; // sinf/turnir xonasi: faqat a'zolar
-    if (r.members.length >= MAX_PLAYERS) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
+    if (r.members.length >= (r.seats ?? MAX_PLAYERS)) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
     r.members.push({ userId, bot: false, online: true });
     this.activeRoomOf.set(userId, r.code);
     this.emit(r);
@@ -150,7 +153,7 @@ export class RoomManager {
     if (r.hostId !== userId) return { ok: false, error: "not_host" };
     if (r.state) return { ok: false, error: "already_started" };
     let b = 1;
-    while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
+    while (r.members.length < (r.seats ?? MIN_PLAYERS)) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
     let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false, openingDice: opts.dreams !== false && opts.opening !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
     if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz

@@ -11,3 +11,10 @@ export type CalcMode = "manual" | "auto";
 const CKEY = "poyga-calc";
 export const getCalcPref = (): CalcMode => (tourKV.get(CKEY) === "auto" ? "auto" : "manual");
 export const setCalcPref = (v: CalcMode) => tourKV.set(CKEY, v);
+
+/** Xona yaratishda oldindan belgilanadigan o'yinchilar soni (2–6): odam yetmasa botlar to'ldiradi. Oxirgi tanlov qurilmada eslab qolinadi. */
+export type Seats = 2 | 3 | 4 | 5 | 6;
+export const SEATS: readonly Seats[] = [2, 3, 4, 5, 6];
+const SKEY = "poyga-seats";
+export const getSeatsPref = (): Seats => { const n = Number(tourKV.get(SKEY)); return (SEATS as readonly number[]).includes(n) ? (n as Seats) : 4; };
+export const setSeatsPref = (v: Seats) => tourKV.set(SKEY, String(v));
