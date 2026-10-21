@@ -34,7 +34,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
     check(await rb.count() === 1, `${tag} tugma bitta (sahifadagisi modal ochiq paytda yashirin)`);
     check(await t.other.getByTestId("roll-modal").count() === 0, `${tag} boshqa o'yinchida tashlash oynasi yo'q`);
     const top = await t.page.evaluate(() => { const b = document.querySelector('[data-testid="dice-roll"] [role="button"]') as HTMLElement | null; if (!b) return "yo'q"; const r = b.getBoundingClientRect(), e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return b.contains(e) ? "oldinda" : "yopilgan"; }); check(top === "oldinda", `${tag} tugma hamma narsaning oldida (${top})`);
-    check(await t.page.evaluate(() => document.activeElement?.closest?.('[data-testid="dice-roll"]') !== null), `${tag} tugma fokusda (probel/Enter bilan tashlanadi)`);
+    const focused = await t.page.waitForFunction(() => document.activeElement?.closest?.('[data-testid="dice-roll"]') != null, undefined, { timeout: 3000 }).then(() => true, () => false); check(focused, `${tag} tugma fokusda (probel/Enter bilan tashlanadi)`);
     await t.page.screenshot({ path: `${OUT}/${tag}-0-prompt-small.png` });
     await t.page.getByRole("button", { name: "Avval hisobni ko'raman" }).first().click(); await t.page.waitForTimeout(300);
     check(await t.page.getByTestId("roll-modal").count() === 0 && await rb.count() === 1, `${tag} «Avval hisobni ko'raman»: oyna yopildi, sahifadagi tugma qoldi`);

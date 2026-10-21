@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Dice } from "./Dice";
+import { diceBusyFlag } from "./tourStore";
 import { Button } from "./Button";
 import { TimerRing } from "./TimerRing";
 import { useReducedMotion } from "../motion";
@@ -20,20 +21,22 @@ export function DiceModal({ room, userId, prompt }: { room: RoomView; userId: st
   const lr = (room.state as any)?.lastRoll as { playerId: string; die: number; dice?: number[]; n: number } | null | undefined;
   const seen = useRef<number | undefined>(undefined);
   const [show, setShow] = useState<{ n: number; playerId: string; dice: number[]; die: number } | null>(null); const [done, setDone] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => { // chizishdan oldin: yo'riqnoma shu paytda ochilib qolmasin (bayroq darrov ko'tariladi)
     if (seen.current === undefined) { seen.current = lr?.n ?? 0; return; }
     if (!lr || lr.n === seen.current) return; seen.current = lr.n;
-    const dice = diceOf(lr, false) ?? [lr.die]; setShow({ n: lr.n, playerId: lr.playerId, dice, die: lr.die }); setDone(false);
+    diceBusyFlag.set(true); const dice = diceOf(lr, false) ?? [lr.die]; setShow({ n: lr.n, playerId: lr.playerId, dice, die: lr.die }); setDone(false);
     const t1 = setTimeout(() => setDone(true), reduced ? 150 : DICE_MS + 80), t2 = setTimeout(() => setShow(null), reduced ? 1300 : DICE_MS + 1250);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [lr?.n]); // eslint-disable-line react-hooks/exhaustive-deps
   const close = () => setShow(null);
+  useEffect(() => { if (!show) diceBusyFlag.set(false); }, [!!show]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => diceBusyFlag.set(false), []);
   useEffect(() => {
     const d = (globalThis as any).document; if (!show || !d?.addEventListener) return;
     const h = (e: any) => { if (e.key === "Escape") close(); }; d.addEventListener("keydown", h); return () => d.removeEventListener("keydown", h);
   }, [show]);
   useEffect(() => { // tugma darrov fokusda: probel/Enter bilan tashlanadi
-    if (!prompt || show) return; const d = (globalThis as any).document; const t = setTimeout(() => d?.querySelector?.('[data-testid="dice-roll"] [role="button"]')?.focus?.(), 60); return () => clearTimeout(t);
+    if (!prompt || show) return; const d = (globalThis as any).document; const f = () => d?.querySelector?.('[data-testid="dice-roll"] [role="button"]')?.focus?.(); f(); const t = setTimeout(f, 80); return () => clearTimeout(t); // darrov va yana bir marta (chizish tugagach)
   }, [!!prompt, !!show]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const d = (globalThis as any).document; if (!prompt || show || !d?.addEventListener) return;

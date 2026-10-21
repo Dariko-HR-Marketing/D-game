@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
 import { DiceModal } from "./DiceModal";
 import { getRollModalPref, setRollModalPref } from "../turnPref";
+import { isTourOpen, subscribeTourOpen } from "./tourStore";
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pressable } from "react-native";
 import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
@@ -116,7 +117,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   const [rollModalOn, setRollModalOn] = useState(getRollModalPref); const [waitRoll, setWaitRoll] = useState(false); const [laterAt, setLaterAt] = useState<number | null>(null); const oppN = state.lastRoll?.n ?? 0;
   useEffect(() => { setWaitRoll(false); }, [oppN]);
   useEffect(() => { if (!waitRoll) return; const t = setTimeout(() => setWaitRoll(false), 4000); return () => clearTimeout(t); }, [waitRoll]);
-  const promptOpen = rollModalOn && (canRoll || waitRoll) && laterAt !== oppN && !state.winner;
+  const [tourOpen, setTourOpenNow] = useState(isTourOpen); useEffect(() => subscribeTourOpen(setTourOpenNow), []);
+  const promptOpen = rollModalOn && !tourOpen && (canRoll || waitRoll) && laterAt !== oppN && !state.winner; // yo'riqnoma ochiq bo'lsa kubik oynasi uning ustiga chiqmaydi
   const rollPrompt = promptOpen ? { circle: curP?.circle ?? "small", twoDice: curP?.twoDice, left, total: phaseSeconds(room), waiting: waitRoll,
     onRoll: () => { setWaitRoll(true); onAct({ type: "roll" }); }, onLater: () => setLaterAt(oppN), onDisable: () => { setRollModalPref(false); setRollModalOn(false); } } : null;
   // Pastki menyu belgilari (telefon): ko'rilgan narsalar bo'lim ochilganda yangilanadi

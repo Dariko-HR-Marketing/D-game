@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, useWindowDimensions, Pressable } from "react-na
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { TOUR_META } from "./tourData";
-import { tourKV, onReplay } from "./tourStore";
+import { tourKV, onReplay, setTourOpen, diceBusyFlag } from "./tourStore";
 import { uz } from "../i18n/uz";
 import { useReducedMotion } from "../motion";
 import { shouldShowTour, markTourSeen, type TourId } from "../tours";
@@ -28,13 +28,15 @@ export function Tour({ id, onRules, defer }: { id: TourId | null; onRules: () =>
   const { width: vw, height: vh } = useWindowDimensions(); const reduced = useReducedMotion(); const card = useRef<any>(null);
   const steps = id ? uz.tour[id] ?? [] : []; const meta = id ? TOUR_META[id] : []; const last = i >= steps.length - 1;
   const prevId = useRef<TourId | null>(null);
+  const [diceBusy, setDiceBusyNow] = useState(diceBusyFlag.get); useEffect(() => diceBusyFlag.subscribe(setDiceBusyNow), []);
   // `defer`: o'yinda o'z navbatingiz davomida yo'riqnoma ochilmaydi (server taymeri to'xtamaydi); navbat o'tgach ochiladi. Ochiq yo'riqnoma yopilmaydi.
   useEffect(() => {
-    const changed = prevId.current !== id; prevId.current = id; const want = !!id && steps.length > 0 && !defer && shouldShowTour(tourKV, id);
+    const changed = prevId.current !== id; prevId.current = id; const want = !!id && steps.length > 0 && !defer && !diceBusyFlag.get() && shouldShowTour(tourKV, id); // kubik natijasi ko'rsatilayotganda ochilmaydi
     if (changed) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(want); } else if (want) setOpen(true);
-  }, [id, defer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, defer, diceBusy]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => onReplay(() => { if (id && steps.length) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(true); } }), [id, steps.length]);
   const close = () => { if (id) markTourSeen(tourKV, id); setOpen(false); };
+  useEffect(() => { setTourOpen(open); return () => setTourOpen(false); }, [open]); // kubik oynasi yo'riqnoma ochiq paytda chiqmaydi
   // Maqsadni o'lchash: qadam o'zgarganda, oyna o'zgarganda va joylashuv tinchigach
   useEffect(() => {
     if (!open) return; const target = meta[i]?.target; const run = () => setRect(visibleRect(measure(target), vw, vh)); run();
