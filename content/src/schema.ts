@@ -1,13 +1,14 @@
 import { z } from "zod";
+import { CatalogCard, CardMeta } from "./catalog";
 
 const file = z.string().regex(/\.(png|webp)$/i);
 const money = z.number().int().nonnegative();
 
 export const Kasb = z.object({
-  n: z.number().int(), name: z.string().min(1), salary: money, exp: z.array(money).length(9),
+  n: z.number().int(), name: z.string().min(1), salary: money, exp: z.array(money).length(9).optional(),
   total: money, cf: z.number().int(), save: money, kv: money, car: money, child: money,
-  flags: z.array(z.string()), file,
-}).refine((k) => k.exp.reduce((a, b) => a + b, 0) === k.total, "exp yig'indisi total ga teng emas")
+  flags: z.array(z.string()), file: file.or(z.literal("")), // rasm yo'q (NEW_ART) bo'lsa fayl bo'sh: kartada matnli zaxira shablon
+}).refine((k) => !k.exp || k.exp.reduce((a, b) => a + b, 0) === k.total, "exp yig'indisi total ga teng emas") // xarajat qatorlari berilmagan kasbda (yangi kasblar) exp yo'q: blankda faqat jami xarajat
   .refine((k) => k.salary - k.total === k.cf, "salary − total ≠ cf");
 
 const Kichik = z.object({ file, code: z.string(), type: z.string(), text: z.string(), note: z.string().optional(),
@@ -36,10 +37,14 @@ export const NewCard = z.object({ deck: z.enum(["kichik", "bozor", "xar", "hod"]
 export const Cards = z.object({
   kasb: z.array(Kasb), kichik: z.array(KichikCard), katta: z.array(KattaCard), bozor: z.array(BozorCard),
   xar: z.array(XarCard), kxar: z.array(KxarCard), hod: z.array(HodCard), new: z.array(NewCard),
+  /** Tajriba24 import jadvalidagi yangi kartalar (INSERT) — ko'p turli effekt maydonlari bilan. Eski kolodalar o'zgarmaydi. */
+  catalog: z.array(CatalogCard).default([]),
+  /** Eski kartalar uchun jadvaldagi qo'shimcha ma'lumot (reyting havzasi, yosh, soha, olib tashlash). Kalit: `fileKey(file)`; kasb/yangi kasb — `kasb-N`. */
+  meta: z.record(z.string(), CardMeta).default({}),
 });
 export type Cards = z.infer<typeof Cards>;
 
-export const EXPECTED_COUNTS = { kasb: 32, kichik: 82, katta: 85, bozor: 98, xar: 85, kxar: 25, hod: 9, new: 6 } as const;
+export const EXPECTED_COUNTS = { kasb: 52, kichik: 82, katta: 85, bozor: 98, xar: 85, kxar: 25, hod: 9, new: 6 } as const;
 
 export const Dream = z.object({ name: z.string().min(1), price: money });
 export const BigCell = z.object({ i: z.number().int(), t: z.enum(["T", "V", "O", "X", "Y"]), name: z.string(),

@@ -28,7 +28,7 @@ describe("kontent farqi va tekshiruvi", () => {
     const d = diffValues(a, b); expect(d).toMatchObject({ added: 1, removed: 1, changed: 1 }); expect(d.items.find((i) => i.kind === "changed")!.fields![0]).toMatchObject({ path: "salary", before: "7", after: "9" });
   });
   it("checkBundle: asl kontent ogohlantirishsiz (yoki faqat ma'lum), buzilgan versiya ogohlantiradi", () => {
-    const b = loadContent() as any; const ok = checkBundle(b); expect(ok.stats.kasb).toBe(32);
+    const b = loadContent() as any; const ok = checkBundle(b); expect(ok.stats.kasb).toBe(52);
     const bad = JSON.parse(JSON.stringify(b)); bad.cards.kasb[0].cf = -5; bad.cards.kasb[1].name = bad.cards.kasb[0].name; bad.bigBoard.pop();
     const w = checkBundle(bad).warnings.join("|"); expect(w).toContain("≤ 0"); expect(w).toContain("takrorlangan"); expect(w).toContain("katak");
   });
@@ -37,7 +37,7 @@ describe("kontent farqi va tekshiruvi", () => {
     const dreams = (s.x.registry.bundle() as any).dreams.map((d: any, i: number) => (i === 0 ? { ...d, price: d.price + 1000 } : d));
     const v = (await s.j("POST", "/admin/content/dreams/versions", ed, { data: dreams, note: "narx" })).json().version; expect(v).toBeGreaterThan(1);
     const diff = (await s.j("GET", `/admin/content/versions/${v}/diff`)).json(); expect(diff.changed).toBe(1); expect(diff.items[0].fields![0].after).toBe(String(dreams[0].price)); // boshqa qismlar (katak qoidalari) yo'qolmagan
-    expect((await s.j("GET", `/admin/content/versions/${v}/check`)).json().stats.kasb).toBe(32);
+    expect((await s.j("GET", `/admin/content/versions/${v}/check`)).json().stats.kasb).toBe(52);
     expect((await s.j("POST", `/admin/content/versions/${v}/submit`, ed, { comment: "ko'rib chiqing" })).json().ok).toBe(true);
     expect((await s.j("GET", "/admin/content/reviews")).json().reviews[0]).toMatchObject({ version: v, status: "submitted" });
     expect((await s.j("POST", `/admin/content/versions/${v}/publish`, ed)).statusCode).toBe(403);

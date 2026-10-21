@@ -1,13 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { loadContent, EXPECTED_COUNTS, deriveEffects } from "./index";
+import { loadContent, EXPECTED_COUNTS, deriveEffects, isLive } from "./index";
 
 const { cards, bigBoard, dreams } = loadContent();
 const effects = deriveEffects(cards);
 
 describe("kontent", () => {
-  it("kolodalar soni SPEC bilan mos (422)", () => {
+  it("kolodalar soni: eski kolodalar 442 (kasb 52 — jadvaldagi 24 yangi kasb bilan), katalog 590; olib tashlangan 19 → faol 1 013 (Tajriba24)", () => {
     for (const [k, n] of Object.entries(EXPECTED_COUNTS)) expect((cards as any)[k]).toHaveLength(n);
-    expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(422);
+    expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(442);
+    expect(cards.catalog).toHaveLength(590);
+    const retired = Object.values(cards.meta).filter((m) => m.retired).length;
+    expect(retired).toBe(19); expect(442 + cards.catalog.length - retired).toBe(1013);
   });
   it("ko'chmas mulk kartalari: bo'nak + kredit = to'liq qiymat (manba rasmlaridagi 2 ta xato — KV4-006, DX-005 — qaror bilan tuzatilgan)", () => {
     for (const c of cards.katta as any[]) if (c.down !== undefined) expect(c.down + c.credit, c.file).toBe(c.full);
@@ -17,17 +20,21 @@ describe("kontent", () => {
     expect(bigBoard.filter((c) => c.t === "O")).toHaveLength(dreams.length);
     expect(bigBoard[34].name).toBe("Start");
   });
-  it("rasm fayl nomlari takrorlanmaydi (deka ichida)", () => {
+  it("rasm fayl nomlari takrorlanmaydi (deka ichida; rasmsiz kartalar hisobga kirmaydi)", () => {
     for (const [k, deck] of Object.entries(cards)) {
-      const f = (deck as any[]).map((x) => x.file);
+      if (!Array.isArray(deck)) continue;
+      const f = (deck as any[]).map((x) => x.file).filter(Boolean);
       expect(new Set(f).size, k).toBe(f.length);
     }
   });
 });
 
 describe("kartalar ta'siri (100 %)", () => {
-  it("har bir karta uchun ta'sir bor", () => expect(effects).toHaveLength(422));
-  it("hal qilinmagan karta yo'q", () => expect(effects.filter((e) => e.effect.kind === "unresolved")).toEqual([]));
+  it("har bir karta uchun ta'sir bor (eski 442 + katalog 590)", () => expect(effects).toHaveLength(442 + 590));
+  it("hal qilinmagan karta faqat ushlab turilgan (held) katalog kartasi; sababi yozilgan va kolodaga tushmaydi", () => {
+    const un = effects.filter((e) => e.effect.kind === "unresolved");
+    for (const e of un) { expect(e.info?.catalog, e.id).toBe(true); expect(e.info?.held, e.id).toBeTruthy(); expect(isLive(e), e.id).toBe(false); }
+  });
   it("xarajat kartasida 'A + B' yozilgan bo'lsa, summa yig'indiga teng", () => {
     for (const x of cards.xar) {
       const m = x.note.match(/«(\d+) \+ (\d+)»/);
@@ -67,9 +74,9 @@ describe("admin kontentini tekshirish", () => {
 
 import { isSafeCardFile, cardFileUrl } from "./index";
 describe("karta rasmi fayl nomlari (§2.5)", () => {
-  it("hamma 422 kartaning fayl nomi xavfsiz shaklga mos va URL ga aylanadi", () => {
-    const files = Object.values(cards).flat().map((x: any) => x.file as string);
-    expect(files).toHaveLength(422);
+  it("rasmi bor hamma kartaning fayl nomi xavfsiz shaklga mos va URL ga aylanadi (418 eski karta; yangilarning rasmi keyin)", () => {
+    const files = Object.values(cards).filter(Array.isArray).flat().map((x: any) => x.file as string).filter(Boolean);
+    expect(files).toHaveLength(418);
     for (const f of files) { expect(isSafeCardFile(f), f).toBe(true); expect(cardFileUrl("/cards", f), f).toContain("/cards/"); }
   });
   it("apostrofli nom kodlanadi; yo'l o'tishi va begona kengaytma rad etiladi", () => {

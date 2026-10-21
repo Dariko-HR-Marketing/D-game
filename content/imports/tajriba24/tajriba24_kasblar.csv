@@ -1,0 +1,53 @@
+n,source,name,salary,total,cf,save,kv,car,child,exp,note
+1,Asl (mavjud),Begona firma direktori,2500,1950,550,1000,30000,17000,200,100|350|500|300|100|0|50|300|250,
+2,Asl — tahrirlangan,Yo‘l harakati xavfsizligi serjanti,150,110,40,100,0,0,50,20|70|0|0|10|0|0|0|10,
+3,Asl (mavjud),Tramvay haydovchisi,250,160,90,200,0,0,50,20|100|0|0|10|0|10|0|20,
+4,Asl — tahrirlangan,Huquqshunos-maslahatchi,900,675,225,1000,0,0,100,50|200|0|0|100|200|100|40|90,
+5,Asl (mavjud),Bosh hisobchi,500,280,220,300,0,0,60,20|150|0|0|20|0|20|20|50,
+6,Asl — tahrirlangan,Onlayn nashr bosh muharriri,800,670,130,400,0,0,60,250|150|0|0|100|0|50|40|80,
+7,Asl (mavjud),Omborchi,400,210,190,400,0,0,60,40|100|0|0|10|0|10|10|40,
+8,Asl (mavjud),Ish boshqaruvchi,500,280,220,200,0,0,70,20|150|0|0|20|0|20|20|50,
+9,Asl (mavjud),Kranchi,600,290,310,200,0,0,70,20|150|0|0|20|0|20|20|60,
+10,Asl (mavjud),Plitachi-ishchi,600,350,250,400,0,0,60,150|100|0|0|10|0|10|20|60,
+11,Asl (mavjud),G‘aznachi,300,200,100,500,0,0,50,30|100|0|0|10|0|20|10|30,
+12,Asl (mavjud),Taksichi,1200,950,250,1000,0,9000,300,50|150|0|200|20|0|10|400|120,
+13,Asl (mavjud),Tergovchi,1500,1100,400,2000,0,20000,150,50|300|0|300|100|0|100|100|150,
+14,Asl (mavjud),Soliq inspektori,1500,1060,440,3000,20000,0,100,100|300|300|0|50|0|60|100|150,
+15,Asl (mavjud),Bo‘lim rahbari,800,590,210,400,15000,0,60,50|150|200|0|20|0|70|20|80,
+16,Asl — tahrirlangan,Yo‘l harakati xavfsizligi kapitani,1200,900,300,2000,0,30000,100,40|300|0|200|20|0|20|200|120,
+17,Asl (mavjud),Advokat,2500,1500,1000,400,0,20000,300,100|250|0|300|100|100|100|300|250,
+18,Asl — tahrirlangan,Profilaktika inspektori,300,220,80,300,0,0,50,30|100|0|0|20|0|20|20|30,
+19,Asl — tahrirlangan,Raqamli reklama menejeri,300,250,50,500,0,0,70,20|150|0|0|20|0|10|20|30,
+20,Asl — tahrirlangan,Kontent-muxbir,400,260,140,100,0,0,40,30|100|0|0|40|0|10|40|40,
+21,Asl (mavjud),Uzoq yo‘lga yuradigan haydovchi,600,280,320,400,0,0,70,50|150|0|0|10|0|10|0|60,
+22,Asl — tahrirlangan,Jamoat tashkiloti yordamchisi,2500,1950,550,2000,50000,20000,150,100|300|500|300|200|0|100|200|250,
+23,Asl — tahrirlangan,Ofis menejeri,500,310,190,100,0,0,70,20|100|0|0|20|0|100|20|50,
+24,Asl (mavjud),Do‘kon sotuvchisi,300,150,150,100,0,0,40,20|70|0|0|10|0|10|10|30,
+25,Asl (mavjud),Xalqaro kompaniya top-menejeri,3000,2200,800,3000,60000,17000,250,100|300|500|300|100|200|100|300|300,
+26,Asl (mavjud),Sotuvchi-konsultant,300,240,60,500,0,0,70,20|120|0|0|20|0|30|20|30,
+27,Asl (mavjud),Jarroh,1500,760,740,1000,0,0,200,100|200|0|0|40|200|50|20|150,
+28,Asl (mavjud),Dizayner-maketchi,600,500,100,200,0,0,70,300|80|0|0|20|0|20|20|60,
+29,Avvalgi tavsiya,Maktab o‘qituvchisi,400,220,180,300,0,0,60,30|100|0|0|10|0|20|20|40,
+30,Avvalgi tavsiya,Elektrik-usta,500,300,200,300,0,0,60,20|150|0|0|20|0|20|40|50,
+31,Avvalgi tavsiya,Shifokor,900,520,380,600,0,0,90,50|200|0|0|30|50|50|50|90,
+32,Avvalgi tavsiya,IT-mutaxassis (dasturchi),1800,1040,760,1500,0,12000,160,100|250|0|200|50|100|100|60|180,
+33,Yangi · mavjud kolodaga,Kuryer,350,240,110,100,0,0,60,,Raqamli yetkazib berish; ish haqi yetkazilgan buyurtmalar soniga bog‘liq
+34,Yangi · mavjud kolodaga,Call-center operatori,300,220,80,100,0,0,60,,"Masofadan ham ishlash mumkin; barqaror, lekin o‘sish sekin"
+35,Yangi · mavjud kolodaga,SMM-mutaxassis,600,430,170,200,0,0,70,,Raqamli marketing; mijozlar soniga bog‘liq daromad
+36,Yangi · mavjud kolodaga,Kontent-kreator,700,520,180,150,0,0,70,,O‘zgaruvchan daromad; reklama va obuna
+37,Yangi · mavjud kolodaga,Frilans dasturchi,1500,1000,500,800,0,0,90,,"Chet el mijozlar, daromad barqaror emas — zaxira kerak"
+38,Yangi · mavjud kolodaga,UX/UI dizayner,1100,760,340,500,0,0,80,,Mahsulot dizayni; IT-kompaniyalarda talab katta
+39,Yangi · mavjud kolodaga,Ma’lumotlar tahlilchisi,1300,860,440,600,0,0,80,,Ma’lumot bilan ishlash; ko‘p sohalarda talab
+40,Yangi · mavjud kolodaga,Kiberxavfsizlik mutaxassisi,2000,1300,700,1500,0,12000,100,,"Yuqori maosh, kam mutaxassis, doimiy o‘qish"
+41,Yangi · mavjud kolodaga,Quyosh panellari montajchisi,700,430,270,300,0,0,70,,Yashil energetika; amaliy kasb
+42,Yangi · mavjud kolodaga,Elektromobil servis ustasi,800,520,280,300,0,0,70,,Yangi texnika; malakali usta kam
+43,Yangi · mavjud kolodaga,Turizm gidi,450,300,150,200,0,0,60,,Mavsumiy daromad; chet tillari
+44,Yangi · mavjud kolodaga,Agronom-fermer (issiqxona),650,380,270,300,0,0,70,,Agrotexnologiya; eksport imkoniyati
+45,Yangi · mavjud kolodaga,Tarmoq muhandisi,1000,620,380,250,0,0,90,,Aloqa va tarmoq infratuzilmasi
+46,Yangi · mavjud kolodaga,Grafik dizayner (brend va bosma),650,450,200,150,0,0,70,,"Brend, reklama va bosma dizayn"
+47,Yangi · mavjud kolodaga,Santexnik-usta,500,350,150,120,0,0,60,,"Amaliy kasb, doimiy talab"
+48,Yangi · mavjud kolodaga,Fizioterapevt,700,450,250,200,0,0,70,,Sog‘liqni saqlash xizmati
+49,Yangi · mavjud kolodaga,Logist (yetkazib berish),800,520,280,180,0,0,80,,Elektron tijorat logistikasi
+50,Yangi · mavjud kolodaga,Brend-menejer (onlayn savdo),900,610,290,200,0,0,80,,Onlayn savdo va brend boshqaruvi
+51,Yangi · mavjud kolodaga,Muhandis-quruvchi,1500,900,600,400,0,0,120,,Qurilish loyihalari
+52,Yangi · mavjud kolodaga,Veterinar,700,460,240,180,0,0,70,,Chorvachilik va hayvonlar salomatligi

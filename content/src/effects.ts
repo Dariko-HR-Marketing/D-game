@@ -1,12 +1,16 @@
 // Har bir karta uchun tipli ta'sir. Ma'lumotdan deterministik hosil qilinadi; qoida to'qilmaydi.
 // Aniq bo'lmagan karta `unresolved` bo'ladi va test uni ro'yxatga oladi (SPEC §16).
 import type { Cards } from "./schema";
+import { fileKey } from "./catalog";
+import { catalogEffect, catalogText } from "./catalogEffects";
 
 export type Mode = "optional" | "mandatory";
 export type Effect =
   | { kind: "profession"; n: number }
   | { kind: "buy"; asset: "small_business" | "business" | "land" | "dacha" | "apartment" | "car" | "collectible"; code: string;
-      price: number; down?: number; credit?: number; creditPayment?: number; monthlyIncome?: number; marketValue?: number | null }
+      price: number; down?: number; credit?: number; creditPayment?: number; monthlyIncome?: number; marketValue?: number | null;
+      /** Katalog kartasi: aktivning nomi va sohasi (bozor kartalari soha/nom bo'yicha nishonlaydi), qo'shimcha belgilar (masalan «ijara»). */
+      sector?: string; name?: string; tags?: string[] }
   | { kind: "buyShares"; code: string; pricePerShare: number; min: number; max: number }
   | { kind: "gain"; amount: number }
   | { kind: "pay"; amount: number; to: "bank" | "bank_insurable_car"; needs?: "child" | "car" } // needs: karta matnidagi «(agar bolangiz/mashinangiz bo'lsa)» sharti — qo'llanma §07: faqat bola yoki avtomobili borlar to'laydi
@@ -28,7 +32,9 @@ export type Effect =
   | { kind: "rentChoice"; cell: number; owner: string; income: number; buyPrice: number; mult: 2 | 3 } // birovning biznesi (§13): A — oylik daromadni to'lash; B — mult × narxda sotib olish
   | { kind: "unresolved"; reason: string };
 
-export interface CardEffect { deck: string; id: string; file: string; mode: Mode; effect: Effect; text?: string }
+/** Kartaning jadvaldagi holati (Tajriba24): reyting havzasi, yosh, soha; `held` — kolodaga tushmaydi (sabab matni); `retired` — olib tashlangan. */
+export interface CardInfo { ranked: "BASE" | "EXTENDED"; age?: string; sector?: string; kind?: string; image?: string; goal?: string; held?: string; retired?: string; catalog?: boolean }
+export interface CardEffect { deck: string; id: string; file: string; mode: Mode; effect: Effect; text?: string; title?: string; info?: CardInfo }
 
 const num = (s: string) => Number(s.replace(/[^\d.-]/g, ""));
 const assetOf = (code: string): "apartment" | "dacha" | "land" => (code === "DX" ? "dacha" : code === "E" ? "land" : "apartment");
@@ -112,6 +118,13 @@ export function deriveEffects(c: Cards): CardEffect[] {
       default: return push("new", id, n.file, "optional", { kind: "unresolved", reason: `new kod: ${n.code}` });
     }
   });
+  // Tajriba24 katalogi: har bir karta o'z kodi bilan (`cat-<id>`). Kasb kolodasidagi karyera/missiya kartalari tortish havzasiga kirmaydi (kasb kolodasi faqat kasblar uchun).
+  const CAT_DECK: Record<number, string> = { 1: "kasb_ext", 2: "kichik", 3: "katta", 4: "bozor", 5: "xar", 6: "kxar", 7: "hod" };
+  for (const k of c.catalog) {
+    const d = catalogEffect(k);
+    out.push({ deck: CAT_DECK[k.deck], id: `cat-${k.id}`, file: k.file ?? "", mode: d.mode, effect: d.effect, text: catalogText(k), title: k.title,
+      info: { ranked: k.ranked, age: k.age, sector: k.sector, kind: k.kind, image: k.image, goal: k.goal, ...(d.held ? { held: d.held } : {}), catalog: true } });
+  }
   // Karta matni (UI uchun): har kolodada tartib manba massivi bilan bir xil.
   const src: Record<string, string[]> = {
     kasb: c.kasb.map((k) => k.name), kichik: c.kichik.map((k) => k.text), katta: c.katta.map((k) => k.text), bozor: c.bozor.map((k) => k.text),
@@ -119,5 +132,27 @@ export function deriveEffects(c: Cards): CardEffect[] {
   };
   const seen: Record<string, number> = {};
   for (const e of out) { if (e.text !== undefined) continue; const i = (seen[e.deck] = (seen[e.deck] ?? -1) + 1); e.text = src[e.deck][i]; }
+  // Eski kartalar uchun jadval ma'lumoti (meta): reyting havzasi, yosh, soha, olib tashlash, koloda o'tkazilishi.
+  for (const ce of out) {
+    if (ce.info?.catalog) continue;
+    const key = ce.id.startsWith("kasb-") ? ce.id : fileKey(ce.file); const m = c.meta?.[key]; if (!m) continue;
+    ce.info = { ranked: m.ranked, age: m.age, sector: m.sector, kind: m.kind, image: m.image, goal: m.goal, ...(m.retired ? { retired: m.retired } : {}) }; // eski kartalar dvigatelda allaqachon bor (SPEC §5.10): jadvaldagi draw_enabled/needs_engine_mapping ularni o'chirmaydi
+    if (m.deck) ce.deck = m.deck;
+  }
   return out;
+}
+
+/** Kolodaga tushadigan (tortiladigan) karta: olib tashlanmagan, ushlab turilmagan, ta'siri aniq. */
+export const isLive = (ce: CardEffect) => !ce.info?.retired && !ce.info?.held && ce.effect.kind !== "unresolved";
+
+export interface CatalogSummary { active: number; live: number; held: number; retired: number; heldByReason: Record<string, number> }
+/** Import hisoboti uchun: faol/o'yinda/ushlab turilgan/olib tashlangan kartalar soni. */
+export function catalogSummary(fx: CardEffect[], _cards?: Cards): CatalogSummary {
+  const s: CatalogSummary = { active: 0, live: 0, held: 0, retired: 0, heldByReason: {} };
+  for (const e of fx) {
+    if (e.info?.retired) { s.retired++; continue; }
+    s.active++;
+    if (isLive(e)) s.live++; else { s.held++; const r = (e.info?.held ?? (e.effect.kind === "unresolved" ? (e.effect as { reason: string }).reason : "")).replace(/\(.*\)/, "").trim(); s.heldByReason[r] = (s.heldByReason[r] ?? 0) + 1; }
+  }
+  return s;
 }

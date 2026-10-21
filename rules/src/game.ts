@@ -21,6 +21,8 @@ export interface Dream { name: string; price: number }
 export interface Ctx {
   effects: Record<string, CardEffect>;
   deckIds: { kasb: string[]; kichik: string[]; katta: string[]; bozor: string[]; xar: string[]; kxar: string[]; hod: string[] };
+  /** Reytingli o'yinda yopiq kartalar (ranked_pool=EXTENDED; RULES.rankedPools bilan boshqariladi) va 16 yoshgacha o'yinchilarga tushmaydigan kartalar (age 16+). */
+  extended?: string[]; adult?: string[];
   /** Ochiq kataklar qoidalari (content/cellrules.ts). Bo'sh/yo'q bo'lsa — katak ta'sirsiz va jurnalga yoziladi. */
   cellRules?: CellRulesT;
   kasb: Record<number, Kasb>;
@@ -89,7 +91,9 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: strin
   const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
-    for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
+    // Reytingli o'yinda faqat asosiy havza (ranked_pool=BASE): EXTENDED kartalar sozlama (RULES.rankedPools) bilan yoqilmaguncha kirmaydi (Tajriba24 TZ §6.7)
+    const closed = new Set(modeOf(opts.mode) === "rated" && !(RULES.rankedPools as readonly string[]).includes("EXTENDED") ? ctx.extended ?? [] : []);
+    for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k].filter((id) => !closed.has(id)), r), discard: [] };
   });
   s.players = playerIds.map((id) => {
     const kid = drawFrom(s, "kasb");
@@ -371,8 +375,15 @@ function applyMarketCard(s: GameState, ctx: Ctx, id: string, e: Extract<Effect, 
   if (e.forced) { for (const q of [...s.players]) sellToMarket(s, ctx, q.id, e); return; }
   s.proposals.push({ id: s.nextProposal++, kind: "market", cardId: id, sold: [] });
 }
+/** Karta tortish: 16 yoshgacha (restricted) o'yinchiga 16+ karta tushmaydi — u chetga qo'yilib, keyingisi olinadi (Tajriba24 TZ §6.8). */
+function drawFor(s: GameState, ctx: Ctx, deck: DeckName, pid: string): string {
+  const adult = new Set(ctx.adult ?? []); let id = drawFrom(s, deck);
+  if (!adult.size || !s.restricted.includes(pid)) return id;
+  for (let k = s.decks[deck].draw.length + s.decks[deck].discard.length; k > 0 && adult.has(id); k--) id = drawFrom(s, deck);
+  return id;
+}
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
-  const id = drawFrom(s, deck); noteCard(s, p.id, id);
+  const id = drawFor(s, ctx, deck, p.id); noteCard(s, p.id, id);
   const ce = ctx.effects[id];
   if (ce.effect.kind === "marketSale") { applyMarketCard(s, ctx, id, ce.effect, ce.text); return; } // navbatni to'xtatmaydi
   if (ce.mode === "mandatory") { s.pending = { type: "card", playerId: p.id, cardId: id, deck }; autoMandatory(s, ctx, p, ce); }

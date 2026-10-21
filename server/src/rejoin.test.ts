@@ -131,7 +131,7 @@ describe("taymer jadvali va avtopilot", () => {
     expect(rm.view(room).members.find((m) => m.userId === "b")!.autopilot).toBe(true);
     // avtopilotda navbat qisqa pauzadan keyin o'tadi (30 s kutilmaydi)
     for (let k = 0; k < 6 && room.state!.players[room.state!.turn % 2].id !== "b"; k++) { const cur = room.state!.players[room.state!.turn % 2].id; if (cur === "a") { if (room.state!.pending) await rm.act(code, "a", { type: "decide", accept: false, playerId: "a" } as any, room.seq); else await rm.act(code, "a", { type: "roll", playerId: "a" } as any, room.seq); } }
-    expect(room.state!.players[room.state!.turn % 2].id).toBe("b"); const seq = room.seq; await c.advance(2_000); expect(room.seq).toBeGreaterThan(seq); expect(room.timerSeconds ?? null).toBeNull();
+    expect(room.state!.players[room.state!.turn % 2].id).toBe("b"); const seq = room.seq; await c.advance(2_000); expect(room.seq).toBeGreaterThan(seq); if (room.state!.players[room.state!.turn % 2].id === "b") expect(room.timerSeconds ?? null).toBeNull(); // avtopilotdagi o'yinchining navbatida taymer ko'rsatilmaydi (keyingi navbat «a» ga o'tgan bo'lsa — uniki)
     expect(rm.resumePlay(code, "b")).toEqual({ ok: true }); expect(me.autopilot).toBeFalsy(); expect(me.autoStreak).toBe(0);
     // o'zi harakat qilsa ham o'chadi
     me.autopilot = true; me.autoStreak = 3; await c.advance(40_000); // qaytadan

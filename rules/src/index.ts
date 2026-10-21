@@ -1,5 +1,6 @@
 // POYGA qoidalar dvigateli: sof funksiyalar, UI va tarmoqsiz. Manba: docs/SPEC.md §5.
 export const RULES = {
+  rankedPools: ["BASE"] as readonly string[], // reytingli o'yinda ruxsat etilgan karta havzalari (Tajriba24 RANKED_ALLOWED_POOLS); «EXTENDED» qo'shilsa yangi kartalar ham kiradi
   bankLimit: 10_000, // §5.3 (qo'llanma §09: kichik aylanadagi qarz chegarasi; bank kreditlari yig'indisi ham shundan oshmaydi)
   bankMin: 2_000, bankMax: 5_000, // qo'llanma §08: mini-kredit 2 000–5 000
   bankCollateralShare: 1.2,       // garov = kredit summasining 120 %
