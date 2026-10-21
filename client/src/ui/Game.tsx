@@ -11,6 +11,8 @@ import { CountText } from "./CountText";
 import { PortfolioCard, PortfolioDetail } from "./Portfolio";
 import { HistoryDetail } from "./History";
 import { SheetDetail } from "./Sheet";
+import { MomentLayer } from "./MomentLayer";
+import { useMoments } from "../useMoments";
 import type { Http } from "../net/http";
 import { LedgerPad, type CalcFeedback } from "./Ledger";
 import { useFx } from "../useFx";
@@ -106,6 +108,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const lcMine = state.lastCard && (state.lastCard as any).playerId === userId ? room.lastCard?.text ?? null : null;
   const fx = useFx(mine, lcMine, settled);
   useGameSounds({ room, userId, settled, mineTurn, left });
+  const mom = useMoments(room, userId, settled); const [momH, setMomH] = useState(0); // lahzalar: ovoz + animatsiya + tushuntirish (moments.ts)
   const snd = useSoundPrefs();
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
   const ledgerNow = room.calc?.ledger?.[userId] ?? (mine && e ? { cash: mine.cash, passive: e.passive, flow: e.cashflow } : { cash: 0, passive: 0, flow: 0 });
@@ -185,7 +188,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
@@ -225,7 +228,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <CardToast room={room} userId={userId} hold={!settled} /><GambleToast room={room} userId={userId} hold={!settled} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}

@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
-import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, getSeatsPref, setSeatsPref, SEATS, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
+import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, SEATS, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
 import { uz, errText } from "../i18n/uz";
 import { color, font, radius, space, tone, MIN_TAP } from "../theme";
@@ -68,13 +68,13 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
                   <Text style={[s.segT, turn === v && { color: color.white }]} aria-hidden>{v === 60 ? uz.home.turn60 : uz.home.turn30}</Text>
                 </Pressable>))}
             </View>
-            <View style={s.turnRow} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
+            {calcUiEnabled() && <View style={s.turnRow} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
               <Text style={s.turnL} aria-hidden>{uz.ledger.modeLabel}</Text>
               {(["manual", "auto"] as const).map((v) => (
                 <Pressable key={v} role="radio" aria-checked={calc === v} accessibilityLabel={`${v === "manual" ? uz.ledger.manual : uz.ledger.auto}. ${v === "manual" ? uz.ledger.manualHint : uz.ledger.autoHint}`} onPress={() => { setCalc(v); setCalcPref(v); }} style={[s.seg, calc === v && s.segOn]}>
                   <Text style={[s.segT, calc === v && { color: color.white }]} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text>
                 </Pressable>))}
-            </View>
+            </View>}
             </>)}
             <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
             {joinOpen && (

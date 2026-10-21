@@ -74,7 +74,7 @@ export class Connection {
     try { w.send(JSON.stringify(o)); return true; } catch { this.set({ error: "offline" }); return false; }
   }
 
-  create(turnSeconds: 30 | 60 = 30, calc: "auto" | "manual" = "manual", players?: number) { this.expecting = true; this.send({ type: "create", turnSeconds, calc, ...(players ? { players } : {}) }); }
+  create(turnSeconds: 30 | 60 = 30, calc: "auto" | "manual" = "auto", players?: number) { this.expecting = true; this.send({ type: "create", turnSeconds, calc, ...(players ? { players } : {}) }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
   leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [] }); }
