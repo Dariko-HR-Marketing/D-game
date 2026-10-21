@@ -1,10 +1,11 @@
 import { tourKV } from "./ui/tourStore";
-/** Xona ochganda tanlanadigan qaror vaqti (30 yoki 60 soniya); oxirgi tanlov qurilmada eslab qolinadi. */
+/** Xona ochganda tanlanadigan tezlik (30 — odatiy, 60 — sekin ×2); oxirgi tanlov qurilmada eslab qolinadi. */
 export type TurnSeconds = 30 | 60;
 const KEY = "poyga-turn-seconds";
 export const getTurnPref = (): TurnSeconds => (tourKV.get(KEY) === "60" ? 60 : 30);
 export const setTurnPref = (v: TurnSeconds) => tourKV.set(KEY, String(v));
-export const turnLabel = (s: number) => (s === 60 ? "1 daqiqa" : `${s} soniya`);
+/** Xona tezligi: «Odatiy» — kubik 10, karta 30 soniya; «Sekin» — hammasi ×2 (taymer jadvali: rules RULES). */
+export const turnLabel = (s: number) => (s === 60 ? "Sekin (×2)" : "Odatiy");
 
 /** Hisob rejimi: «Avtomatik» (standart) yoki «O'zim hisoblayman» (o'quv rejimi). Buyurtmachi qarori (2026-10-21): qo'lda hisoblash oddiy o'yinchiga foyda bermadi — standart avtomatik, tanlov tugmasi ko'rinmaydi.
  *  O'quv rejimi (sinf/trener) uchun imkoniyat saqlangan: qurilmada `poyga-calc-ui=1` bo'lsa tanlov ko'rinadi. */

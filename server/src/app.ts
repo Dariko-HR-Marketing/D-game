@@ -189,7 +189,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players, (m as { mode?: "standard" | "quick" | "rated" | "tutorial" }).mode); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
@@ -202,6 +202,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
           case "react": { if (!code) return reply({ type: "error", error: "no_room" });
             if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
             const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
+          case "resume": { if (!code) return reply({ type: "error", error: "no_room" }); const r = rooms.resumePlay(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "leave": if (code) { sockets.get(code)?.delete(client); rooms.leave(code, userId); code = null; } return; // avval ulanishni xonadan ajratamiz: chiqayotganga holat qaytib kelmasin
           default: return reply({ type: "error", error: "unknown_type" });
         }

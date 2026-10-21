@@ -21,7 +21,7 @@ export function PlayerList({ room, userId }: { room: RoomView; userId: string })
             <View style={s.head} aria-hidden>
               <Avatar name={name} colorIdx={room.names?.[p.id]?.color ?? k} level={levelOf(room, p.id)} online={room.state.bots.includes(p.id) ? undefined : mem?.online !== false} size={44} gender={room.names?.[p.id]?.gender} frame={room.names?.[p.id]?.cos?.frame} photo={room.names?.[p.id]?.photo} bgColor={room.names?.[p.id]?.cos?.avatar} />
               <View style={{ flex: 1 }}><Text style={s.name}>{name}{isMe ? ` (${uz.hud.you})` : ""}</Text><Text style={s.sub}>{room.professions?.[p.id] ?? ""}</Text></View>
-              <Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />
+              <View style={{ gap: 4, alignItems: "flex-end" }}><Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />{mem?.autopilot && <Pill label={uz.hud.autopilot.pill} kind="warn" />}</View>
             </View>
             <View style={s.stats} aria-hidden>
               <View><Text style={s.l}>{uz.hud.cashLabel}</Text><Text style={s.v}>{money(p.cash)}</Text></View>

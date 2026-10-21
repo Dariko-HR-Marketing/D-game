@@ -3,7 +3,7 @@ export interface WS { readyState?: number; send(s: string): void; close(): void;
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { seats?: number; turnSeconds?: number; calc?: { mode: "auto" | "manual"; due: string[]; ledger?: Record<string, { cash: number; passive: number; flow: number }>; stats: Record<string, { firstTry: number; retried: number }> }; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
+export interface RoomView { seats?: number; turnSeconds?: number; timerTotal?: number | null; calc?: { mode: "auto" | "manual"; due: string[]; ledger?: Record<string, { cash: number; passive: number; flow: number }>; stats: Record<string, { firstTry: number; retried: number }> }; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string } | null }
 export interface Reaction { id: number; from: string; emoji: string; at: number }
 /** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
 export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
@@ -78,6 +78,8 @@ export class Connection {
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
   leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [] }); }
+  /** «Men qaytdim»: avtopilotni o'chiradi. */
+  resumePlay() { this.send({ type: "resume" }); }
   react(emoji: string) { this.send({ type: "react", emoji }); }
   /** Harakat: mijoz ko'rgan oxirgi `seq` bilan (eski holatdagi harakat serverda rad etiladi). */
   act(action: Record<string, unknown>) { this.lastAct = { action, retried: false }; this.retryNext = false; this.send({ type: "act", seq: this.state.room?.seq ?? 0, action }); }

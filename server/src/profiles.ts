@@ -8,7 +8,7 @@ export interface ResultPlayer {
   id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean;
   left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
 }
-export interface GameResult { tag?: { kind: "class" | "tournament"; id: string }; room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
+export interface GameResult { mode?: "standard" | "quick" | "rated" | "tutorial"; endReason?: "win" | "time"; tag?: { kind: "class" | "tournament"; id: string }; room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
 
 export interface ProfilePersist {
   loadProfiles(): Promise<Profile[]>; saveProfile(p: Profile): Promise<void>; deleteProfile(userId: string): Promise<void>;
@@ -128,8 +128,8 @@ export class ProfileService {
   levelCached(userId: string) { let v = this.lvl.get(userId); if (v === undefined) { v = this.stats(userId).level; this.lvl.set(userId, v); } return v; }
   record(r: GameResult) { this.lvl.clear(); this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
   /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
-  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = [], tag?: { kind: "class" | "tournament"; id: string }) {
-    this.record({ tag, room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
+  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[]; mode?: GameResult["mode"]; endReason?: "win" | "time" }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = [], tag?: { kind: "class" | "tournament"; id: string }) {
+    this.record({ mode: st.mode, endReason: st.endReason, tag, room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
       players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined,
         left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds) })) });
   }

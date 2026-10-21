@@ -2,7 +2,7 @@
 // Hamma narsa sof va serializatsiya qilinadigan holat ustida; tasodifiylik holatdagi `rng` dan.
 import type { CardEffect, Effect } from "@poyga/content/effects";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
-import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
+import { RULES, MODES, modeOf, type GameMode, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
@@ -71,7 +71,7 @@ export interface GameState {
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
-  pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
+  mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
 // --- tasodifiy manba holatda ---
@@ -85,8 +85,8 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean } = {}): GameState {
-  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, players: [], turn: 0, round: 1,
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode } = {}): GameState {
+  const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
     for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
@@ -196,6 +196,7 @@ export type Action =
   | { type: "choose_dream"; playerId: string; dreamIdx: number }
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
+  | { type: "time_up"; playerId: "server" }
   | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; auto?: true };
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
@@ -205,7 +206,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   // Kirish tekshiruvi (mijozga ishonib bo'lmaydi): ob'ekt, mavjud o'yinchi yoki server.
   if (typeof a !== "object" || a === null || typeof a.playerId !== "string") return { ok: false, error: "bad_action" };
   if (a.playerId !== "server" && !state.players.some((p) => p.id === a.playerId)) return { ok: false, error: "no_player" };
-  if (a.playerId === "server" && a.type !== "expire" && a.type !== "auto_dreams") return { ok: false, error: "bad_action" };
+  if (a.playerId === "server" && a.type !== "expire" && a.type !== "auto_dreams" && a.type !== "time_up") return { ok: false, error: "bad_action" };
  const s = clone(state);
   // Orzu bosqichi: faqat orzu tanlash (yoki serverning avtomatik tanlovi/taklif muddati)
   if (s.phase === "dreams" && a.type !== "choose_dream" && a.type !== "auto_dreams" && a.type !== "expire") return { ok: false, error: "dreams_phase" };
@@ -600,7 +601,7 @@ function endTurn(s: GameState, ctx: Ctx) {
   const p = currentPlayer(s);
   if (p.circle === "small" && canExitSmallCircle({
     cash: p.cash, salary: p.salary, passiveIncome: passiveIncome(p), expenses: monthlyExpenses(p),
-    bankDebt: p.bankDebt, otherDebt: allDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) })) {
+    bankDebt: p.bankDebt, otherDebt: allDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) }, s.mode)) {
     const lock = playerCashflow(p); // blankning orqa tomoniga yoziladigan pul oqimi: bizneslar topshirilishidan OLDIN (katta aylanada eng kam miqdor)
     // Qo'llanma §10: barcha kichik va katta bizneslar bankka topshiriladi; kvartira, aksiya, yer, uy, avtomobil o'zida qoladi
     const kept = p.assets.filter((x) => x.kind !== "small_business" && x.kind !== "business"), handed = p.assets.length - kept.length;
@@ -688,6 +689,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (s.phase !== "dreams") return err("not_dream_phase");
       for (const q of s.players) if (q.dreamIdx === null && (!a.only || a.only.includes(q.id))) pickFreeDream(s, ctx, q.id);
       finishDreamsIfDone(s); return ok();
+    }
+    case "time_up": { // vaqtli rejim
+      if (a.playerId !== "server") return err("bad_action"); // faqat server (taymer) (reytingli, o'quv): vaqt tugadi — o'yin yakunlanadi, o'rinlar «katta aylana → passiv daromad → naqd» bo'yicha
+      if (s.winner || !MODES[modeOf(s.mode)].minutes) return err("not_timed");
+      const top = standings(s)[0]; s.winner = top; s.endReason = "time"; s.pending = null; logf(s, `vaqt tugadi — birinchi o'rin: ${top}`); return ok();
     }
     case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();
 
@@ -798,6 +804,13 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
     }
     default: return err("unknown_action");
   }
+}
+
+/** Vaqt tugaganda yoki o'rin berishda tartib: katta aylanada bo'lganlar, so'ng passiv daromad, so'ng naqd (kattasi oldin). Server profil «o'rin»i ham shu bilan hisoblaydi. */
+export const standingKey = (p: GamePlayer): number[] => [p.won ? 1 : 0, p.circle === "big" ? 1 : 0, p.assets.reduce((x, a) => x + a.monthlyIncome, 0), p.cash];
+export function standings(s: GameState, ids: string[] = s.players.map((p) => p.id)): string[] {
+  const rows = s.players.filter((p) => ids.includes(p.id));
+  return [...rows].sort((a, b) => { const x = standingKey(a), y = standingKey(b); for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return y[i] - x[i]; return 0; }).map((p) => p.id);
 }
 
 export { sellAsset, passMonths };

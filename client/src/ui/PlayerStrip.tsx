@@ -20,7 +20,7 @@ export function PlayerStrip({ room, userId }: { room: RoomView; userId: string }
             <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={[s.dotT, { color: readableOn(hue) }]}>{k + 1}</Text></View>
             <View aria-hidden>
               <Text style={s.name} numberOfLines={1}>{nameOf(room, p.id)}{isMe ? ` · ${uz.result.you}` : ""}{p.circle === "big" ? " ★" : ""}</Text>
-              <Text style={s.cash}>{money(p.cash)}{isCur ? ` · ${uz.game.turnNow}` : ""}</Text>
+              <Text style={s.cash}>{money(p.cash)}{isCur ? ` · ${uz.game.turnNow}` : ""}{room.members.find((m) => m.userId === p.id)?.autopilot ? ` · ${uz.hud.autopilot.pill}` : ""}</Text>
             </View>
           </View>);
       })}

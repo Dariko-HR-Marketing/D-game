@@ -28,12 +28,13 @@ export const ActionIn = z.discriminatedUnion("type", [
 ]);
 
 export const Message = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(8).optional() }).strict(), // players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
+  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(8).optional(), mode: z.enum(["standard", "quick", "rated", "tutorial"]).optional() }).strict(), // players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),
   z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
+  z.object({ type: z.literal("resume") }).strict(), // «Men qaytdim»: avtopilotni o'chiradi (o'yin harakati emas)
 ]);
 export type Msg = z.infer<typeof Message>;
 

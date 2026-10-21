@@ -30,7 +30,7 @@ import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { color, font, HEADER_H, radius, space, tone } from "../theme";
-import { bankRoom, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
+import { bankRoom, phaseSeconds, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
 import { useMovement } from "../useMovement";
@@ -69,7 +69,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
-export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const { width, height } = useWindowDimensions();
@@ -128,7 +128,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const deckPick = tri && !!card && mineTurn && !!mine && (card as any).effect?.kind === "deckChoice";
   const timeInSide = wide && !tri && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
-  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(room.turnSeconds ?? 30)).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
+  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(phaseSeconds(room))).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
   const stats = mine && e && (
     <View style={s.stats} role="group" aria-label={uz.game.finance}>
@@ -178,7 +178,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
       <PlayerList room={room} userId={userId} />
       {leaveBlock}
     </ScrollView>);
-  const banners = (<>{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
+  const autoMe = !!room.members.find((m) => m.userId === userId)?.autopilot;
+  const banners = (<>
+    {autoMe && <View testID="autopilot-banner" role="alert"><Banner kind="warn"><Text style={{ fontWeight: "800", color: tone.warn }}>{uz.hud.autopilot.title}. </Text>{uz.hud.autopilot.text}</Banner>{onResume && <View style={{ marginTop: space.sm }}><Button label={uz.hud.autopilot.back} onPress={onResume} /></View>}</View>}
+    {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
     <View style={[s.header, !wide && { gap: 2, paddingHorizontal: space.md }]}>
@@ -210,7 +213,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
         {card && mineTurn && mine && !deckPick ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
-              <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
+              <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
@@ -224,7 +227,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
               {deckPick && card ? (
                 <CardEnter id={card.id}>
-                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
+                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
                 </CardEnter>) : null}
               <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} cols={3} />
             </View>)}
@@ -254,7 +257,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
           <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
-            {left > 0 && <TimerRing left={left} total={room.turnSeconds ?? 30} size={52} label={`${left} ${uz.game.seconds}`} />}
+            {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={52} label={`${left} ${uz.game.seconds}`} />}
             <Text style={s.turnHint} accessibilityLiveRegion="polite"><Text style={{ fontWeight: "800", color: mineTurn ? tone.good : color.navy }}>{mineTurn ? uz.hud.yourTurn : ""}</Text>{mineTurn ? " " : ""}{hint}</Text>
           </View>
         </>)}
@@ -267,7 +270,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
       {sheetOpen && mine && (
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
-          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet left={left} die={myDie}
+          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet left={left} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
