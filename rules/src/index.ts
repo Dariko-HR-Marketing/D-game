@@ -26,9 +26,13 @@ export const RULES = {
   dreamSeconds: 60, // orzu tanlash bosqichi (§6.4, N09): SPEC muddat aytmaydi — qaror (OPEN_QUESTIONS #61)
 } as const;
 
-/** §5.3: oylik to'lov = summa / 36 + summa × 20 % / 12. Yaxlitlash qoidasi berilmagan (§16). */
+/** Qo'llanma §08 kalkulyatori: oylik to'lov = ceil(summa / 36) + ceil(summa × 20 % / 12); 5 000 → 139 + 84 = 223. */
 export function bankMonthlyPayment(amount: number): number {
-  return amount / RULES.bankTermMonths + (amount * RULES.bankAnnualRate) / 12;
+  return Math.ceil(amount / RULES.bankTermMonths) + Math.ceil((amount * RULES.bankAnnualRate) / 12);
+}
+/** Qolgan asosiy qarz: summa − o'tgan oylar × ceil(summa / 36) (qo'llanma: 5 000 uchun 1 yildan keyin 3 332). */
+export function bankPrincipalDue(amount: number, left: number): number {
+  return Math.max(0, amount - (RULES.bankTermMonths - left) * Math.ceil(amount / RULES.bankTermMonths));
 }
 
 /** §5.3: bank limiti 10 000 dan oshsa — yangi kasb bilan boshidan. */
@@ -58,11 +62,11 @@ export function advanceMonth(b: Blank): Blank {
   return { ...b, cash: b.cash + cashflow(b) };
 }
 
-/** §5.4: chiqish uchun uchta shart bir vaqtda + hamkorlik yopilgan. */
+/** §5.4 / qo'llanma §10: chiqish uchun uchta shart bir vaqtda (passiv daromad ≥ 25 000, naqd ≥ 1 000 000, qarzsiz) + hamkorlik yopilgan. */
 export function canExitSmallCircle(b: Blank): boolean {
   return (
     b.cash >= RULES.exitCash &&
-    b.passiveIncome - b.expenses >= RULES.exitPassiveFlow &&
+    b.passiveIncome >= RULES.exitPassiveFlow && // qo'llanma §10, TZ, yagona spetsifikatsiya: «25 000 sh.b. oylik passiv daromad» (xarajat ayrilmaydi)
     b.bankDebt + b.otherDebt === 0 &&
     b.openPartnerships === 0
   );

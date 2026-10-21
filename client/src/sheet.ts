@@ -57,7 +57,7 @@ export function sheetOf(room: any, userId: string): Sheet | null {
     expenses: { lines: EXP_ROWS.map((r) => ({ key: r.key, value: r.exp === null ? null : room.professionExp?.[userId]?.[r.exp] ?? null })), base: p.baseExpenses, children: p.children, childCost: p.childCost, childTotal: p.children * p.childCost, credits, bank: bankPay, lombard: lombPay, qar: p.qar ? RULES.qarMonthly : 0 },
     lombards: (p.lombards ?? []).map((l: any) => ({ amount: l.amount, payment: l.amount * RULES.lombardMonthlyRate })), banks: (p.bankLoans ?? []).map((l: any) => ({ amount: l.amount, payment: bankMonthlyPayment(l.amount) })),
     collateral: small.filter((a) => a.pledged === "lombard").map((a) => a.title), months: p.monthsPlayed ?? 0,
-    exit: { cash: p.cash, cashGoal: 1_000_000, flow: passive - expenses, flowGoal: 25_000, debt },
+    exit: { cash: p.cash, cashGoal: 1_000_000, flow: passive, flowGoal: 25_000, debt },
   };
   const bg: SheetBig = {
     name, profession, dream, inBig: p.circle === "big", lockedFlow: p.circle === "big" ? p.lockedFlow ?? 0 : null,

@@ -1,6 +1,6 @@
 // O'yin holati va tranzitsiyalar (sof, deterministik). Tasodifiylik `Rng` orqali tashqaridan beriladi (SPEC §6.6).
 import type { Effect } from "@poyga/content/effects";
-import { RULES, bankMonthlyPayment } from "./index";
+import { RULES, bankMonthlyPayment, bankPrincipalDue } from "./index";
 
 export type Rng = () => number; // [0,1)
 
@@ -116,7 +116,7 @@ export function tickLoans<T extends Player>(p: T): T {
   if (q.bankLoans.length > 0) {
     const all = q.bankLoans.map((l) => ({ ...l, left: l.left - 1 })); const loans = all.filter((l) => l.left > 0);
     let assets = q.assets; for (const l of all.filter((x) => x.left <= 0)) if (l.collateral) assets = unpledge(assets, l.collateral, "bank");
-    q = { ...q, assets, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + (l.amount * l.left) / RULES.bankTermMonths, 0) };
+    q = { ...q, assets, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + bankPrincipalDue(l.amount, l.left), 0) };
   }
   if ((q.lombards ?? []).length > 0) {
     let cash = q.cash, assets = q.assets; const keep: Lombard[] = [];
@@ -144,10 +144,10 @@ export function takeBankLoan(p: Player, amount: number): { player: Player; ok: b
 /** Muddatidan oldin yopish: kamida 3 aylana (12 oy) o'tgach; qolgan asosiy qarz naqd to'lanadi, garov bo'shaydi. */
 export function repayBankLoan(p: Player, idx: number): { player: Player; ok: boolean; cost: number } {
   const l = p.bankLoans[idx]; if (!l) return { player: p, ok: false, cost: 0 };
-  const cost = Math.ceil((l.amount * l.left) / RULES.bankTermMonths);
+  const cost = bankPrincipalDue(l.amount, l.left);
   if (RULES.bankTermMonths - l.left < RULES.bankEarlyCloseMonths || p.cash < cost) return { player: p, ok: false, cost };
   const loans = p.bankLoans.filter((_, n) => n !== idx);
-  return { ok: true, cost, player: { ...p, cash: p.cash - cost, bankLoans: loans, bankDebt: loans.reduce((t, x) => t + (x.amount * x.left) / RULES.bankTermMonths, 0), assets: l.collateral ? unpledge(p.assets, l.collateral, "bank") : p.assets } };
+  return { ok: true, cost, player: { ...p, cash: p.cash - cost, bankLoans: loans, bankDebt: loans.reduce((t, x) => t + bankPrincipalDue(x.amount, x.left), 0), assets: l.collateral ? unpledge(p.assets, l.collateral, "bank") : p.assets } };
 }
 /** Lombard: aktivni garovga qo'yib qiymatining 50 % ini naqd olish. */
 export function takeLombard(p: Player, assetIdx: number): { player: Player; ok: boolean } {

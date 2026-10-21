@@ -16,8 +16,11 @@ describe("§5.1 oy o'tishi", () => {
 
 describe("§5.3 bank", () => {
   it("oylik to'lov formulasi", () => {
-    expect(R.bankMonthlyPayment(3600)).toBeCloseTo(100 + 60);
-    expect(R.bankMonthlyPayment(10_000)).toBeCloseTo(10_000 / 36 + 10_000 * 0.2 / 12);
+    expect(R.bankMonthlyPayment(3600)).toBe(100 + 60);
+    expect(R.bankMonthlyPayment(5000)).toBe(139 + 84); // qo'llanma §08 kalkulyatori: 223
+    expect(R.bankPrincipalDue(5000, 24)).toBe(3332); // «1 yildan keyin qaytariladi»
+    expect(R.bankPrincipalDue(5000, 36)).toBe(5000); expect(R.bankPrincipalDue(5000, 0)).toBe(0);
+    expect(R.bankMonthlyPayment(10_000)).toBe(278 + 167);
   });
   it("limit 10 000", () => {
     expect(R.bankLoanCheck(0, 10_000).ok).toBe(true);
@@ -34,6 +37,7 @@ describe("§5.4 chiqish", () => {
     ["kredit bor", { otherDebt: 1 }],
     ["ochiq sheriklik", { openPartnerships: 1 }],
   ])("%s", (_n, patch) => expect(R.canExitSmallCircle({ ...base, ...patch })).toBe(false));
+  it("xarajat chiqish shartiga ta'sir qilmaydi (passiv ≥ 25 000)", () => expect(R.canExitSmallCircle({ ...base, passiveIncome: 25_000, expenses: 9_999 })).toBe(true));
   it("aniq chegara", () => expect(R.canExitSmallCircle({ ...base, cash: 1_000_000, passiveIncome: 25_000 })).toBe(true));
 });
 

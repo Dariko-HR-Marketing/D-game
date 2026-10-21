@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { bankPrincipalDue } from "@poyga/rules";
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
@@ -59,7 +60,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
           <Text style={s.note}>{buyCardOpen ? uz.coop.bankRules : uz.coop.bankPurpose}</Text>
           <Num label={uz.coop.bankHint} value={bank} onChange={setBank} />
           <Button label={uz.coop.take} kind="ghost" disabled={!buyCardOpen || !bank || Number(bank) % 100 !== 0 || Number(bank) < 2000 || Number(bank) > bankRoom(p)} onPress={() => { onAct({ type: "bank_loan", amount: Number(bank) }); setBank(""); }} />
-          {(p.bankLoans ?? []).map((l: any, i: number) => { const elapsed = 36 - l.left, cost = Math.ceil((l.amount * l.left) / 36);
+          {(p.bankLoans ?? []).map((l: any, i: number) => { const elapsed = 36 - l.left, cost = bankPrincipalDue(l.amount, l.left);
             return (<Button key={i} kind="ghost" label={`${uz.coop.repayEarly}: ${money(l.amount)} · ${money(cost)}`} disabled={elapsed < 12 || p.cash < cost} onPress={() => onAct({ type: "bank_repay", loanIdx: i })} />); })}
         </Box>)}
       {mineTurn && pledgeableAssets(p).length > 0 && (

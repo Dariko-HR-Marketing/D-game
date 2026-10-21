@@ -130,7 +130,7 @@ describe("bank krediti (qo'llanma §08)", () => {
     expect(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })).toEqual({ ok: false, error: "too_early" });
     P(s, "p0").bankLoans[0].left = 20; P(s, "p0").cash = 5000;
     const r = must(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })); expect(P(r, "p0").bankDebt).toBe(0); expect(P(r, "p0").assets.every((a) => !a.pledged)).toBe(true);
-    expect(P(r, "p0").cash).toBe(5000 - Math.ceil(2000 * 20 / 36));
+    expect(P(r, "p0").cash).toBe(5000 - (2000 - 16 * Math.ceil(2000 / 36))); // qo'llanma kalkulyatori: asosiy qarz − o'tgan oylar × ceil(summa/36)
   });
 });
 

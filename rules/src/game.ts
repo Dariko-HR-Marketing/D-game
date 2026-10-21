@@ -278,10 +278,11 @@ function monthsFor(ctx: Ctx, p: GamePlayer, steps: number): { pos: number; month
   return move(p.pos, steps, CONFIG.bigCells, (i) => ctx.bigBoard[i]?.t === "Y");
 }
 
-/** Naqd va kichik aylana mulki bilan kichik aylanaga qaytish (bizneslar yo'qoladi, katta aylana qarzi o'chadi). */
-function backToSmall(s: GameState, p: GamePlayer): GamePlayer {
-  logf(s, `${p.id}: kichik aylanaga qaytdi`);
-  return { ...p, circle: "small", pos: 0, lockedFlow: 0, bigDebt: 0, bigDebtY: 0, assets: p.assets.filter((x) => !["business", "small_business", "partner_stake"].includes(x.kind) && !x.code.startsWith("big-")) };
+/** Kichik aylanaga qaytish (asl qo'llanma «Kasod»): YANGI kasb kartasi olinadi; naqd, bolalar soni va kichik aylanada yig'ilgan mulk saqlanadi; bizneslar yo'qoladi, katta aylana qarzi o'chadi. */
+function backToSmall(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
+  const k = ctx.kasb[Number(drawFrom(s, "kasb").replace("kasb-", ""))];
+  logf(s, `${p.id}: kichik aylanaga qaytdi, yangi kasb #${k.n}`);
+  return { ...p, circle: "small", pos: 0, lockedFlow: 0, bigDebt: 0, bigDebtY: 0, profession: k.n, salary: k.salary, baseExpenses: k.total, childCost: k.child, quitJob: false, noSalary: 0, assets: p.assets.filter((x) => !["business", "small_business", "partner_stake"].includes(x.kind) && !x.code.startsWith("big-")) };
 }
 
 /** Katta aylanada «Yana pullar» o'tganda: qarz darhol yopiladi; bir aylana (4 ta) davomida yopilmasa — biznes bankka sotiladi, bo'lmasa yangi kasb bilan kichik aylanaga. */
@@ -293,7 +294,7 @@ function bigMonthEnd(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
   const y = (p.bigDebtY ?? 0) + 1;
   if (y < 4) return { ...p, bigDebtY: y };
   const biz = ownBusinesses(p);
-  if (biz.length === 0) { logf(s, `${p.id}: qarz yopilmadi, sotadigan biznes yo'q`); return backToSmall(s, p); } // yumshatilgan (qaror): yangi kasb emas, naqd va mulk bilan kichik aylanaga
+  if (biz.length === 0) { logf(s, `${p.id}: qarz yopilmadi, sotadigan biznes yo'q`); return backToSmall(s, ctx, p); } // sotadigan biznes yo'q: yangi kasb bilan kichik aylanaga (asl qo'llanma)
   const sold = biz[0], rest = Math.max(0, p.bigDebt! - sold.price);
   logf(s, `${p.id}: qarz uchun ${sold.code} bankka sotildi`);
   return { ...p, assets: p.assets.filter((x) => x !== sold), cash: p.cash + Math.max(0, sold.price - p.bigDebt!), bigDebt: rest, bigDebtY: 0 };
@@ -474,8 +475,8 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
     case "loseWorstBusiness": {
       const worst = ownBusinesses(p)[0];
       if (worst) { setP(s, { ...p, assets: p.assets.filter((x) => x !== worst) }); logf(s, `${p.id}: ${worst.code} biznesi yo'qoldi`); return; }
-      // Biznes yo'q: naqd pul va kichik aylanadagi mulk bilan kichik aylanaga (qo'llanma §11)
-      setP(s, backToSmall(s, p)); return;
+      // Biznes yo'q: naqd pul va kichik aylanadagi mulk bilan, yangi kasb kartasi bilan kichik aylanaga (qo'llanma §11, asl qo'llanma)
+      setP(s, backToSmall(s, ctx, p)); return;
     }
     case "shady": {
       const n = p.shady ?? 0; const q = { ...p, shady: n + 1 };
@@ -565,9 +566,11 @@ function endTurn(s: GameState, ctx: Ctx) {
   if (p.circle === "small" && canExitSmallCircle({
     cash: p.cash, salary: p.salary, passiveIncome: passiveIncome(p), expenses: monthlyExpenses(p),
     bankDebt: p.bankDebt, otherDebt: allDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) })) {
-    const lock = playerCashflow(p);
-    setP(s, { ...p, circle: "big", pos: CONFIG.bigStart, lockedFlow: lock });
-    logf(s, `${p.id}: kichik aylanadan chiqdi`);
+    const lock = playerCashflow(p); // blankning orqa tomoniga yoziladigan pul oqimi: bizneslar topshirilishidan OLDIN (katta aylanada eng kam miqdor)
+    // Qo'llanma §10: barcha kichik va katta bizneslar bankka topshiriladi; kvartira, aksiya, yer, uy, avtomobil o'zida qoladi
+    const kept = p.assets.filter((x) => x.kind !== "small_business" && x.kind !== "business"), handed = p.assets.length - kept.length;
+    setP(s, { ...p, circle: "big", pos: CONFIG.bigStart, lockedFlow: lock, assets: kept });
+    logf(s, `${p.id}: kichik aylanadan chiqdi${handed ? `, ${handed} ta biznes bankka topshirildi` : ""}`);
   }
   advanceTurn(s);
   // Navbat o'tkazishga mahkum o'yinchilar o'tkazib yuboriladi (N navbat)

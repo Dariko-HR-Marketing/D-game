@@ -50,9 +50,9 @@ Bu bitta fayl Claude Code'ga POYGA stol o'yinining onlayn versiyasini profession
 
 **5.2 Karta qarori.** Har bir karta uchun 30 soniya (buyurtmachi qarori, 2026-10-20: xona ochganda egasi 30 soniya yoki 1 daqiqa tanlaydi, hamma o'yinchiga bir xil; standart 30; hamkorlik takliflari muddati §5.6 o'zgarmaydi). Ixtiyoriy karta — vaqt tugasa o'tkaziladi. Majburiy karta — avtomatik qabul qilinib blankka yoziladi, navbat o'tadi. Deka qaytarmasdan tortiladi; tashlanma qoziq deka tugagach aralashtiriladi. Har bir qarorda «oldin → keyin» pul oqimi farqi ko'rsatiladi.
 
-**5.3 Pul yetmasa.** Bank (limit 10 000 sh.b.), so'ng o'zaro qarz va sheriklik. Bank kredit oylik to'lovi = summa / 36 + summa × 20 % / 12. Limitdan oshsa — yangi kasb bilan boshidan.
+**5.3 Pul yetmasa.** Bank (limit 10 000 sh.b.), so'ng o'zaro qarz va sheriklik. Bank kredit oylik to'lovi = yuqoriga yaxlitlangan (summa / 36) + yuqoriga yaxlitlangan (summa × 20 % / 12) (qo'llanma kalkulyatori: 5 000 → 139 + 84 = 223; muddatidan oldin yopishda qolgan qarz = summa − o'tgan oylar × 139 → 1 yildan keyin 3 332). Limitdan oshsa — yangi kasb bilan boshidan.
 
-**5.4 Kichik aylanadan chiqish.** Uchta shart bir vaqtda: naqd ≥ 1 000 000; oylik passiv pul oqimi ≥ 25 000; qarz va kreditlar = 0. Chiqishdan oldin hamkorlik qarzlari va sheriklik yopilgan bo'lishi shart. (Namuna holat: naqd 1 020 000, pul oqimi 25 400.) Katta aylanada o'tgan pul oqimi kamaymaydi.
+**5.4 Kichik aylanadan chiqish.** Uchta shart bir vaqtda: naqd ≥ 1 000 000; oylik passiv daromad ≥ 25 000 (xarajat ayrilmaydi — asl qo'llanma, TZ, yagona spetsifikatsiya); qarz va kreditlar = 0. Chiqishda barcha kichik va katta bizneslar bankka topshiriladi (kartalar to'plamga qaytadi); kvartira, aksiya, yer, uy va avtomobil o'yinchida qoladi. Blankning orqa tomoniga chiqish paytidagi oylik pul oqimi (daromad − xarajat, topshirishdan oldin) yoziladi. Chiqishdan oldin hamkorlik qarzlari va sheriklik yopilgan bo'lishi shart. (Namuna holat: naqd 1 020 000, pul oqimi 25 400.) Katta aylanada o'tgan pul oqimi kamaymaydi.
 
 **5.5 Katta aylana.** G'alaba sharti uchta: oylik pul oqimi ≥ 100 000; o'z orzu katagiga tushish; naqd ≥ orzu qiymati. Progress ekranda doim ko'rinadi. Katak turlari B ilovada.
 

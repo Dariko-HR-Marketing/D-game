@@ -23,7 +23,7 @@ export const uz = {
       { title: "Orzu — katta maqsad", text: "Katta aylanada g'alaba uchun orzu katagiga tushasiz va naqdingiz orzu narxidan kam bo'lmasligi kerak. Narx har orzuda ko'rsatilgan." },
     ],
     "game-small": [
-      { title: "Kichik aylana", text: "Taxtada 48 katak, harakat soat yo'nalishida. Maqsad — kichik aylanadan chiqish: naqd kamida 1 000 000, oylik passiv pul oqimi kamida 25 000 va qarz hamda kreditlar bo'lmasligi kerak." },
+      { title: "Kichik aylana", text: "Taxtada 48 katak, harakat soat yo'nalishida. Maqsad — kichik aylanadan chiqish: naqd kamida 1 000 000, oylik passiv daromad kamida 25 000 va qarz hamda kreditlar bo'lmasligi kerak." },
       { title: "Kubik tashlang", text: "Navbatingiz kelganda «Kubikni tashlash» ni bosing (kompyuterda — probel tugmasi). Fishkangiz kubikdagi songa teng katak yuradi. Xona vaqti (30 yoki 60 soniya) ichida tashlamasangiz navbat o'tadi." },
       { title: "Vaqt oyma-oy hisoblanadi", text: "Har bir «D» (Daromad) katagidan o'tsangiz yoki unga tushsangiz bitta oy o'tadi va pul oqimi naqdingizga qo'shiladi. Aylanada 4 ta shunday katak bor: 4 oy — 1 aylana, 3 aylana — 1 yil. O'tgan vaqt shu yerda ko'rinib turadi." },
       { title: "Katak turlari", text: "Daromad (oy o'tadi), Imkoniyat (sarmoya kartasi), Xarajat, Bozor, Farzand (suyunchi), «Ishdan bo'shadingiz» va «O'yinni boshidan boshlang!». To'liq ro'yxat taxta ostidagi «Katak turlari» da." },
@@ -103,7 +103,7 @@ export const uz = {
     drew: "karta tortdi", close: "Yopish", offlineBanner: "Aloqa uzildi. Qayta ulanmoqda… O'yin davom etadi, qaytganingizda holat tiklanadi.", moneyActions: "Moliya amallari", events: "So'nggi voqealar", noEvents: "Hozircha voqea yo'q", finance: "Moliyaviy holat", done: "bajarilgan", notYet: "hali emas", bigCircle: "Katta aylana", decideBelow: "Qaror kartada", secShort: "s", players: "O'yinchilar", turnNow: "navbat", diceNone: "Kubik hali tashlanmagan", diceLabel: "Kubik", rolled: "tashladi", yourTurn: "Sizning navbatingiz", waitFor: "Navbat:", roll: "Kubik tashlash", accept: "Qabul qilaman", skip: "O'tkazaman",
     cash: "Naqd", cashflow: "Pul oqimi", passive: "Passiv daromad", debt: "Qarz va kreditlar", profession: "Kasb", salary: "Ish haqi", expenses: "Oylik xarajat",
     mandatory: "Majburiy karta", optional: "Ixtiyoriy karta", seconds: "soniya", winner: "G'olib", round: "Aylana",
-    exitTitle: "Kichik aylanadan chiqish", exitCash: "Naqd ≥ 1 000 000", exitFlow: "Passiv oqim ≥ 25 000", exitDebt: "Qarz yo'q", exitPartner: "Sheriklik yopilgan",
+    exitTitle: "Kichik aylanadan chiqish", exitCash: "Naqd ≥ 1 000 000", exitFlow: "Passiv daromad ≥ 25 000", exitDebt: "Qarz yo'q", exitPartner: "Sheriklik yopilgan",
     before: "Oldin", after: "Keyin",
   },
   conn: { lost: "Aloqa uzildi. Qayta ulanmoqda…", restored: "Aloqa tiklandi" },

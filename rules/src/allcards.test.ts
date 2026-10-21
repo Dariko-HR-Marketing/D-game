@@ -35,7 +35,7 @@ describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
   });
 
   it.each(by("buy"))("%s: sotib olish — aktiv, boshlang'ich to'lov, kredit, daromad kartadagidek", (id) => {
-    const e = ctx.effects[id].effect as any; const { s, before } = run(id);
+    const e = ctx.effects[id].effect as any; const { s, before } = run(id, (p) => { p.handDebts.push({ id: 1, to: "p1", amount: 1, months: 1 } as any); }); // ochiq qarz: o'yinchi kichik aylanadan chiqib bizneslarni topshirmasin
     const p = s.players[0], b = before[0]; const a = p.assets.find((x) => x.code === e.code)!;
     expect(a, "aktiv qo'shilmadi").toBeDefined(); expect(a.kind).toBe(e.asset);
     expect(b.cash - p.cash).toBe(e.down ?? e.price); expect(a.price).toBe(e.price);
