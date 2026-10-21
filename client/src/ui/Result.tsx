@@ -43,6 +43,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
           <Text style={s.trophy} aria-hidden>★</Text><Text style={s.winLabel}>{uz.result.winner}</Text><Text style={s.winName}>{a.winner}</Text>
           {me && a.players.find((p: any) => p.isMe)?.id === a.winner && <Pill label={uz.result.youWon} kind="good" />}
         </Card>) : a ? <Banner kind="info">{uz.result.noWinner}</Banner> : null}
+      {a?.endReason === "time" && <Banner kind="warn">{uz.result.timeUp}</Banner>}
       {!a && !err && <Text style={s.muted} accessibilityLiveRegion="polite">{uz.result.loading}</Text>}
       {err && <Banner kind="bad">{uz.result.failed}</Banner>}
       <View style={s.grid}>

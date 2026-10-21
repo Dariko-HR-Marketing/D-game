@@ -1,4 +1,5 @@
 import { tourKV } from "./ui/tourStore";
+import { GAME_MODES, MODES, type GameMode } from "@poyga/rules";
 /** Xona ochganda tanlanadigan tezlik (30 — odatiy, 60 — sekin ×2); oxirgi tanlov qurilmada eslab qolinadi. */
 export type TurnSeconds = 30 | 60;
 const KEY = "poyga-turn-seconds";
@@ -21,3 +22,13 @@ export const SEATS: readonly Seats[] = [2, 3, 4, 5, 6, 7, 8];
 const SKEY = "poyga-seats";
 export const getSeatsPref = (): Seats => { const n = Number(tourKV.get(SKEY)); return (SEATS as readonly number[]).includes(n) ? (n as Seats) : 4; };
 export const setSeatsPref = (v: Seats) => tourKV.set(SKEY, String(v));
+
+/** O'yin turi (rejim): standart, tez, reytingli, o'quv. Oxirgi tanlov qurilmada eslab qolinadi. Chegaralar dvigateldan (MODES). */
+export type { GameMode } from "@poyga/rules";
+const MKEY = "poyga-mode";
+export const getModePref = (): GameMode => { const v = tourKV.get(MKEY); return (GAME_MODES as readonly string[]).includes(v ?? "") ? (v as GameMode) : "standard"; };
+export const setModePref = (v: GameMode) => tourKV.set(MKEY, v);
+/** Tanlangan rejimda ruxsat etilgan o'rinlar (o'quv — qat'iy 3). */
+export const seatsFor = (mode: GameMode): Seats[] => SEATS.filter((n) => n >= MODES[mode].seats[0] && n <= MODES[mode].seats[1]);
+export const clampSeats = (mode: GameMode, n: Seats): Seats => { const ok = seatsFor(mode); return ok.includes(n) ? n : ok.reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a)); };
+export const GAME_MODES_UI = GAME_MODES;

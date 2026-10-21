@@ -15,7 +15,7 @@ export function PlayerList({ room, userId }: { room: RoomView; userId: string })
   return (
     <View style={{ gap: space.md }}>
       <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.hud.playersTitle}</Text>
-      {room.state.players.map((p: any, k: number) => { const name = nameOf(room, p.id), e = exitProgress(p), isMe = p.id === userId; const mem = room.members.find((m) => m.userId === p.id);
+      {room.state.players.map((p: any, k: number) => { const name = nameOf(room, p.id), e = exitProgress(p, room.state.mode), isMe = p.id === userId; const mem = room.members.find((m) => m.userId === p.id);
         return (
           <Card key={p.id} label={`${name}${isMe ? `, ${uz.hud.you}` : ""}: ${uz.game.cash} ${money(p.cash)}, ${uz.game.cashflow} ${money(e.cashflow)}`} style={p.id === cur ? { borderColor: color.green, borderWidth: 2 } : undefined}>
             <View style={s.head} aria-hidden>

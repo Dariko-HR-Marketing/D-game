@@ -25,7 +25,7 @@ import { TurnPanel } from "./TurnPanel";
 import { DecisionCard } from "./DecisionCard";
 import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
-import { TimeBar } from "./TimeBar";
+import { TimePanel } from "./TimeBar";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -120,7 +120,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   useGameSounds({ room, userId, settled, mineTurn, left });
   const mom = useMoments(room, userId, settled); const [momH, setMomH] = useState(0); // lahzalar: ovoz + animatsiya + tushuntirish (moments.ts)
   const snd = useSoundPrefs();
-  const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
+  const big = mine?.circle === "big"; const e = mine ? exitProgress(mine, state.mode) : null;
   const ledgerNow = room.calc?.ledger?.[userId] ?? (mine && e ? { cash: mine.cash, passive: e.passive, flow: e.cashflow } : { cash: 0, passive: 0, flow: 0 });
   const gate = due && mineTurn && !cardRaw && settled && !state.winner ? <LedgerPad testID="ledger-gate" title={uz.ledger.gateTitle} hint={uz.ledger.gateHint} current={ledgerNow} feedback={calcFb} submitLabel={uz.ledger.gateSubmit} onSubmit={(c) => onAct({ type: "confirm_calc", calc: c })} /> : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
@@ -157,10 +157,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
   const sideMain = (
     <View style={{ gap: space.md }}>
-      {timeInSide && <TimeBar room={room} userId={userId} settled={settled} />}
+      {timeInSide && <TimePanel room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
-      {mine && <View testID="finance"><FinanceCard p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
+      {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
@@ -173,7 +173,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   const reactPanel = (<Card label={uz.react.title}><SectionTitle>{uz.react.title}</SectionTitle>{reactRow}</Card>);
   const rightCol = (
     <ScrollView tabIndex={0} role="region" aria-label={uz.hud.playersTitle} style={{ width: rightW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>
-      <TimeBar room={room} userId={userId} settled={settled} />
+      <TimePanel room={room} userId={userId} settled={settled} />
       {eventsCard(6)}
       <PlayerList room={room} userId={userId} />
       {leaveBlock}
@@ -220,7 +220,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
         ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{gate}{sideMain}{tri && reactPanel}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
-          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimeBar room={room} userId={userId} settled={settled} /></View>}</View>}
+          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
           <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
           <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
           {tri && mine && (
@@ -252,7 +252,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
       <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
         {tab === "field" && (<>
-          <TimeBar room={room} userId={userId} settled={settled} />
+          <TimePanel room={room} userId={userId} settled={settled} />
           {stats}
           <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />

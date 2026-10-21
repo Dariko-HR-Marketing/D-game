@@ -243,7 +243,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     const r = await analysis.analyze(code); if (!r) return reply.code(404).send({ error: "no_game" });
     if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
     if (!commerce.analysisAllowed(uid, !profiles.hasResult(code) || profiles.latestRoomOf(uid) === code)) return reply.code(402).send({ error: "plus_required" }); // bepul: faqat oxirgi o'yin tahlili
-    return presentable(r.analysis, (id) => profiles.get(id)?.name, uid);
+    return { ...presentable(r.analysis, (id) => profiles.get(id)?.name, uid), mode: (r.state as any).mode ?? "standard", endReason: (r.state as any).endReason ?? "win" };
   }));
   // O'yin tarixi (har bir amal): faqat ishtirokchi; tugagan va davom etayotgan o'yinlar uchun. ?format=csv — tahlil (Excel/SWOT) uchun.
   app.get("/me/games/:code/log", secured(async (uid, req, reply) => {
