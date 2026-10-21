@@ -43,7 +43,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   Object.assign(me, { circle: "big", lockedFlow: 25_400, assets: [], pos: 34 }); await emit();
   check(await seen("exit"), `${tag} katta aylanaga chiqish: banner`); const et = await a.getByTestId("moment-exit").innerText(); check(et.includes("topshirildi") || et.includes("25 400"), `${tag} chiqish: bizneslar va pul oqimi tushuntiriladi`); check((await sfx()).includes("levelup"), `${tag} chiqish: ovoz`);
   await a.screenshot({ path: `${OUT}/${tag}-4-exit.png` });
-  await a.waitForTimeout(8000); check((await a.getByTestId("moments").count()) === 0, `${tag} lahzalar o'zi yo'qoladi`);
+  await a.getByTestId("moments").waitFor({ state: "detached", timeout: 20000 }).catch(() => {}); /* sekin CI'da 8 soniya yetmasligi mumkin: yo'qolishini kutamiz */ check((await a.getByTestId("moments").count()) === 0, `${tag} lahzalar o'zi yo'qoladi`);
   const ov = await a.evaluate(() => document.documentElement.scrollHeight - window.innerHeight); check(ov <= 1, `${tag} sahifa aylanmaydi (${ov})`);
   await a.context().close(); await c.context().close();
 }
