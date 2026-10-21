@@ -1,6 +1,7 @@
 // Tovush tizimi (Web Audio, tashqi fayllarsiz: hamma tovush sintez qilinadi). Holatlar: kubik, qadam, karta, pul, navbat, hisoblagich, g'alaba.
 // Brauzer faqat foydalanuvchi harakatidan keyin ovoz chiqarishga ruxsat beradi — `unlock()` birinchi bosishda chaqiriladi. Native ilovada (AudioContext yo'q) hech narsa qilmaydi.
-export type Sfx = "click" | "roll" | "land" | "step" | "card" | "gain" | "pay" | "turn" | "tick" | "win" | "lose" | "error";
+export type Sfx = "click" | "roll" | "land" | "step" | "card" | "gain" | "pay" | "turn" | "tick" | "win" | "lose" | "error"
+  | "child" | "jobloss" | "freedom" | "unexpected" | "market" | "offer" | "opportunity" | "buy" | "sell" | "unlock" | "milestone" | "levelup"; // lahzalar (moments.ts): har biri o'z his-tuyg'usiga ega qisqa motiv
 export type Tone = { t: number; f: number; d: number; type?: "sine" | "triangle" | "square" | "sawtooth"; g?: number; f2?: number };
 export type Noise = { t: number; d: number; g: number; f: number; q?: number };
 export type Recipe = { tones?: Tone[]; noise?: Noise[] };
@@ -19,6 +20,19 @@ export const RECIPES: Record<Sfx, Recipe> = {
   tick: { tones: [{ t: 0, f: 1000, d: 0.035, type: "square", g: 0.1 }] },
   win: { tones: [...[523, 659, 784, 1047].map((f, i): Tone => ({ t: i * 0.13, f, d: 0.28, type: "triangle", g: 0.28 })), { t: 0.6, f: 1047, d: 0.7, type: "sine", g: 0.2 }, { t: 0.6, f: 784, d: 0.7, type: "sine", g: 0.16 }, { t: 0.6, f: 659, d: 0.7, type: "sine", g: 0.14 }] },
   lose: { tones: [{ t: 0, f: 392, d: 0.22, type: "triangle", g: 0.24 }, { t: 0.2, f: 330, d: 0.22, type: "triangle", g: 0.22 }, { t: 0.4, f: 262, d: 0.4, type: "triangle", g: 0.2 }] },
+  // --- Lahzalar: his-tuyg'u bo'yicha motivlar (qisqa, minimal; hammasi sintez) ---
+  child: { tones: [1047, 1319, 1568, 2093].map((f, i): Tone => ({ t: i * 0.12, f, d: 0.34, type: "sine", g: 0.2 })) }, // quvonch: musiqa qutisi
+  jobloss: { tones: [{ t: 0, f: 330, d: 0.22, type: "sawtooth", g: 0.12 }, { t: 0.2, f: 262, d: 0.22, type: "sawtooth", g: 0.12 }, { t: 0.4, f: 196, d: 0.5, type: "sawtooth", g: 0.12 }, { t: 0, f: 80, d: 0.5, type: "sine", g: 0.3, f2: 50 }] }, // pastga tushuvchi: umidsizlik
+  freedom: { tones: [{ t: 0, f: 523, d: 0.16, type: "triangle", g: 0.26 }, { t: 0.14, f: 784, d: 0.16, type: "triangle", g: 0.26 }, { t: 0.28, f: 1047, d: 0.5, type: "triangle", g: 0.28 }, { t: 0.28, f: 1319, d: 0.5, type: "sine", g: 0.16 }] }, // ozodlik: ko'tarilish
+  unexpected: { noise: [{ t: 0, d: 0.18, g: 0.35, f: 900, q: 0.7 }], tones: [{ t: 0, f: 220, d: 0.3, type: "square", g: 0.14 }, { t: 0, f: 311, d: 0.3, type: "square", g: 0.12 }, { t: 0.28, f: 98, d: 0.45, type: "sine", g: 0.35, f2: 55 }] }, // keskin urg'u + pastki zarb
+  market: { noise: [{ t: 0, d: 0.03, g: 0.25, f: 3800, q: 2 }, { t: 0.07, d: 0.03, g: 0.25, f: 3800, q: 2 }], tones: [{ t: 0.16, f: 1568, d: 0.16, type: "sine", g: 0.2 }, { t: 0.26, f: 1175, d: 0.26, type: "sine", g: 0.18 }] }, // birja ticker + qo'ng'iroq
+  offer: { tones: [{ t: 0, f: 988, d: 0.1, type: "triangle", g: 0.24 }, { t: 0.1, f: 1319, d: 0.1, type: "triangle", g: 0.24 }, { t: 0.2, f: 1760, d: 0.3, type: "sine", g: 0.22 }] },
+  opportunity: { tones: [523, 659, 784, 1047].map((f, i): Tone => ({ t: i * 0.07, f, d: 0.2, type: "triangle", g: 0.22 })) }, // yorqin arpedjio
+  buy: { noise: [{ t: 0, d: 0.05, g: 0.3, f: 2500, q: 1 }], tones: [{ t: 0.05, f: 988, d: 0.12, type: "triangle", g: 0.26 }, { t: 0.14, f: 1319, d: 0.12, type: "triangle", g: 0.26 }, { t: 0.24, f: 1976, d: 0.45, type: "sine", g: 0.22 }] }, // kassa «kring»
+  sell: { noise: [{ t: 0, d: 0.04, g: 0.25, f: 3200, q: 1.5 }, { t: 0.09, d: 0.04, g: 0.2, f: 3600, q: 1.5 }], tones: [{ t: 0, f: 1760, d: 0.1, type: "triangle", g: 0.22 }, { t: 0.08, f: 2093, d: 0.1, type: "triangle", g: 0.22 }, { t: 0.16, f: 2637, d: 0.24, type: "triangle", g: 0.2 }] }, // tangalar
+  unlock: { tones: [{ t: 0, f: 659, d: 0.18, type: "sine", g: 0.24 }, { t: 0.14, f: 880, d: 0.18, type: "sine", g: 0.24 }, { t: 0.28, f: 1319, d: 0.6, type: "sine", g: 0.24 }, { t: 0.28, f: 988, d: 0.6, type: "triangle", g: 0.14 }] }, // eshik ochilishi
+  milestone: { tones: [{ t: 0, f: 784, d: 0.2, type: "sine", g: 0.24 }, { t: 0.16, f: 1047, d: 0.4, type: "sine", g: 0.24 }] },
+  levelup: { tones: [...[523, 659, 784, 1047, 1319].map((f, i): Tone => ({ t: i * 0.09, f, d: 0.3, type: "triangle", g: 0.26 })), { t: 0.5, f: 1047, d: 0.8, type: "sine", g: 0.2 }, { t: 0.5, f: 784, d: 0.8, type: "sine", g: 0.16 }] }, // daraja oshdi
   error: { tones: [{ t: 0, f: 200, d: 0.12, type: "square", g: 0.1 }, { t: 0.14, f: 160, d: 0.16, type: "square", g: 0.1 }] },
 };
 /** Yorliq yashirin (boshqa tabda) bo'lsa ham chaladigan ogohlantirishlar; qolganlari jim. */
@@ -61,6 +75,7 @@ export class SoundEngine {
   play(name: Sfx, rate = 1): boolean {
     if (this.prefs.muted || this.prefs.volume <= 0) return false;
     if (this.hidden() && !ALERTS.has(name)) return false;
+    (globalThis as any).__sfxPlayed?.push(name); // sinov uchun (brauzer tekshiruvi): qaysi ovoz so'ralgani
     const c = this.ensure(); if (!c || !this.master) return false;
     if (c.state === "suspended") void c.resume();
     const r = RECIPES[name], t0 = c.currentTime + 0.005;

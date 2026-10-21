@@ -1,10 +1,10 @@
 // «Hisob varag'i» (stol o'yinidagi «POYGA | KICHIK AYLANA» va «KATTA AYLANA» blanklari): hamma qiymat server holatidan olinadi, yangi hisob yo'q. React'siz — testlanadi.
-import { RULES, allDebt, bankMonthlyPayment, monthlyExpenses, passiveIncome, playerCashflow } from "@poyga/rules";
+import { RULES, SLOT_LIMITS, allDebt, bankMonthlyPayment, monthlyExpenses, passiveIncome, playerCashflow } from "@poyga/rules";
 import { portfolioOf, type AssetRow } from "./portfolio";
 import { nameOf } from "./model";
 
-/** Qog'oz blankdagi qatorlar soni: bo'sh qatorlar ham ko'rinadi (o'yinchi blankni to'ldirayotgandek). */
-export const SLOTS = { realty: 5, small: 6, big: 7, lombard: 2, bank: 2 } as const;
+/** Qog'oz blankdagi qatorlar soni: bo'sh qatorlar ham ko'rinadi. Aktivlar uchun chegara dvigatelniki (SLOT_LIMITS) — o'yin ham shuni majburlaydi. */
+export const SLOTS = { realty: SLOT_LIMITS.realty, small: SLOT_LIMITS.small_business, big: SLOT_LIMITS.business, lombard: 2, bank: 2 } as const;
 /** Kasb kartasidagi xarajat satrlari (`exp[0..8]`, kartadagi tartibda) → blankdagi satr nomi va o'rni. Blankdagi «Uy ijarasi» va «O'qish xarajatlari» kartada yo'q: bo'sh qoladi. */
 export const EXP_ROWS: { key: string; exp: number | null }[] = [
   { key: "flat", exp: 0 }, { key: "rent", exp: null }, { key: "flatCredit", exp: 2 }, { key: "food", exp: 1 }, { key: "carCredit", exp: 3 }, { key: "study", exp: null },

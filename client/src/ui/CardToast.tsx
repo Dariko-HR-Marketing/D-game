@@ -16,7 +16,7 @@ export const TOAST_MS = 30_000;
 const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
 
 /** Tortilgan karta haqida xabar: majburiy karta darhol qo'llangani uchun (qaror oynasi yo'q) nima bo'lganini ko'rsatadi; boshqalarning kartalari ham ko'rinadi. */
-export function CardToast({ room, userId, hold }: { room: RoomView; userId: string; hold?: boolean }) {
+export function CardToast({ room, userId, hold, offset = 0 }: { room: RoomView; userId: string; hold?: boolean; offset?: number }) {
   const lc = room.state.lastCard as { playerId: string; cardId: string; n: number } | null | undefined; const card = room.lastCard;
   const [seen, setSeenState] = useState(() => seenByRoom.get(room.code) ?? 0); const [art, setArt] = useState(false); const { height: vh, width: vw } = useWindowDimensions();
   const setSeen = (n: number) => { seenByRoom.set(room.code, n); setSeenState(n); }; // ekran almashsa (qoidalar) qayta chiqmasin
@@ -32,8 +32,8 @@ export function CardToast({ room, userId, hold }: { room: RoomView; userId: stri
   if (lc.playerId !== userId) f.notes.length = 0; // «sizda mashina yo'q» kabi izohlar boshqa o'yinchi uchun ma'nosiz
   const who = lc.playerId === userId ? uz.result.you : nameOf(room, lc.playerId);
   return (
-    <View style={s.wrap} pointerEvents="box-none">
-      <View style={[s.toast, { maxHeight: vh - HEADER_H - 2 * space.md }]} role="status" accessibilityLiveRegion="polite" aria-label={`${who}: ${deckOf(lc.cardId)}. ${card.text}`}>
+    <View style={[s.wrap, offset ? { top: HEADER_H + space.sm + offset } : null]} pointerEvents="box-none">
+      <View style={[s.toast, { maxHeight: vh - HEADER_H - 2 * space.md - offset }]} role="status" accessibilityLiveRegion="polite" aria-label={`${who}: ${deckOf(lc.cardId)}. ${card.text}`}>
         <View style={s.head}>
           <View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.game.drew}`} kind={lc.playerId === userId ? "bad" : "info"} />{art ? <Pill label={deckOf(lc.cardId)} kind="plain" /> : null}</View>
           <Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={() => setSeen(lc.n)} style={s.x}><Text style={s.xT} aria-hidden>✕</Text></Pressable>
@@ -55,7 +55,7 @@ export function CardToast({ room, userId, hold }: { room: RoomView; userId: stri
 }
 const seenGamble = new Map<string, number>();
 /** Tavakkal biznes natijasi: kubik va yutdi/yutqazdi — hamma ko'radi. */
-export function GambleToast({ room, userId, hold }: { room: RoomView; userId: string; hold?: boolean }) {
+export function GambleToast({ room, userId, hold, offset = 0 }: { room: RoomView; userId: string; hold?: boolean; offset?: number }) {
   const g = room.state.lastGamble as { playerId: string; cell: number; die: number; won: boolean; n: number } | null | undefined;
   const [seen, setSeenState] = useState(() => seenGamble.get(room.code) ?? 0);
   const setSeen = (n: number) => { seenGamble.set(room.code, n); setSeenState(n); };
@@ -64,7 +64,7 @@ export function GambleToast({ room, userId, hold }: { room: RoomView; userId: st
   if (!visible || !g) return null;
   const who = g.playerId === userId ? uz.result.you : nameOf(room, g.playerId);
   return (
-    <View style={s.wrap} pointerEvents="box-none">
+    <View style={[s.wrap, offset ? { top: HEADER_H + space.sm + offset } : null]} pointerEvents="box-none">
       <View style={s.toast} role="status" accessibilityLiveRegion="polite" aria-label={`${who} ${uz.gamble.by}: ${uz.gamble.die} ${g.die}, ${g.won ? uz.gamble.won : uz.gamble.lost}`}>
         <View style={s.head}><View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.gamble.by}`} kind="info" /><Pill label={`${uz.gamble.die}: ${g.die}`} kind="plain" /><Pill label={g.won ? uz.gamble.won : uz.gamble.lost} kind={g.won ? "good" : "bad"} /></View>
           <Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={() => setSeen(g.n)} style={s.x}><Text style={s.xT} aria-hidden>✕</Text></Pressable></View>

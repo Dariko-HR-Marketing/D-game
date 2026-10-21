@@ -6,7 +6,7 @@ import { currentPlayer, passiveIncome, playerCashflow } from "@poyga/rules";
 import { buildApp } from "../src/app";
 import { autoProfiles } from "./_seed";
 
-process.env.CALC_MANUAL = "1";
+process.env.CALC_MANUAL = "1"; // o'quv rejimi yashirin sozlama (`poyga-calc-ui`) bilan yoqiladi
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/calc";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
@@ -15,7 +15,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const snapOf = (p: any) => ({ cash: p.cash, passive: passiveIncome(p), flow: playerCashflow(p) });
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); localStorage.setItem("poyga-calc-ui", "1"); localStorage.setItem("poyga-calc", "manual"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ca" + tag), c = await mk("cb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   check((await a.getByRole("radio", { name: /^O'zim hisoblayman/ }).getAttribute("aria-checked")) === "true", `${tag} standart rejim — «O'zim hisoblayman»`);

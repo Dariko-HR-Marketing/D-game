@@ -1,7 +1,7 @@
 // Balans simulyatsiyasi (SPEC §5.11, §13): bot siyosatlari bilan ko'p o'yin o'ynab, davomiylik va chiqish/g'alaba ulushini o'lchaydi.
 // Ishga tushirish: npx tsx sim/sim.ts [o'yinlar_soni] [siyosat] [maks_navbat]
 import { loadContent, deriveEffects } from "@poyga/content";
-import { Ctx, GameState, Action, newGame, reduce, chooseDream, currentPlayer, effectOf, assetMatches, marketPrice, monthlyExpenses, passiveIncome, maxBankLoan, RULES } from "../src/index";
+import { Ctx, GameState, Action, newGame, reduce, chooseDream, currentPlayer, effectOf, slotBlocked, assetMatches, marketPrice, monthlyExpenses, passiveIncome, maxBankLoan, RULES } from "../src/index";
 
 const { cards, bigBoard, dreams } = loadContent();
 const fx = deriveEffects(cards);
@@ -62,7 +62,7 @@ export function run(games: number, policy: Policy, maxTurns: number, seed0 = 1):
       const o = reduce(s, ctx, { type: "roll", playerId: me }); if (!o.ok) throw new Error(o.error); s = o.state;
       while (s.pending) {
         const cur = s.players.find((p) => p.id === me)!; const e = effectOf(ctx, s.pending.cardId, s.pending).effect;
-        const d = decide(s, policy, cur, e);
+        const d = decide(s, policy, cur, e); if (slotBlocked(e, cur)) d.accept = false;
         const o2 = reduce(s, ctx, { type: "decide", playerId: me, ...d }); if (!o2.ok) throw new Error(o2.error); s = o2.state;
       }
       for (const p of s.players) if (p.circle === "big" && !exitedAt.has(p.id)) { exitedAt.set(p.id, s.round); exitMonthsOf.set(p.id, p.monthsPlayed ?? 0); }

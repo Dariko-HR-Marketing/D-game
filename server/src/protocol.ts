@@ -15,6 +15,7 @@ export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("bank_loan"), amount: money }).strict(),
   z.object({ type: z.literal("bank_repay"), loanIdx: z.number().int().min(0).max(50) }).strict(),
   z.object({ type: z.literal("lombard"), assetIdx: z.number().int().min(0).max(200) }).strict(),
+  z.object({ type: z.literal("sell_asset"), assetIdx: z.number().int().min(0).max(200) }).strict(),
   z.object({ type: z.literal("market_sell"), proposalId: int(1, 1e9), assetCode: z.string().min(1).max(64).optional() }).strict(),
   z.object({ type: z.literal("suyunchi"), proposalId: int(1, 1e9), amount: int(1, 100_000) }).strict(),
   z.object({ type: z.literal("loan_request"), giverId: id, amount: money, months: int(1, 36) }).strict(),
@@ -27,7 +28,7 @@ export const ActionIn = z.discriminatedUnion("type", [
 ]);
 
 export const Message = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional(), calc: z.enum(["auto", "manual"]).optional() }).strict(), // qaror vaqti: 30 yoki 60 soniya (standart 30)
+  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(6).optional() }).strict(), // players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),

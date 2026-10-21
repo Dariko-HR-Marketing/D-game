@@ -209,6 +209,18 @@ export function buyShares(p: Player, e: Extract<Effect, { kind: "buyShares" }>, 
 /** §5.6 Suyunchi / farzand: bolalar soni +1 (xarajat child bo'yicha). */
 export const haveChild = (p: Player): Player => ({ ...p, children: p.children + 1 });
 
+/** Hisob varag'idagi joylar (hisob listi): ko'chmas mulk 5, kichik biznes 6, katta biznes 7. Aksiya, mashina va kolleksiya cheklanmaydi. */
+export const SLOT_LIMITS = { realty: 5, small_business: 6, business: 7 } as const;
+export type SlotKey = keyof typeof SLOT_LIMITS;
+export const slotKey = (kind: string): SlotKey | null =>
+  kind === "land" || kind === "dacha" || kind === "apartment" ? "realty" : kind === "small_business" ? "small_business" : kind === "business" ? "business" : null;
+/** Shu turdagi aktivlar soni (sherikning ulushi `partner_stake` hisobga kirmaydi — u hisob varag'ida joy olmaydi). */
+export const slotCount = (p: { assets: Asset[] }, key: SlotKey) => p.assets.filter((a) => slotKey(a.kind) === key).length;
+/** Shu turdagi yangi aktiv uchun joy qolmaganmi? */
+export const slotFull = (p: { assets: Asset[] }, kind: string) => { const k = slotKey(kind); return k !== null && slotCount(p, k) >= SLOT_LIMITS[k]; };
+/** Ixtiyoriy sotish mumkin bo'lgan aktiv: ko'chmas mulk va bizneslar (sheriklikdagi va garovdagi emas). Aksiya faqat bozor kartasi bilan sotiladi. */
+export const voluntarySellable = (a: Asset) => slotKey(a.kind) !== null && !a.partnerId && !a.stakeOf && !a.pledged;
+
 /** Bozor "sotish imkoniyati": mos aktivlarni sotish. */
 export function sellAsset(p: Player, code: string, price: number): Result {
   const i = p.assets.findIndex((a) => a.code === code);

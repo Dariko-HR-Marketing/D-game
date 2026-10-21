@@ -5,14 +5,14 @@ import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, MIN_TAP } from "../theme";
-import { nameOf, bankRoom, pledgeableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
+import { nameOf, bankRoom, pledgeableAssets, sellableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
 import type { RoomView } from "../net/connection";
 
 const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <View style={s.box}><Text style={s.h} aria-level={2} accessibilityRole="header">{title}</Text>{children}</View>);
 
 function Pick({ options, value, onChange, label, names }: { options: string[]; value: string; onChange: (v: string) => void; label: string; names?: (id: string) => string }) {
-  return (<View style={s.chips} accessibilityLabel={label}>{options.map((o) => (
+  return (<View style={s.chips} role="group" aria-label={label}>{options.map((o) => (
     <Pressable key={o} accessibilityRole="button" accessibilityState={{ selected: o === value }} onPress={() => onChange(o)} style={[s.chip, o === value && s.chipOn]}>
       <Text style={[s.chipT, o === value && { color: color.white }]}>{names ? names(o) : o}</Text></Pressable>))}</View>);
 }
@@ -22,7 +22,7 @@ const Num = ({ value, onChange, label }: { value: string; onChange: (v: string) 
 export function Actions({ room, userId, onAct }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void }) {
   const p = me(room, userId); const st = room.state;
   const [bank, setBank] = useState(""); const [giver, setGiver] = useState(""); const [loanAmt, setLoanAmt] = useState(""); const [months, setMonths] = useState("12");
-  const [partner, setPartner] = useState(""); const [sAmt, setSAmt] = useState("100");
+  const [partner, setPartner] = useState(""); const [sAmt, setSAmt] = useState("100"); const [sellIdx, setSellIdx] = useState<number | null>(null);
   if (!p || st.winner) return null;
   const mineTurn = st.players[st.turn % st.players.length].id === userId;
   const pk = room.pendingCard?.effect?.kind; const buyCardOpen = mineTurn && (pk === "buy" || pk === "buyShares") && !String(room.pendingCard?.id ?? "").startsWith("big-");
@@ -67,6 +67,17 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
         <Box title={uz.coop.lombard}>
           <Text style={s.note}>{uz.coop.lombardRules}</Text>
           {pledgeableAssets(p).map(({ idx, a }) => (<Button key={idx} kind="ghost" label={`${a.code} → +${money(Math.floor((a.price * 0.5) / 100) * 100)}`} onPress={() => onAct({ type: "lombard", assetIdx: idx })} />))}
+        </Box>)}
+      {mineTurn && sellableAssets(p).length > 0 && (
+        <Box title={uz.slots.sellTitle}>
+          <Text style={s.note}>{uz.slots.sellHint}</Text>
+          {sellableAssets(p).map(({ idx, a, proceeds }) => sellIdx === idx ? (
+            <View key={idx} style={{ gap: 6 }}>
+              <Text style={s.note}>{a.code}: +{money(proceeds)} {uz.slots.youGet}{a.credit > 0 ? ` · ${uz.slots.creditClosed}` : ""}</Text>
+              <Button label={uz.slots.confirm} onPress={() => { onAct({ type: "sell_asset", assetIdx: idx }); setSellIdx(null); }} />
+              <Button label={uz.slots.cancel} kind="ghost" onPress={() => setSellIdx(null)} />
+            </View>) : (
+            <Button key={idx} kind="ghost" label={`${uz.slots.sell}: ${a.code} → +${money(proceeds)}`} onPress={() => setSellIdx(idx)} />))}
         </Box>)}
       {(p.lombards ?? []).length > 0 && (<Text style={s.note}>{uz.coop.lombardActive}: {(p.lombards as any[]).map((l) => `${l.code} ${money(l.amount)} · ${l.left} ${uz.coop.months.toLowerCase()}`).join("; ")}</Text>)}
 

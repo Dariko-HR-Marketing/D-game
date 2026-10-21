@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ctx, cards, bigBoard, dreams } from "./testctx";
-import { Ctx, newGame, reduce, chooseDream, currentPlayer, GameState, effectOf, playerCashflow, SMALL_BOARD } from "./index";
+import { Ctx, newGame, reduce, chooseDream, currentPlayer, GameState, effectOf, slotBlocked, playerCashflow, SMALL_BOARD } from "./index";
 
 
 /** Oddiy bot: ixtiyoriy kartani naqdi yetsa qabul qiladi. */
@@ -15,7 +15,7 @@ function play(seed: number, n: number, maxTurns: number) {
     s = r.state;
     while (s.pending) {
       const e = effectOf(ctx, s.pending.cardId).effect;
-      const r2 = reduce(s, ctx, { type: "decide", playerId: me, accept: e.kind !== "lendRequest", useBank: true });
+      const r2 = reduce(s, ctx, { type: "decide", playerId: me, accept: e.kind !== "lendRequest" && !slotBlocked(e, s.players.find((p) => p.id === me)!), useBank: true });
       if (!r2.ok) throw new Error(r2.error);
       s = r2.state;
     }

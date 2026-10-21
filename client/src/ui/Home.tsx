@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
-import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, type TurnSeconds, type CalcMode } from "../turnPref";
+import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, SEATS, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
 import { uz, errText } from "../i18n/uz";
 import { color, font, radius, space, tone, MIN_TAP } from "../theme";
@@ -23,8 +23,8 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
 }
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
-export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
-  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [optsOpen, setOptsOpen] = useState(false);
+export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
+  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [seats, setSeats] = useState<Seats>(getSeatsPref); const [optsOpen, setOptsOpen] = useState(false);
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
   const [me, setMe] = useState<{ name: string; color: number; level: number; gender?: "m" | "f" } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0, gender: r.profile.gender }); }).catch(() => {}); return () => { off = true; }; }, [http]);
@@ -48,12 +48,19 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
             {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn, calc)} disabled={!online} />
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn, calc, seats)} disabled={!online} />
             {compact && (
-              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${turnLabel(turn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
-                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(turn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
+              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(turn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
+                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.seatsOpt.replace("{n}", String(seats))} · {turnLabel(turn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
             {(!compact || optsOpen) && (<>
+            <View style={s.turnRow} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
+              <Text style={s.turnL} aria-hidden>{uz.home.seatsLabel}</Text>
+              {SEATS.map((v) => (
+                <Pressable key={v} role="radio" aria-checked={seats === v} accessibilityLabel={`${uz.home.seatsOpt.replace("{n}", String(v))}. ${uz.home.seatsHint}`} onPress={() => { setSeats(v); setSeatsPref(v); }} style={[s.seg, seats === v && s.segOn, { paddingHorizontal: space.sm, minWidth: MIN_TAP }]} testID={`seats-${v}`}>
+                  <Text style={[s.segT, seats === v && { color: color.white }]} aria-hidden>{v}</Text>
+                </Pressable>))}
+            </View>
             <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
               <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
               {([30, 60] as const).map((v) => (
@@ -61,13 +68,13 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
                   <Text style={[s.segT, turn === v && { color: color.white }]} aria-hidden>{v === 60 ? uz.home.turn60 : uz.home.turn30}</Text>
                 </Pressable>))}
             </View>
-            <View style={s.turnRow} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
+            {calcUiEnabled() && <View style={s.turnRow} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
               <Text style={s.turnL} aria-hidden>{uz.ledger.modeLabel}</Text>
               {(["manual", "auto"] as const).map((v) => (
                 <Pressable key={v} role="radio" aria-checked={calc === v} accessibilityLabel={`${v === "manual" ? uz.ledger.manual : uz.ledger.auto}. ${v === "manual" ? uz.ledger.manualHint : uz.ledger.autoHint}`} onPress={() => { setCalc(v); setCalcPref(v); }} style={[s.seg, calc === v && s.segOn]}>
                   <Text style={[s.segT, calc === v && { color: color.white }]} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text>
                 </Pressable>))}
-            </View>
+            </View>}
             </>)}
             <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
             {joinOpen && (
