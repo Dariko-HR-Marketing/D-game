@@ -27,12 +27,19 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   if (tag === "tel") await a.getByRole("button", { name: /^Blank/ }).click();
   const txt = await a.locator("body").innerText(); check(txt.includes("Naqd ≥ 250 000") && txt.includes("Passiv daromad ≥ 15 000"), `${tag} tez o'yin: chiqish shartlari «250 000 / 15 000»`);
   check(room.state!.mode === "quick", `${tag} o'yin holatida rejim «tez»`);
+  check(await a.getByTestId("coach").count() === 0, `${tag} tez o'yinda yo'l-yo'riq yo'q`);
   await a.context().close();
+  // 2b) Yangi o'yinchi (o'yini yo'q): bosh sahifada «O'quv o'yini» taklifi
+  const nw = await open("mdn" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada O'quv o'yini taklifi`);
+  await nw.getByTestId("home-tutorial").click(); await nw.waitForSelector("text=O'yinchilar"); const nc = (await nw.locator("[aria-label^='Xona kodi']").textContent())!.trim();
+  check(x.rooms.rooms.get(nc)?.mode === "tutorial", `${tag} taklif bosilsa o'quv xonasi ochiladi`); await nw.context().close();
   // 3) O'quv o'yini: 1 odam + 2 bot, qolgan vaqt va vaqt tugashi
   const t = await open("mdt" + tag); await t.getByTestId("mode-tutorial").click(); await t.getByRole("button", { name: /^Yangi o'yin/ }).click(); await t.waitForSelector("text=O'yinchilar");
   const tc = (await t.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const tr = x.rooms.rooms.get(tc)!;
   await t.getByRole("button", { name: "O'yinni boshlash" }).click(); await t.waitForSelector("text=Orzuingizni tanlang"); await t.getByRole("button", { name: "Tanlash" }).first().click(); await t.waitForSelector("text=Naqd");
   check(tr.state!.players.length === 3 && tr.members.filter((m: any) => m.bot).length === 2, `${tag} o'quv: 1 odam + 2 bot`);
+  await t.waitForTimeout(600); check(await t.getByTestId("coach").count() === 1 && /balansingiz/.test(await t.getByTestId("coach").innerText()), `${tag} o'quv: yo'l-yo'riq «Bu sizning balansingiz…» ko'rinadi`);
+  await t.getByTestId("coach").getByRole("button", { name: "Tushundim" }).click(); await t.waitForTimeout(300); check(await t.getByTestId("coach").count() === 0, `${tag} «Tushundim» bosilgach shu qadam qayta chiqmaydi`);
   if (tag === "tel") await t.getByRole("button", { name: /^Maydon/ }).click().catch(() => {});
   await t.waitForTimeout(600); const lim = t.getByTestId("limit-left"); check(await lim.count() > 0 && /Qolgan vaqt: (14|15):/.test(await lim.innerText()), `${tag} o'quv: «Qolgan vaqt 15:00» ko'rinadi`);
   (x.rooms as any).limitPause(tr); tr.limitLeftMs = 1200; (x.rooms as any).limitResume(tr);

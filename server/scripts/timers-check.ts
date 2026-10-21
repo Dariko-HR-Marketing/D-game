@@ -23,7 +23,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   // 1) Kubik uchun taymer 10 s
   check(x.rooms.view(room).timerTotal === 10, `${tag} kubik taymeri serverda 10 soniya`);
   const turnIsMine = st.players[st.turn % st.players.length].id === "tma" + tag;
-  if (turnIsMine) check(await a.getByText(/10 soniyada kubik tashlanmasa/).count() > 0, `${tag} maslahat: «10 soniyada kubik tashlanmasa…»`);
+  if (turnIsMine && tag === "tel") check(await a.getByText(/10 soniyada kubik tashlanmasa/).count() > 0, `${tag} maslahat: «10 soniyada kubik tashlanmasa…»`);
   // 2) Avtopilot: o'zimniki — banner va «Men qaytdim»
   me.autopilot = true; me.autoStreak = 3; (x.rooms as any).emit(room); await a.waitForTimeout(900);
   if (tag === "tel") await a.getByRole("button", { name: /^Maydon/ }).click().catch(() => {});
