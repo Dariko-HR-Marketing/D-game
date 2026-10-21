@@ -20,7 +20,7 @@ await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
 await a.waitForSelector("text=Naqd");
-const room = x.rooms.rooms.get(code)!; const toast = a.locator('[role="status"][aria-label]'); // xabar kartasi (moliya chiplarining jonli xabari aria-label'siz)
+const room = x.rooms.rooms.get(code)!; const toast = a.locator('[role="status"][aria-label]').filter({ hasText: "karta tortdi" }); // xabar kartasi: lahza-bannerlari («Bozor xabari») va moliya chiplari emas
 // «c» o'yinchisi navbatida karta tortilguncha: «a» ning sahifasida xabar chiqadi
 let seenAt = 0;
 for (let i = 0; i < 300 && !seenAt; i++) {
@@ -33,7 +33,10 @@ check(seenAt > 0, "boshqa o'yinchi tortgan kartaning xabari chiqdi");
 if (seenAt) {
   const txt0 = (await toast.first().textContent()) ?? ""; // aynan shu xabar kuzatiladi (server 30 soniyada navbatni o'zi o'tkazib, yangi karta chiqarishi mumkin)
   await a.screenshot({ path: `${OUT}/toast.png` }); const bb = await toast.first().boundingBox(); check(!!bb && bb.y >= 56 && bb.y + bb.height <= 900, "xabar sarlavha ostida va ekran ichida");
-  await a.waitForTimeout(12000); check((await toast.count()) === 1 && (await toast.first().textContent()) === txt0, "12 soniyadan keyin ham turibdi (avval 9 soniyada yo'qolardi)");
+  await a.waitForTimeout(12000);
+  const dump = async () => `soni=${await toast.count()} [${(await toast.evaluateAll((es) => es.map((e) => (e.getAttribute("aria-label") ?? "") + "|" + (e.textContent ?? "").slice(0, 60)))).join(" ;; ")}]`;
+  const ok12 = (await toast.count()) === 1 && (await toast.first().textContent()) === txt0; if (!ok12) console.log("DIAG 12s:", await dump(), "| txt0:", txt0.slice(0, 60));
+  check(ok12, "12 soniyadan keyin ham turibdi (avval 9 soniyada yo'qolardi)");
   await a.waitForTimeout(14000); check((await toast.count()) === 1 && (await toast.first().textContent()) === txt0, "26 soniyada ham turibdi");
   await a.waitForTimeout(6500); const same = (await toast.count()) === 1 && (await toast.first().textContent()) === txt0; check(!same, "30 soniyadan keyin o'sha xabar o'zi yopildi");
   // «✕» bilan yopish: keyingi karta xabari

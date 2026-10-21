@@ -134,7 +134,8 @@ describe("tashlab ketilgan xonalarni yopish (sweep)", () => {
     await c.advance(2000); expect(await rm.sweep(IDLE)).toBe(1);
     const room = rm.rooms.get(code)!; expect(room.endedAt).not.toBeNull(); expect(room.timer).toBeNull();
     expect(rm.activeRoomOf.has("a")).toBe(false); expect(rm.create("a").ok).toBe(true);
-    expect(await new RoomManager(new ContentRegistry(), store, new FakeClock()).restore()).toBe(0);
+    const rm2 = new RoomManager(new ContentRegistry(), store, new FakeClock());
+    expect(await rm2.restore()).toBe(1); expect(rm2.rooms.has(code)).toBe(false); // yopilgan o'yin tiklanmaydi (1 — yuqorida «a» yaratgan yangi zal)
     expect(await rm.sweep(IDLE)).toBe(0); // ikkinchi marta yopilmaydi
   });
   it("bitta odam ham onlayn bo'lsa yopilmaydi; qayta ulanish hisobni to'xtatadi", async () => {

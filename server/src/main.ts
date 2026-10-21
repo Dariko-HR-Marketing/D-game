@@ -50,8 +50,9 @@ process.on("unhandledRejection", (e) => app.log.error({ err: String((e as Error)
 process.on("uncaughtException", (e) => { app.log.fatal({ err: e.message }, "uncaughtException"); process.exit(1); });
 for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, async () => { app.log.info({ sig }, "to'xtatilmoqda"); await app.close(); await Promise.race([Promise.all([flush(), adminState?.writes.flush(), profiles?.writes.flush(), registry?.writes.flush(), analysisWrites.flush()]), new Promise((r) => setTimeout(r, 8000))]); process.exit(0); }); // navbatdagi yozuvlar (taqiq, audit, natija) yo'qolmasin
 console.log(`tiklangan o'yinlar: ${await rooms.restore()}`);
-const IDLE_MS = Number(process.env.ROOM_IDLE_MINUTES ?? 30) * 60_000; // taxmin (OPEN_QUESTIONS #49)
-setInterval(() => { rooms.sweep(IDLE_MS).then((n) => n && app.log.info({ n }, "tashlab ketilgan xonalar yopildi")).catch((e) => app.log.error({ err: String(e?.message ?? e) }, "sweep xatosi")); }, 60_000).unref();
+const IDLE_MS = Number(process.env.ROOM_IDLE_MINUTES ?? 30) * 60_000; // zal va odamsiz qolgan xona (OPEN_QUESTIONS #49)
+const STARTED_IDLE_MS = Number(process.env.ROOM_IDLE_STARTED_HOURS ?? 24) * 3_600_000; // boshlangan o'yin: hamma uzilgan bo'lsa ham shuncha kutiladi, o'yin shu vaqtda to'xtab turadi (OPEN_QUESTIONS #140)
+setInterval(() => { rooms.sweep(IDLE_MS, STARTED_IDLE_MS).then((n) => n && app.log.info({ n }, "tashlab ketilgan xonalar yopildi")).catch((e) => app.log.error({ err: String(e?.message ?? e) }, "sweep xatosi")); }, 60_000).unref();
 const port = Number(process.env.PORT ?? 3000);
 await app.listen({ port, host: "0.0.0.0" });
 console.log(`POYGA server :${port}`);

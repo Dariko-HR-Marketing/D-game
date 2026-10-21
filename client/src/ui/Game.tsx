@@ -17,6 +17,7 @@ import type { Http } from "../net/http";
 import { LedgerPad, type CalcFeedback } from "./Ledger";
 import { useFx } from "../useFx";
 import { BottomNav } from "./BottomNav";
+import { tabBadges, badgeLabel, type Seen } from "../badges";
 import { Icon } from "./Icon";
 import { TimerRing } from "./TimerRing";
 import { FinanceCard } from "./FinanceCard";
@@ -98,6 +99,15 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
   const canRoll = mineTurn && !cardRaw && settled && !state.winner && !due;
+  // Pastki menyu belgilari (telefon): ko'rilgan narsalar bo'lim ochilganda yangilanadi
+  const [seen, setSeen] = useState<Seen>(() => ({ logN: state.logN ?? 0, reactions: reactions.map((r) => r.id), notices: (state.notices ?? []).map((n: any) => n.id) }));
+  useEffect(() => {
+    if (wide) return;
+    if (tab === "players") setSeen((p) => { const ids = reactions.map((r) => r.id); return p.logN === (state.logN ?? 0) && p.reactions.length === ids.length ? p : { ...p, logN: state.logN ?? 0, reactions: ids }; });
+    if (tab === "blank") setSeen((p) => { const ids = (state.notices ?? []).map((n: any) => n.id); return p.notices.length === ids.length ? p : { ...p, notices: ids }; });
+  }, [wide, tab, state.logN, state.notices, reactions]);
+  const badges = useMemo(() => tabBadges({ room, userId, myTurnAction: mineTurn && !state.winner && (canRoll || !!cardRaw || due), seen, reactions }), [room, userId, mineTurn, state.winner, canRoll, cardRaw, due, seen, reactions]);
+  const navBadge = (k: "field" | "blank" | "players") => { const b = badges[k]; return b ? { count: b.count, tone: b.tone, temp: b.temp, label: badgeLabel(k, b) } : null; };
   const myDie = (state.lastRoll && state.lastRoll.playerId === userId ? state.lastRoll.die : null) as number | null;
   useEffect(() => { // kompyuterda probel — kubik tashlash (tugma/matn maydoni fokusda bo'lmasa)
     const doc = (globalThis as any).document; if (!doc?.addEventListener || !canRoll) return;
@@ -157,8 +167,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
     </View>
   );
   // Telefon: hammasi bitta ustunda
-  const side = (
-    <View style={{ gap: space.md, flex: 1 }}>{sideMain}{eventsCard(6)}{reactRow}{leaveBlock}</View>
+  const side = ( // telefonda voqealar va reaksiyalar «O'yinchilar» bo'limida (pastki menyudagi belgi shu yerdagi yangiliklarni ko'rsatadi)
+    <View style={{ gap: space.md, flex: 1 }}>{sideMain}{leaveBlock}</View>
   );
   const reactPanel = (<Card label={uz.react.title}><SectionTitle>{uz.react.title}</SectionTitle>{reactRow}</Card>);
   const rightCol = (
@@ -172,7 +182,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
     <View style={s.header}>
-      <View style={[s.dotC, { backgroundColor: big ? "#E5484D" : "#22A559" }]} aria-hidden />
+      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }]} aria-hidden />
       <Text style={s.hTitle} aria-level={1} accessibilityRole="header">{circleName}</Text>
       <Text style={s.hSub}>{state.round}-{uz.hud.turnWord}</Text>
       <View style={{ flex: 1 }} />
@@ -247,7 +257,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
           </View>
         </>)}
         {tab === "blank" && (<View style={{ gap: space.md }}>{stats}{side}</View>)}
-        {tab === "players" && <PlayerList room={room} userId={userId} />}
+        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} />{eventsCard(6)}{reactRow}</View>)}
       </ScrollView>
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
       {tab === "field" && canRoll && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
@@ -259,7 +269,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
-        items={[{ key: "field", label: uz.hud.tabs.field, icon: "board" }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart" }, { key: "players", label: uz.hud.tabs.players, icon: "people" }, { key: "rules" as any, label: uz.hud.tabs.rules, icon: "book" }]} />
+        items={[{ key: "field", label: uz.hud.tabs.field, icon: "board", badge: navBadge("field") }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart", badge: navBadge("blank") }, { key: "players", label: uz.hud.tabs.players, icon: "people", badge: navBadge("players") }, { key: "rules" as any, label: uz.hud.tabs.rules, icon: "book" }]} />
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, Text, StyleSheet } from "react-native";
-import { color, MIN_TAP } from "../theme";
+import { color, CTA_H, MIN_TAP } from "../theme";
 
 export function Button({ label, onPress, kind = "primary", disabled }: { label: string; onPress: () => void; kind?: "primary" | "ghost"; disabled?: boolean }) {
   return (
@@ -12,6 +12,6 @@ export function Button({ label, onPress, kind = "primary", disabled }: { label: 
 }
 const s = StyleSheet.create({
   b: { minHeight: MIN_TAP, paddingHorizontal: 18, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  primary: { backgroundColor: color.green }, ghost: { backgroundColor: color.white, borderWidth: 1, borderColor: color.line },
+  primary: { backgroundColor: color.green, minHeight: CTA_H }, ghost: { backgroundColor: color.white, borderWidth: 1, borderColor: color.line },
   off: { opacity: 0.45 }, t: { color: color.white, fontWeight: "700", fontSize: 16 },
 });

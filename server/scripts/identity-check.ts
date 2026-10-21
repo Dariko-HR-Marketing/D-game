@@ -19,7 +19,7 @@ const cont = a.getByRole("button", { name: "Davom etish" }); check(await cont.is
 await a.getByTestId("gate-name").fill("A"); check(await cont.isDisabled(), "bitta harfli ism qabul qilinmaydi");
 await a.getByTestId("gate-name").fill("Sardor"); await a.getByTestId("gate-year").fill("1995"); check(!(await cont.isDisabled()), "to'g'ri ism va yil: tugma faol");
 await a.screenshot({ path: `${OUT}/1-gate.png` }); await cont.click();
-await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 10000 }); check((await a.locator("body").innerText()).includes("Salom, Sardor"), "ism kiritilgach bosh sahifa: «Salom, Sardor»");
+await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 10000 }); check(await a.getByText("Salom, Sardor").waitFor({ timeout: 6000 }).then(() => true).catch(() => false), "ism kiritilgach bosh sahifa: «Salom, Sardor»"); // profil yuklanishi bilan salom matni yangilanadi (tugma undan oldin chiqishi mumkin)
 // Server ham ismsiz xonaga kirishni rad etadi
 const sock = await (await mk("zzz")).evaluate(() => new Promise<string>((res) => { const u = (document.location.origin, "ws://localhost:3000/ws?token=zzz"); const w = new WebSocket(u); w.onopen = () => w.send(JSON.stringify({ type: "create" })); w.onmessage = (e) => res(e.data); }));
 check(JSON.parse(sock).error === "profile_required", "server profilsiz xona ochishni rad etadi");

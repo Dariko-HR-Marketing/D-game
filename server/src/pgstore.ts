@@ -7,10 +7,13 @@ export class PgStore implements Store {
   constructor(private pool: Pool) {}
   static connect(url: string) { const pool = new Pool({ connectionString: url }); pool.on("error", (e) => console.error("pg pool xatosi (ulanish uzildi, qayta ulanadi):", e.message)); return new PgStore(pool); }
 
-  async closeRoom(code: string) { await this.pool.query("update rooms set ended_at=now() where code=$1 and ended_at is null", [code]); }
+  async closeRoom(code: string) { await this.pool.query("update rooms set ended_at=now() where code=$1 and ended_at is null", [code]); await this.deleteLobby(code); }
+  async saveLobby(code: string, meta: RoomMeta) { await this.pool.query("insert into lobbies(room_code,meta) values($1,$2) on conflict (room_code) do update set meta=excluded.meta, updated_at=now()", [code, JSON.stringify(meta)]); }
+  async deleteLobby(code: string) { await this.pool.query("delete from lobbies where room_code=$1", [code]); }
+  async loadLobbies() { const r = await this.pool.query("select room_code, meta from lobbies"); return r.rows.map((x) => ({ code: x.room_code as string, meta: x.meta as RoomMeta })); }
   async ping() { await this.pool.query("select 1"); }
   async migrate() {
-    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql", "004_card_stats.sql", "005_docs.sql", "006_admin.sql", "007_profile_photos.sql", "008_profile_gender.sql"])
+    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql", "004_card_stats.sql", "005_docs.sql", "006_admin.sql", "007_profile_photos.sql", "008_profile_gender.sql", "009_lobbies.sql"])
       await this.pool.query(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf-8"));
   }
   async saveSnapshot(code: string, s: GameState, meta?: RoomMeta) {

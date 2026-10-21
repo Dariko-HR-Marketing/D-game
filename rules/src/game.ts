@@ -71,7 +71,7 @@ export interface GameState {
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
-  pending: Pending; winner: string | null; log: string[];
+  pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
 // --- tasodifiy manba holatda ---
@@ -134,7 +134,7 @@ function notify(s: GameState, to: string, key: Notice["key"], extra: Partial<Not
   s.notices ??= []; s.nextNotice ??= 1;
   s.notices.push({ id: s.nextNotice++, to, key, round: s.round, ...extra }); if (s.notices.length > 20) s.notices.splice(0, s.notices.length - 20);
 }
-const logf = (s: GameState, m: string) => { s.log.push(m); if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
+const logf = (s: GameState, m: string) => { s.log.push(m); s.logN = (s.logN ?? 0) + 1; if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
 
 /** Yangi kasb bilan boshidan (§5.3): hamma aktiv va qarz yo'qoladi. */
 function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {

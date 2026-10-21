@@ -31,7 +31,7 @@ export function Banner({ kind, children }: { kind: "good" | "bad" | "warn" | "in
 export const Divider = () => <View style={{ height: 1, backgroundColor: color.line }} />;
 
 const k = StyleSheet.create({
-  card: { backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, borderWidth: 1, borderColor: color.line, gap: space.sm },
+  card: { backgroundColor: color.white, borderRadius: radius.xl, padding: space.lg, borderWidth: 1, borderColor: color.line, gap: space.sm },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm },
   title: { fontSize: font.lg, fontWeight: "800", color: color.navy },
   pill: { alignSelf: "flex-start", paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.pill },

@@ -68,3 +68,5 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/dock-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/moment-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/slots-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/badges-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/rejoin-check.ts
