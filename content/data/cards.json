@@ -671,6 +671,102 @@
    "child": 70,
    "flags": [],
    "file": "28_DIZAYNER-MAKETCHI.webp"
+  },
+  {
+   "n": 29,
+   "name": "O‘qituvchi",
+   "salary": 400,
+   "exp": [
+    30,
+    110,
+    0,
+    0,
+    20,
+    20,
+    20,
+    20,
+    40
+   ],
+   "total": 260,
+   "cf": 140,
+   "save": 300,
+   "kv": 0,
+   "car": 0,
+   "child": 60,
+   "flags": [],
+   "file": "29_OQITUVCHI.webp"
+  },
+  {
+   "n": 30,
+   "name": "Shifokor",
+   "salary": 700,
+   "exp": [
+    50,
+    180,
+    0,
+    0,
+    30,
+    80,
+    40,
+    60,
+    70
+   ],
+   "total": 510,
+   "cf": 190,
+   "save": 600,
+   "kv": 0,
+   "car": 0,
+   "child": 90,
+   "flags": [],
+   "file": "30_SHIFOKOR.webp"
+  },
+  {
+   "n": 31,
+   "name": "Dasturchi",
+   "salary": 1400,
+   "exp": [
+    100,
+    250,
+    300,
+    0,
+    60,
+    100,
+    80,
+    80,
+    140
+   ],
+   "total": 1110,
+   "cf": 290,
+   "save": 1500,
+   "kv": 18000,
+   "car": 0,
+   "child": 140,
+   "flags": [],
+   "file": "31_DASTURCHI.webp"
+  },
+  {
+   "n": 32,
+   "name": "Fermer",
+   "salary": 900,
+   "exp": [
+    60,
+    200,
+    0,
+    150,
+    20,
+    10,
+    30,
+    120,
+    90
+   ],
+   "total": 680,
+   "cf": 220,
+   "save": 500,
+   "kv": 0,
+   "car": 9000,
+   "child": 100,
+   "flags": [],
+   "file": "32_FERMER.webp"
   }
  ],
  "kichik": [
@@ -1657,7 +1753,7 @@
    "file": "KS-037.webp",
    "code": "KS",
    "group": "Biznes",
-   "text": "O‘yin avtomatlari saloni",
+   "text": "Bolalar o‘yin va ko‘ngilochar markazi",
    "full": 180000,
    "income": 12000
   },
@@ -1697,7 +1793,7 @@
    "file": "KS-042.webp",
    "code": "KS",
    "group": "Biznes",
-   "text": "O‘yin avtomatlari saloni",
+   "text": "Oilaviy attraksionlar parki",
    "full": 90000,
    "income": 7000
   },
@@ -3296,7 +3392,7 @@
   },
   {
    "n": 19,
-   "text": "Tungi klubga borish ko‘ngilsizlik bilan yakunlandi. Stomatologga xarajatini to‘lang.",
+   "text": "Do‘stlar bilan sayohatda qattiq yong‘oq chaqib tishingiz sinib qoldi. Stomatologga xarajatini to‘lang.",
    "amount": 100,
    "note": "",
    "file": "Xarajat_019.webp"
@@ -3380,7 +3476,7 @@
   },
   {
    "n": 31,
-   "text": "O‘yin avtomatlari zaliga bordingiz.",
+   "text": "Oilaviy attraksionlar parkiga bordingiz.",
    "amount": 100,
    "note": "",
    "file": "Xarajat_031.webp"
@@ -3443,7 +3539,7 @@
   },
   {
    "n": 40,
-   "text": "Tungi klubga borish ko‘ngilsizlik bilan yakunlandi. Stomatologga xarajatini to‘lang.",
+   "text": "Tezlikni oshirib yubordingiz. Yo‘l harakati jarimasini to‘lang. (agar mashinangiz bo‘lsa)",
    "amount": 100,
    "note": "",
    "file": "Xarajat_040.webp"

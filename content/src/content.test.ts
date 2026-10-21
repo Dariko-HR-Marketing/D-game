@@ -5,9 +5,9 @@ const { cards, bigBoard, dreams } = loadContent();
 const effects = deriveEffects(cards);
 
 describe("kontent", () => {
-  it("kolodalar soni SPEC bilan mos (418)", () => {
+  it("kolodalar soni SPEC bilan mos (422)", () => {
     for (const [k, n] of Object.entries(EXPECTED_COUNTS)) expect((cards as any)[k]).toHaveLength(n);
-    expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(418);
+    expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(422);
   });
   it("ko'chmas mulk kartalari: bo'nak + kredit = to'liq qiymat (manba rasmlaridagi 2 ta xato — KV4-006, DX-005 — qaror bilan tuzatilgan)", () => {
     for (const c of cards.katta as any[]) if (c.down !== undefined) expect(c.down + c.credit, c.file).toBe(c.full);
@@ -26,7 +26,7 @@ describe("kontent", () => {
 });
 
 describe("kartalar ta'siri (100 %)", () => {
-  it("har bir karta uchun ta'sir bor", () => expect(effects).toHaveLength(418));
+  it("har bir karta uchun ta'sir bor", () => expect(effects).toHaveLength(422));
   it("hal qilinmagan karta yo'q", () => expect(effects.filter((e) => e.effect.kind === "unresolved")).toEqual([]));
   it("xarajat kartasida 'A + B' yozilgan bo'lsa, summa yig'indiga teng", () => {
     for (const x of cards.xar) {
@@ -67,9 +67,9 @@ describe("admin kontentini tekshirish", () => {
 
 import { isSafeCardFile, cardFileUrl } from "./index";
 describe("karta rasmi fayl nomlari (§2.5)", () => {
-  it("hamma 418 kartaning fayl nomi xavfsiz shaklga mos va URL ga aylanadi", () => {
+  it("hamma 422 kartaning fayl nomi xavfsiz shaklga mos va URL ga aylanadi", () => {
     const files = Object.values(cards).flat().map((x: any) => x.file as string);
-    expect(files).toHaveLength(418);
+    expect(files).toHaveLength(422);
     for (const f of files) { expect(isSafeCardFile(f), f).toBe(true); expect(cardFileUrl("/cards", f), f).toContain("/cards/"); }
   });
   it("apostrofli nom kodlanadi; yo'l o'tishi va begona kengaytma rad etiladi", () => {

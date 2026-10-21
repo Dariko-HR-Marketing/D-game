@@ -20,8 +20,8 @@ const car = { kind: "car", code: "AV", price: 5000, monthlyIncome: 0, creditPaym
 const biz = { kind: "small_business", code: "T1", price: 5000, monthlyIncome: 100, creditPayment: 0, credit: 0 };
 
 describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
-  it("kartalar soni 418 va hammasi o'z dekasida", () => {
-    expect(ids).toHaveLength(418);
+  it("kartalar soni 422 (418 + 4 yangi kasb) va hammasi o'z dekasida", () => {
+    expect(ids).toHaveLength(422);
     const inDeck = new Set(Object.values(ctx.deckIds).flat()); const own = ids.filter((i) => ctx.effects[i].deck !== "kasb" && !inDeck.has(i));
     expect(own, "dekada yo'q kartalar").toEqual([]);
   });
