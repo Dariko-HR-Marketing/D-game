@@ -39,7 +39,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await t.getByRole("button", { name: "O'yinni boshlash" }).click(); await t.waitForSelector("text=Orzuingizni tanlang"); await t.getByRole("button", { name: "Tanlash" }).first().click(); await t.waitForSelector("text=Naqd");
   check(tr.state!.players.length === 3 && tr.members.filter((m: any) => m.bot).length === 2, `${tag} o'quv: 1 odam + 2 bot`);
   await t.waitForTimeout(600); check(await t.getByTestId("coach").count() === 1 && /balansingiz/.test(await t.getByTestId("coach").innerText()), `${tag} o'quv: yo'l-yo'riq «Bu sizning balansingiz…» ko'rinadi`);
-  await t.getByTestId("coach").getByRole("button", { name: "Tushundim" }).click(); await t.waitForTimeout(300); check(await t.getByTestId("coach").count() === 0, `${tag} «Tushundim» bosilgach shu qadam qayta chiqmaydi`);
+  await t.getByTestId("coach").getByRole("button", { name: "Tushundim" }).dispatchEvent("click"); /* botning karta xabari (toast) tugma ustini vaqtincha yopishi mumkin: bosish hodisasi tugmaning o'ziga beriladi */ await t.waitForTimeout(300); check(await t.getByTestId("coach").count() === 0, `${tag} «Tushundim» bosilgach shu qadam qayta chiqmaydi`);
   if (tag === "tel") await t.getByRole("button", { name: /^Maydon/ }).click().catch(() => {});
   await t.waitForTimeout(600); const lim = t.getByTestId("limit-left"); check(await lim.count() > 0 && /Qolgan vaqt: (14|15):/.test(await lim.innerText()), `${tag} o'quv: «Qolgan vaqt 15:00» ko'rinadi`);
   (x.rooms as any).limitPause(tr); tr.limitLeftMs = 1200; (x.rooms as any).limitResume(tr);
