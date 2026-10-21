@@ -1,5 +1,6 @@
 // O'yin holati va tranzitsiyalar (sof, deterministik). Tasodifiylik `Rng` orqali tashqaridan beriladi (SPEC §6.6).
 import type { Effect } from "@poyga/content/effects";
+import { matches, type Selector, type AssetDesc } from "@poyga/content/groups";
 import { RULES, bankMonthlyPayment, bankPrincipalDue } from "./index";
 
 export type Rng = () => number; // [0,1)
@@ -59,7 +60,22 @@ export interface Asset {
   dividendLeft?: number; // sherik tomonda: ulush qaytgach qolgan dividend oylari (qaror #64)
   pledged?: "bank" | "lombard"; // garovda: sotib, qayta garovga qo'yib bo'lmaydi
   tokens?: number;       // katta aylana biznesi: egalik fishkalari (2 bo'lsa keyingi sotib olish 3× narxda, qo'llanma §13)
+  /** Katalog (Tajriba24): aktivning nomi, sohasi va belgilari — bozor kartalari shu maydonlar bo'yicha nishonlaydi. */
+  sector?: string; name?: string; tags?: string[];
+  since?: number;        // sotib olingan paytdagi o'yin oylari (`monthsPlayed`): «kamida 1 aylana ushlab turilgan» sharti uchun
+  adj?: number;          // bozor narxi o'zgarishlari (NARX_FOIZ «bir marta») ko'paytmasi: sotish bazasi = price × adj (standart 1)
 }
+
+// ---------- Faol ta'sirlar (modifikatorlar): muddatli o'zgarishlar o'yinchida saqlanadi ----------
+export type ModBase = { id: number; months: number | null; wait?: boolean; src?: string };
+/** `months`: qolgan oylar (1 aylana = 4 oy; `null` — doimiy). `wait`: keyingi aylana boshigacha kutadi (alomat), so'ng `months` boshlanadi. */
+export type Mod = ModBase & (
+  | { t: "salary"; pct: number } | { t: "salaryZero" } | { t: "monthly"; amount: number } | { t: "expense"; pct: number } | { t: "credit"; pct: number }
+  | { t: "income"; sel: Selector; mode: "pct" | "zero" | "mult"; value: number }
+  | { t: "price"; sel: Selector; pct: number; side: "buy" | "sell" | "both" }
+  | { t: "policy"; covers: string[]; label?: string });
+/** Depozit: `principal` joylangan; har aylana (4 oy) oxirida +`perLap` (muddatli — hisoblanadi, muddat oxirida to'lanadi; talab bo'yicha — darhol naqdga). `lapsLeft: null` — talab bo'yicha. */
+export interface Deposit { id: number; label: string; principal: number; perLap: number; lapsLeft: number | null; accrued: number; months: number }
 /** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
 export interface BankLoan { amount: number; left: number; collateral?: { code: string; price: number }[] }
 /** Lombard (qo'llanma §08): garov qiymatining 50 % i; foiz oyiga 10 % (xarajatga qo'shiladi), asosiy qarz 12 oydan keyin birdaniga. */
@@ -71,6 +87,8 @@ export interface Player {
   // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
   qar: boolean; insuredCar: boolean; handLoans: number;
   lombards?: Lombard[]; owe?: number; // owe: kichik aylanadagi qarz (naqd yetmaganda yoziladi, naqd paydo bo'lishi bilan yopiladi; chegara 10 000)
+  mods?: Mod[]; modSeq?: number;      // faol ta'sirlar (katalog kartalari): ish haqi, oylik, daromad, narx, sug'urta polislari; `modSeq` — keyingi ID
+  deposits?: Deposit[];               // muddatli depozitlar/obligatsiyalar (katalog)
 }
 
 export function newPlayer(id: string, k: { n: number; salary: number; total: number; save: number; child: number }): Player {
@@ -78,11 +96,35 @@ export function newPlayer(id: string, k: { n: number; salary: number; total: num
     children: 0, assets: [], bankDebt: 0, bankLoans: [], qar: false, insuredCar: false, handLoans: 0 };
 }
 
-export const passiveIncome = (p: Player) => p.assets.reduce((s, a) => s + a.monthlyIncome, 0);
+// ---------- Faol ta'sirlar: hisob ----------
+type WithMods = { mods?: Mod[] };
+const activeMods = (p: WithMods) => (p.mods ?? []).filter((m) => !m.wait);
+export const descOf = (a: Pick<Asset, "kind" | "sector" | "name" | "tags" | "code">): AssetDesc => ({ kind: a.kind, sector: a.sector, name: a.name, tags: a.tags, code: a.code });
+/** Ish haqi: faol ish haqi o'zgarishlari bilan (ish haqi yo'q bo'lsa 0). */
+export const salaryOf = (p: WithMods & { salary: number }) => {
+  const m = activeMods(p); if (m.some((x) => x.t === "salaryZero")) return 0;
+  const pct = m.reduce((s, x) => s + (x.t === "salary" ? x.pct : 0), 0); return pct ? Math.round(p.salary * (1 + pct / 100)) : p.salary;
+};
+/** Bitta aktivning hozirgi oylik daromadi: faol daromad o'zgarishlari bilan (nol bo'lsa 0; ko'paytma; foizlar yig'indisi). */
+export const assetIncome = (p: WithMods, a: Asset) => {
+  const ms = activeMods(p).filter((m): m is Extract<Mod, { t: "income" }> => m.t === "income" && matches(m.sel, descOf(a))); if (!ms.length) return a.monthlyIncome;
+  if (ms.some((m) => m.mode === "zero")) return 0;
+  const mult = ms.reduce((f, m) => (m.mode === "mult" ? f * m.value : f), 1), pct = ms.reduce((s, m) => s + (m.mode === "pct" ? m.value : 0), 0);
+  return Math.round(a.monthlyIncome * mult * (1 + pct / 100));
+};
+/** Sotib olinadigan aktivning (xarid kartasi) sotib olgandan keyingi oylik daromadi: faol daromad o'zgarishlari bilan — `applyEffect` shu aktivni yaratadi. */
+export const newAssetIncome = (p: WithMods, e: { asset: string; code: string; monthlyIncome?: number; sector?: string; name?: string; tags?: string[] }) =>
+  assetIncome(p, { kind: e.asset, code: e.code, price: 0, monthlyIncome: e.monthlyIncome ?? 0, creditPayment: 0, credit: 0, ...(e.sector ? { sector: e.sector } : {}), ...(e.name ? { name: e.name } : {}), ...(e.tags ? { tags: e.tags } : {}) });
+export const passiveIncome = (p: Player) => p.assets.reduce((s, a) => s + assetIncome(p, a), 0);
+const sumPct = (p: WithMods, t: "expense" | "credit") => activeMods(p).reduce((s, m) => s + (m.t === t ? m.pct : 0), 0);
+export const monthlyBonus = (p: WithMods) => activeMods(p).reduce((s, m) => s + (m.t === "monthly" && m.amount > 0 ? m.amount : 0), 0);
+export const monthlyCut = (p: WithMods) => activeMods(p).reduce((s, m) => s + (m.t === "monthly" && m.amount < 0 ? -m.amount : 0), 0);
+const withPct = (n: number, pct: number) => (pct ? Math.round(n * (1 + pct / 100)) : n);
 export const monthlyExpenses = (p: Player) =>
-  p.baseExpenses + p.children * p.childCost + p.assets.reduce((s, a) => s + a.creditPayment, 0) +
-  p.bankLoans.reduce((t, l) => t + bankMonthlyPayment(l.amount), 0) + (p.lombards ?? []).reduce((t, l) => t + l.amount * RULES.lombardMonthlyRate, 0) + (p.qar ? RULES.qarMonthly : 0);
-export const playerCashflow = (p: Player) => p.salary + passiveIncome(p) - monthlyExpenses(p);
+  withPct(p.baseExpenses, sumPct(p, "expense")) + p.children * p.childCost +
+  withPct(p.assets.reduce((s, a) => s + a.creditPayment, 0) + p.bankLoans.reduce((t, l) => t + bankMonthlyPayment(l.amount), 0), sumPct(p, "credit")) +
+  (p.lombards ?? []).reduce((t, l) => t + l.amount * RULES.lombardMonthlyRate, 0) + (p.qar ? RULES.qarMonthly : 0) + monthlyCut(p);
+export const playerCashflow = (p: Player) => salaryOf(p) + passiveIncome(p) + monthlyBonus(p) - monthlyExpenses(p);
 export const totalDebt = (p: Player) => p.bankDebt + p.assets.reduce((s, a) => s + a.credit, 0);
 /** Barcha ochiq majburiyatlar: bank krediti, aktiv kreditlari, qarz (owe), lombard asosiy qarzi. Chiqish sharti uchun. */
 export const allDebt = (p: Player) => totalDebt(p) + (p.owe ?? 0) + (p.lombards ?? []).reduce((s, l) => s + l.amount, 0);
@@ -171,7 +213,7 @@ export function applyEffect(p: Player, e: Effect): Result {
     case "buy": {
       const upfront = e.down ?? e.price;
       return pay(upfront, { ...p, assets: [...p.assets, { kind: e.asset, code: e.code, price: e.price, monthlyIncome: e.monthlyIncome ?? 0,
-        creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0, marketValue: e.marketValue }] });
+        creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0, marketValue: e.marketValue, ...(e.sector ? { sector: e.sector } : {}), ...(e.name ? { name: e.name } : {}), ...(e.tags ? { tags: e.tags } : {}) }] });
     }
     case "buyShares": return { ok: false, reason: "not_applicable" }; // miqdorni o'yinchi tanlaydi: buyShares()
     case "lendRequest": // «Do'stingiz qarzga so'rayapti»: bugun beriladi, keyin «qarz qaytdi» kartasi qaytaradi (§5.10)
@@ -203,7 +245,7 @@ export function buyShares(p: Player, e: Extract<Effect, { kind: "buyShares" }>, 
   if (!Number.isInteger(qty) || qty < e.min || qty > e.max) return { ok: false, reason: "not_applicable" };
   const cost = qty * e.pricePerShare;
   if (p.cash < cost) return { ok: false, reason: "insufficient_cash", shortfall: cost - p.cash };
-  return { ok: true, player: { ...p, cash: p.cash - cost, assets: [...p.assets, { kind: "shares", code: e.code, price: cost, monthlyIncome: 0, creditPayment: 0, credit: 0, shares: qty }] } };
+  return { ok: true, player: { ...p, cash: p.cash - cost, assets: [...p.assets, { kind: "shares", code: e.code, price: cost, monthlyIncome: 0, creditPayment: 0, credit: 0, shares: qty, ...(e.sector ? { sector: e.sector } : {}) }] } };
 }
 
 /** §5.6 Suyunchi / farzand: bolalar soni +1 (xarajat child bo'yicha). */
@@ -249,4 +291,50 @@ export function marketPrice(amount: Sale, a: Asset): number | null {
   if (o.multiply !== undefined) return mv * o.multiply;
   if (o.percent !== undefined) return mv * (1 + o.percent / 100);
   const v = (amount as Record<string, number>)[a.code]; return v === undefined ? null : v;
+}
+
+// ---------- Narx o'zgarishlari va sotish bazasi ----------
+/** Faol narx ta'sirlarining ko'paytmasi (1 = o'zgarishsiz). `side`: «buy» — sotib olish, «sell» — sotish/baholash. */
+export const priceFactor = (p: WithMods, d: AssetDesc, side: "buy" | "sell") =>
+  1 + activeMods(p).reduce((s, m) => s + (m.t === "price" && (m.side === side || m.side === "both") && matches(m.sel, d) ? m.pct : 0), 0) / 100;
+/** Sotish bazasi: sotib olingan narx × bozor o'zgarishlari (NARX_FOIZ) × faol sotish narx ta'sirlari. Katalogning «Sotish narxi bazasi = sotib olish narxi» qoidasi (TZ §4.2). */
+export const saleBase = (p: WithMods, a: Asset) => Math.round(a.price * (a.adj ?? 1) * priceFactor(p, descOf(a), "sell"));
+
+/** «Sotish taklifi» (katalog): mos aktivning taklif narxi; mos kelmasa (tur, ushlab turish muddati, garov/sheriklik) — `null`. */
+export function offerPrice(e: Extract<Effect, { kind: "sellOffer" }>, p: Player & { monthsPlayed?: number }, a: Asset): number | null {
+  if (a.partnerId || a.stakeOf || a.pledged || !matches(e.sel, descOf(a))) return null;
+  if (e.holdMonths > 0 && a.since !== undefined && (p.monthsPlayed ?? 0) - a.since < e.holdMonths) return null; // `since` yo'q (eski saqlangan o'yin) — qadimdan ushlab turilgan deb olinadi // tezkor arbitrajga yo'l yo'q (TZ §6.2)
+  return e.mode === "fixed" ? e.value : Math.round(saleBase(p, a) * (1 + e.value / 100));
+}
+
+// ---------- Faol ta'sirlarni boshqarish ----------
+type DistOmit<M> = M extends unknown ? Omit<M, "id"> : never;
+export const addMod = <T extends Player>(p: T, m: DistOmit<Mod>): T => { const id = (p.modSeq ?? 0) + 1; return { ...p, modSeq: id, mods: [...(p.mods ?? []), { ...m, id } as Mod] }; };
+/** Bir oy o'tdi: faol ta'sirlarning qolgan oylari kamayadi, tugaganlari olib tashlanadi (kutayotganlar tegilmaydi). */
+export const tickMods = <T extends Player>(p: T): T => {
+  if (!p.mods?.length) return p;
+  const mods = p.mods.flatMap((m) => (m.wait || m.months === null ? [m] : m.months > 1 ? [{ ...m, months: m.months - 1 }] : [])) as Mod[];
+  return { ...p, mods };
+};
+/** Aylana boshi (START dan o'tish): kutayotgan ta'sirlar (alomat) boshlanadi. */
+export const startLap = <T extends Player>(p: T): T => (p.mods?.some((m) => m.wait) ? { ...p, mods: p.mods.map((m) => (m.wait ? { ...m, wait: false } : m)) as Mod[] } : p);
+
+// ---------- Sug'urta va depozit ----------
+/** Xavfni qoplaydigan faol polis (bo'lsa). */
+export const policyFor = (p: WithMods, hazard: string) => activeMods(p).find((m) => m.t === "policy" && m.covers.includes(hazard));
+/** Bir oy o'tdi: depozit foizi. Har 4-oyda (aylana oxiri): talab bo'yicha — foiz naqdga tushadi; muddatli — foiz yig'iladi, muddat tugasa asosiy summa + foiz qaytadi. */
+export const tickDeposits = <T extends Player>(p: T): T => {
+  if (!p.deposits?.length) return p; let cash = p.cash; const keep: Deposit[] = [];
+  for (const d0 of p.deposits) {
+    const d = { ...d0, months: d0.months + 1 }; if (d.months % 4 !== 0) { keep.push(d); continue; }
+    if (d.lapsLeft === null) { cash += d.perLap; keep.push(d); continue; }
+    d.accrued += d.perLap; d.lapsLeft -= 1;
+    if (d.lapsLeft <= 0) cash += d.principal + d.accrued; else keep.push(d);
+  }
+  return { ...p, cash, deposits: keep };
+};
+/** Muddatidan oldin yechish: asosiy summa qaytadi, to'plangan foiz yo'qoladi. */
+export function withdrawDeposit<T extends Player>(p: T, id: number): { player: T; ok: boolean; amount: number } {
+  const d = p.deposits?.find((x) => x.id === id); if (!d) return { player: p, ok: false, amount: 0 };
+  return { ok: true, amount: d.principal, player: { ...p, cash: p.cash + d.principal, deposits: p.deposits!.filter((x) => x.id !== id) } };
 }

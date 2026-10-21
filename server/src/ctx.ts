@@ -1,12 +1,12 @@
-import { loadContent, deriveEffects, type Bundle } from "@poyga/content";
+import { loadContent, deriveEffects, buildPools, type Bundle } from "@poyga/content";
 import type { Ctx } from "@poyga/rules";
 
 export function buildCtxFrom(b: Bundle): Ctx {
   const fx = deriveEffects(b.cards);
-  const ids = (d: string) => fx.filter((e) => e.deck === d).map((e) => e.id);
+  const { deckIds, extended, adult } = buildPools(fx); // faqat kolodaga tushadigan (olib tashlanmagan, ushlab turilmagan) kartalar
   return {
-    effects: Object.fromEntries(fx.map((e) => [e.id, e])),
-    deckIds: { kasb: ids("kasb"), kichik: ids("kichik"), katta: ids("katta"), bozor: ids("bozor"), xar: ids("xar"), kxar: ids("kxar"), hod: ids("hod") },
+    effects: Object.fromEntries(fx.map((e) => [e.id, e])), // olib tashlangan kartalar ham: saqlangan o'yinlar eski karta ID larini topa oladi
+    deckIds, extended, adult,
     kasb: Object.fromEntries(b.cards.kasb.map((k) => [k.n, k])),
     bigBoard: b.bigBoard, dreams: b.dreams, cellRules: b.cellRules,
   };

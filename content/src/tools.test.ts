@@ -25,7 +25,7 @@ describe("kasb importi", () => {
   });
 });
 describe("karta rasmlari tekshiruvi", () => {
-  it("haqiqiy kontentda 6 yangi karta va kasblar bilan ~418 fayl kutiladi", () => {
+  it("haqiqiy kontentda ~418 rasm fayli kutiladi (rasmsiz yangi kartalar hisobga kirmaydi)", () => {
     const c = loadContent().cards; const e = expectedFiles(c as any); expect(e.length).toBeGreaterThan(400); expect(new Set(e).size).toBe(e.length);
   });
   it("yetishmaydi / ortiqcha / registr / bo'sh / yaroqsiz", () => {

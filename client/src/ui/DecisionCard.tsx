@@ -8,7 +8,7 @@ import { Icon, type IconName } from "./Icon";
 import { TimerRing } from "./TimerRing";
 import { CardFace } from "./CardFace";
 import { CardPaper } from "./CardPaper";
-import { headOf } from "./cardLook";
+import { headOf, deckKey } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
 import { crisisAdjusted, slotBlocked, slotKey, SLOT_LIMITS } from "@poyga/rules";
@@ -16,7 +16,7 @@ import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, radius, space, tone } from "../theme";
 
-const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
+const deckOf = (id: string, deck?: string) => uz.deck[deckKey(id, deck)] ?? uz.deck.other;
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
 function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number; e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
   const Tile = ({ deck, label, n, bg, fg }: { deck: "kichik" | "katta"; label: string; n: number; bg: string; fg: string }) => (
@@ -38,7 +38,7 @@ function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
 /** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
-export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30, calcMode, calcFb }: { calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
+export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30, calcMode, calcFb }: { horizontal?: boolean; calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom); const lastDecide = React.useRef<Record<string, unknown> | null>(null);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
@@ -53,7 +53,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const noSlot = e ? slotBlocked(e, me) : false; // hisob varag'ida joy qolmagan: qabul qilib bo'lmaydi
   const fullKey = e?.kind === "buy" ? slotKey(e.asset) : e?.kind === "gamble" || rent ? "business" : null;
   const rentCantBuy = rent && (me.cash < e.buyPrice || noSlot);
-  const H = headOf(String(card.id), e);
+  const H = headOf(String(card.id), e, card.deck);
   const flow = exitProgress(me).cashflow;
   const gainCash = e?.kind === "gain" ? e.amount : 0;
   const afterCash = me.cash - (cost ?? 0) + gainCash;
@@ -66,19 +66,11 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const ledger = useLedger(snap, calcFb);
   const ledgerBase = lastDecide.current && calcFb?.error === "calc_required" ? lastDecide.current : { type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) };
   const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} turnSeconds={turnSeconds} /> : null;
-  const body = (
-    <>
-      <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
-        {typeof die === "number" ? <Dice value={die} size={48} /> : <View style={[s.headIcon, { borderColor: H.border }]}><Icon name={H.icon} size={24} color={H.fg} /></View>}
-        <View style={{ flex: 1 }}>
-          <Text style={[s.headEyebrow, { color: H.fg }]}>{typeof die === "number" ? `${uz.gamble.die} ${die} · ` : ""}{deckOf(card.id)}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name={H.icon} size={20} color={H.fg} /><Text style={[s.headTitle, { color: H.fg }]} aria-level={2} accessibilityRole="header">{H.title}</Text></View>
-        </View>
-        {left ? <TimerRing left={left} total={turnSeconds} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
-      </View>
-      <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
+  const faceBlock = (<>
       <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
       {artOk ? <Text style={s.sr} aria-hidden>{card.text}</Text> : <CardPaper look={H} text={card.text} />}
+  </>);
+  const numbers = (<>
       {!manual && showChange && (
         <View style={{ gap: space.xs }}>
           <Text style={s.sec} aria-level={3} accessibilityRole="header">{uz.hud.changes.toUpperCase()}</Text>
@@ -86,6 +78,20 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
           {f.flowDelta !== null && f.flowDelta !== 0 && <View style={s.change}><Text style={s.chL}>{uz.game.cashflow}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(flow)}</Text> → <Text style={{ color: flow + f.flowDelta < 0 ? tone.bad : tone.good }}>{money(flow + f.flowDelta)}</Text></Text></View>}
         </View>)}
       {f.rows.length > 0 && (<View style={s.facts} accessibilityLabel={uz.facts.title}>{f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}</View>)}
+  </>);
+  const numbersFirst = !!sheet && vh < 700; // past telefonda qaror raqamlari (o'zgarishlar, narx, kredit) hikoya matnidan oldin: aylantirmasdan ko'rinsin
+  const body = (
+    <>
+      <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
+        {typeof die === "number" ? <Dice value={die} size={48} /> : <View style={[s.headIcon, { borderColor: H.border }]}><Icon name={H.icon} size={24} color={H.fg} /></View>}
+        <View style={{ flex: 1 }}>
+          <Text style={[s.headEyebrow, { color: H.fg }]}>{typeof die === "number" ? `${uz.gamble.die} ${die} · ` : ""}{deckOf(card.id, card.deck)}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name={H.icon} size={20} color={H.fg} /><Text style={[s.headTitle, { color: H.fg }]} aria-level={2} accessibilityRole="header">{H.title}</Text></View>
+        </View>
+        {left ? <TimerRing left={left} total={turnSeconds} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
+      </View>
+      <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
+      {numbersFirst ? <>{numbers}{faceBlock}</> : <>{faceBlock}{numbers}</>}
       {shares && (<View style={{ gap: space.sm }}>
         <Text style={s.label} nativeID="qtyL">{uz.coop.shares} ({e.min}–{e.max})</Text>
         <TextInput accessibilityLabelledBy="qtyL" aria-label={uz.coop.shares} value={q} keyboardType="number-pad" onChangeText={(t) => setQ(t.replace(/\D/g, ""))} style={s.input} />
@@ -106,11 +112,15 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       {!mandatory && rent && (<View style={{ gap: space.sm }}>
         <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => act({ type: "decide", accept: true })} />
         <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
-      {!mandatory && !rent && (<View style={{ gap: space.sm }}>
-        {!needLedger && <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
+      {!mandatory && e?.kind === "quiz" && (<View style={{ gap: space.sm }} testID="quiz-options">
+        <Text style={s.label}>{uz.ops.quiz.pick}</Text>
+        {(["A", "B", "V"] as const).map((k) => <Button key={k} label={`${k}. ${e[k.toLowerCase()]}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: true, choice: k })} />)}
+        <Button label={uz.game.skip} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+      {!mandatory && !rent && e?.kind !== "quiz" && (<View style={{ gap: space.sm, flexDirection: horizontal ? "row" : "column" }}>{/* yotiq telefon: ikki tugma yonma-yon, balandlik tejaladi */}
+        {!needLedger && <View style={horizontal ? { flex: 1 } : undefined}><Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
           disabled={(shares && (qty < e.min || qty > e.max)) || cantFund || noSlot}
-          onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />}
-        <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={(cantFund || noSlot) && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+          onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} /></View>}
+        <View style={horizontal ? { flex: 1 } : undefined}><Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={(cantFund || noSlot) && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View></View>)}
   </>);
   if (e?.kind === "deckChoice") { if (layout) return <>{layout(<View style={{ gap: space.md }}>{inner}</View>, null)}</>; return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>; } // tugmalar DeckChoice ichida; layout bo'lsa ham chap ustun (moliya) saqlanadi
   if (layout) return <>{layout(<View style={{ gap: space.md }}>{body}</View>, <View style={{ gap: space.sm }}>{actions}</View>)}</>;

@@ -1,10 +1,12 @@
 // O'yin darajasidagi holat mashinasi: navbat, katak, karta qarori, chiqish, g'alaba.
 // Hamma narsa sof va serializatsiya qilinadigan holat ustida; tasodifiylik holatdagi `rng` dan.
-import type { CardEffect, Effect } from "@poyga/content/effects";
+import type { CardEffect, Effect, Op } from "@poyga/content/effects";
+import { matches, type Selector } from "@poyga/content/groups";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
-import { RULES, MODES, modeOf, type GameMode, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
+import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
+  salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, policyFor, tickDeposits, withdrawDeposit, type Mod,
   passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
@@ -21,6 +23,8 @@ export interface Dream { name: string; price: number }
 export interface Ctx {
   effects: Record<string, CardEffect>;
   deckIds: { kasb: string[]; kichik: string[]; katta: string[]; bozor: string[]; xar: string[]; kxar: string[]; hod: string[] };
+  /** Reytingli o'yinda yopiq kartalar (ranked_pool=EXTENDED; RULES.rankedPools bilan boshqariladi) va 16 yoshgacha o'yinchilarga tushmaydigan kartalar (age 16+). */
+  extended?: string[]; adult?: string[];
   /** Ochiq kataklar qoidalari (content/cellrules.ts). Bo'sh/yo'q bo'lsa — katak ta'sirsiz va jurnalga yoziladi. */
   cellRules?: CellRulesT;
   kasb: Record<number, Kasb>;
@@ -40,6 +44,8 @@ export interface GamePlayer extends Player {
   shady?: number;     // «Nohalol biznes» katagiga necha marta tushgan (qo'llanma §11)
   autos?: number;     // vaqt tugab avtomatik qabul qilingan/o'tkazilgan qarorlar soni (ball: −2, §15)
   bigDebt?: number; bigDebtY?: number; // katta aylana qarzi va «Yana pullar» nechta o'tgan (§11)
+  xp?: number;        // o'yin davomida topilgan XP (homiy kartalari, viktorina): o'yin tugagach profilga qo'shiladi (botlarga emas)
+  depSeq?: number;    // depozitlar uchun keyingi ID
 }
 export type Pending =
   | null
@@ -49,7 +55,8 @@ export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
   | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
   | { id: number; kind: "partner"; owner: string; partner: string; cardId: string }
-  | { id: number; kind: "market"; cardId: string; sold: string[] };
+  | { id: number; kind: "market"; cardId: string; sold: string[] }
+  | { id: number; kind: "offer"; cardId: string; sold: string[]; first: boolean }; // katalog «sotish taklifi»: `first` — faqat birinchi rozi bo'lgan sota oladi
 
 /** Xabarnoma (§5.7: inqiroz tugaganda aloqador o'yinchilarga; §5.6: qarz eslatmasi). `to`: o'yinchi ID yoki "all". */
 export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder"; round: number; from?: string; amount?: number }
@@ -61,13 +68,15 @@ export interface GameState {
   /** Boshlovchi kubik bo'yicha aniqlangan (qo'llanma): `openingDice` — jurnaldan qayta o'ynash uchun; `first` — birinchi yuruvchi indeksi (tur shundan hisoblanadi); `opening` — tashlangan kubiklar (tenglikda qayta tashlanadi). */
   openingDice?: boolean; first?: number; opening?: Record<string, number>[];
   /** Oxirgi tashlangan kubik (mijoz ko'rsatishi uchun): kim, nechta, va qaysi tartib raqamda. */
-  lastRoll?: { playerId: string; die: number; n: number } | null;
+  lastRoll?: { playerId: string; die: number; dice?: number[]; n: number } | null; // die — yig'indi; dice — har bir kubik (1 yoki 2 ta; eski saqlangan o'yinlarda yo'q)
   /** Oxirgi tortilgan karta (majburiy karta darhol qo'llanib `pending` bo'lmagani uchun ham ko'rsatiladi). */
   lastCard?: { playerId: string; cardId: string; n: number } | null;
   /** «Kutilmagan hodisa!» (K katagi) xona egasi tomonidan yoqilganmi (qo'llanma §07). O'chirilgan bo'lsa K — oddiy katak. */
   events?: boolean;
   /** Oxirgi tavakkal kubik natijasi (mijoz ko'rsatishi uchun). */
   lastGamble?: { playerId: string; cell: number; die: number; won: boolean; n: number } | null;
+  /** Oxirgi viktorina natijasi (mijoz ko'rsatishi uchun). `choice` — tanlangan variant (yo'q = vaqt tugadi). To'g'ri javob faqat shu yerda, javobdan keyin. */
+  lastQuiz?: { playerId: string; cardId: string; choice: string | null; correct: boolean; answer: string; n: number } | null;
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
@@ -89,7 +98,9 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: strin
   const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
     decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
   withRng(s, (r) => {
-    for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k], r), discard: [] };
+    // Reytingli o'yinda faqat asosiy havza (ranked_pool=BASE): EXTENDED kartalar sozlama (RULES.rankedPools) bilan yoqilmaguncha kirmaydi (Tajriba24 TZ §6.7)
+    const closed = new Set(modeOf(opts.mode) === "rated" && !RANKED_ALLOWED_POOLS.includes("EXTENDED") ? ctx.extended ?? [] : []);
+    for (const k of Object.keys(ctx.deckIds) as DeckName[]) s.decks[k] = { draw: shuffle(ctx.deckIds[k].filter((id) => !closed.has(id)), r), discard: [] };
   });
   s.players = playerIds.map((id) => {
     const kid = drawFrom(s, "kasb");
@@ -129,7 +140,7 @@ const setP = (s: GameState, p: GamePlayer) => { s.players[idx(s, p.id)] = settle
 // (Lazy: engine ↔ index ↔ game aylana importi tufayli modul yuklanishida SMALL_BOARD hali tayyor emas.)
 export const monthsPerLap = () => [...SMALL_BOARD].filter((c) => c === "D").length;
 export const crisisMonths = () => RULES.crisisLaps * monthsPerLap();
-const CRISIS_KINDS = ["land", "dacha", "apartment", "shares"];
+export const CRISIS_KINDS = ["land", "dacha", "apartment", "shares"];
 function notify(s: GameState, to: string, key: Notice["key"], extra: Partial<Notice> = {}) {
   s.notices ??= []; s.nextNotice ??= 1;
   s.notices.push({ id: s.nextNotice++, to, key, round: s.round, ...extra }); if (s.notices.length > 20) s.notices.splice(0, s.notices.length - 20);
@@ -197,7 +208,8 @@ export type Action =
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "time_up"; playerId: "server" }
-  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; auto?: true };
+  | { type: "deposit_withdraw"; playerId: string; depositId: number }
+  | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; choice?: "A" | "B" | "V"; auto?: true };
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
@@ -219,9 +231,10 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
     if (s.pending) return { ok: false, error: "decision_pending" };
     // Xayriya (§5.10): keyingi 3 navbatda 2 ta kubik (yig'indisi bo'yicha yuriladi)
     const two = cur.circle === "big" || (cur.twoDice ?? 0) > 0; // katta aylanada 2 kubik (qo'llanma §04); xayriya — kichik aylanada 3 navbat 2 kubik
-    const die = withRng(s, (r) => (two ? rollDie(r) + rollDie(r) : rollDie(r)));
+    const dice = withRng(s, (r) => { const a = rollDie(r); return two ? [a, rollDie(r)] : [a]; }); // tasodifiy tartib avvalgidek (avval birinchi, so'ng ikkinchi kubik)
+    const die = dice.reduce((x, y) => x + y, 0);
     if (two && (cur.twoDice ?? 0) > 0) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
-    s.lastRoll = { playerId: cur.id, die, n: (s.lastRoll?.n ?? 0) + 1 };
+    s.lastRoll = { playerId: cur.id, die, dice, n: (s.lastRoll?.n ?? 0) + 1 };
     land(s, ctx, cur.id, die);
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s, die };
@@ -242,8 +255,8 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
 }
 
 /** Ixtiyoriy sotish narxi: sotib olingan narx; inqirozda ko'chmas mulk 2 baravar past (bozor kartasidagi sotuv bilan bir xil qoida). Kredit undan alohida yopiladi. */
-export const voluntarySalePrice = (p: { crisisMonths?: number }, a: { kind: string; price: number }) =>
-  Math.round(a.price * ((p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(a.kind) ? 0.5 : 1));
+export const voluntarySalePrice = (p: { crisisMonths?: number; mods?: Mod[] }, a: { kind: string; price: number } & Partial<import("./engine").Asset>) =>
+  Math.round(saleBase(p, a as import("./engine").Asset) * ((p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(a.kind) ? 0.5 : 1));
 
 /** Karta ta'sirini qabul qilib bo'lmaydi: hisob varag'ida joy qolmagan. Mijoz, bot va server shu bilan tekshiradi. */
 export function slotBlocked(e: Effect, p: { cash: number; assets: import("./engine").Asset[] }): boolean {
@@ -274,11 +287,25 @@ export function effectOf(ctx: Ctx, id: string, pend?: Pending | null): CardEffec
 }
 
 /** Inqiroz (§5.7): yer/dala-hovli/kvartira/aksiya sotib olish narxi 2 baravar past (butun songa yaxlitlanadi). Server ham shu bilan «yetarlimi» ni tekshiradi. */
-export function crisisAdjusted<T extends Effect>(e: T, p: { crisisMonths?: number }): T {
+export function crisisAdjusted<T extends Effect>(e: T, p: { crisisMonths?: number; mods?: Mod[] }): T {
+  return priceAdjusted(crisisHalved(e, p), p);
+}
+function crisisHalved<T extends Effect>(e: T, p: { crisisMonths?: number }): T {
   if ((p.crisisMonths ?? 0) <= 0) return e;
   const h = (n: number) => Math.max(1, Math.round(n / 2));
   if (e.kind === "buy" && ["land", "dacha", "apartment"].includes(e.asset)) return { ...e, price: h(e.price), down: e.down === undefined ? undefined : h(e.down), credit: e.credit === undefined ? undefined : Math.round(e.credit / 2), creditPayment: e.creditPayment === undefined ? undefined : Math.round(e.creditPayment / 2) } as T;
   if (e.kind === "buyShares") return { ...e, pricePerShare: h(e.pricePerShare) } as T;
+  return e;
+}
+/** Faol «xarid narxi» ta'sirlari (bozor hodisalari, texnologiya kartalari): sotib olish narxi va boshlang'ich to'lov ko'paytiriladi (TZ §6.1 NARX_FOIZ). */
+function priceAdjusted<T extends Effect>(e: T, p: { mods?: Mod[] }): T {
+  if (!p.mods?.length) return e;
+  if (e.kind === "buy") {
+    const f = priceFactor(p, { kind: e.asset, sector: e.sector, name: e.name, tags: e.tags, code: e.code }, "buy"); if (f === 1) return e;
+    const price = Math.max(1, Math.round(e.price * f)), down = e.down === undefined ? undefined : Math.min(price, Math.round(e.down * f));
+    return { ...e, price, down, credit: down === undefined ? e.credit : price - down } as T;
+  }
+  if (e.kind === "buyShares") { const f = priceFactor(p, { kind: "shares", sector: e.sector, code: e.code }, "buy"); return f === 1 ? e : { ...e, pricePerShare: Math.max(1, Math.round(e.pricePerShare * f)) } as T; }
   return e;
 }
 
@@ -340,10 +367,10 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   const oldPos = p.pos;
   p = { ...p, pos, monthsPlayed: (p.monthsPlayed ?? 0) + months };
   for (let m = 0; m < months; m++) {
-    const held = (p.noSalary ?? 0) > 0 ? p.salary : 0; // «Ishdan bo'shadingiz!»: maosh yo'q, xarajat to'lanadi
+    const held = (p.noSalary ?? 0) > 0 ? salaryOf(p) : 0; // «Ishdan bo'shadingiz!»: maosh yo'q, xarajat to'lanadi
     const base = playerCashflow(p) - held;
     const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
-    p = tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary });
+    p = tickDeposits(tickMods(tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary })));
     if (p.cash < 0 && (p.lombards ?? []).length) { // lombard foizi to'lanmadi: garov yo'qoladi (qo'llanma §08)
       logf(s, `${p.id}: lombard foizi kechikdi — garov yo'qoldi`);
       p = { ...p, assets: p.assets.filter((x) => x.pledged !== "lombard"), lombards: [] };
@@ -352,6 +379,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
     if (p.circle === "big") p = bigMonthEnd(s, ctx, p);
   }
   if (p.cash < 0) { const debt = -p.cash; p = forcePay(s, ctx, { ...p, cash: 0 }, debt); }
+  if (passedOwnStart(p.circle, oldPos, die)) p = startLap(p); // aylana boshi: kutayotgan ta'sirlar (alomatlar) boshlanadi (TZ §6.3)
   setP(s, p);
   for (let m = 0; m < months; m++) tickStakes(s, pid);
   // Katta aylana: START dan har o'tishda (aylana boshi) sozlangan ta'sir (ixtiyoriy; standart qoidada yo'q — kxar «Orzu» katagida olinadi)
@@ -363,6 +391,8 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   else bigLanding(s, ctx, q);
 }
 
+/** Joriy aylananing START katagidan o'tildimi yoki unga tushildimi (kichik — 0, katta — 34). */
+const passedOwnStart = (circle: "small" | "big", from: number, steps: number) => { const size = circle === "small" ? 48 : CONFIG.bigCells, start = circle === "small" ? 0 : CONFIG.bigStart; for (let k = 1; k <= steps; k++) if ((from + k) % size === start) return true; return false; };
 const passedStart = (from: number, steps: number) => { for (let k = 1; k <= steps; k++) if ((from + k) % CONFIG.bigCells === CONFIG.bigStart) return true; return false; };
 function noteCard(s: GameState, playerId: string, cardId: string) { s.lastCard = { playerId, cardId, n: (s.lastCard?.n ?? 0) + 1 }; }
 /** Bozor kartasi (§5.2): hamma mos aktivli o'yinchiga taklif; majburiy (qo'llanma §07: aksiya «kuyib ketadi», eski uy kompensatsiyasi) — mos aktivi borlar uchun sotuv avtomatik. */
@@ -371,10 +401,61 @@ function applyMarketCard(s: GameState, ctx: Ctx, id: string, e: Extract<Effect, 
   if (e.forced) { for (const q of [...s.players]) sellToMarket(s, ctx, q.id, e); return; }
   s.proposals.push({ id: s.nextProposal++, kind: "market", cardId: id, sold: [] });
 }
+/** Karta tortish: 16 yoshgacha (restricted) o'yinchiga 16+ karta tushmaydi — u chetga qo'yilib, keyingisi olinadi (Tajriba24 TZ §6.8). */
+function drawFor(s: GameState, ctx: Ctx, deck: DeckName, pid: string): string {
+  const adult = new Set(ctx.adult ?? []); let id = drawFrom(s, deck);
+  if (!adult.size || !s.restricted.includes(pid)) return id;
+  for (let k = s.decks[deck].draw.length + s.decks[deck].discard.length; k > 0 && adult.has(id); k--) id = drawFrom(s, deck);
+  return id;
+}
+/** Katalog «sotish taklifi»: hamma mos aktivli o'yinchiga taklif (navbatni to'xtatmaydi). */
+function applySellOffer(s: GameState, id: string, e: Extract<Effect, { kind: "sellOffer" }>, text?: string) {
+  logf(s, `bozor: ${text ?? id}`); s.proposals.push({ id: s.nextProposal++, kind: "offer", cardId: id, sold: [], first: e.first });
+}
+
+const hasMatch = (p: { assets: import("./engine").Asset[] }, sel: Selector) => p.assets.some((a) => matches(sel, descOf(a)));
+/** Katalog kartasining ta'sirini qo'llaydi (tuzilgan `Op` lar ketma-ket). Tortgan o'yinchida mos aktiv bo'lmasa karta o'tkaziladi (TZ §6.2). */
+function applyOpsCard(s: GameState, ctx: Ctx, drawerId: string, ce: CardEffect, paid = false) {
+  const e = ce.effect as Extract<Effect, { kind: "ops" }>; const drawer = s.players[idx(s, drawerId)];
+  if (e.requires && !hasMatch(drawer, e.requires)) { logf(s, `${drawerId}: mos aktiv yo'q — karta o'tkazildi`); return; }
+  if (!paid && e.cost) { setP(s, forcePay(s, ctx, drawer, e.cost)); }
+  for (const op of e.ops) {
+    const all = ("to" in op && op.to === "all") || op.op === "expensePct" || op.op === "creditPct" || op.op === "priceNow" || op.op === "priceMod";
+    for (const id of all ? s.players.map((q) => q.id) : [drawerId]) setP(s, applyOp(s, ctx, s.players[idx(s, id)], op, ce.id));
+  }
+}
+function applyOp(s: GameState, ctx: Ctx, p: GamePlayer, op: Op, src: string): GamePlayer {
+  switch (op.op) {
+    case "cash": {
+      let amount = op.amount;
+      if (amount < 0 && op.hazard && policyFor(p, op.hazard)) { amount = op.insured ?? 0; logf(s, `${p.id}: sug'urta qopladi (${op.hazard})`); } // polis xavfni qoplaydi: to'lov `insured` gacha kamayadi
+      return amount >= 0 ? { ...p, cash: p.cash + amount } : forcePay(s, ctx, p, -amount);
+    }
+    case "policy": return addMod(p, { t: "policy", covers: op.covers, label: op.label, months: op.months, src });
+    case "salaryPct": return addMod(p, { t: "salary", pct: op.pct, months: op.months, src });
+    case "salaryAdd": return { ...p, salary: p.salary + op.amount };
+    case "salaryZero": return addMod(p, { t: "salaryZero", months: op.months, src });
+    case "monthly": return addMod(p, { t: "monthly", amount: op.amount, months: op.months, src });
+    case "expensePct": return addMod(p, { t: "expense", pct: op.pct, months: op.months, src });
+    case "creditPct": return addMod(p, { t: "credit", pct: op.pct, months: op.months, src });
+    case "priceMod": return addMod(p, { t: "price", sel: op.sel, pct: op.pct, side: op.side, months: op.months, wait: op.wait, src });
+    case "priceNow": return { ...p, assets: p.assets.map((a) => (matches(op.sel, descOf(a)) ? { ...a, adj: Math.round((a.adj ?? 1) * (1 + op.pct / 100) * 10_000) / 10_000 } : a)) };
+    case "income": {
+      let sel = op.sel;
+      if (sel.pick) { // «egasi tanlaydi»: o'yinchi o'zi uchun eng foydali aktivni tanlaydi (daromad pasaysa — eng kam daromadlisini, oshsa — eng ko'pini)
+        const c = p.assets.filter((a) => matches(sel, descOf(a))).sort((x, y) => x.monthlyIncome - y.monthlyIncome); if (!c.length) return p;
+        const worse = op.mode === "zero" || (op.mode === "pct" && op.value < 0); sel = { any: [{ code: (worse ? c[0] : c[c.length - 1]).code }] };
+      }
+      return addMod(p, { t: "income", sel, mode: op.mode, value: op.value, months: op.months, wait: op.wait, src });
+    }
+  }
+}
+
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
-  const id = drawFrom(s, deck); noteCard(s, p.id, id);
+  const id = drawFor(s, ctx, deck, p.id); noteCard(s, p.id, id);
   const ce = ctx.effects[id];
   if (ce.effect.kind === "marketSale") { applyMarketCard(s, ctx, id, ce.effect, ce.text); return; } // navbatni to'xtatmaydi
+  if (ce.effect.kind === "sellOffer") { applySellOffer(s, id, ce.effect, ce.text); return; }
   if (ce.mode === "mandatory") { s.pending = { type: "card", playerId: p.id, cardId: id, deck }; autoMandatory(s, ctx, p, ce); }
   else s.pending = { type: "card", playerId: p.id, cardId: id, deck };
 }
@@ -382,6 +463,8 @@ function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
 /** Majburiy karta darhol qo'llanadi (§5.2). */
 function autoMandatory(s: GameState, ctx: Ctx, p: GamePlayer, ce: CardEffect) {
   s.pending = null;
+  if (ce.effect.kind === "ops") { applyOpsCard(s, ctx, p.id, ce); return; }
+  if (ce.effect.kind === "xpInfo") { setP(s, { ...p, xp: (p.xp ?? 0) + ce.effect.amount }); logf(s, `${p.id}: +${ce.effect.amount} XP`); return; }
   // Karta matni "barcha o'yinchilar" / "qarov kartasi egasi" / "qarz bergan o'yinchi" ga tegishli deb aytsa — hammasiga (faqat tortgan o'yinchiga emas)
   const k = ce.effect.kind;
   const allPlayers = k === "marketCrash" || k === "debtRepaid" || (ce.effect.kind === "qarEvent" && ce.effect.scope === "holders");
@@ -493,7 +576,7 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
       setP(s, { ...p, cash: p.cash + act.times * flow }); return;
     }
     case "payFixed": setP(s, forcePay(s, ctx, p, act.amount)); return;
-    case "loseIncomeShare": setP(s, forcePay(s, ctx, p, Math.round(act.share * (p.salary + passiveIncome(p))))); return;
+    case "loseIncomeShare": setP(s, forcePay(s, ctx, p, Math.round(act.share * (salaryOf(p) + passiveIncome(p))))); return;
     case "drawDeck": offer(s, p, act.deck, ctx); return;
     case "drawCard": forceCard(s, ctx, p, act.cardId); return;
     case "offerCellAsset": case "offerGamble":
@@ -533,6 +616,7 @@ export function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
   const deck = ce.deck as DeckName; noteCard(s, p.id, id);
   if (s.decks[deck]) { const d = s.decks[deck]; d.draw = d.draw.filter((x) => x !== id); d.discard = d.discard.filter((x) => x !== id); d.discard.push(id); }
   if (ce.effect.kind === "marketSale") { applyMarketCard(s, ctx, id, ce.effect, ce.text); return; }
+  if (ce.effect.kind === "sellOffer") { applySellOffer(s, id, ce.effect, ce.text); return; }
   if (ce.mode === "mandatory") { autoMandatory(s, ctx, p, ce); return; }
   s.pending = { type: "card", playerId: p.id, cardId: id, deck };
 }
@@ -568,6 +652,19 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
     else { setP(s, { ...p, assets: p.assets.filter((x) => x !== biz[0]) }); logf(s, `${p.id}: ${biz[0].code} biznesini qaytardi`); }
     return;
   }
+  if (ce.effect.kind === "quiz") { // viktorina: to'g'ri javob XP beradi (miqdori sozlamada), pulga ta'sir qilmaydi; vaqt tugasa — javob yo'q
+    const ok = a.accept && a.choice === ce.effect.correct; s.lastQuiz = { playerId: pid, cardId: pend.cardId, choice: a.accept ? a.choice ?? null : null, correct: ok, answer: ce.effect.correct ?? "", n: (s.lastQuiz?.n ?? 0) + 1 };
+    if (ok && !s.bots.includes(pid)) setP(s, { ...p, xp: (p.xp ?? 0) + (RULES.quizXp ?? 0) }); logf(s, `${pid}: viktorina — ${ok ? "to'g'ri" : "noto'g'ri"}`); return;
+  }
+  if (ce.effect.kind === "deposit") { // depozit: asosiy summa darhol to'lanadi; pul yetmasa ta'sir yo'q
+    if (!a.accept || p.cash < ce.effect.principal) return; const id = (p.depSeq ?? 0) + 1;
+    setP(s, { ...p, cash: p.cash - ce.effect.principal, depSeq: id, deposits: [...(p.deposits ?? []), { id, label: ce.effect.label, principal: ce.effect.principal, perLap: ce.effect.perLap, lapsLeft: ce.effect.laps, accrued: 0, months: 0 }] }); return;
+  }
+  if (ce.effect.kind === "ops") { // ixtiyoriy katalog kartasi (kurs, malaka...): to'lov bor — qabul qilinsa to'lanadi va ta'sir qo'llanadi
+    if (!a.accept) return; const cost = ce.effect.cost ?? 0;
+    if (ce.effect.requires && !hasMatch(p, ce.effect.requires)) return; if (p.cash < cost) return;
+    setP(s, { ...p, cash: p.cash - cost }); applyOpsCard(s, ctx, pid, ce, true); return;
+  }
   if (!a.accept) return;
   let e = ce.effect;
   // Inqiroz (§5.7): yer/dala-hovli/kvartira/aksiya sotib olish narxi 2 baravar past
@@ -584,7 +681,7 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
     const r = buyShares(p, e, qty); if (r.ok) p = { ...p, ...r.player } as GamePlayer;
   } else {
     const need = e.kind === "buy" ? (e.down ?? e.price) : e.kind === "courseSalaryPlus" || e.kind === "carInsurance" ? e.price
-      : e.kind === "lendRequest" ? e.amount : e.kind === "charity" ? Math.round(e.incomeShare * (p.salary + passiveIncome(p))) : 0;
+      : e.kind === "lendRequest" ? e.amount : e.kind === "charity" ? Math.round(e.incomeShare * (salaryOf(p) + passiveIncome(p))) : 0;
     fund(need);
     const r = applyEffect(p, e); if (r.ok) {
       p = { ...p, ...r.player } as GamePlayer;
@@ -594,13 +691,14 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
       }
     }
   }
+  p = { ...p, assets: p.assets.map((x) => (x.since === undefined && (e.kind === "buy" || e.kind === "buyShares") && x.code === e.code ? { ...x, since: p.monthsPlayed ?? 0 } : x)) }; // sotib olingan oy: «kamida 1 aylana ushlab turilgan» sharti uchun
   setP(s, p);
 }
 
 function endTurn(s: GameState, ctx: Ctx) {
   const p = currentPlayer(s);
   if (p.circle === "small" && canExitSmallCircle({
-    cash: p.cash, salary: p.salary, passiveIncome: passiveIncome(p), expenses: monthlyExpenses(p),
+    cash: p.cash, salary: salaryOf(p), passiveIncome: passiveIncome(p), expenses: monthlyExpenses(p),
     bankDebt: p.bankDebt, otherDebt: allDebt(p) - p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0), openPartnerships: openPartnerships(p) }, s.mode)) {
     const lock = playerCashflow(p); // blankning orqa tomoniga yoziladigan pul oqimi: bizneslar topshirilishidan OLDIN (katta aylanada eng kam miqdor)
     // Qo'llanma §10: barcha kichik va katta bizneslar bankka topshiriladi; kvartira, aksiya, yer, uy, avtomobil o'zida qoladi
@@ -635,6 +733,17 @@ function sellToMarket(s: GameState, ctx: Ctx, pid: string, e: Extract<Effect, { 
   setP(s, np); logf(s, `${p.id}: ${asset.x.code} sotdi ${price}`); return true;
 }
 
+/** Katalog taklifi bo'yicha eng yaxshi narxli mos aktivni sotadi (yoki `assetCode` ko'rsatilgani). `false` — sotadigan aktiv yo'q. */
+function sellToOffer(s: GameState, ctx: Ctx, pid: string, e: Extract<Effect, { kind: "sellOffer" }>, assetCode?: string): boolean {
+  const p = s.players[idx(s, pid)];
+  const best = p.assets.filter((x) => assetCode === undefined || x.code === assetCode).map((x) => ({ x, price: offerPrice(e, p, x) })).filter((c): c is { x: import("./engine").Asset; price: number } => c.price !== null).sort((u, v) => v.price - u.price)[0];
+  if (!best) return false;
+  const crisisCut = (p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(best.x.kind) ? 0.5 : 1; // inqirozda sotish narxi 2 baravar past
+  const price = Math.round(best.price * crisisCut); let np: GamePlayer = { ...p, cash: p.cash + price - best.x.credit, assets: p.assets.filter((x) => x !== best.x) };
+  if (np.cash < 0) { const debt = -np.cash; np = forcePay(s, ctx, { ...np, cash: 0 }, debt); }
+  setP(s, np); logf(s, `${p.id}: ${best.x.code} sotdi ${price}`); return true;
+}
+
 /** Hamkorlik (§5.6): navbatdan mustaqil harakatlar. */
 function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } | { type: "decide" }>): Outcome {
   const ok = (): Outcome => ({ ok: true, state: s });
@@ -642,8 +751,13 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
   switch (a.type) {
     case "market_sell": {
       const pr = s.proposals.find((x) => x.id === a.proposalId);
-      if (!pr || pr.kind !== "market") return err("no_proposal");
+      if (!pr || (pr.kind !== "market" && pr.kind !== "offer")) return err("no_proposal");
       if (pr.sold.includes(a.playerId)) return err("already_sold");
+      if (pr.kind === "offer") { // katalog taklifi: tur, ushlab turish muddati va narx `offerPrice` bo'yicha; `first` — birinchi sotgandan keyin taklif yopiladi
+        const oe = effectOf(ctx, pr.cardId).effect; if (oe.kind !== "sellOffer") return err("no_proposal");
+        if (!sellToOffer(s, ctx, a.playerId, oe, a.assetCode)) return err("nothing_to_sell");
+        pr.sold.push(a.playerId); if (pr.first) s.proposals = s.proposals.filter((x) => x.id !== pr.id); return ok();
+      }
       const e = effectOf(ctx, pr.cardId).effect; if (e.kind !== "marketSale") return err("no_proposal");
       if (!sellToMarket(s, ctx, a.playerId, e, a.assetCode)) return err("nothing_to_sell"); // ortiqcha: ulushli (sheriklik) aktivni sotib bo'lmaydi
       pr.sold.push(a.playerId); return ok();
@@ -661,6 +775,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
       const r = repayBankLoan(P(a.playerId), a.loanIdx); if (!r.ok) return err(P(a.playerId).bankLoans[a.loanIdx] ? (P(a.playerId).cash < r.cost ? "insufficient_cash" : "too_early") : "no_loan");
       setP(s, r.player as GamePlayer); return ok();
+    }
+    case "deposit_withdraw": { // muddatidan oldin yechish: asosiy summa qaytadi, foiz yo'qoladi (faqat o'z navbatida)
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const r = withdrawDeposit(P(a.playerId), a.depositId); if (!r.ok) return err("no_deposit");
+      setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: depozit yechildi (${r.amount})`); return ok();
     }
     case "lombard": { // aktivni garovga qo'yib qiymatining 50 % ini olish
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
@@ -719,7 +838,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (rec.circle !== "small" || giver.circle !== "small") return err("small_circle_only"); // §2.7
       const existing = rec.handDebts.reduce((x, d) => x + d.amount, 0);
       const chk = checkMutualLoan({ players: humans(s).length, amount: a.amount, months: a.months, giverCash: giver.cash,
-        receiverSalary: rec.salary, receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: existing });
+        receiverSalary: salaryOf(rec), receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: existing });
       if (!chk.ok) return err(chk.reason);
       s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months });
       return ok();
@@ -731,7 +850,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (s.restricted.includes(pr.giver) || s.restricted.includes(pr.receiver)) return err("restricted_age");
       const giver = P(pr.giver), rec = P(pr.receiver);
       const chk = checkMutualLoan({ players: humans(s).length, amount: pr.amount, months: pr.months, giverCash: giver.cash,
-        receiverSalary: rec.salary, receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: rec.handDebts.reduce((x, d) => x + d.amount, 0) });
+        receiverSalary: salaryOf(rec), receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: rec.handDebts.reduce((x, d) => x + d.amount, 0) });
       if (!chk.ok) return err(chk.reason); // holat o'zgargan bo'lishi mumkin
       setP(s, { ...giver, cash: giver.cash - pr.amount });
       setP(s, { ...rec, cash: rec.cash + pr.amount, handDebts: [...rec.handDebts, { id: pr.id, to: giver.id, amount: pr.amount, months: pr.months }] });

@@ -56,6 +56,7 @@ export function xpOf(results: GameResult[], userId: string): number {
   for (const r of results) {
     const p = r.players.find((x) => x.id === userId); if (!p || p.left || p.bot) continue;
     if (isTutorial(r) && !tutorialDone) { xp += XP.tutorial; tutorialDone = true; } else xp += humansIn(r) >= BALL.minHumans ? XP.game : XP.botGame;
+    xp += p.xpBonus ?? 0; // o'yin ichidagi XP: homiy kartalari, viktorina (katalog)
   }
   return xp;
 }

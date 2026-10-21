@@ -32,3 +32,8 @@ export const setModePref = (v: GameMode) => tourKV.set(MKEY, v);
 export const seatsFor = (mode: GameMode): Seats[] => SEATS.filter((n) => n >= MODES[mode].seats[0] && n <= MODES[mode].seats[1]);
 export const clampSeats = (mode: GameMode, n: Seats): Seats => { const ok = seatsFor(mode); return ok.includes(n) ? n : ok.reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a)); };
 export const GAME_MODES_UI = GAME_MODES;
+
+/** Kubik oynasi: o'z navbatingizda «Kubikni tashlash» tugmasi oynaning eng oldida (modal) chiqadi. Standart — yoqilgan; `poyga-roll-modal=off` bo'lsa oddiy tugma. */
+const RKEY = "poyga-roll-modal";
+export const getRollModalPref = (): boolean => tourKV.get(RKEY) !== "off";
+export const setRollModalPref = (on: boolean) => tourKV.set(RKEY, on ? "on" : "off");

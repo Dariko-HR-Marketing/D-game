@@ -41,7 +41,7 @@ Bu bitta fayl Claude Code'ga POYGA stol o'yinining onlayn versiyasini profession
 ## 4. Ko'lam
 | Bosqich | Kiradi |
 |---|---|
-| MVP | Telefon/Google/Apple kirish; profil; xona yaratish va kod bilan qo'shilish; kichik va katta aylana; 418 karta; blank (avtomatik va «o'zim to'ldiraman»); bank va lombard; suyunchi, o'zaro qarz, sheriklik; aloqa uzilishi qoidalari; reyting va yutuqlar; mobil + planshet + kompyuter |
+| MVP | Telefon/Google/Apple kirish; profil; xona yaratish va kod bilan qo'shilish; kichik va katta aylana; 418 karta (Tajriba24 importidan keyin faol kartalar 1013, jonli 817 — OPEN_QUESTIONS 148–150); blank (avtomatik va «o'zim to'ldiraman»); bank va lombard; suyunchi, o'zaro qarz, sheriklik; aloqa uzilishi qoidalari; reyting va yutuqlar; mobil + planshet + kompyuter |
 | 2-bosqich | POYGA Plus (A), do'kon va kosmetika (D), veb-to'lov, ota-ona roziligi, o'yin tahlili |
 | 3-bosqich | Ta'lim paneli (B), homiy turnirlari (C), admin kengaytmasi |
 
@@ -136,7 +136,7 @@ Analitika (shaxssiz): ro'yxatdan o'tish → birinchi o'yin, o'yin davomiyligi, c
 | Tur | Mezon |
 |---|---|
 | Qoidalar (avtomatik) | §5 dagi har qoida uchun test: oy o'tishi, bank formulasi, chiqish sharti, qarz va sheriklik hisobi — hammasi o'tadi |
-| Kartalar | 418 kartaning har biri to'g'ri ta'sir qiladi (tanlab emas, 100 %) |
+| Kartalar | Jonli kartalarning har biri to'g'ri ta'sir qiladi (tanlab emas, 100 %); ushlab turilgan kartalar ro'yxati va sababi hisobotda (OPEN_QUESTIONS 150) |
 | Ko'p o'yinchi | 2–8 o'yinchi, uzilish, qayta ulanish, bir vaqtdagi harakat: holat yo'qolmaydi, takror yo'q |
 | Qurilmalar va qulaylik | Adaptiv maket prototipga mos; WCAG 2.2 AA |
 | Xavfsizlik | Mustaqil sinov, yuqori xavfli kamchilik yo'q |

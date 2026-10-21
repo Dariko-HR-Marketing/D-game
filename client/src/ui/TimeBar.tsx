@@ -59,7 +59,7 @@ export function TimePanel({ room, userId, settled }: { room: RoomView; userId: s
 const s = StyleSheet.create({
   limit: { flexDirection: "row", alignItems: "center", gap: space.xs, paddingHorizontal: space.md, paddingVertical: 6, borderRadius: radius.md, backgroundColor: "#F4F7F8" }, limitT: { color: color.navy, fontSize: font.sm, fontWeight: "800", fontVariant: ["tabular-nums"] },
   bar: { flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: color.white, borderWidth: 1, borderColor: "#E6ECEF", borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: 6, minHeight: 44 },
-  l: { color: tone.muted, fontSize: 11, fontWeight: "700", letterSpacing: 0.4 }, v: { color: color.navy, fontSize: font.md, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  l: { color: tone.muted, fontSize: 12, fontWeight: "700", letterSpacing: 0.4 }, v: { color: color.navy, fontSize: font.md, fontWeight: "800", fontVariant: ["tabular-nums"] },
   dots: { flexDirection: "row", gap: 3, flexShrink: 0 }, dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.line }, dotOn: { backgroundColor: color.green },
   delta: { backgroundColor: "#E7F4EE", borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2, flexShrink: 1 }, deltaT: { color: tone.good, fontWeight: "800", fontSize: font.sm },
   tot: { marginLeft: "auto" as any, color: tone.muted, fontSize: font.sm, fontVariant: ["tabular-nums"], flexShrink: 0 },

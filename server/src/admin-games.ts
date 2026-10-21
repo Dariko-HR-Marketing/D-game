@@ -9,7 +9,7 @@ import { replay } from "./replay";
 import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 
-const keyOf = (x: any, i: number): string => (x && typeof x === "object" ? String(x.file ?? x.code ?? x.i ?? x.n ?? x.name ?? i) : String(i));
+const keyOf = (x: any, i: number): string => (x && typeof x === "object" ? String(x.file || x.id || x.code || x.i || x.n || x.name || i) : String(i));
 const short = (v: unknown) => { const j = JSON.stringify(v); return j && j.length > 160 ? j.slice(0, 157) + "…" : j; };
 export interface DiffItem { key: string; kind: "added" | "removed" | "changed"; fields?: { path: string; before: string; after: string }[] }
 export function diffValues(a: any, b: any, label = ""): { added: number; removed: number; changed: number; items: DiffItem[] } {
@@ -32,7 +32,7 @@ export function checkBundle(b: any): { stats: Record<string, unknown>; warnings:
   for (const [deck, n] of Object.entries(EXPECTED_COUNTS)) { const have = (c[deck] ?? []).length; stats[deck] = have; if (have !== n) w.push(`«${deck}» kartalari soni ${have} (asl nusxada ${n})`); }
   const kasb = (c.kasb ?? []) as any[]; const cfs = kasb.map((k) => k.cf); if (kasb.length) { stats.kasbOylik = { min: Math.min(...cfs), max: Math.max(...cfs) }; for (const k of kasb) { if (k.cf <= 0) w.push(`Kasb «${k.name}»: oylik pul oqimi ${k.cf} (≤ 0)`); if (k.save > k.salary * 12) w.push(`Kasb «${k.name}»: jamg'arma maoshdan 12 baravar ko'p`); } }
   const names = kasb.map((k) => k.name); for (const n of new Set(names)) if (names.filter((x) => x === n).length > 1) w.push(`Kasb nomi takrorlangan: «${n}»`);
-  const files = new Set<string>(); for (const deck of Object.values(c) as any[][]) for (const x of deck) if (x.file) { if (files.has(x.file)) w.push(`Rasm fayli takrorlangan: ${x.file}`); files.add(x.file); }
+  stats.katalog = (c.catalog ?? []).length; const files = new Set<string>(); for (const deck of Object.values(c)) if (Array.isArray(deck)) for (const x of deck as any[]) if (x.file) { if (files.has(x.file)) w.push(`Rasm fayli takrorlangan: ${x.file}`); files.add(x.file); }
   for (const deck of ["kichik", "katta", "bozor", "xar", "kxar", "hod", "new"]) for (const x of c[deck] ?? []) if (!String(x.text ?? "").trim()) w.push(`«${deck}» kartasida matn yo'q (${x.file})`);
   const d = (b.dreams ?? []) as { name: string; price: number }[]; if (d.length) { stats.orzu = { soni: d.length, min: Math.min(...d.map((x) => x.price)), max: Math.max(...d.map((x) => x.price)) }; const dn = d.map((x) => x.name); for (const n of new Set(dn)) if (dn.filter((x) => x === n).length > 1) w.push(`Orzu nomi takrorlangan: «${n}»`); }
   const big = (b.bigBoard ?? []) as any[]; const types: Record<string, number> = {}; for (const x of big) types[x.t] = (types[x.t] ?? 0) + 1; stats.katta = { katak: big.length, turlar: types };

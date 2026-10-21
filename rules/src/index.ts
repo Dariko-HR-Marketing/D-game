@@ -1,4 +1,7 @@
 // POYGA qoidalar dvigateli: sof funksiyalar, UI va tarmoqsiz. Manba: docs/SPEC.md §5.
+/** Reytingli o'yinda ruxsat etilgan karta havzalari (Tajriba24 TZ §6.7, RANKED_ALLOWED_POOLS): hozircha faqat asl kartalar; «EXTENDED» qo'shilsa yangi kartalar ham kiradi. */
+export const RANKED_ALLOWED_POOLS: readonly string[] = ["BASE"];
+
 export const RULES = {
   bankLimit: 10_000, // §5.3 (qo'llanma §09: kichik aylanadagi qarz chegarasi; bank kreditlari yig'indisi ham shundan oshmaydi)
   bankMin: 2_000, bankMax: 5_000, // qo'llanma §08: mini-kredit 2 000–5 000
@@ -10,6 +13,7 @@ export const RULES = {
   exitCash: 1_000_000, // §5.4
   exitPassiveFlow: 25_000,
   winCashflow: 100_000, // §5.5
+  quizXp: 0, // viktorinada to'g'ri javob uchun XP: jadvalda berilmagan — sozlamada bo'sh (0), buyurtmachi belgilaydi (SPEC §16)
   suyunchiBank: 500, // §5.6
   suyunchiMin: 10,
   suyunchiMax: 500,

@@ -9,10 +9,11 @@ const CalcIn = z.object({ cash: int(-1_000_000_000, 1_000_000_000), passive: int
 /** `playerId` mijozdan qabul qilinmaydi — server o'zi qo'yadi. */
 export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("roll") }).strict(),
-  z.object({ type: z.literal("decide"), accept: z.boolean(), qty: int(1, 100_000).optional(), useBank: z.boolean().optional(), deck: z.enum(["kichik", "katta"]).optional(), calc: CalcIn.optional() }).strict(),
+  z.object({ type: z.literal("decide"), accept: z.boolean(), qty: int(1, 100_000).optional(), useBank: z.boolean().optional(), deck: z.enum(["kichik", "katta"]).optional(), choice: z.enum(["A", "B", "V"]).optional(), calc: CalcIn.optional() }).strict(),
   z.object({ type: z.literal("confirm_calc"), calc: CalcIn }).strict(), // Hisob daftari: o'yinchi o'z hisobini kiritadi (server tekshiradi)
   z.object({ type: z.literal("choose_dream"), dreamIdx: int(0, 999) }).strict(),
   z.object({ type: z.literal("bank_loan"), amount: money }).strict(),
+  z.object({ type: z.literal("deposit_withdraw"), depositId: z.number().int().min(1).max(10_000) }).strict(),
   z.object({ type: z.literal("bank_repay"), loanIdx: z.number().int().min(0).max(50) }).strict(),
   z.object({ type: z.literal("lombard"), assetIdx: z.number().int().min(0).max(200) }).strict(),
   z.object({ type: z.literal("sell_asset"), assetIdx: z.number().int().min(0).max(200) }).strict(),

@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { layoutOf } from "../layout";
+import { DiceModal } from "./DiceModal";
+import { getRollModalPref, setRollModalPref } from "../turnPref";
+import { isTourOpen, subscribeTourOpen } from "./tourStore";
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pressable } from "react-native";
 import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
@@ -27,6 +31,7 @@ import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
 import { TimePanel } from "./TimeBar";
 import { TutorialCoach } from "./TutorialCoach";
+import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -69,29 +74,37 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 }
 
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
+const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const { width, height } = useWindowDimensions();
-  const wide = width >= 900; // planshet/kompyuter: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
+  const lay = layoutOf(width, height), compact = lay.compact, tablet = lay.tablet;
+  const wide = lay.wide; // yotiq planshet/kompyuter/yotiq telefon: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
   const left = useCountdown(room.deadline);
   const mine = me(room, userId), mineTurn = isMyTurn(room, userId), cardRaw = room.pendingCard;
   const mv = useMovement(room), settled = mv.settled; // fishka kataklar ustidan yurib bo'lguncha karta/qaror ko'rsatilmaydi
   const card = settled ? cardRaw : null;
   const state = room.state; const cur = currentId(room); const curP = state.players.find((p: any) => p.id === cur);
-  const tri = wide && width >= 1366; // kompyuter (≥ 1366 px): uch ustun — chapda moliya va reaksiyalar, markazda taxta, o'ngda vaqt, voqealar va o'yinchilar
-  const sideW = tri ? 340 : 380, rightW = 300, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
+  const tri = wide && !compact && width >= 1366; // kompyuter (≥ 1366 px): uch ustun — chapda moliya va reaksiyalar, markazda taxta, o'ngda vaqt, voqealar va o'yinchilar
+  const sideW = compact ? Math.max(280, Math.min(380, Math.round(width * 0.4))) : tri ? 340 : 380, rightW = 300, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
   // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
-  const pad = boardPad(wide), short = wide && height < 820, reserveH = tri ? HEADER_H + space.md + space.lg + WIDE_LEGEND_H + WIDE_NOTE_H + 3 * space.md + 2 * pad : HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
+  const pad = boardPad(wide), short = wide && !compact && height < 820, reserveH = compact ? HEADER_H + 2 * pad + 2 * space.md : tri ? HEADER_H + space.md + space.lg + WIDE_LEGEND_H + WIDE_NOTE_H + 3 * space.md + 2 * pad : HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
   const { boardWidth, tight } = useMemo(() => { // faqat oyna/aylana o'zgarganda qayta hisoblanadi (har kadrda emas)
-    let w = wide ? Math.min(Math.max(Math.min(width, 1440) - sideW - (tri ? rightW + space.lg : 0) - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, 460), t = false;
+    if (compact) { // yotiq telefon: taxta balandlikka sig'adi (kataklar kichik — ikonka va rang qoladi)
+      let w = Math.min(Math.max(width - sideW - 3 * space.lg - 2 * pad, 240), 940);
+      while (w > 240 && boardGeometry(w, true, nCells, true, true).H > height - reserveH) w -= 10;
+      return { boardWidth: w, tight: true };
+    }
+    let w = wide ? Math.min(Math.max(Math.min(width, 1440) - sideW - (tri ? rightW + space.lg : 0) - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, tablet ? 700 : 460), t = false;
+    if (tablet) while (w > 440 && boardGeometry(w, false, nCells, false, false, true).H > height - TABLET_RESERVE) w -= 10; // tik planshet: taxta balandlikka ham sig'sin (sarlavha, statistika, o'yinchilar, tugma va menyu uchun joy qoladi)
     if (wide) {
       while (w > 560 && boardGeometry(w, true, nCells).H > height - reserveH) w -= 20;
       if (boardGeometry(w, true, nCells).H > height - reserveH) { t = true; while (w > 480 && boardGeometry(w, true, nCells, true).H > height - reserveH) w -= 20; }
     }
     return { boardWidth: w, tight: t };
-  }, [wide, tri, width, height, nCells, pad, reserveH, sideW]);
+  }, [wide, compact, tablet, tri, width, height, nCells, pad, reserveH, sideW]);
   const sheetOpen = !wide && !!card && mineTurn;
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
@@ -100,6 +113,14 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
   const canRoll = mineTurn && !cardRaw && settled && !state.winner && !due;
+  // Kubik oynasi: o'z navbatingizda «Kubikni tashlash» oynaning eng oldida (modal); «keyinroq» bosilsa shu tashlash imkoniyati uchun yopiladi, sahifadagi tugma qoladi
+  const [rollModalOn, setRollModalOn] = useState(getRollModalPref); const [waitRoll, setWaitRoll] = useState(false); const [laterAt, setLaterAt] = useState<number | null>(null); const oppN = state.lastRoll?.n ?? 0;
+  useEffect(() => { setWaitRoll(false); }, [oppN]);
+  useEffect(() => { if (!waitRoll) return; const t = setTimeout(() => setWaitRoll(false), 4000); return () => clearTimeout(t); }, [waitRoll]);
+  const [tourOpen, setTourOpenNow] = useState(isTourOpen); useEffect(() => subscribeTourOpen(setTourOpenNow), []);
+  const promptOpen = rollModalOn && !tourOpen && (canRoll || waitRoll) && laterAt !== oppN && !state.winner; // yo'riqnoma ochiq bo'lsa kubik oynasi uning ustiga chiqmaydi
+  const rollPrompt = promptOpen ? { circle: curP?.circle ?? "small", twoDice: curP?.twoDice, left, total: phaseSeconds(room), waiting: waitRoll,
+    onRoll: () => { setWaitRoll(true); onAct({ type: "roll" }); }, onLater: () => setLaterAt(oppN), onDisable: () => { setRollModalPref(false); setRollModalOn(false); } } : null;
   // Pastki menyu belgilari (telefon): ko'rilgan narsalar bo'lim ochilganda yangilanadi
   const [seen, setSeen] = useState<Seen>(() => ({ logN: state.logN ?? 0, reactions: reactions.map((r) => r.id), notices: (state.notices ?? []).map((n: any) => n.id) }));
   useEffect(() => {
@@ -124,10 +145,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine, state.mode) : null;
   const ledgerNow = room.calc?.ledger?.[userId] ?? (mine && e ? { cash: mine.cash, passive: e.passive, flow: e.cashflow } : { cash: 0, passive: 0, flow: 0 });
   const gate = due && mineTurn && !cardRaw && settled && !state.winner ? <LedgerPad testID="ledger-gate" title={uz.ledger.gateTitle} hint={uz.ledger.gateHint} current={ledgerNow} feedback={calcFb} submitLabel={uz.ledger.gateSubmit} onSubmit={(c) => onAct({ type: "confirm_calc", calc: c })} /> : null;
-  const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
+  const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled || promptOpen} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} compact={compact} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
   // Kompyuter (3 ustun): taxta ostidagi bo'sh joy — «Mening kartalarim» va dekani tanlash shu yerda (chap ustun qisiq va aylantirishni talab qilardi)
   const deckPick = tri && !!card && mineTurn && !!mine && (card as any).effect?.kind === "deckChoice";
-  const timeInSide = wide && !tri && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
+  const timeInSide = wide && !tri && (compact || boardWidth < 760); // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
   const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(phaseSeconds(room))).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
@@ -165,6 +186,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
+      {compact && <PlayersLane room={room} userId={userId} />}
+      {compact && eventsCard(3)}
     </View>
   );
   // Telefon: hammasi bitta ustunda
@@ -181,31 +204,33 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
     </ScrollView>);
   const autoMe = !!room.members.find((m) => m.userId === userId)?.autopilot;
   const banners = (<>
+    <QuizResult room={room} userId={userId} />
     {room.mode === "tutorial" && !state.winner && <TutorialCoach room={room} userId={userId} />}
     {autoMe && <View testID="autopilot-banner" role="alert"><Banner kind="warn"><Text style={{ fontWeight: "800", color: tone.warn }}>{uz.hud.autopilot.title}. </Text>{uz.hud.autopilot.text}</Banner>{onResume && <View style={{ marginTop: space.sm }}><Button label={uz.hud.autopilot.back} onPress={onResume} /></View>}</View>}
     {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
+  const tiny = width < 360; // 320 px telefon: oltita tugma va sarlavha sig'sin
   const header = (
-    <View style={[s.header, !wide && { gap: 2, paddingHorizontal: space.md }]}>
+    <View style={[s.header, (!wide || compact) && { gap: 2, paddingHorizontal: space.md }]}>
       <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
       <View style={wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
         <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
         <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
       </View>
       <View style={{ flex: 1 }} />
-      {wide && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="portfolio-open"><Icon name="file" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="sheet-open"><Icon name="chart" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
-      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="history-open"><Icon name="clock" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
-      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, !wide && s.hBtnP]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, !wide && s.hBtnP]} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, !wide && s.hBtnP]}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
+      {wide && !compact && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="portfolio-open"><Icon name="file" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sheet-open"><Icon name="chart" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
+      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="history-open"><Icon name="clock" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
+      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={tiny ? 20 : 22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="tour-help"><Icon name="help" size={tiny ? 20 : 22} color={color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]}><Icon name="book" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
     </View>
   );
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
@@ -215,16 +240,16 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
         {card && mineTurn && mine && !deckPick ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
-              <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
+              <DecisionCard horizontal={compact} card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{gate}{sideMain}{tri && reactPanel}</ScrollView>}
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{gate}{sideMain}{tri && reactPanel}{compact && reactRow}{compact && leaveBlock}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
-          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
-          <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
-          <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
+          {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
+          <Board room={room} width={boardWidth} wide tight={tight} compact={compact} movement={mv.shown} currentId={cur}>{centre}</Board>
+          {!compact && <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>}
           {tri && mine && (
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
               {deckPick && card ? (
@@ -233,7 +258,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
                 </CardEnter>) : null}
               <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} cols={3} />
             </View>)}
-          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
+          {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
             {!short && <View style={{ flex: 1 }}>{eventsCard(3)}</View>}
             <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}<View style={short ? { flex: 1, maxWidth: 260 } : undefined}>{leaveBlock}</View></View>
           </View>}
@@ -245,18 +270,18 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
       {historyOpen && http && <HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} />}
       {header}
-      <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
+      <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
         {tab === "field" && (<>
           <TimePanel room={room} userId={userId} settled={settled} />
           {stats}
-          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
+          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} roomy={tablet} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
             {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={52} label={`${left} ${uz.game.seconds}`} />}
@@ -267,7 +292,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
         {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} />{eventsCard(6)}{reactRow}</View>)}
       </ScrollView>
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
-      {tab === "field" && canRoll && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
+      {tab === "field" && canRoll && !promptOpen && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
       {/* §9: telefonda qaror pastki varaqda (bottom sheet) */}
       {sheetOpen && mine && (
         <View style={s.sheet} accessibilityViewIsModal>
@@ -281,7 +306,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   );
 }
 const s = StyleSheet.create({
-  mwrap: { padding: space.lg, gap: space.md },
+  mwrap: { padding: space.lg, gap: space.md }, mwrapT: { width: "100%", maxWidth: 760, alignSelf: "center" }, // tik planshet: ustun markazda, o'qish uchun qulay kenglikda
   shell: { flex: 1, flexDirection: "row", gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md, minHeight: 0, maxWidth: 1440, width: "100%", alignSelf: "center" },
   decide: { flex: 1, minHeight: 0, borderRadius: radius.lg, borderWidth: 2, borderColor: color.gold, backgroundColor: color.white, padding: space.md, gap: space.md },
   decideActions: { paddingTop: space.sm, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
@@ -295,7 +320,7 @@ const s = StyleSheet.create({
   bar: { height: 6, borderRadius: 3, backgroundColor: "#E6ECEF", overflow: "hidden", marginTop: 6 }, fill: { height: 6, backgroundColor: color.green },
   turnRow: { flexDirection: "row", alignItems: "center", gap: space.md }, turnHint: { flex: 1, color: tone.muted, fontSize: font.md, lineHeight: 21 },
   gateSheet: { maxHeight: "62%" as any, backgroundColor: color.white, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
-  cta: { paddingHorizontal: space.lg, paddingBottom: space.md, paddingTop: space.sm, backgroundColor: color.white },
+  cta: { width: "100%", maxWidth: 760, alignSelf: "center", paddingHorizontal: space.lg, paddingBottom: space.md, paddingTop: space.sm, backgroundColor: color.white },
   caption: { color: tone.muted, fontSize: font.sm, textAlign: "center", maxWidth: 640 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 62, maxHeight: "80%" as any, backgroundColor: color.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: space.lg, paddingTop: space.sm, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: -6 }, elevation: 12 },
   grab: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "#D5DEE4", marginBottom: space.md },

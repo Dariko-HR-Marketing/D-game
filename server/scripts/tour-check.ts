@@ -42,6 +42,7 @@ for (const [tag, w, h] of sizes) {
   // 4) O'yin: kichik aylana yo'riqnomasi (9 qadam). Yo'riqnoma o'yinchining o'z navbatida kechiktiriladi (qaror oynasini to'smaslik uchun) — navbatni boshqa o'yinchiga o'tkazamiz
   await a.waitForSelector("text=Naqd");
   { const rm = x.rooms.rooms.get(code)!; for (let i = 0; i < 50 && currentPlayer(rm.state!).id === "ta" + tag; i++) { const cur = "ta" + tag; if (rm.state!.pending) await x.rooms.act(code, cur, { type: "decide", accept: false, playerId: cur }, rm.seq).catch(() => {}); else await x.rooms.act(code, cur, { type: "roll", playerId: cur }, rm.seq); } check(currentPlayer(rm.state!).id !== "ta" + tag, `${tag} navbat boshqa o'yinchiga o'tdi (yo'riqnoma kechiktirilmasin)`); } await dlg(a).waitFor(); const small: string[] = [];
+  await a.waitForSelector('[data-testid="dice-modal"]', { state: "detached", timeout: 8000 }).catch(() => {}); // o'z kubik natijasi oynasi yopilgach yo'riqnoma ochiladi (ikki oyna bir vaqtda chiqmaydi)
   for (let i = 0; i < 9; i++) { await dlg(a).waitFor(); small.push(await title(a)); await shot(a, `04-small-${i + 1}`); await fits(a, `kichik aylana ${i + 1}`); await next(a); }
   check(small[0] === "Kichik aylana" && small.includes("Vaqt oyma-oy hisoblanadi") && small.includes("Qancha davom etadi"), `${tag} kichik aylana: ${small.length} qadam, oyma-oy vaqt tushuntirilgan`);
   check((await dlg(a).count()) === 0, `${tag} kichik aylana yo'riqnomasi tugadi`);

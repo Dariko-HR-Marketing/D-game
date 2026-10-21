@@ -4,6 +4,7 @@ import { useReducedMotion } from "../motion";
 import { Icon, type IconName } from "./Icon";
 import { Button } from "./Button";
 import { CardFace } from "./CardFace";
+import { isMyTurn } from "../model";
 import { portfolioOf, type AssetRow, type DebtRow, type Portfolio } from "../portfolio";
 import { money } from "../format";
 import { uz } from "../i18n/uz";
@@ -63,6 +64,16 @@ export function PortfolioCard({ room, userId, onOpen, onAct, cols }: { room: any
           <View style={{ flex: 1 }}><Text style={s.offerK}>{uz.portfolio.offer}</Text><Text style={s.offerT} numberOfLines={2}>{o.text}</Text><Text style={s.offerP}>{uz.portfolio.sell}: {money(o.price)}</Text></View>
           <View style={{ width: 96 }}><Button label={uz.portfolio.sell} kind="ghost" onPress={() => onAct({ type: "market_sell", proposalId: o.proposalId, assetCode: o.assetCode })} /></View>
         </View>))}
+      {p.deposits.length > 0 && (
+        <View style={s.deposits} role="group" aria-label={uz.ops.deposit.title} testID="deposits">
+          <Text style={s.h} aria-level={3} accessibilityRole="header">{uz.ops.deposit.title}</Text>
+          {p.deposits.map((d) => (
+            <View key={d.id} style={s.offer}>
+              <View style={{ flex: 1 }}><Text style={s.offerT} numberOfLines={2}>{d.label}</Text>
+                <Text style={s.offerP}>{money(d.principal)} · +{money(d.perLap)} / {uz.ops.laps.replace("{n}", "1")} · {d.lapsLeft === null ? uz.ops.deposit.demand : uz.ops.deposit.lapsLeft.replace("{n}", String(d.lapsLeft))}{d.lapsLeft !== null && d.accrued > 0 ? ` · ${uz.ops.deposit.accrued}: ${money(d.accrued)}` : ""}</Text></View>
+              {isMyTurn(room, userId) ? <View style={{ width: 120 }}><Button label={d.lapsLeft === null ? uz.ops.deposit.withdraw : uz.ops.deposit.withdrawEarly} kind="ghost" onPress={() => onAct({ type: "deposit_withdraw", depositId: d.id })} /></View> : null}
+            </View>))}
+        </View>)}
       {(hasDebts || p.active.length > 0) && (
         <View style={s.chips}>
           {p.lent.length > 0 && <Chip label={`${uz.portfolio.lentTitle}: ${money(p.totals.lent)}`} kind="good" />}
@@ -181,25 +192,26 @@ export function PortfolioDetail({ room, userId, onClose }: { room: any; userId: 
 }
 
 const s = StyleSheet.create({
+  deposits: { gap: space.xs, marginTop: space.sm },
   card: { backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: "#E6ECEF", shadowColor: "#082238", shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }, h: { color: color.navy, fontWeight: "800", fontSize: font.lg }, muted: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
   tileWrap: { width: "48.5%", flexGrow: 1, minWidth: 130 },
   tile: { minWidth: 130, borderWidth: 1.5, borderRadius: radius.md, padding: space.sm, gap: 3 }, tileTop: { flexDirection: "row", alignItems: "center", gap: 5 },
-  tileKind: { fontSize: 11, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase", flexShrink: 1 }, tileTitle: { color: color.navy, fontSize: font.sm, fontWeight: "700", lineHeight: 17 }, tileInc: { fontSize: font.md, fontWeight: "900", fontVariant: ["tabular-nums"] }, tileFlags: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+  tileKind: { fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase", flexShrink: 1 }, tileTitle: { color: color.navy, fontSize: font.sm, fontWeight: "700", lineHeight: 17 }, tileInc: { fontSize: font.md, fontWeight: "900", fontVariant: ["tabular-nums"] }, tileFlags: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
   chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }, chipT: { fontSize: 12, fontWeight: "800" }, chips: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  offer: { flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: "#FFF6DD", borderWidth: 1.5, borderColor: "#E9A64B", borderRadius: radius.md, padding: space.sm }, offerK: { color: "#6B4300", fontSize: 11, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" }, offerT: { color: color.navy, fontSize: font.sm, fontWeight: "600", lineHeight: 17 }, offerP: { color: "#6B4300", fontWeight: "800", fontSize: font.sm },
+  offer: { flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: "#FFF6DD", borderWidth: 1.5, borderColor: "#E9A64B", borderRadius: radius.md, padding: space.sm }, offerK: { color: "#6B4300", fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" }, offerT: { color: color.navy, fontSize: font.sm, fontWeight: "600", lineHeight: 17 }, offerP: { color: "#6B4300", fontWeight: "800", fontSize: font.sm },
   overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: color.bg, zIndex: 80 },
   bar: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.lg, backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, barT: { color: color.navy, fontWeight: "800", fontSize: font.xl },
   x: { width: MIN_TAP, height: MIN_TAP, alignItems: "center", justifyContent: "center" }, xT: { color: tone.muted, fontSize: font.xl, fontWeight: "800" },
   body: { padding: space.lg, gap: space.md, width: "100%", alignSelf: "center", paddingBottom: space.xxl },
   cells: { flexDirection: "row", flexWrap: "wrap", gap: space.sm }, cell: { flexGrow: 1, flexBasis: 150, backgroundColor: color.white, borderRadius: radius.md, borderWidth: 1, borderColor: "#E6ECEF", padding: space.md, gap: 2 },
-  cellL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, cellV: { fontSize: font.xl, fontWeight: "900", fontVariant: ["tabular-nums"] }, cellN: { color: tone.muted, fontSize: 11, lineHeight: 15 },
+  cellL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, cellV: { fontSize: font.xl, fontWeight: "900", fontVariant: ["tabular-nums"] }, cellN: { color: tone.muted, fontSize: 12, lineHeight: 15 },
   sec: { color: color.navy, fontWeight: "800", fontSize: font.lg, marginTop: space.sm },
   table: { backgroundColor: color.white, borderRadius: radius.md, borderWidth: 1, borderColor: "#E6ECEF", overflow: "hidden" },
   tr: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.md, paddingVertical: space.sm, borderTopWidth: 1, borderTopColor: "#EEF2F4" }, th: { backgroundColor: "#F4F7F8", borderTopWidth: 0 },
   thT: { color: tone.muted, fontSize: 12, fontWeight: "800" }, td: { color: color.navy, fontSize: font.md }, num: { fontWeight: "800", fontVariant: ["tabular-nums"] },
-  ico: { width: 36, height: 36, borderRadius: radius.md, borderWidth: 1.5, alignItems: "center", justifyContent: "center" }, name: { color: color.navy, fontSize: font.md, fontWeight: "700", lineHeight: 20 }, kind: { fontSize: 11, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
+  ico: { width: 36, height: 36, borderRadius: radius.md, borderWidth: 1.5, alignItems: "center", justifyContent: "center" }, name: { color: color.navy, fontSize: font.md, fontWeight: "700", lineHeight: 20 }, kind: { fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
   acard: { backgroundColor: color.white, borderRadius: radius.md, borderWidth: 1.5, overflow: "hidden" }, achead: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.md, paddingVertical: 6 },
   agrid: { flexDirection: "row", flexWrap: "wrap", padding: space.md, gap: space.md }, ag: { width: "46%", gap: 1 }, agv: { color: color.navy, fontWeight: "800", fontSize: font.md, fontVariant: ["tabular-nums"] },
   group: { backgroundColor: color.white, borderRadius: radius.md, borderWidth: 1, borderColor: "#E6ECEF", padding: space.md, gap: space.sm, flexGrow: 1, flexBasis: 280 }, gt: { color: color.navy, fontWeight: "800", fontSize: font.md },

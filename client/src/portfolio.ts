@@ -1,5 +1,5 @@
 // «Mening kartalarim»: o'yinchiga tegishli aktivlar, qarzlar (berilgan/olingan), faol kartalar va ularning tahlili. React'siz — testlanadi.
-import { passiveIncome, allDebt, monthlyExpenses } from "@poyga/rules";
+import { assetIncome, passiveIncome, allDebt, monthlyExpenses } from "@poyga/rules";
 import { marketOffers, nameOf } from "./model";
 import { uz } from "./i18n/uz";
 
@@ -20,6 +20,7 @@ export interface Portfolio {
   lent: DebtRow[]; owed: DebtRow[]; bank: DebtRow[]; lombards: DebtRow[]; owe: number;
   active: { key: "qar" | "insuredCar" | "twoDice" | "crisis" | "noSalary"; value?: number }[];
   offers: ReturnType<typeof marketOffers>;
+  deposits: { id: number; label: string; principal: number; perLap: number; lapsLeft: number | null; accrued: number }[];
   totals: { count: number; invested: number; passive: number; payments: number; netPassive: number; expenses: number; debt: number; lent: number; netWorth: number; coverage: number | null };
   shares: { code: string; label: string; income: number; pct: number }[];
   best: AssetRow | null; slowest: AssetRow | null;
@@ -31,7 +32,7 @@ export function portfolioOf(room: any, userId: string): Portfolio | null {
   const st = room?.state; const p = st?.players?.find((x: any) => x.id === userId); if (!p) return null;
   const cards: Record<string, { text: string; file: string; asset?: string }> = room.assetCards ?? {};
   const assets: AssetRow[] = (p.assets ?? []).map((a: any, idx: number) => {
-    const c = cards[a.code]; const label = kindLabel(a.kind, c?.asset); const income = a.monthlyIncome ?? 0;
+    const c = cards[a.code]; const label = kindLabel(a.kind, c?.asset); const income = assetIncome(p, a); // faol bozor ta'sirlari (daromad ±%, nol, ko'paytma) bilan
     return { idx, code: a.code, kind: a.kind, sub: c?.asset, label, title: c?.text ? first(c.text) : label, file: c?.file || undefined, price: a.price ?? 0, income, payment: a.creditPayment ?? 0, credit: a.credit ?? 0,
       shares: a.shares, tokens: a.tokens, pledged: a.pledged, partnerName: a.partnerId ? nameOf(room, a.partnerId) : undefined, stakeOfName: a.stakeOf ? nameOf(room, a.stakeOf) : undefined,
       yearly: a.price > 0 && income > 0 ? Math.round((income * 12 * 1000) / a.price) / 10 : null, payback: income > 0 && a.price > 0 ? Math.ceil(a.price / income) : null, net: income - (a.creditPayment ?? 0) };
@@ -49,7 +50,7 @@ export function portfolioOf(room: any, userId: string): Portfolio | null {
   const withIncome = assets.filter((a) => a.income > 0), totalIncome = withIncome.reduce((s, a) => s + a.income, 0);
   const ranked = assets.filter((a) => a.yearly !== null);
   return {
-    assets, lent, owed, bank, lombards, owe: p.owe ?? 0, active, offers: marketOffers(room, userId),
+    assets, lent, owed, bank, lombards, owe: p.owe ?? 0, active, offers: marketOffers(room, userId), deposits: (p.deposits ?? []).map((d: any) => ({ id: d.id, label: d.label, principal: d.principal, perLap: d.perLap, lapsLeft: d.lapsLeft, accrued: d.accrued })),
     totals: { count: assets.length, invested, passive, payments, netPassive: passive - payments, expenses, debt, lent: lentSum, netWorth: p.cash + invested - debt + lentSum, coverage: expenses > 0 ? Math.round((passive / expenses) * 100) : null },
     shares: withIncome.map((a) => ({ code: a.code, label: `${a.title} (+${a.income})`, income: a.income, pct: totalIncome ? Math.round((a.income / totalIncome) * 100) : 0 })).sort((a, b) => b.income - a.income),
     best: ranked.length ? ranked.reduce((m, a) => (a.yearly! > m.yearly! ? a : m)) : null, slowest: ranked.length > 1 ? ranked.reduce((m, a) => (a.payback! > m.payback! ? a : m)) : null,

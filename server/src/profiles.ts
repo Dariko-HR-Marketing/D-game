@@ -7,7 +7,7 @@ import { pointsOf, xpOf, levelOfXp, rankOfLevel, skillsOf, displayRating, league
 export interface Profile { userId: string; name: string; color: number; birthYear: number; /** Ixtiyoriy: faqat standart avatar ko'rinishi uchun */ gender?: "m" | "f"; updatedAt: number }
 export interface ResultPlayer {
   id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean;
-  left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
+  left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; xpBonus?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
 }
 export interface GameResult { mode?: "standard" | "quick" | "rated" | "tutorial"; endReason?: "win" | "time"; tag?: { kind: "class" | "tournament"; id: string }; room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
 
@@ -138,7 +138,7 @@ export class ProfileService {
   recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[]; mode?: GameResult["mode"]; endReason?: "win" | "time" }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = [], tag?: { kind: "class" | "tournament"; id: string }) {
     this.record({ mode: st.mode, endReason: st.endReason, tag, room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
       players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined,
-        left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds) })) });
+        left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds), xpBonus: p.xp || undefined })) });
   }
 
   stats(userId: string): Stats {

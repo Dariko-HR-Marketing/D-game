@@ -9,3 +9,13 @@ const bus = new Set<() => void>();
 /** «?» tugmasi: joriy sahifa yo'riqnomasini qayta ochadi. */
 export const replayTour = () => { for (const f of bus) f(); };
 export const onReplay = (f: () => void) => { bus.add(f); return () => { bus.delete(f); }; };
+
+/** Oynalar o'rtasidagi muvofiqlashtirish bayroqlari (bir vaqtda ikkita modal chiqmasin). */
+export function makeFlag() {
+  let v = false; const subs = new Set<(x: boolean) => void>();
+  return { get: () => v, set: (x: boolean) => { if (v === x) return; v = x; subs.forEach((f) => f(x)); }, subscribe: (f: (x: boolean) => void) => { subs.add(f); return () => { subs.delete(f); }; } };
+}
+export const tourOpenFlag = makeFlag();  // yo'riqnoma oynasi ochiq: kubik oynasi uning ustiga chiqmaydi
+export const diceBusyFlag = makeFlag();  // kubik natijasi ko'rsatilmoqda: yo'riqnoma shu tugamaguncha ochilmaydi
+export const setTourOpen = tourOpenFlag.set;
+export const isTourOpen = tourOpenFlag.get, subscribeTourOpen = tourOpenFlag.subscribe;

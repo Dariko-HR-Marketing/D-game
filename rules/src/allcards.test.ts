@@ -20,10 +20,12 @@ const car = { kind: "car", code: "AV", price: 5000, monthlyIncome: 0, creditPaym
 const biz = { kind: "small_business", code: "T1", price: 5000, monthlyIncome: 100, creditPayment: 0, credit: 0 };
 
 describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
-  it("kartalar soni 422 (418 + 4 yangi kasb) va hammasi o'z dekasida", () => {
-    expect(ids).toHaveLength(422);
-    const inDeck = new Set(Object.values(ctx.deckIds).flat()); const own = ids.filter((i) => ctx.effects[i].deck !== "kasb" && !inDeck.has(i));
-    expect(own, "dekada yo'q kartalar").toEqual([]);
+  it("kartalar: eski 442 + katalog 590; o'yinda bo'lganlari (jonli) o'z dekasida, olib tashlangan va ushlab turilganlar kolodada yo'q", () => {
+    expect(ids).toHaveLength(442 + 590);
+    const inDeck = new Set(Object.values(ctx.deckIds).flat());
+    const live = (i: string) => !ctx.effects[i].info?.retired && !ctx.effects[i].info?.held && ctx.effects[i].effect.kind !== "unresolved";
+    expect(ids.filter((i) => live(i) && !inDeck.has(i)), "jonli karta dekada yo'q").toEqual([]);
+    expect(ids.filter((i) => !live(i) && inDeck.has(i)), "ushlab turilgan/olib tashlangan karta dekada").toEqual([]);
   });
 
   const by = (k: string) => ids.filter((i) => ctx.effects[i].effect.kind === k);

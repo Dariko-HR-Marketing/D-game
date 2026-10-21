@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { loadContent } from "@poyga/content";
 import { ctx as base } from "./testctx";
-import { Ctx, GameState, newGame, reduce, slotBlocked, effectOf, SMALL_BOARD } from "./index";
+import { Ctx, GameState, newGame, reduce, slotBlocked, effectOf, SMALL_BOARD, canExitSmallCircle } from "./index";
 import { settleOwe } from "./engine";
 
 const ctx: Ctx = { ...base, cellRules: loadContent().cellRules };
@@ -42,7 +42,7 @@ describe("Q «Ishdan bo'shadingiz!»: 4 oy maosh yo'q (bir aylana), xarajat to'l
 describe("K «Boshidan boshlang!» — xona egasi «Kutilmagan hodisa»ni yoqsa hod kartasi", () => {
   it("yoqilgan: hod kartasi tortiladi", () => {
     const s = land("small", cellOf("K"));
-    expect(s.lastCard?.cardId.startsWith("hod-")).toBe(true);
+    expect(ctx.effects[s.lastCard!.cardId].deck).toBe("hod"); // karta «Kutilmagan hodisa» dekasidan (eski «hod-N» yoki katalog «cat-…»)
   });
   it("o'chirilgan: oddiy katak (karta ham, restart ham yo'q)", () => {
     const s = land("small", cellOf("K"), () => {}, 3, false);
@@ -174,11 +174,11 @@ describe("Orzu katagi", () => {
   const O = ctx.bigBoard.findIndex((c) => c.t === "O");
   it("boshqa orzuga tushsa — katta aylana xarajat kartasi (kxar) olinadi", () => {
     const s = land("big", O, (g) => { g.players[0].dreamIdx = ctx.dreams.findIndex((d) => d.name !== ctx.bigBoard[O].name); });
-    expect(s.lastCard?.cardId.startsWith("kxar-")).toBe(true);
+    expect(ctx.effects[s.lastCard!.cardId].deck).toBe("kxar");
   });
   it("o'z orzuiga pul oqimi yetmay tushsa — g'alaba yo'q, kxar", () => {
     const s = land("big", O, (g) => { g.players[0].dreamIdx = ctx.dreams.findIndex((d) => d.name === ctx.bigBoard[O].name); g.players[0].lockedFlow = 5000; });
-    expect(s.winner).toBeNull(); expect(s.lastCard?.cardId.startsWith("kxar-")).toBe(true);
+    expect(s.winner).toBeNull(); expect(ctx.effects[s.lastCard!.cardId].deck).toBe("kxar");
   });
   it("o'z orzuiga 100 000 pul oqimi va yetarli naqd bilan tushsa — g'alaba", () => {
     const s = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: ctx.dreams.findIndex((d) => d.name === ctx.bigBoard[O].name), lockedFlow: 100_000, cash: 50_000_000 }); });
@@ -235,22 +235,23 @@ describe("Qarz (owe) — kichik aylana (qo'llanma §09)", () => {
     expect(s.players[0].restarts + (s.players[0].owe ?? 0)).toBeGreaterThan(0);
   });
   it("kichik aylanadan chiqish qarz bilan mumkin emas", () => {
-    const s = mk(); Object.assign(s.players[0], { cash: 2_000_000, owe: 10, salary: 0, assets: [biz("A", 30_000)] });
-    const r: any = reduce(s, ctx, { type: "roll", playerId: "p0" }); expect(r.state.players[0].circle).toBe("small");
+    // Qoida (qo'llanma §09): chiqish sharti — hech qanday qarz yo'q. (Qarz naqd paydo bo'lishi bilan yopiladi, shuning uchun qoida to'g'ridan-to'g'ri tekshiriladi: o'yin yo'lida tasodifiy karta qarzni yopib qo'yishi mumkin.)
+    const base = { cash: 2_000_000, salary: 0, passiveIncome: 30_000, expenses: 0, bankDebt: 0, otherDebt: 0, openPartnerships: 0 };
+    expect(canExitSmallCircle({ ...base, otherDebt: 10 })).toBe(false); expect(canExitSmallCircle(base)).toBe(true);
   });
 });
 
 describe("Imkoniyat: naqd 25 000 dan ko'p bo'lsa dekani tanlash (qo'llanma §06)", () => {
   const I = cellOf("I");
   it("naqd kam — «Kichik sarmoya» darhol", () => {
-    const s = land("small", I, (g) => { g.players[0].cash = 1000; }); expect(s.lastCard?.cardId.startsWith("kichik-")).toBe(true); expect(s.pending?.cardId).not.toBe("choose-opp");
+    const s = land("small", I, (g) => { g.players[0].cash = 1000; }); expect(ctx.effects[s.lastCard!.cardId].deck).toBe("kichik"); expect(s.pending?.cardId).not.toBe("choose-opp");
   });
   it("naqd ko'p — avval tanlov, so'ng tanlangan dekadan karta", () => {
     const s = land("small", I, (g) => { g.players[0].cash = 60_000; }); expect(s.pending?.cardId).toBe("choose-opp");
     expect(ctx.effects["choose-opp"]).toBeUndefined();
     const k: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false, deck: "katta" }); expect(k.ok).toBe(true);
-    expect(k.state.lastCard?.cardId.startsWith("katta-")).toBe(true); expect(k.state.turn).toBe(s.turn); // karta hali hal qilinmagan, navbat o'tmagan
-    const d: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false }); expect(d.state.lastCard?.cardId.startsWith("kichik-")).toBe(true); // vaqt tugadi → kichik
+    expect(ctx.effects[k.state.lastCard.cardId].deck).toBe("katta"); expect(k.state.turn).toBe(s.turn); // karta hali hal qilinmagan, navbat o'tmagan
+    const d: any = reduce(s, ctx, { type: "decide", playerId: "p0", accept: false }); expect(ctx.effects[d.state.lastCard.cardId].deck).toBe("kichik"); // vaqt tugadi → kichik
   });
 });
 

@@ -7,7 +7,8 @@
   "test": "vitest run",
   "typecheck": "tsc --noEmit",
   "import:kasb": "tsx scripts/import-kasb.ts",
-  "check:cards": "tsx scripts/check-cards.ts"
+  "check:cards": "tsx scripts/check-cards.ts",
+  "cards": "tsx scripts/manage-cards.ts"
  },
  "dependencies": {
   "zod": "^3.23.8"
@@ -22,6 +23,7 @@
   ".": "./src/index.ts",
   "./effects": "./src/effects.ts",
   "./cardfile": "./src/cardfile.ts",
-  "./cellrules": "./src/cellrules.ts"
+  "./cellrules": "./src/cellrules.ts",
+  "./groups": "./src/groups.ts"
  }
 }

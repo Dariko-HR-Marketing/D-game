@@ -31,6 +31,6 @@ const s = StyleSheet.create({
   row: { gap: space.sm, paddingVertical: space.xs },
   chip: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, paddingHorizontal: space.md, backgroundColor: color.white, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, maxWidth: 220 },
   cur: { borderColor: color.navy, borderWidth: 2, backgroundColor: "#EAF1F7" },
-  dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, dotT: { fontSize: 11, fontWeight: "800" },
+  dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, dotT: { fontSize: 12, fontWeight: "800" },
   name: { color: color.navy, fontWeight: "800", fontSize: font.sm, maxWidth: 140 }, cash: { color: tone.muted, fontSize: font.xs, fontWeight: "600" },
 });

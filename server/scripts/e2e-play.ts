@@ -5,6 +5,7 @@ import { chromium } from "playwright-core";
 import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 
+process.env.ROLLMODAL = "1"; // haqiqiy yo'l: kubik oynasi yoqilgan (odam shu oynadagi tugmani bosadi)
 const WEB = process.env.WEB ?? "http://localhost:8081"; process.env.CORS_ORIGINS = WEB;
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
@@ -27,6 +28,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
     if (await deck.count()) { if (await tryClick(deck)) idle = 0; }
     else if (await rentA.count()) { if (await tryClick(rentA)) idle = 0; }
     else if (await accept.count()) { if ((rolls + accepted) % 3 === 0 && await accept.first().isEnabled({ timeout: 1000 }).catch(() => false)) { if (await tryClick(accept)) accepted++; } else { if (await tryClick(no)) skipped++; } idle = 0; }
+    else if (await p.getByTestId("quiz-options").count()) { const opt = p.getByTestId("quiz-options").getByRole("button", { name: /^[ABV]\. / }); if (await tryClick(opt.nth((rolls + accepted) % 3))) accepted++; idle = 0; } // viktorina (katalog): javob variantlaridan biri
     else if (await pay.count()) { // «Pul to'layman / Biznesdan voz kechaman» (kutilmagan hodisa): navbat bilan to'laymiz yoki biznesdan voz kechamiz
       const lose = p.getByRole("button", { name: /^Biznesdan voz kechaman/ }); if ((rolls + accepted) % 2 === 0 && await pay.first().isEnabled({ timeout: 1000 }).catch(() => false)) { if (await tryClick(pay)) accepted++; } else if (await tryClick(lose)) skipped++; idle = 0; }
     else if (await roll.count()) { if (await tryClick(roll)) rolls++; idle = 0; }
