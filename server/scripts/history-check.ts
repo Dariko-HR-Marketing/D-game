@@ -40,7 +40,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const all = await a.getByTestId("history-row").count(); check(all >= rows, `${tag} «Hammasi» filtri: ${all} >= ${rows}`);
   const [dl] = await Promise.all([a.waitForEvent("download", { timeout: 8000 }), a.getByTestId("history-csv").click()]);
   check(dl.suggestedFilename() === `poyga-${code}.csv`, `${tag} CSV yuklanadi: ${dl.suggestedFilename()}`);
-  await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ")"))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);
+  await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ") " + v.nodes.map((n) => n.target.join(" ") + " :: " + n.html.slice(0, 160)).join(" | ")))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);
   await a.keyboard.press("Escape"); await a.waitForTimeout(300); check((await a.getByTestId("history-detail").count()) === 0, `${tag} Esc bilan yopiladi`);
   await a.context().close(); await c.context().close();
 }

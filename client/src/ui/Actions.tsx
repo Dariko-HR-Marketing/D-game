@@ -12,7 +12,7 @@ const Box = ({ title, children }: { title: string; children: React.ReactNode }) 
   <View style={s.box}><Text style={s.h} aria-level={2} accessibilityRole="header">{title}</Text>{children}</View>);
 
 function Pick({ options, value, onChange, label, names }: { options: string[]; value: string; onChange: (v: string) => void; label: string; names?: (id: string) => string }) {
-  return (<View style={s.chips} accessibilityLabel={label}>{options.map((o) => (
+  return (<View style={s.chips} role="group" aria-label={label}>{options.map((o) => (
     <Pressable key={o} accessibilityRole="button" accessibilityState={{ selected: o === value }} onPress={() => onChange(o)} style={[s.chip, o === value && s.chipOn]}>
       <Text style={[s.chipT, o === value && { color: color.white }]}>{names ? names(o) : o}</Text></Pressable>))}</View>);
 }

@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync } from "node:fs";
 // Hisob varag'idagi joylar (ko'chmas mulk 5 / kichik biznes 6 / katta biznes 7) va ixtiyoriy sotish. `OUT=papka pnpm tsx scripts/slots-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
 import { autoProfiles } from "./_seed";
@@ -10,6 +12,7 @@ process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
+const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
@@ -51,6 +54,14 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const accept = a.getByRole("button", { name: /sh\.b\. olish/ }).first();
   check(await accept.count() > 0 && await accept.isEnabled(), `${tag} qabul qilish tugmasi yoqildi`);
   await a.screenshot({ path: `${OUT}/${tag}-freed.png` });
+  // Qulaylik: «Aktivni sotish» ochiq, naqd 0 va bo'sh suyunchi tanlovi bilan axe buzilishlarsiz bo'lsin
+  const other = st.players.find((p: any) => p.id !== me.id)!; room.state!.players.find((p: any) => p.id === me.id)!.cash = 0;
+  room.state!.proposals.push({ id: 77, kind: "suyunchi", parent: other.id, given: [] }); (x.rooms as any).emit(room); await a.waitForTimeout(800);
+  if (tag === "tel") { await a.getByRole("button", { name: "Blank" }).click(); await a.waitForTimeout(400); }
+  if (await a.getByText("Aktivni sotish").count() === 0) { await actions.getByText(/Moliya amallari/).first().click(); await a.waitForTimeout(400); }
+  await a.addScriptTag({ content: AXE });
+  const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + " :: " + v.nodes.map((n) => n.html.slice(0, 120)).join(" | ")))`) as string[];
+  check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);
   await a.context().close(); await c.context().close();
 }
 await b.close(); await x.app.close(); console.log(failed ? `XATO: ${failed}` : "hammasi OK"); process.exit(failed ? 1 : 0);
