@@ -80,7 +80,7 @@ Qarorlar bosqichma-bosqich amalga oshiriladi; kodda o'zgargani «Amalga oshirild
 - **Q6 (D6) Ball, XP, malaka, liga, mukofotlar katalogi, ota-ona paneli, Akademiya, kunlik vaziyat.** MVP'ga kirmaydi (yagona spetsifikatsiya yo'l xaritasida beta/pilot). Ball «sarflanadi, sotib olinmaydi, pulga almashtirilmaydi» — CLAUDE §1 bilan mos.
 - **Q7 (D7) Monetizatsiya.** Asosiy o'yin bepul va natijaga ta'sir qilmaydi; Plus/kosmetika/turnir tayyor, narxlar bo'sh; `salesPaused` bayrog'i bilan o'chirib qo'yiladi.
 - **Q8 (D8) Chat.** MVP: tayyor reaksiyalar. Erkin chat — yurist va moderatsiya tayyor bo'lgach.
-- **Q9 (D9) Jins.** Ixtiyoriy maydon, faqat standart avatar tanlash uchun; boshqalarga ko'rsatilmaydi, eksport/o'chirishga qo'shiladi (amalga oshirish navbatda).
+- **Q9 (D9) Jins.** Amalga oshirildi: ixtiyoriy maydon (Erkak/Ayol; qayta bosilsa bekor), faqat standart avatarning soch uslubi uchun (ayol — uzun); xona ko'rinishida avatar uchun beriladi, matn sifatida ko'rsatilmaydi; profil eksporti va hisobni o'chirish bilan birga ketadi (migratsiya 008).
 
 **Qoidalar**
 - **Q10 (R1–R6).** Amalga oshirildi (qarang №130).

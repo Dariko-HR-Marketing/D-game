@@ -10,7 +10,7 @@ export class PgStore implements Store {
   async closeRoom(code: string) { await this.pool.query("update rooms set ended_at=now() where code=$1 and ended_at is null", [code]); }
   async ping() { await this.pool.query("select 1"); }
   async migrate() {
-    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql", "004_card_stats.sql", "005_docs.sql", "006_admin.sql", "007_profile_photos.sql"])
+    for (const f of ["001_init.sql", "002_admin_content.sql", "003_profiles.sql", "004_card_stats.sql", "005_docs.sql", "006_admin.sql", "007_profile_photos.sql", "008_profile_gender.sql"])
       await this.pool.query(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf-8"));
   }
   async saveSnapshot(code: string, s: GameState, meta?: RoomMeta) {

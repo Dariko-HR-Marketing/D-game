@@ -5,15 +5,16 @@ import { Banner, Card } from "./kit";
 import { Screen } from "./Screen";
 import { uz, errText } from "../i18n/uz";
 import { color, font, MIN_TAP, radius, space, tone } from "../theme";
+import { GenderPicker, type Gender } from "./GenderPicker";
 import { Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
 /** Birinchi kirishda ism majburiy: ismsiz xonaga kirib bo'lmaydi (boshqa o'yinchilar sizni shu ism bilan ko'radi). */
 export function NameGate({ http, onDone }: { http: Http; onDone: () => void }) {
-  const [name, setName] = useState(""); const [year, setYear] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const [name, setName] = useState(""); const [year, setYear] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [gender, setGender] = useState<Gender>(null);
   const ok = validName(name) && validYear(year);
   const save = async () => {
     if (!ok || busy) return; setBusy(true); setErr(null);
-    try { await http.saveProfile({ name: name.trim(), color: Math.abs([...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % 6, birthYear: Number(year) }); onDone(); }
+    try { await http.saveProfile({ name: name.trim(), color: Math.abs([...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % 6, birthYear: Number(year), ...(gender ? { gender } : {}) }); onDone(); }
     catch (e) { setErr((e as HttpError).code ?? "network"); }
     setBusy(false);
   };
@@ -25,6 +26,7 @@ export function NameGate({ http, onDone }: { http: Http; onDone: () => void }) {
         <TextInput testID="gate-name" accessibilityLabelledBy="gn" aria-label={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} autoComplete="nickname" autoFocus />
         <Text style={s.l} nativeID="gy">{uz.profile.birthYear}</Text>
         <TextInput testID="gate-year" accessibilityLabelledBy="gy" aria-label={uz.profile.birthYear} value={year} onChangeText={(t) => setYear(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" style={s.input} />
+        <GenderPicker value={gender} onChange={setGender} />
         <Text style={s.hint}>{uz.gate.why}</Text>
         {isUnder16(year) && <Banner kind="warn">{uz.profile.under16}</Banner>}
         {err && <Banner kind="bad">{errText(err)}</Banner>}
