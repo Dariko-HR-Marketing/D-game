@@ -38,7 +38,7 @@ function PopIn({ fresh, children, style }: { fresh: boolean; children: React.Rea
 }
 
 /** Chap ustun/«Blank»: doimiy ko'rinadigan, ixcham «Mening kartalarim»: har bir aktiv — rangli katak; qarzlar va faol kartalar belgilar bilan. */
-export function PortfolioCard({ room, userId, onOpen, onAct }: { room: any; userId: string; onOpen: () => void; onAct: (a: Record<string, unknown>) => void }) {
+export function PortfolioCard({ room, userId, onOpen, onAct, cols }: { room: any; userId: string; onOpen: () => void; onAct: (a: Record<string, unknown>) => void; cols?: number }) {
   const p = portfolioOf(room, userId); if (!p) return null;
   // Xona bo'yicha eslab qolinadi (chap ustun qaror ko'rinishi ↔ oddiy ko'rinish almashganda katak qayta paydo bo'lib «yangi» deb sakramasin)
   const seen = { current: seenByRoom.get(room.code) ?? new Set(p.assets.map((a) => `${a.code}${a.idx}`)) }; seenByRoom.set(room.code, seen.current);
@@ -50,7 +50,7 @@ export function PortfolioCard({ room, userId, onOpen, onAct }: { room: any; user
       {p.assets.length === 0 ? <Text style={s.muted}>{uz.portfolio.empty}</Text> : (
         <View style={s.grid}>
           {p.assets.map((a) => { const l = lookOf(a); const key = `${a.code}${a.idx}`; return (
-            <PopIn key={key} fresh={fresh.has(key)} style={s.tileWrap}>
+            <PopIn key={key} fresh={fresh.has(key)} style={cols ? [s.tileWrap, { width: `${Math.floor(97 / cols)}%` as any }] : s.tileWrap}>
             <Pressable accessibilityRole="button" accessibilityLabel={`${a.label}: ${a.title}. ${incomeText(a)}`} onPress={onOpen} style={({ pressed }) => [s.tile, { backgroundColor: l.bg, borderColor: l.border, width: "100%" }, pressed && { opacity: 0.85 }]}>
               <View style={s.tileTop} aria-hidden><Icon name={iconOf(a)} size={16} color={l.fg} /><Text style={[s.tileKind, { color: l.fg }]} numberOfLines={1}>{a.label}</Text></View>
               <Text style={s.tileTitle} numberOfLines={2} aria-hidden>{a.title}</Text>

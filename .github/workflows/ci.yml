@@ -65,3 +65,4 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/resume-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/sheet-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/seats-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/dock-check.ts

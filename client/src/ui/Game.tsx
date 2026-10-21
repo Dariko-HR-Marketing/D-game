@@ -111,6 +111,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const ledgerNow = room.calc?.ledger?.[userId] ?? (mine && e ? { cash: mine.cash, passive: e.passive, flow: e.cashflow } : { cash: 0, passive: 0, flow: 0 });
   const gate = due && mineTurn && !cardRaw && settled && !state.winner ? <LedgerPad testID="ledger-gate" title={uz.ledger.gateTitle} hint={uz.ledger.gateHint} current={ledgerNow} feedback={calcFb} submitLabel={uz.ledger.gateSubmit} onSubmit={(c) => onAct({ type: "confirm_calc", calc: c })} /> : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
+  // Kompyuter (3 ustun): taxta ostidagi bo'sh joy — «Mening kartalarim» va dekani tanlash shu yerda (chap ustun qisiq va aylantirishni talab qilardi)
+  const deckPick = tri && !!card && mineTurn && !!mine && (card as any).effect?.kind === "deckChoice";
   const timeInSide = wide && !tri && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
   const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(room.turnSeconds ?? 30)).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
@@ -147,7 +149,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
-      {mine && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
+      {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
     </View>
   );
@@ -190,7 +192,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
       {historyOpen && http && <HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} />}
       {header}
       <View style={s.shell}>
-        {card && mineTurn && mine ? (
+        {card && mineTurn && mine && !deckPick ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
               <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
@@ -203,6 +205,14 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
           {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimeBar room={room} userId={userId} settled={settled} /></View>}</View>}
           <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
           <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
+          {tri && mine && (
+            <View style={{ width: boardWidth, gap: space.md }} testID="dock">
+              {deckPick && card ? (
+                <CardEnter id={card.id}>
+                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
+                </CardEnter>) : null}
+              <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} cols={3} />
+            </View>)}
           {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
             {!short && <View style={{ flex: 1 }}>{eventsCard(3)}</View>}
             <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}<View style={short ? { flex: 1, maxWidth: 260 } : undefined}>{leaveBlock}</View></View>
