@@ -1,5 +1,5 @@
 // «Mening kartalarim»: o'yinchiga tegishli aktivlar, qarzlar (berilgan/olingan), faol kartalar va ularning tahlili. React'siz — testlanadi.
-import { passiveIncome, allDebt, monthlyExpenses } from "@poyga/rules";
+import { assetIncome, passiveIncome, allDebt, monthlyExpenses } from "@poyga/rules";
 import { marketOffers, nameOf } from "./model";
 import { uz } from "./i18n/uz";
 
@@ -31,7 +31,7 @@ export function portfolioOf(room: any, userId: string): Portfolio | null {
   const st = room?.state; const p = st?.players?.find((x: any) => x.id === userId); if (!p) return null;
   const cards: Record<string, { text: string; file: string; asset?: string }> = room.assetCards ?? {};
   const assets: AssetRow[] = (p.assets ?? []).map((a: any, idx: number) => {
-    const c = cards[a.code]; const label = kindLabel(a.kind, c?.asset); const income = a.monthlyIncome ?? 0;
+    const c = cards[a.code]; const label = kindLabel(a.kind, c?.asset); const income = assetIncome(p, a); // faol bozor ta'sirlari (daromad ±%, nol, ko'paytma) bilan
     return { idx, code: a.code, kind: a.kind, sub: c?.asset, label, title: c?.text ? first(c.text) : label, file: c?.file || undefined, price: a.price ?? 0, income, payment: a.creditPayment ?? 0, credit: a.credit ?? 0,
       shares: a.shares, tokens: a.tokens, pledged: a.pledged, partnerName: a.partnerId ? nameOf(room, a.partnerId) : undefined, stakeOfName: a.stakeOf ? nameOf(room, a.stakeOf) : undefined,
       yearly: a.price > 0 && income > 0 ? Math.round((income * 12 * 1000) / a.price) / 10 : null, payback: income > 0 && a.price > 0 ? Math.ceil(a.price / income) : null, net: income - (a.creditPayment ?? 0) };

@@ -8,7 +8,7 @@ import { Icon, type IconName } from "./Icon";
 import { TimerRing } from "./TimerRing";
 import { CardFace } from "./CardFace";
 import { CardPaper } from "./CardPaper";
-import { headOf } from "./cardLook";
+import { headOf, deckKey } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
 import { crisisAdjusted, slotBlocked, slotKey, SLOT_LIMITS } from "@poyga/rules";
@@ -16,7 +16,7 @@ import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, radius, space, tone } from "../theme";
 
-const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
+const deckOf = (id: string, deck?: string) => uz.deck[deckKey(id, deck)] ?? uz.deck.other;
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
 function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number; e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
   const Tile = ({ deck, label, n, bg, fg }: { deck: "kichik" | "katta"; label: string; n: number; bg: string; fg: string }) => (
@@ -53,7 +53,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const noSlot = e ? slotBlocked(e, me) : false; // hisob varag'ida joy qolmagan: qabul qilib bo'lmaydi
   const fullKey = e?.kind === "buy" ? slotKey(e.asset) : e?.kind === "gamble" || rent ? "business" : null;
   const rentCantBuy = rent && (me.cash < e.buyPrice || noSlot);
-  const H = headOf(String(card.id), e);
+  const H = headOf(String(card.id), e, card.deck);
   const flow = exitProgress(me).cashflow;
   const gainCash = e?.kind === "gain" ? e.amount : 0;
   const afterCash = me.cash - (cost ?? 0) + gainCash;
@@ -71,7 +71,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       <View style={[s.head, { backgroundColor: H.bg, borderColor: H.border }]}>
         {typeof die === "number" ? <Dice value={die} size={48} /> : <View style={[s.headIcon, { borderColor: H.border }]}><Icon name={H.icon} size={24} color={H.fg} /></View>}
         <View style={{ flex: 1 }}>
-          <Text style={[s.headEyebrow, { color: H.fg }]}>{typeof die === "number" ? `${uz.gamble.die} ${die} · ` : ""}{deckOf(card.id)}</Text>
+          <Text style={[s.headEyebrow, { color: H.fg }]}>{typeof die === "number" ? `${uz.gamble.die} ${die} · ` : ""}{deckOf(card.id, card.deck)}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name={H.icon} size={20} color={H.fg} /><Text style={[s.headTitle, { color: H.fg }]} aria-level={2} accessibilityRole="header">{H.title}</Text></View>
         </View>
         {left ? <TimerRing left={left} total={turnSeconds} size={46} label={`${left} ${uz.game.seconds}`} /> : null}

@@ -1,6 +1,7 @@
 // Karta qarori uchun raqamlar: o'yinchi narx, boshlang'ich to'lov, daromad va pul oqimiga ta'sirni ko'rib qaror qiladi.
 import { crisisAdjusted, passiveIncome, RULES } from "@poyga/rules";
 import { uz } from "./i18n/uz";
+import { opsFacts, offerFacts } from "./opsFacts";
 
 export interface FactRow { label: string; value: string; tone?: "good" | "bad" | "neutral" }
 export interface Facts {
@@ -19,12 +20,13 @@ const fmt = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g
 const signed = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n));
 const F = uz.facts;
 
-interface P { cash: number; salary: number; assets: { kind: string; monthlyIncome: number }[]; crisisMonths?: number; bankDebt?: number }
+interface P { cash: number; salary: number; assets: { kind: string; monthlyIncome: number }[]; crisisMonths?: number; bankDebt?: number; mods?: any[] }
 
 export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
   const rows: FactRow[] = []; const notes: string[] = []; let need: number | null = null; let flow: number | null = null;
   const e = effect ? crisisAdjusted(effect, p) : effect;
-  if ((p.crisisMonths ?? 0) > 0 && JSON.stringify(e) !== JSON.stringify(effect)) notes.push(F.crisisNote);
+  if ((p.crisisMonths ?? 0) > 0 && JSON.stringify(crisisAdjusted(effect, { crisisMonths: p.crisisMonths })) !== JSON.stringify(effect)) notes.push(F.crisisNote);
+  else if (effect && JSON.stringify(e) !== JSON.stringify(effect)) notes.push(F.priceModNote); // faol «xarid narxi» ta'siri (bozor hodisasi)
   switch (e?.kind) {
     case "buy": {
       need = e.down ?? e.price;
@@ -52,6 +54,8 @@ export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
       notes.push(F.gambleNote); break;
     }
     case "rentChoice": need = null; rows.push({ label: F.income, value: signed(-e.income), tone: "bad" }, { label: F.rentMult, value: `${e.mult}× · ${fmt(e.buyPrice)}` }); notes.push(F.rentNote.replace("{n}", String(e.mult))); break;
+    case "ops": { const o = opsFacts(e); rows.push(...o.rows); notes.push(...o.notes); need = o.cost; break; }
+    case "sellOffer": { const o = offerFacts(e); rows.push(...o.rows); notes.push(...o.notes); break; }
     default: break;
   }
   const affordable = need === null ? null : p.cash >= need;

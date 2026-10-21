@@ -23,6 +23,7 @@
   ".": "./src/index.ts",
   "./effects": "./src/effects.ts",
   "./cardfile": "./src/cardfile.ts",
-  "./cellrules": "./src/cellrules.ts"
+  "./cellrules": "./src/cellrules.ts",
+  "./groups": "./src/groups.ts"
  }
 }

@@ -9,6 +9,7 @@ export * from "./effects";
 export * from "./catalog";
 export * from "./import";
 export * from "./pools";
+export * from "./groups";
 
 const read = (n: string) => JSON.parse(readFileSync(new URL(`../data/${n}.json`, import.meta.url), "utf-8"));
 

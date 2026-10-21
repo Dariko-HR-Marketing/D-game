@@ -16,7 +16,7 @@ export function exitProgress(p: any, mode?: GameMode | null) {
   return { checks, passive, expenses: exp, cashflow: playerCashflow(p), debt, canExit: canExitSmallCircle({ cash: p.cash, salary: p.salary, passiveIncome: passive, expenses: exp, bankDebt: p.bankDebt, otherDebt: debt - p.bankDebt, openPartnerships: openPartnerships(p) }, mode), need };
 }
 
-import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice } from "@poyga/rules";
+import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice, offerPrice, CRISIS_KINDS } from "@poyga/rules";
 
 /** Hozir olish mumkin bo'lgan eng katta bank krediti (garov 120 %, 2 000–5 000); 0 — kredit yo'q. */
 export const bankRoom = (p: any) => maxBankLoan({ salary: 0, ...p, assets: p.assets ?? [], bankLoans: p.bankLoans ?? [], bankDebt: p.bankDebt ?? 0 });
@@ -77,8 +77,15 @@ export function marketOffers(room: any, userId: string): { proposalId: number; t
   const p = me(room, userId), st = room?.state; if (!p || !st) return [];
   const out: any[] = [];
   for (const pr of st.proposals) {
-    if (pr.kind !== "market" || pr.sold.includes(userId)) continue;
-    const card = room.marketCards?.[pr.id]; const e = card?.effect; if (e?.kind !== "marketSale") continue;
+    if ((pr.kind !== "market" && pr.kind !== "offer") || pr.sold.includes(userId)) continue;
+    const card = room.marketCards?.[pr.id]; const e = card?.effect;
+    if (e?.kind === "sellOffer") { // katalog taklifi: eng yaxshi narxli mos aktiv (server ham shunday tanlaydi); inqirozda ko'chmas mulk/aksiya narxi yarim
+      let best: { a: any; price: number } | null = null;
+      for (const a of p.assets) { const raw = offerPrice(e, p, a); if (raw === null) continue; const price = Math.round(raw * ((p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(a.kind) ? 0.5 : 1)); if (!best || price > best.price) best = { a, price }; }
+      if (best) out.push({ proposalId: pr.id, text: card.text, assetCode: best.a.code, price: best.price, net: best.price - best.a.credit });
+      continue;
+    }
+    if (e?.kind !== "marketSale") continue;
     for (const a of p.assets) {
       if (a.partnerId || a.stakeOf || !assetMatches(e.targets, a)) continue;
       const price = marketPrice(e.amount, a); if (price === null) continue;

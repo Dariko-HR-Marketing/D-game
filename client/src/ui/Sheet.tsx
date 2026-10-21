@@ -38,7 +38,7 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
   const exp = (<Box title={uz.sheet.expensesTitle}>
     {e.lines.every((x) => x.value === null) ? <Line l={uz.sheet.baseExp} v={money(e.base)} /> : e.lines.map((x) => <Line key={x.key} l={uz.sheet.exp[x.key]} v={x.value === null ? "" : x.value === 0 ? uz.sheet.none : money(x.value)} />)}
     <Line l={`${uz.sheet.children}: ${e.children}`} v={e.children ? `${money(e.childCost)} × ${e.children} = ${money(e.childTotal)}` : money(0)} />
-    <Line l={uz.sheet.creditExp} v={money(e.credits)} /><Line l={uz.sheet.bankExp} v={money(e.bank)} /><Line l={uz.sheet.lombExp} v={money(e.lombard)} /><Line l={uz.sheet.qarExp} v={money(e.qar)} />
+    <Line l={uz.sheet.creditExp} v={money(e.credits)} /><Line l={uz.sheet.bankExp} v={money(e.bank)} /><Line l={uz.sheet.lombExp} v={money(e.lombard)} /><Line l={uz.sheet.qarExp} v={money(e.qar)} />{e.extra !== 0 && <Line l={uz.sheet.extraExp} v={`${e.extra > 0 ? "+" : "−"}${money(Math.abs(e.extra))}`} />}
     <Line tint bold l={uz.sheet.expenses} v={money(d.totals.expenses)} kind="bad" /></Box>);
   const credits = (<View style={{ gap: space.md }}>
     <Box title={uz.sheet.extraCredits}>{Array.from({ length: Math.max(SLOTS.lombard, d.lombards.length) }, (_, i) => <Line key={"l" + i} l={uz.sheet.sumLombard} v={d.lombards[i] ? money(d.lombards[i].amount) : ""} />)}

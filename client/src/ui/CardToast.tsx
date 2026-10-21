@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, ScrollView, useWindowDimensions } fr
 import { Pill, Row } from "./kit";
 import { CardFace } from "./CardFace";
 import { CardPaper } from "./CardPaper";
-import { headOf } from "./cardLook";
+import { headOf, deckKey } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { nameOf } from "../model";
 import { uz } from "../i18n/uz";
@@ -13,7 +13,7 @@ import type { RoomView } from "../net/connection";
 const seenByRoom = new Map<string, number>();
 /** Xabar kartasi 30 soniya (qaror vaqti, SPEC §5.2) yoki «✕» bosilguncha turadi; o'zi erta yo'qolmaydi. */
 export const TOAST_MS = 30_000;
-const deckOf = (id: string) => uz.deck[id.split("-")[0]] ?? uz.deck.other;
+const deckOf = (id: string, deck?: string) => uz.deck[deckKey(id, deck)] ?? uz.deck.other;
 
 /** Tortilgan karta haqida xabar: majburiy karta darhol qo'llangani uchun (qaror oynasi yo'q) nima bo'lganini ko'rsatadi; boshqalarning kartalari ham ko'rinadi. */
 export function CardToast({ room, userId, hold, offset = 0 }: { room: RoomView; userId: string; hold?: boolean; offset?: number }) {
@@ -33,9 +33,9 @@ export function CardToast({ room, userId, hold, offset = 0 }: { room: RoomView; 
   const who = lc.playerId === userId ? uz.result.you : nameOf(room, lc.playerId);
   return (
     <View style={[s.wrap, offset ? { top: HEADER_H + space.sm + offset } : null]} pointerEvents="box-none">
-      <View style={[s.toast, { maxHeight: vh - HEADER_H - 2 * space.md - offset }]} role="status" accessibilityLiveRegion="polite" aria-label={`${who}: ${deckOf(lc.cardId)}. ${card.text}`}>
+      <View style={[s.toast, { maxHeight: vh - HEADER_H - 2 * space.md - offset }]} role="status" accessibilityLiveRegion="polite" aria-label={`${who}: ${deckOf(lc.cardId, card.deck)}. ${card.text}`}>
         <View style={s.head}>
-          <View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.game.drew}`} kind={lc.playerId === userId ? "bad" : "info"} />{art ? <Pill label={deckOf(lc.cardId)} kind="plain" /> : null}</View>
+          <View style={{ flexDirection: "row", gap: space.sm, flexWrap: "wrap", flex: 1 }}><Pill label={`${who} ${uz.game.drew}`} kind={lc.playerId === userId ? "bad" : "info"} />{art ? <Pill label={deckOf(lc.cardId, card.deck)} kind="plain" /> : null}</View>
           <Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={() => setSeen(lc.n)} style={s.x}><Text style={s.xT} aria-hidden>✕</Text></Pressable>
         </View>
         <ScrollView tabIndex={0} role="region" aria-label={uz.game.drew} style={{ flexShrink: 1 }} contentContainerStyle={{ flexDirection: art && vw >= 520 ? "row" : "column", gap: space.md, alignItems: art && vw >= 520 ? "flex-start" : "stretch" }}>
@@ -46,7 +46,7 @@ export function CardToast({ room, userId, hold, offset = 0 }: { room: RoomView; 
               {f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}
             </View>
           ) : (
-            <View style={{ minWidth: 0 }}><CardPaper look={headOf(lc.cardId, card.effect)} deck={deckOf(lc.cardId)} text={card.text} rows={f.rows} /></View>
+            <View style={{ minWidth: 0 }}><CardPaper look={headOf(lc.cardId, card.effect, card.deck)} deck={deckOf(lc.cardId, card.deck)} text={card.text} rows={f.rows} /></View>
           )}
         </ScrollView>
       </View>
