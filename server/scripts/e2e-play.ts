@@ -5,6 +5,7 @@ import { chromium } from "playwright-core";
 import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
 
+process.env.ROLLMODAL = "1"; // haqiqiy yo'l: kubik oynasi yoqilgan (odam shu oynadagi tugmani bosadi)
 const WEB = process.env.WEB ?? "http://localhost:8081"; process.env.CORS_ORIGINS = WEB;
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });

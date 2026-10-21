@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs";
-// Kubik: katta aylanada ikkita kubik, kichik aylanada bitta; tashlash paytida kubik(lar) modalda oldinga chiqadi (tashlaganda modal, boshqalarda to'smaydigan ko'rsatma), yig'indi, bosilsa/Esc bilan yopiladi.
+process.env.ROLLMODAL = "1"; // kubik oynasi yoqilgan
+// Kubik oynasi (modal): o'z navbatingizda «Kubikni tashlash» tugmasi oynaning eng oldida (ikkala aylanada); «keyinroq» sahifadagi tugmani qoldiradi. Katta aylanada ikkita kubik, kichik aylanada bitta; tashlash paytida kubik(lar) modalda oldinga chiqadi (tashlaganda modal, boshqalarda to'smaydigan ko'rsatma), yig'indi, bosilsa/Esc bilan yopiladi.
 // `OUT=papka pnpm tsx scripts/dice-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { autoProfiles, slowTimers } from "./_seed";
@@ -26,7 +27,18 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
 
   // 1) Kichik aylana: bitta kubik
   { const t = turn(); const p: any = room.state!.players.find((q: any) => q.id === t.id); check(p.circle === "small", `${tag} boshida kichik aylana`);
-    const before = await t.page.getByTestId("turn-dice").locator("[role=img]").count(); check(before === 1, `${tag} kichik aylana: tashlashdan oldin 1 ta kubik («?»)`);
+    const rb = t.page.getByRole("button", { name: /^Kubik(ni|larni) tashlash/ });
+    await t.page.getByTestId("roll-modal").waitFor({ timeout: 6000 }).catch(() => {});
+    check(await t.page.getByTestId("roll-modal").count() === 1, `${tag} o'z navbatida «Kubikni tashlash» oynasi (modal) oldinga chiqdi`);
+    check(await t.page.getByTestId("roll-dice").locator("[role=img]").count() === 1, `${tag} kichik aylana: oynada 1 ta kubik`);
+    check(await rb.count() === 1, `${tag} tugma bitta (sahifadagisi modal ochiq paytda yashirin)`);
+    check(await t.other.getByTestId("roll-modal").count() === 0, `${tag} boshqa o'yinchida tashlash oynasi yo'q`);
+    const top = await t.page.evaluate(() => { const b = document.querySelector('[data-testid="dice-roll"] [role="button"]') as HTMLElement | null; if (!b) return "yo'q"; const r = b.getBoundingClientRect(), e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return b.contains(e) ? "oldinda" : "yopilgan"; }); check(top === "oldinda", `${tag} tugma hamma narsaning oldida (${top})`);
+    check(await t.page.evaluate(() => document.activeElement?.closest?.('[data-testid="dice-roll"]') !== null), `${tag} tugma fokusda (probel/Enter bilan tashlanadi)`);
+    await t.page.screenshot({ path: `${OUT}/${tag}-0-prompt-small.png` });
+    await t.page.getByRole("button", { name: "Avval hisobni ko'raman" }).first().click(); await t.page.waitForTimeout(300);
+    check(await t.page.getByTestId("roll-modal").count() === 0 && await rb.count() === 1, `${tag} «Avval hisobni ko'raman»: oyna yopildi, sahifadagi tugma qoldi`);
+    const before = await t.page.getByTestId("turn-dice").locator("[role=img]").count(); check(before === 1, `${tag} kichik aylana: taxtada tashlashdan oldin 1 ta kubik («?»)`);
     await roll(t.page); await t.page.getByTestId("dice-modal").waitFor({ timeout: 4000 }).catch(() => {});
     check(await t.page.getByTestId("dice-modal").count() === 1, `${tag} tashlagan o'yinchida kubik modali ochildi`);
     check(await t.page.getByTestId("dice-row").locator("[role=img]").count() === 1, `${tag} modalda 1 ta kubik`);
@@ -41,6 +53,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   // 2) Katta aylana: ikkita kubik
   { const t = turn(); const p: any = room.state!.players.find((q: any) => q.id === t.id); p.circle = "big"; p.pos = 3; p.cash = 500000; (x.rooms as any).emit(room); await t.page.waitForTimeout(700);
     await t.page.screenshot({ path: `${OUT}/${tag}-3-big-before.png` });
+    await t.page.getByTestId("roll-modal").waitFor({ timeout: 6000 }).catch(() => {});
+    check(await t.page.getByTestId("roll-dice").locator("[role=img]").count() === 2, `${tag} katta aylana: tashlash oynasida 2 ta kubik`);
+    await t.page.screenshot({ path: `${OUT}/${tag}-3b-prompt-big.png` });
     await roll(t.page); await t.page.getByTestId("dice-modal").waitFor({ timeout: 4000 }).catch(() => {});
     check(await t.page.getByTestId("dice-row").locator("[role=img]").count() === 2, `${tag} katta aylana: modalda 2 ta kubik`);
     const lr: any = room.state!.lastRoll; check(lr.dice.length === 2 && lr.die === lr.dice[0] + lr.dice[1], `${tag} serverda dice: ${JSON.stringify(lr.dice)} yig'indi ${lr.die}`);
