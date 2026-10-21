@@ -88,6 +88,7 @@ export const uz = {
     share: "Kodni do'stlaringizga yuboring — ular «Kirish» orqali qo'shiladi.", copy: "Kodni nusxalash", copied: "Nusxalandi", leave: "Xonadan chiqish", hostWord: "xona egasi", playerN: "O'yinchi", waitingPlayer: "O'yinchi kutilmoqda…", seatsWord: "o'yinchi", slotsNote: "Xona egasi {n} kishilik o'yin belgiladi. Boshlanganda bo'sh o'rinlarni botlar egallaydi.", botsNote: "Kamida 2 ta ishtirokchi kerak: yetishmayotgan {n} ta o'rinni bot egallaydi." },
   hud: {
     tabs: { field: "Maydon", blank: "Blank", players: "O'yinchilar", rules: "Qoidalar", nav: "O'yin bo'limlari" },
+    badge: { myTurn: "navbat sizda: kubik yoki karta qarori kutilmoqda", urgent: "{n} ta javob kutilmoqda", info: "{n} ta yangilik", both: "{u} ta javob kutilmoqda, {i} ta yangilik" },
     smallCircle: "Kichik aylana", bigCircle: "Katta aylana", turnWord: "tur", toWin: "G'alabagacha", flowMonthly: "Oylik pul oqimi",
     hintSmall: "1 kubik · soat yo'nalishida", hintBig: "2 kubik · soat yo'nalishida", rollSmall: "Kubikni tashlash", rollBig: "Kubiklarni tashlash",
     yourTurn: "Navbatingiz.", mineHint: "{s} soniyada kubik tashlanmasa, navbat {name}ga o'tadi.", otherHint: "Navbat {name}da. U {s} soniyada tashlamasa, navbat o'tadi.", otherNoTimer: "Navbat {name}da.",
