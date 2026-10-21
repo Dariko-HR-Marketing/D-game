@@ -71,7 +71,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 }
 
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
-const TABLET_RESERVE = 600; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
+const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
