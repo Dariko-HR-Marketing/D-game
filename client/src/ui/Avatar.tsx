@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { avatarUrl } from "../net/avatarBase";
 import { h, hasDom } from "./svg";
-import { PLAYER_COLORS } from "../theme";
+import { color, PLAYER_COLORS } from "../theme";
 
 const SKIN = ["#E9B98F", "#F1C7A5", "#D9A47A", "#EBC09C", "#C98F63"];
 const HAIR = ["#2B1D14", "#4A2A1A", "#1B1B1B", "#1F140E", "#6B4423"];
@@ -22,7 +22,7 @@ export function Avatar({ name, colorIdx = 0, level, online, size = 40, frame, bg
         h("path", { d: "M5 41c1.6-8.4 7.6-12 15-12s13.4 3.6 15 12z", fill: shirt }), h("rect", { x: 17, y: 23, width: 6, height: 7, rx: 2.5, fill: skin }), h("circle", { cx: 20, cy: 17.5, r: 7.8, fill: skin }),
         h("path", { d: long ? "M12.2 17.5c.6-5.6 3.9-8.6 7.8-8.6s7.4 3 7.8 8.6c-2.6-2.2-5-3.4-8.6-3.6-2.6.9-4.9 2-7 3.6z" : "M11.8 17c-.2-5.8 3.4-8.8 8.2-8.8s8.6 3 8.2 8.8c-1-2.6-2.8-3.8-8.2-3.8s-7.2 1.2-8.2 3.8z", fill: hair }))}
       {level !== undefined && <View style={[s.badge, { minWidth: badge, height: badge, borderRadius: badge / 2 }]}><Text style={[s.badgeT, { fontSize: Math.max(9, badge * 0.55) }]}>{level}</Text></View>}
-      {online !== undefined && <View style={[s.dot, { width: dot, height: dot, borderRadius: dot / 2, backgroundColor: online ? "#22A559" : "#E5484D" }]} />}
+      {online !== undefined && <View style={[s.dot, { width: dot, height: dot, borderRadius: dot / 2, backgroundColor: online ? color.green : color.red }]} />}
     </View>
   );
 }

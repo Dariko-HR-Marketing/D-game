@@ -172,7 +172,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
     <View style={s.header}>
-      <View style={[s.dotC, { backgroundColor: big ? "#E5484D" : "#22A559" }]} aria-hidden />
+      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }]} aria-hidden />
       <Text style={s.hTitle} aria-level={1} accessibilityRole="header">{circleName}</Text>
       <Text style={s.hSub}>{state.round}-{uz.hud.turnWord}</Text>
       <View style={{ flex: 1 }} />

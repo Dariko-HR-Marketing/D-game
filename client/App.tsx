@@ -26,6 +26,9 @@ import { isMyTurn } from "./src/model";
 import { color } from "./src/theme";
 import { errText, uz } from "./src/i18n/uz";
 import { Button } from "./src/ui/Button";
+import { installTypography } from "./src/typography";
+
+installTypography();
 
 const SERVER = process.env.EXPO_PUBLIC_SERVER_URL ?? "ws://localhost:3000";
 // Kirish xizmati (SMS/Google/Apple) ulanmaguncha — vaqtincha qurilma identifikatori.
