@@ -108,8 +108,9 @@ describe("418 karta: har biri o'z qoidasi bo'yicha ishlaydi", () => {
     const e = ctx.effects[id].effect as any;
     const r = run(id, (p, s) => { p.qar = true; if (e.scope === "holders") { s.players[1].qar = true; } });
     const d = (i: number) => ({ cash: r.before[i].cash - r.s.players[i].cash, exp: r.s.players[i].baseExpenses - r.before[i].baseExpenses });
-    expect(d(0)).toEqual({ cash: e.payNow ?? 0, exp: e.monthlyExpenseIncrease ?? 0 });
-    expect(d(1)).toEqual(e.scope === "holders" ? { cash: e.payNow ?? 0, exp: e.monthlyExpenseIncrease ?? 0 } : { cash: 0, exp: 0 });
+    const eff = { cash: (e.payNow ?? 0) - (e.gainNow ?? 0), exp: e.monthlyExpenseIncrease ?? 0 }; // gainNow: meros kvartira sotuvi (qarov egalari naqd oladi)
+    expect(d(0)).toEqual(eff);
+    expect(d(1)).toEqual(e.scope === "holders" ? eff : { cash: 0, exp: 0 });
     expect(d(2)).toEqual({ cash: 0, exp: 0 });           // qarovsiz o'yinchiga ta'sir qilmaydi
   });
   it.each(by("debtRepaid"))("%s: qarz qaytdi — faqat qarz bergan o'yinchilarga", (id) => {

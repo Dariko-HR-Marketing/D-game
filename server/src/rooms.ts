@@ -144,7 +144,7 @@ export class RoomManager {
   }
 
   /** §6.5: odam yetmasa bot qo'shiladi. */
-  async start(code: string, userId: string, seed: number, opts: { dreams?: boolean; events?: boolean } = {}): Promise<{ ok: true } | { ok: false; error: Err }> {
+  async start(code: string, userId: string, seed: number, opts: { dreams?: boolean; events?: boolean; opening?: boolean } = {}): Promise<{ ok: true } | { ok: false; error: Err }> {
     const r = this.rooms.get(code);
     if (!r) return { ok: false, error: "room_not_found" };
     if (r.hostId !== userId) return { ok: false, error: "not_host" };
@@ -152,7 +152,7 @@ export class RoomManager {
     let b = 1;
     while (r.members.length < MIN_PLAYERS) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
-    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
+    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false, openingDice: opts.dreams !== false && opts.opening !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
     if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz
     r.state = s; this.ledgerSync(r);
     await this.store.saveSnapshot(code, s, this.meta(r));
