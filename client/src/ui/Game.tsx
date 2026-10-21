@@ -71,6 +71,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 }
 
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
+const TABLET_RESERVE = 600; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
@@ -93,7 +94,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
       while (w > 240 && boardGeometry(w, true, nCells, true, true).H > height - reserveH) w -= 10;
       return { boardWidth: w, tight: true };
     }
-    let w = wide ? Math.min(Math.max(Math.min(width, 1440) - sideW - (tri ? rightW + space.lg : 0) - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, tablet ? 640 : 460), t = false;
+    let w = wide ? Math.min(Math.max(Math.min(width, 1440) - sideW - (tri ? rightW + space.lg : 0) - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, tablet ? 700 : 460), t = false;
+    if (tablet) while (w > 440 && boardGeometry(w, false, nCells, false, false, true).H > height - TABLET_RESERVE) w -= 10; // tik planshet: taxta balandlikka ham sig'sin (sarlavha, statistika, o'yinchilar, tugma va menyu uchun joy qoladi)
     if (wide) {
       while (w > 560 && boardGeometry(w, true, nCells).H > height - reserveH) w -= 20;
       if (boardGeometry(w, true, nCells).H > height - reserveH) { t = true; while (w > 480 && boardGeometry(w, true, nCells, true).H > height - reserveH) w -= 20; }
@@ -268,7 +270,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
         {tab === "field" && (<>
           <TimePanel room={room} userId={userId} settled={settled} />
           {stats}
-          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
+          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} roomy={tablet} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
             {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={52} label={`${left} ${uz.game.seconds}`} />}
