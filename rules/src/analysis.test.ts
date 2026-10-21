@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
-import { Action, GameState, analyzeGame, chooseDream, currentPlayer, effectOf, newGame, reduce } from "./index";
+import { Action, GameState, analyzeGame, chooseDream, currentPlayer, effectOf, newGame, reduce, slotBlocked } from "./index";
 
 /** O'yinni o'ynab, harakatlar ro'yxatini yig'adi. */
 function play(seed: number, n: number, turns: number) {
@@ -10,7 +10,7 @@ function play(seed: number, n: number, turns: number) {
   for (let t = 0; t < turns && !s.winner; t++) {
     const me = currentPlayer(s).id;
     const roll: Action = { type: "roll", playerId: me }; const r = reduce(s, ctx, roll); if (!r.ok) throw 0; s = r.state; acts.push(roll);
-    while (s.pending) { const e = effectOf(ctx, s.pending.cardId).effect; const d: Action = { type: "decide", playerId: me, accept: e.kind !== "lendRequest" && t % 3 !== 0, useBank: true };
+    while (s.pending) { const e = effectOf(ctx, s.pending.cardId).effect; const d: Action = { type: "decide", playerId: me, accept: e.kind !== "lendRequest" && t % 3 !== 0 && !slotBlocked(e, s.players.find((p) => p.id === me)!), useBank: true };
       const r2 = reduce(s, ctx, d); if (!r2.ok) throw 0; s = r2.state; acts.push(d); }
   }
   return { ids, s, acts };

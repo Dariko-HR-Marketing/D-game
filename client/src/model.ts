@@ -15,10 +15,13 @@ export function exitProgress(p: any) {
   return { checks, passive, expenses: exp, cashflow: playerCashflow(p), debt, canExit: canExitSmallCircle({ cash: p.cash, salary: p.salary, passiveIncome: passive, expenses: exp, bankDebt: p.bankDebt, otherDebt: debt - p.bankDebt, openPartnerships: openPartnerships(p) }) };
 }
 
-import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable } from "@poyga/rules";
+import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice } from "@poyga/rules";
 
 /** Hozir olish mumkin bo'lgan eng katta bank krediti (garov 120 %, 2 000–5 000); 0 — kredit yo'q. */
 export const bankRoom = (p: any) => maxBankLoan({ salary: 0, ...p, assets: p.assets ?? [], bankLoans: p.bankLoans ?? [], bankDebt: p.bankDebt ?? 0 });
+/** Ixtiyoriy sotish mumkin bo'lgan aktivlar (ko'chmas mulk, kichik va katta biznes): indeks, narx va qo'lga tushadigan summa (kredit ayirilgan). */
+export const sellableAssets = (p: any): { idx: number; a: any; price: number; proceeds: number }[] =>
+  (p.assets as any[]).map((a, idx) => ({ idx, a, price: voluntarySalePrice(p, a), proceeds: voluntarySalePrice(p, a) - a.credit })).filter((x) => voluntarySellable(x.a));
 export const pledgeableAssets = (p: any): { idx: number; a: any }[] => (p.assets as any[]).map((a, idx) => ({ idx, a })).filter((x) => pledgeable(x.a));
 
 /** Menga qaratilgan hamkorlik takliflari (§5.6). */

@@ -1,5 +1,5 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
-import { passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
+import { passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, slotBlocked, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
 import type { RoomMeta, RoomTag, Store } from "./store";
 import type { ContentRegistry } from "./registry";
@@ -280,7 +280,7 @@ export class RoomManager {
     const e = effectOf(r.ctx, r.state.pending.cardId, r.state.pending).effect;
     const ea = crisisAdjusted(e, cur); // decide() bilan bir xil (inqiroz narxi)
     const affordable = ea.kind === "buy" ? cur.cash >= (ea.down ?? ea.price) : e.kind === "gamble" ? cur.cash >= e.price : e.kind === "rentChoice" ? false : e.kind !== "lendRequest";
-    await this.apply(r, { type: "decide", playerId: cur.id, accept: e.kind === "payOrLoseBusiness" ? true : !!bot && affordable, ...(bot ? {} : { auto: true as const }) }, bot ? "bot" : "timeout");
+    await this.apply(r, { type: "decide", playerId: cur.id, accept: e.kind === "payOrLoseBusiness" ? true : !!bot && affordable && !slotBlocked(e, cur), ...(bot ? {} : { auto: true as const }) }, bot ? "bot" : "timeout");
   }
 
   /** §6.7 Reaksiya: faqat xona a'zosi, ruxsat etilgan to'plamdan; tezlik cheklovi tashqarida (app). Holatga ta'sir qilmaydi, saqlanmaydi. */

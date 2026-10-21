@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { loadContent } from "@poyga/content";
 import { ctx as base } from "./testctx";
-import { Ctx, GameState, newGame, reduce, SMALL_BOARD, currentPlayer, effectOf, crisisMonths } from "./index";
+import { Ctx, GameState, newGame, reduce, SMALL_BOARD, currentPlayer, effectOf, slotBlocked, crisisMonths } from "./index";
 
 // Standart katak qoidalari (content/data/cell_rules.json) bilan ishlaydigan haqiqiy ctx
 const ctx: Ctx = { ...base, cellRules: loadContent().cellRules };
@@ -50,7 +50,7 @@ describe("standart qoidalar bilan o'yinlar ishlaydi (tutun testi)", () => {
       let s = newGame(ctx, ["a", "b", "c", "d"].slice(0, 2 + (seed % 3)), seed); s.players.forEach((p, i) => { p.dreamIdx = i; });
       for (let t = 0; t < 300 && !s.winner; t++) {
         const me = currentPlayer(s).id; let r: any = reduce(s, ctx, { type: "roll", playerId: me }); if (!r.ok) throw new Error(r.error); s = r.state;
-        while (s.pending) { const e = effectOf(ctx, s.pending.cardId).effect; r = reduce(s, ctx, { type: "decide", playerId: me, accept: (t + seed) % 2 === 0 && e.kind !== "lendRequest", useBank: true }); if (!r.ok) throw new Error(r.error); s = r.state; }
+        while (s.pending) { const e = effectOf(ctx, s.pending.cardId).effect; r = reduce(s, ctx, { type: "decide", playerId: me, accept: (t + seed) % 2 === 0 && e.kind !== "lendRequest" && !slotBlocked(e, s.players.find((p) => p.id === me)!), useBank: true }); if (!r.ok) throw new Error(r.error); s = r.state; }
       }
       for (const p of s.players) expect(Number.isFinite(p.cash), `seed ${seed}`).toBe(true);
     }

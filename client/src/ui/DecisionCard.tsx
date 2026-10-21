@@ -11,7 +11,7 @@ import { CardPaper } from "./CardPaper";
 import { headOf } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
-import { crisisAdjusted } from "@poyga/rules";
+import { crisisAdjusted, slotBlocked, slotKey, SLOT_LIMITS } from "@poyga/rules";
 import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, radius, space, tone } from "../theme";
@@ -50,7 +50,9 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
   const purchase = e?.kind === "buy" || shares; // bank krediti faqat sotib olish uchun (qo'llanma §08)
   const bankOk = lack > 0 && !cashOnly && purchase ? lack <= bankRoom : lack > 0 ? false : null;
   const cantFund = lack > 0 && !bankOk && !hod7;
-  const rentCantBuy = rent && me.cash < e.buyPrice;
+  const noSlot = e ? slotBlocked(e, me) : false; // hisob varag'ida joy qolmagan: qabul qilib bo'lmaydi
+  const fullKey = e?.kind === "buy" ? slotKey(e.asset) : e?.kind === "gamble" || rent ? "business" : null;
+  const rentCantBuy = rent && (me.cash < e.buyPrice || noSlot);
   const H = headOf(String(card.id), e);
   const flow = exitProgress(me).cashflow;
   const gainCash = e?.kind === "gain" ? e.amount : 0;
@@ -88,6 +90,7 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
         <Text style={s.label} nativeID="qtyL">{uz.coop.shares} ({e.min}–{e.max})</Text>
         <TextInput accessibilityLabelledBy="qtyL" aria-label={uz.coop.shares} value={q} keyboardType="number-pad" onChangeText={(t) => setQ(t.replace(/\D/g, ""))} style={s.input} />
         <Row l={uz.facts.total} v={money(qty * e.pricePerShare)} /></View>)}
+      {noSlot && fullKey && <Banner kind="bad">{uz.slots.full.replace("{kind}", uz.slots.names[fullKey]).replace(/\{n\}/g, String(SLOT_LIMITS[fullKey]))}</Banner>}
       {lack > 0 && bankOk && <Banner kind="warn">{uz.facts.short}: {money(lack)}. {uz.facts.bankAuto}.</Banner>}
       {lack > 0 && cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {uz.facts.cashOnly}.</Banner>}
       {cantFund && !cashOnly && <Banner kind="bad">{uz.facts.short}: {money(lack)}. {purchase ? uz.facts.bankNo : uz.facts.cashNeeded}.</Banner>}
@@ -97,17 +100,17 @@ export function DecisionCard({ card, me, bankRoom, onAct, sheet, left, die, layo
       <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>
     </>
   );
-  const submitLedger = () => { if (ledger.ready && !(cantFund || (shares && (qty < e.min || qty > e.max)))) act({ ...ledgerBase, calc: ledger.values() }); }; ledger.bindSubmit(submitLedger);
+  const submitLedger = () => { if (ledger.ready && !(cantFund || noSlot || (shares && (qty < e.min || qty > e.max)))) act({ ...ledgerBase, calc: ledger.values() }); }; ledger.bindSubmit(submitLedger);
   const actions = (<>
-      {needLedger && <Button label={uz.ledger.decideSubmit} onPress={submitLedger} disabled={!ledger.ready || cantFund || (shares && (qty < e.min || qty > e.max))} />}
+      {needLedger && <Button label={uz.ledger.decideSubmit} onPress={submitLedger} disabled={!ledger.ready || cantFund || noSlot || (shares && (qty < e.min || qty > e.max))} />}
       {!mandatory && rent && (<View style={{ gap: space.sm }}>
         <Button label={`${uz.facts.rentBuy} · ${money(e.buyPrice)}`} disabled={rentCantBuy} onPress={() => act({ type: "decide", accept: true })} />
         <Button label={`${uz.facts.rentIncome} · ${money(e.income)}`} kind="ghost" onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
       {!mandatory && !rent && (<View style={{ gap: space.sm }}>
         {!needLedger && <Button label={gamble ? `${uz.gamble.title} · ${money(cost ?? 0)}` : hod7 ? uz.hod7.pay : cost ? `${money(cost)} sh.b. olish` : uz.game.accept}
-          disabled={(shares && (qty < e.min || qty > e.max)) || cantFund}
+          disabled={(shares && (qty < e.min || qty > e.max)) || cantFund || noSlot}
           onPress={() => act({ type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) })} />}
-        <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={cantFund && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
+        <Button label={hod7 ? uz.hod7.lose : uz.game.skip} kind={(cantFund || noSlot) && !hod7 ? "primary" : "ghost"} onPress={() => onAct({ type: "decide", accept: false })} /></View>)}
   </>);
   if (e?.kind === "deckChoice") { if (layout) return <>{layout(<View style={{ gap: space.md }}>{inner}</View>, null)}</>; return sheet ? inner : <Card accent="gold" style={{ gap: space.md }}>{inner}</Card>; } // tugmalar DeckChoice ichida; layout bo'lsa ham chap ustun (moliya) saqlanadi
   if (layout) return <>{layout(<View style={{ gap: space.md }}>{body}</View>, <View style={{ gap: space.sm }}>{actions}</View>)}</>;

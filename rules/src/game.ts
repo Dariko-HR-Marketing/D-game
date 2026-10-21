@@ -4,7 +4,7 @@ import type { CardEffect, Effect } from "@poyga/content/effects";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
 import { RULES, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
-  Player, assetMatches, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
+  Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
@@ -183,6 +183,7 @@ export type Action =
   | { type: "bank_loan"; playerId: string; amount: number }
   | { type: "bank_repay"; playerId: string; loanIdx: number }
   | { type: "lombard"; playerId: string; assetIdx: number }
+  | { type: "sell_asset"; playerId: string; assetIdx: number }
   | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
@@ -231,11 +232,29 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s };
   }
-  s.pending = null;
   const ce = effectOf(ctx, pend.cardId, pend);
+  if (a.accept && slotBlocked(ce.effect, cur)) return { ok: false, error: "slot_full" }; // hisob varag'ida joy yo'q: avval birini soting yoki o'tkazib yuboring
+  s.pending = null;
   decide(s, ctx, cur.id, ce, a, pend);
   endTurn(s, ctx);
   return { ok: true, state: s };
+}
+
+/** Ixtiyoriy sotish narxi: sotib olingan narx; inqirozda ko'chmas mulk 2 baravar past (bozor kartasidagi sotuv bilan bir xil qoida). Kredit undan alohida yopiladi. */
+export const voluntarySalePrice = (p: { crisisMonths?: number }, a: { kind: string; price: number }) =>
+  Math.round(a.price * ((p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(a.kind) ? 0.5 : 1));
+
+/** Karta ta'sirini qabul qilib bo'lmaydi: hisob varag'ida joy qolmagan. Mijoz, bot va server shu bilan tekshiradi. */
+export function slotBlocked(e: Effect, p: { cash: number; assets: import("./engine").Asset[] }): boolean {
+  return addsToSlot(e, p) && slotFull(p, e.kind === "buy" ? e.asset : "business");
+}
+
+/** Qabul qilinsa hisob varag'idagi joyni egallaydigan karta ta'siri (ko'chmas mulk/biznes xaridi, tavakkal biznes, birovning biznesini sotib olish). */
+export function addsToSlot(e: Effect, p: { cash: number }): boolean {
+  if (e.kind === "buy") return slotKey(e.asset) !== null;
+  if (e.kind === "gamble") return !e.lump && p.cash >= e.price;
+  if (e.kind === "rentChoice") return p.cash >= e.buyPrice;
+  return false;
 }
 
 /** Katta aylana T-kataklari kartasiz: katakdan sintez qilinadi. */
@@ -648,6 +667,16 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const r = takeLombard(p, i); if (!r.ok) return err("not_pledgeable");
       setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: lombard ${p.assets[i].code}`); return ok();
     }
+    case "sell_asset": { // ixtiyoriy sotish: ko'chmas mulk va bizneslar, faqat o'z navbatida; narx = sotib olingan narx (inqirozda ko'chmas mulk 2 baravar past), kredit sotuvdan yopiladi
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const p = P(a.playerId); const asset = p.assets[a.assetIdx];
+      if (!asset) return err("no_asset");
+      if (!voluntarySellable(asset)) return err(asset.pledged ? "pledged" : asset.partnerId || asset.stakeOf ? "in_partnership" : "not_sellable"); // aksiya faqat bozor kartasi bilan
+      const price = voluntarySalePrice(p, asset), proceeds = price - asset.credit;
+      if (p.cash + proceeds < 0) return err("insufficient_cash"); // kredit sotuv narxidan katta (inqiroz)
+      setP(s, { ...p, cash: p.cash + proceeds, assets: p.assets.filter((_, k) => k !== a.assetIdx) });
+      logf(s, `${a.playerId}: ${asset.code} ni ixtiyoriy sotdi ${price}`); return ok();
+    }
     case "choose_dream": { // §6.4/N09: har bir o'yinchi o'z orzusini tanlaydi; ikki o'yinchi bir orzuni tanlay olmaydi (qaror, #61)
       if (s.phase !== "dreams") return err("not_dream_phase");
       if (s.bots.includes(a.playerId)) return err("bot");
@@ -730,6 +759,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const partner = s.players.find((p) => p.id === a.partnerId);
       if (!partner || partner.id === owner.id) return err("bad_partner");
       if (owner.circle !== partner.circle) return err("circle_mismatch"); // §2.7
+      if (slotFull(owner, e.asset)) return err("slot_full");
       const room = maxBankLoan(owner);
       if (owner.cash >= e.price || e.price - owner.cash <= room) return err("not_needed"); // naqd va bank limiti tugagach
       s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId });
@@ -744,6 +774,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const e = effectOf(ctx, pr.cardId).effect;
       if (e.kind !== "buy") return err("card_gone");
       const half = e.price / 2, owner = P(pr.owner), partner = P(pr.partner);
+      if (slotFull(owner, e.asset)) return err("slot_full");
       if (partner.cash < half) return err("partner_cash"); // sherik faqat naqd to'laydi
       if (owner.cash < half) return err("owner_cash");
       const inc = (e.monthlyIncome ?? 0) / 2;
