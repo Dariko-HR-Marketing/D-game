@@ -17,7 +17,7 @@ export function Leaderboard({ http, onBack }: { http: Http; onBack: () => void }
       {rows && rows.length === 0 && !err && <Card><Text style={s.empty}>{uz.profile.boardEmpty}</Text></Card>}
       {rows && rows.length > 0 && (
         <Card style={{ padding: 0 }} raised>
-          <View role="list">{rows.map((r, i) => { const hue = PLAYER_COLORS[r.color % 6]; return (
+          <View role="list">{rows.map((r, i) => { const hue = PLAYER_COLORS[r.color % PLAYER_COLORS.length]; return (
             <View key={r.rank} role="listitem" accessible aria-label={`${r.rank}. ${r.name}. ${uz.profile.wins}: ${r.wins}, ${uz.profile.games}: ${r.games}, ${uz.profile.level} ${r.level}`} style={[s.row, i > 0 && { borderTopWidth: 1, borderTopColor: color.line }]}>
               <View style={[s.rank, r.rank <= 3 && { backgroundColor: color.gold }]} aria-hidden><Text style={s.rankT}>{r.rank}</Text></View>
               <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={{ color: readableOn(hue), fontWeight: "800", fontSize: 12 }}>{(r.name[0] ?? "?").toUpperCase()}</Text></View>

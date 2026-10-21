@@ -8,7 +8,7 @@ describe("profil tekshiruvi (§7)", () => {
   it("to'g'ri profil", () => expect(validateProfile(ok, Y)).toEqual({ ok: true, value: ok }));
   it.each([
     [{ ...ok, name: "A" }, "bad_name"], [{ ...ok, name: "x".repeat(25) }, "bad_name"], [{ ...ok, name: "<b>hi" }, "bad_name"],
-    [{ ...ok, color: 6 }, "bad_color"], [{ ...ok, color: -1 }, "bad_color"], [{ ...ok, color: 1.5 }, "bad_color"],
+    [{ ...ok, color: 8 }, "bad_color"], [{ ...ok, color: -1 }, "bad_color"], [{ ...ok, color: 1.5 }, "bad_color"],
     [{ ...ok, birthYear: 1899 }, "bad_birth_year"], [{ ...ok, birthYear: Y + 1 }, "bad_birth_year"], [{ ...ok, birthYear: "2000" }, "bad_birth_year"],
   ])("rad: %j", (input, error) => expect(validateProfile(input, Y)).toEqual({ ok: false, error }));
   it("ism bo'shliqlari tozalanadi", () => expect((validateProfile({ ...ok, name: "  Ali   Vali " }, Y) as any).value.name).toBe("Ali Vali"));

@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { Banner, Card } from "./kit";
 import { Screen } from "./Screen";
 import { uz, errText } from "../i18n/uz";
-import { color, font, MIN_TAP, radius, space, tone } from "../theme";
+import { color, font, MIN_TAP, PLAYER_COLORS, radius, space, tone } from "../theme";
 import { GenderPicker, type Gender } from "./GenderPicker";
 import { Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
@@ -14,7 +14,7 @@ export function NameGate({ http, onDone }: { http: Http; onDone: () => void }) {
   const ok = validName(name) && validYear(year);
   const save = async () => {
     if (!ok || busy) return; setBusy(true); setErr(null);
-    try { await http.saveProfile({ name: name.trim(), color: Math.abs([...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % 6, birthYear: Number(year), ...(gender ? { gender } : {}) }); onDone(); }
+    try { await http.saveProfile({ name: name.trim(), color: Math.abs([...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % PLAYER_COLORS.length, birthYear: Number(year), ...(gender ? { gender } : {}) }); onDone(); }
     catch (e) { setErr((e as HttpError).code ?? "network"); }
     setBusy(false);
   };

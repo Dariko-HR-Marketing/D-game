@@ -181,18 +181,20 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const banners = (<>{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
-    <View style={s.header}>
-      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }]} aria-hidden />
-      <Text style={s.hTitle} aria-level={1} accessibilityRole="header">{circleName}</Text>
-      <Text style={s.hSub}>{state.round}-{uz.hud.turnWord}</Text>
+    <View style={[s.header, !wide && { gap: 2, paddingHorizontal: space.md }]}>
+      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
+      <View style={wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
+        <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
+        <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
+      </View>
       <View style={{ flex: 1 }} />
       {wide && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={s.hBtn} testID="portfolio-open"><Icon name="file" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={s.hBtn} testID="sheet-open"><Icon name="chart" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
-      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={s.hBtn} testID="history-open"><Icon name="clock" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
-      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={s.hBtn} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.hBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={s.hBtn}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="portfolio-open"><Icon name="file" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="sheet-open"><Icon name="chart" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
+      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="history-open"><Icon name="clock" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
+      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, !wide && s.hBtnP]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, !wide && s.hBtnP]} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, !wide && s.hBtnP]}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
     </View>
   );
 
@@ -281,7 +283,7 @@ const s = StyleSheet.create({
   sideScroll: { paddingBottom: space.lg }, mainScroll: { alignItems: "center", gap: space.md, paddingBottom: space.lg },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
-  hBtn: { minHeight: 44, minWidth: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
+  hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
   codePill: { backgroundColor: "#F4F7F8", borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4 }, codeT: { fontWeight: "800", letterSpacing: 2, color: color.navy },
   stats: { flexDirection: "row", gap: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, stat: { flex: 1, gap: 2 },
   statL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, statV: { color: color.navy, fontSize: font.xl, fontWeight: "800", fontVariant: ["tabular-nums"] }, statS: { color: tone.muted, fontSize: 11, fontVariant: ["tabular-nums"] },

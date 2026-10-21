@@ -54,8 +54,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
                 <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.seatsOpt.replace("{n}", String(seats))} · {turnLabel(turn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
             {(!compact || optsOpen) && (<>
-            <View style={s.turnRow} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
-              <Text style={s.turnL} aria-hidden>{uz.home.seatsLabel}</Text>
+            <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
+              <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.seatsLabel}</Text>
               {SEATS.map((v) => (
                 <Pressable key={v} role="radio" aria-checked={seats === v} accessibilityLabel={`${uz.home.seatsOpt.replace("{n}", String(v))}. ${uz.home.seatsHint}`} onPress={() => { setSeats(v); setSeatsPref(v); }} style={[s.seg, seats === v && s.segOn, { paddingHorizontal: space.sm, minWidth: MIN_TAP }]} testID={`seats-${v}`}>
                   <Text style={[s.segT, seats === v && { color: color.white }]} aria-hidden>{v}</Text>

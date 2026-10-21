@@ -32,7 +32,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
   };
   const del = async () => { try { await http.deleteAccount(word); onDeleted(); } catch (e) { setErr((e as HttpError).code ?? "network"); } };
   const canSave = validName(name) && validYear(year);
-  const hue = PLAYER_COLORS[col % 6]; const lvlProgress = stats ? (stats.points % 100) / 100 : 0;
+  const hue = PLAYER_COLORS[col % PLAYER_COLORS.length]; const lvlProgress = stats ? (stats.points % 100) / 100 : 0;
 
   return (
     <Screen title={uz.profile.title} onBack={onBack}>

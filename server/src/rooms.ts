@@ -7,7 +7,7 @@ import type { ContentRegistry } from "./registry";
 export interface Clock { now(): number; setTimeout(f: () => void, ms: number): unknown; clearTimeout(h: unknown): void }
 export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (h) => clearTimeout(h as NodeJS.Timeout) };
 
-export const MAX_PLAYERS = 6, MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 8, MIN_PLAYERS = 2;
 export const DECISION_MS = RULES.cardDecisionSeconds * 1000;
 /** Xona egasi xona ochganda tanlaydigan qaror vaqti (buyurtmachi qarori): 30 yoki 60 soniya. Hamkorlik takliflari muddati (§5.6) o'zgarmaydi. */
 /** Hisob daftari (o'quv rejimi): o'yinchi pul o'zgarishini o'zi hisoblab kiritadi, server tekshiradi. «auto» — hisob avtomatik (SPEC: blank «avtomatik» / «o'zim to'ldiraman»). */
@@ -23,7 +23,7 @@ export interface Member { userId: string; bot: boolean; online: boolean; left?: 
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
-  /** Xona egasi oldindan belgilagan o'yinchilar soni (2–6); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 6 gacha qo'shilish, 2 tagacha bot. */
+  /** Xona egasi oldindan belgilagan o'yinchilar soni (2–8); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 8 gacha qo'shilish, 2 tagacha bot. */
   seats?: number;
   calcMode: CalcMode; ledger: Record<string, Snap>; calcTries: Record<string, number>; calcNotes: Record<string, { kind: "decide" | "confirm"; wrong: number; hint: boolean }[]>; calcStats: Record<string, { firstTry: number; retried: number }>;
   ctx: Ctx; contentVersion: number | null; // o'yin boshlanganda qulflanadi (§11)

@@ -16,7 +16,7 @@ export interface ProfilePersist {
   loadResults(): Promise<GameResult[]>; saveResult(r: GameResult): Promise<void>; anonymizeResults(userId: string): Promise<void>;
 }
 
-export const PROFILE_COLORS = 6; // §7: fishka rangi (6 ta)
+export const PROFILE_COLORS = 8; // §7: fishka rangi (8 ta: 2–8 o'yinchi)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
 /** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */

@@ -13,7 +13,7 @@ const hash = (s: string) => { let x = 7; for (const c of s) x = (x * 31 + c.char
  *  Jins ixtiyoriy (profilda): berilsa soch uslubi shunga qarab (ayol — uzun), berilmasa ismdan tanlanadi. Ma'no matnda (aria-label tashqarida beriladi). */
 export function Avatar({ name, colorIdx = 0, level, online, size = 40, frame, bgColor, photo, gender }: { gender?: "m" | "f" | null; name: string; colorIdx?: number; level?: number; online?: boolean; size?: number; frame?: string; bgColor?: string; photo?: string }) {
   const url = avatarUrl(photo); const [bad, setBad] = useState(false); useEffect(() => setBad(false), [url]);
-  const k = hash(name || "?"), skin = SKIN[k % 5], hair = HAIR[(k >> 3) % 5], bg = bgColor ?? BG[(k >> 5) % 5], long = gender ? gender === "f" : ((k >> 7) & 1) === 1, shirt = PLAYER_COLORS[colorIdx % 6];
+  const k = hash(name || "?"), skin = SKIN[k % 5], hair = HAIR[(k >> 3) % 5], bg = bgColor ?? BG[(k >> 5) % 5], long = gender ? gender === "f" : ((k >> 7) & 1) === 1, shirt = PLAYER_COLORS[colorIdx % PLAYER_COLORS.length];
   const badge = Math.max(14, size * 0.4), dot = Math.max(8, size * 0.25);
   return (
     <View aria-hidden style={[{ width: size, height: size }, frame ? { borderRadius: size / 2, borderWidth: 3, borderColor: frame, boxSizing: "content-box" as any } : null]}>

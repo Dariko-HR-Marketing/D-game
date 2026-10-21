@@ -5,6 +5,7 @@ import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
 import { autoProfiles } from "./_seed";
 
+const OUT = process.env.OUT ?? "/tmp/seats"; import { mkdirSync } from "node:fs"; mkdirSync(OUT, { recursive: true });
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
@@ -12,7 +13,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  for (const seats of [2, 4, 6]) {
+  for (const seats of [2, 4, 6, 8]) {
     const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, `sx${tag}${seats}`);
     const a = await c.newPage(); await a.goto(WEB); await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
     if (tag === "tel") { const o = a.getByTestId("home-opts"); if (await o.count()) await o.click(); }
@@ -24,6 +25,13 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     check(seats === 2 || (await a.getByTestId("lobby-seats").count()) === 1, `${tag}/${seats} «${seats} kishilik» eslatma ko'rinadi`);
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.waitForTimeout(500);
     check(room.state!.players.length === seats && room.members.filter((m) => m.bot).length === seats - 1, `${tag}/${seats} boshlanganda ${seats - 1} ta bot o'rin oldi`);
+    if (seats === 8) { // 8 kishilik stol: orzular tanlanadi, o'yin ekrani sig'adi, 8 ta fishka va 8 ta o'yinchi
+      await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 20000 });
+      await a.waitForTimeout(3000); const wide8 = await a.evaluate(() => { const W = window.innerWidth; return [document.documentElement.scrollWidth, ...[...document.querySelectorAll("*")].filter((e) => e.getBoundingClientRect().right > W + 1 && getComputedStyle(e).position !== "fixed").slice(0, 4).map((e) => `${e.tagName}.${String((e as any).className).slice(0, 40)}@${Math.round(e.getBoundingClientRect().right)}`)]; });
+      check((wide8[0] as number) <= (w) + 1, `${tag}/8 o'yin ekrani gorizontal aylanmaydi ${JSON.stringify(wide8)}`);
+      check(room.state!.players.length === 8 && new Set(room.state!.players.map((p: any) => p.dreamIdx)).size === 8, `${tag}/8 sakkala o'yinchining orzulari har xil`);
+      await a.screenshot({ path: `${OUT}/${tag}-8.png` });
+    }
     await c.close();
   }
 }

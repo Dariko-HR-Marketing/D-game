@@ -3,7 +3,7 @@ export const uz = {
   app: { name: "POYGA" },
   sound: { label: "Tovush", on: "Tovushni yoqish", off: "Tovushni o'chirish" },
   home: { seatsLabel: "O'yinchilar soni", seatsHint: "Odam yetmasa, qolgan o'rinlarni botlar egallaydi", seatsOpt: "{n} ta", resume: "Davom etayotgan o'yin", resumeLobby: "Xona kutmoqda", roomSettings: "Xona sozlamalari", turnLabel: "Qaror vaqti", turn30: "30 soniya", turn60: "1 daqiqa", hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
-    how: ["Xona oching yoki kod bilan qo'shiling (2–6 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
+    how: ["Xona oching yoki kod bilan qo'shiling (2–8 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
   dreams: { title: "Orzuingizni tanlang", hint: "Har bir o'yinchi o'z orzusini tanlaydi. Bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi.", taken: "band", yours: "Sizning tanlovingiz", waiting: "Boshqa o'yinchilar tanlashini kutyapmiz", timeLeft: "Qolgan vaqt", pick: "Tanlash", change: "Shuni tanlash", chosen: "tanlagan", choosing: "tanlayapti", price: "Narxi" },
   onboarding: { next: "Keyingisi", back: "Orqaga", skip: "O'tkazib yuborish", done: "Tushunarli", rules: "To'liq qoidalarni o'qish", replay: "Yo'riqnomani qayta ko'rsatish", replayHint: "Hamma sahifalardagi qisqa yo'riqnomalar qaytadan chiqadi.", help: "Yo'riqnoma", step: "qadam" },
   time: { year: "yil", month: "oy", label: "O'yin vaqti", delta: "o'tdi", you: "Siz", total: "jami" },
@@ -11,7 +11,7 @@ export const uz = {
   tour: {
     home: [
       { title: "POYGA'ga xush kelibsiz", text: "Bu moliyaviy savodxonlik o'yini: pul oqimi va passiv daromad yaratishni o'ynab o'rganasiz. Hozir qisqacha tanishib chiqamiz. Istalgan payt o'tkazib yuborishingiz mumkin." },
-      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Kod bilan qo'shilish». O'yinda 2–6 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
+      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Kod bilan qo'shilish». O'yinda 2–8 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
       { title: "Qoidalar, reyting va profil", text: "Pastdagi menyuda: «Qoidalar» — to'liq qoidalar, «Reyting» — eng kuchli o'yinchilar, «Profil» — ismingiz, fishka rangi va yutuqlaringiz." },
     ],
     lobby: [
@@ -73,7 +73,7 @@ export const uz = {
     first_big: { name: "Katta aylanaga chiqish", desc: "Kichik aylanadan chiqish shartlarini bajarish" },
     no_restart_win: { name: "Toza g'alaba", desc: "Yangi kasbga o'tmasdan g'alaba qozonish" },
     comeback_win: { name: "Qaytish", desc: "Qayta boshlab, baribir g'alaba qozonish" },
-    full_table: { name: "To'la stol", desc: "6 kishilik o'yinda qatnashish" },
+    full_table: { name: "To'la stol", desc: "6 va undan ko'p kishilik o'yinda qatnashish" },
     games_10: { name: "Tajribali o'yinchi", desc: "10 ta o'yin tugatish" },
     wins_5: { name: "Sarmoyador", desc: "5 ta g'alaba" },
   } as Record<string, { name: string; desc: string }>,

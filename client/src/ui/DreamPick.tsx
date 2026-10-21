@@ -26,7 +26,7 @@ export function DreamPick({ room, userId, error, onPick }: { room: RoomView; use
         {left !== null && <Pill label={`${left} ${uz.game.secShort}`} kind={left <= 10 ? "warn" : "plain"} />}
       </View>
       <View style={s.who} role="group" aria-label={uz.game.players}>
-        {players.map((p, k) => { const hue = PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6]; const ok = p.dreamIdx !== null; return (
+        {players.map((p, k) => { const hue = PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % PLAYER_COLORS.length]; const ok = p.dreamIdx !== null; return (
           <View key={p.id} role="group" accessible aria-label={`${nameOf(room, p.id)}: ${ok ? uz.dreams.chosen : uz.dreams.choosing}`} style={s.who1}>
             <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={{ color: readableOn(hue), fontWeight: "800", fontSize: 11 }}>{k + 1}</Text></View>
             <Text style={s.whoT} aria-hidden>{nameOf(room, p.id)} {ok ? "✓" : "…"}</Text></View>); })}

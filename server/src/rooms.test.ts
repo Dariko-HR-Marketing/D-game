@@ -28,11 +28,11 @@ let clock: FakeClock, store: MemoryStore, rm: RoomManager;
 beforeEach(() => { clock = new FakeClock(); store = new MemoryStore(); let k = 0; rm = new RoomManager(ctx, store, clock, () => ((k++ * 0.37) % 1)); });
 
 describe("xonalar (§6.1)", () => {
-  it("yaratish va kod bilan qo'shilish, 6/6 da rad", () => {
+  it("yaratish va kod bilan qo'shilish, 8/8 da rad", () => {
     const r = rm.create("u0"); if (!r.ok) throw 0;
     expect(r.code).toMatch(/^[A-Z2-9]{6}$/);
-    for (let i = 1; i < 6; i++) expect(rm.join(r.code.toLowerCase(), `u${i}`).ok).toBe(true);
-    expect(rm.join(r.code, "u6")).toEqual({ ok: false, error: "room_full" });
+    for (let i = 1; i < 8; i++) expect(rm.join(r.code.toLowerCase(), `u${i}`).ok).toBe(true);
+    expect(rm.join(r.code, "u8")).toEqual({ ok: false, error: "room_full" });
   });
   it("noma'lum kod", () => expect(rm.join("ZZZZZZ", "x")).toEqual({ ok: false, error: "room_not_found" }));
   it("bir hisob — bitta faol o'yin (§7)", () => {

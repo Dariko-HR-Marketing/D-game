@@ -5,7 +5,7 @@ import { Journal } from "./legacy";
 import { Banner, Empty, Err, FormDialog, Lines, PageHead, Pill, Tabs, download, csv, errText, fmtDur, fmtTime, useLoad } from "./lib";
 import { t } from "./uz";
 
-const COLORS = ["#11835A", "#F2B233", "#9E2A30", "#2C6DB5", "#7B4FA3", "#E07A2F"];
+const COLORS = ["#11835A", "#F2B233", "#9E2A30", "#2C6DB5", "#7B4FA3", "#E07A2F", "#0E8FA0", "#C44E8A"];
 export function Rooms({ api, perms }: { api: Api; perms: string[] }) {
   const [tab, setTab] = useState<"live" | "done" | "sus">("live"); const [tag, setTag] = useState("all"); const [q, setQ] = useState(""); const [off, setOff] = useState(0);
   const [view, setView] = useState<{ kind: "journal" | "replay"; code: string } | null>(null); const [close, setClose] = useState<string | null>(null);
@@ -39,7 +39,7 @@ function Replay({ api, code, onClose }: { api: Api; code: string; onClose: () =>
   const r = useLoad<any>(api, `/admin/rooms/${code}/replay`); const [i, setI] = useState(0); const [play, setPlay] = useState(false); const timer = useRef<any>(null); const d = r.data;
   const n = d?.steps?.length ?? 0;
   useEffect(() => { if (!play) return; timer.current = setInterval(() => setI((x) => (x + 1 >= n ? (setPlay(false), x) : x + 1)), 350); return () => clearInterval(timer.current); }, [play, n]);
-  const series = useMemo(() => (d?.players ?? []).map((id: string, k: number) => ({ name: d.names[id], color: COLORS[k % 6], values: d.steps.map((s: any) => s.players.find((p: any) => p.id === id)?.cash ?? 0) })), [d]);
+  const series = useMemo(() => (d?.players ?? []).map((id: string, k: number) => ({ name: d.names[id], color: COLORS[k % COLORS.length], values: d.steps.map((s: any) => s.players.find((p: any) => p.id === id)?.cash ?? 0) })), [d]);
   const step = d?.steps?.[i];
   return (<>
     <PageHead title={`Qayta o'ynatish: ${code}`}><button onClick={onClose}>← Orqaga</button></PageHead>
