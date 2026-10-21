@@ -9,6 +9,9 @@ describe("kontent", () => {
     for (const [k, n] of Object.entries(EXPECTED_COUNTS)) expect((cards as any)[k]).toHaveLength(n);
     expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(418);
   });
+  it("ko'chmas mulk kartalari: bo'nak + kredit = to'liq qiymat (manba rasmlaridagi 2 ta xato — KV4-006, DX-005 — qaror bilan tuzatilgan)", () => {
+    for (const c of cards.katta as any[]) if (c.down !== undefined) expect(c.down + c.credit, c.file).toBe(c.full);
+  });
   it("katta aylana: 53 katak, 14 orzu katagi, START=34", () => {
     expect(bigBoard).toHaveLength(53);
     expect(bigBoard.filter((c) => c.t === "O")).toHaveLength(dreams.length);
