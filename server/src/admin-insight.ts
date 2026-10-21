@@ -32,7 +32,7 @@ export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: Insi
     const durations = hist(res.map((r) => r.durationMs / 60_000), [10, 20, 40, 60, 90], ["<10 daq", "10–19", "20–39", "40–59", "60–89", "90+ daq"]);
     const hours = Array.from({ length: 24 }, () => 0); for (const r of res) hours[new Date(r.finishedAt + TZ_OFFSET).getUTCHours()]++;
     const year = new Date(t).getFullYear(); const ages = hist([...profiles.allProfiles()].map(([, p]) => year - p.birthYear), [12, 16, 18, 25, 35, 50], ["<12", "12–15", "16–17", "18–24", "25–34", "35–49", "50+"]);
-    const levels = hist([...profiles.allProfiles()].map(([id]) => profiles.levelCached(id)), [1, 2, 3, 5, 8], ["0", "1", "2", "3–4", "5–7", "8+"]);
+    const levels = hist([...profiles.allProfiles()].map(([id]) => profiles.levelCached(id)), [2, 5, 11, 26, 41], ["1", "2–4", "5–10", "11–25", "26–40", "41–50"]); // XP darajasi
     const tags = { normal: res.filter((r) => !r.tag).length, class: res.filter((r) => r.tag?.kind === "class").length, tournament: res.filter((r) => r.tag?.kind === "tournament").length };
     const ents = d.commerce.ents.values(); const payers = new Set(d.commerce.orders.values().filter((o) => o.status === "paid" && o.amount > 0).map((o) => o.userId)).size;
     return { days, retention: ret, active, series: { days: dayKeys, registered: dayKeys.map((k) => reg[k]), dau: dayKeys.map((k) => played[k].size), games: dayKeys.map((k) => games[k]) }, quality, rounds, durations, hours, ages, levels, tags,

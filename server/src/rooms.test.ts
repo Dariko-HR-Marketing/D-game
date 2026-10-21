@@ -28,11 +28,11 @@ let clock: FakeClock, store: MemoryStore, rm: RoomManager;
 beforeEach(() => { clock = new FakeClock(); store = new MemoryStore(); let k = 0; rm = new RoomManager(ctx, store, clock, () => ((k++ * 0.37) % 1)); });
 
 describe("xonalar (§6.1)", () => {
-  it("yaratish va kod bilan qo'shilish, 6/6 da rad", () => {
+  it("yaratish va kod bilan qo'shilish, 8/8 da rad", () => {
     const r = rm.create("u0"); if (!r.ok) throw 0;
     expect(r.code).toMatch(/^[A-Z2-9]{6}$/);
-    for (let i = 1; i < 6; i++) expect(rm.join(r.code.toLowerCase(), `u${i}`).ok).toBe(true);
-    expect(rm.join(r.code, "u6")).toEqual({ ok: false, error: "room_full" });
+    for (let i = 1; i < 8; i++) expect(rm.join(r.code.toLowerCase(), `u${i}`).ok).toBe(true);
+    expect(rm.join(r.code, "u8")).toEqual({ ok: false, error: "room_full" });
   });
   it("noma'lum kod", () => expect(rm.join("ZZZZZZ", "x")).toEqual({ ok: false, error: "room_not_found" }));
   it("bir hisob — bitta faol o'yin (§7)", () => {
@@ -79,21 +79,23 @@ describe("harakatlar (§6.2)", () => {
 });
 
 describe("taymer va uzilish (§5.2, §6.3)", () => {
-  it("30 s da harakat bo'lmasa avtomatik", async () => {
+  it("kubik 10 s da tashlanmasa avtomatik (taymer jadvali)", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
     await rm.start(r.code, "a", 3, { dreams: false });
-    await clock.advance(DECISION_MS - 1);
+    await clock.advance(RULES.timerDiceSeconds * 1000 - 1);
     expect(rm.rooms.get(r.code)!.seq).toBe(0);
+    expect(rm.view(rm.rooms.get(r.code)!).timerTotal).toBe(10);
     await clock.advance(1);
     expect(rm.rooms.get(r.code)!.seq).toBeGreaterThan(0);
   });
-  it("xona egasi 60 s tanlasa — navbat 60 s dan keyin avtomatik, ko'rinishda turnSeconds", async () => {
+  it("xona egasi «sekin» (60) tanlasa — jadval ×2: kubik 20 s, ko'rinishda turnSeconds", async () => {
     const r = rm.create("a", undefined, 60); if (!r.ok) throw 0; rm.join(r.code, "b");
     await rm.start(r.code, "a", 3, { dreams: false });
     expect(rm.view(rm.rooms.get(r.code)!).turnSeconds).toBe(60);
-    await clock.advance(DECISION_MS + 5_000);
-    expect(rm.rooms.get(r.code)!.seq).toBe(0); // 30 s o'tdi, lekin 60 s kutiladi
-    await clock.advance(60_000 - DECISION_MS - 5_000);
+    await clock.advance(15_000);
+    expect(rm.rooms.get(r.code)!.seq).toBe(0); // 15 s o'tdi, lekin kubik uchun 20 s kutiladi
+    expect(rm.view(rm.rooms.get(r.code)!).timerTotal).toBe(20);
+    await clock.advance(5_000);
     expect(rm.rooms.get(r.code)!.seq).toBeGreaterThan(0);
   });
   it("ko'rinishda aktiv kodi bo'yicha asl karta (matn, tur) beriladi — «Mening kartalarim» uchun", async () => {
@@ -111,12 +113,16 @@ describe("taymer va uzilish (§5.2, §6.3)", () => {
     const rm2 = new RoomManager(ctx, store, clock, () => 0.5); await rm2.restore();
     expect(rm2.rooms.get(r2.code)!.turnSeconds).toBe(60);
   });
-  it("vaqt tugasa ixtiyoriy karta o'tkaziladi (qabul qilinmaydi)", async () => {
+  it("vaqt tugasa ixtiyoriy karta o'tkaziladi (qabul qilinmaydi); karta qarori uchun 30 s", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");
     await rm.start(r.code, "a", 3, { dreams: false });
-    await clock.advance(DECISION_MS * 60);
+    const room = rm.rooms.get(r.code)!; const cur = currentPlayer(room.state!).id; const card = Object.values(room.ctx.effects).find((c) => c.effect.kind === "buy" && c.mode === "optional")!;
+    room.state!.pending = { type: "card", playerId: cur, cardId: card.id, deck: card.deck as any }; (rm as any).arm(room);
+    expect(rm.view(room).timerTotal).toBe(RULES.cardDecisionSeconds);
+    await clock.advance(RULES.cardDecisionSeconds * 1000 - 1); expect(room.seq).toBe(0);
+    await clock.advance(1);
     const auto = (await store.journal(r.code)).filter((e) => "reason" in e.action && e.action.action.type === "decide");
-    for (const e of auto) if ("reason" in e.action && e.action.action.type === "decide") expect(e.action.action.accept).toBe(false);
+    expect(auto.length).toBeGreaterThan(0); for (const e of auto) if ("reason" in e.action && e.action.action.type === "decide") expect(e.action.action.accept).toBe(false);
   });
   it("uzilish va qayta ulanish: holat saqlanadi, o'yin davom etadi", async () => {
     const r = rm.create("a"); if (!r.ok) throw 0; rm.join(r.code, "b");

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Card, Row, SectionTitle, Stat, Pill } from "./kit";
 import { money } from "../format";
 import { exitProgress } from "../model";
+import type { GameMode } from "@poyga/rules";
 import { color, font, radius, space, tone } from "../theme";
 import { uz } from "../i18n/uz";
 
@@ -11,11 +12,11 @@ function Bar({ ratio, ok }: { ratio: number; ok: boolean }) {
 }
 
 /** Moliyaviy holat: katta raqamlar (naqd, oylik pul oqimi), tafsilot va kichik aylanadan chiqish shartlari (progress bilan). */
-export function FinanceCard({ p, profession, dream, shown }: { p: any; profession?: string; dream?: { name: string; price: number } | null; shown?: { cash: number; flow: number } | null }) {
-  const e = exitProgress(p);
+export function FinanceCard({ p, profession, dream, shown, mode }: { mode?: GameMode | null; p: any; profession?: string; dream?: { name: string; price: number } | null; shown?: { cash: number; flow: number } | null }) {
+  const e = exitProgress(p, mode);
   const conds: { k: "cash" | "flow" | "debt" | "partner"; label: string; ratio: number | null; detail?: string }[] = [
-    { k: "cash", label: uz.game.exitCash, ratio: p.cash / 1_000_000, detail: `${money(p.cash)} / ${money(1_000_000)}` },
-    { k: "flow", label: uz.game.exitFlow, ratio: e.passive / 25_000, detail: `${money(e.passive)} / ${money(25_000)}` },
+    { k: "cash", label: `${uz.game.exitCashN} ${money(e.need.exitCash)}`, ratio: p.cash / e.need.exitCash, detail: `${money(p.cash)} / ${money(e.need.exitCash)}` },
+    { k: "flow", label: `${uz.game.exitFlowN} ${money(e.need.exitPassive)}`, ratio: e.passive / e.need.exitPassive, detail: `${money(e.passive)} / ${money(e.need.exitPassive)}` },
     { k: "debt", label: uz.game.exitDebt, ratio: null }, { k: "partner", label: uz.game.exitPartner, ratio: null },
   ];
   return (

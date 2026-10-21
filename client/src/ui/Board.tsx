@@ -69,7 +69,7 @@ export function Board({ room, width, wide, currentId, tight, movement, children 
   // Aralash o'yin: katta aylana o'yinchilari uchun ichki halqa (kichik nuqtalar)
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
   const innerTiles = mixed ? squareRing(53, Math.max(8, Math.round(iW / (ic * 1.6))), iW, iH, ic) : [];
-  const hue = (p: any, k: number) => room.names?.[p.id]?.cos?.pawn ?? PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6]; // do'kon kosmetikasi: faqat rang
+  const hue = (p: any, k: number) => room.names?.[p.id]?.cos?.pawn ?? PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % PLAYER_COLORS.length]; // do'kon kosmetikasi: faqat rang
   const pawn = pawnSize(wide), PAD = boardPad(wide);
   const curP = players.find((p) => p.id === currentId);
   const at = (p: any): { pos: number; circle: string } => movement?.[p.id] ?? { pos: p.pos, circle: p.circle }; // fishka hozir turgan (yurib kelayotgan) katak

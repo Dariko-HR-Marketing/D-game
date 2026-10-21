@@ -2,16 +2,16 @@
 export const uz = {
   app: { name: "POYGA" },
   sound: { label: "Tovush", on: "Tovushni yoqish", off: "Tovushni o'chirish" },
-  home: { seatsLabel: "O'yinchilar soni", seatsHint: "Odam yetmasa, qolgan o'rinlarni botlar egallaydi", seatsOpt: "{n} ta", resume: "Davom etayotgan o'yin", resumeLobby: "Xona kutmoqda", roomSettings: "Xona sozlamalari", turnLabel: "Qaror vaqti", turn30: "30 soniya", turn60: "1 daqiqa", hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
-    how: ["Xona oching yoki kod bilan qo'shiling (2–6 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
+  home: { tutorialOffer: "O'quv o'yini (15 daqiqa)", tutorialSub: "Birinchi marta o'ynayapsizmi? Bot bilan, yo'l-yo'riq bilan", modeLabel: "O'yin turi", modes: { standard: "Standart", quick: "Tez", rated: "Reytingli", tutorial: "O'quv" } as Record<string, string>, modeHints: { standard: "2–8 kishi, g'alabagacha: chiqish 25 000 passiv + 1 000 000 naqd", quick: "2–6 kishi, 30–45 daqiqa: chiqish 15 000 passiv + 250 000 naqd", rated: "4–6 kishi, 120 daqiqa, liga reytingiga ta'sir qiladi (kamida 2 odam)", tutorial: "Siz + 2 bot, 15 daqiqa: o'yinni o'rganish" } as Record<string, string>, seatsLabel: "O'yinchilar soni", seatsHint: "Odam yetmasa, qolgan o'rinlarni botlar egallaydi", seatsOpt: "{n} ta", resume: "Davom etayotgan o'yin", resumeLobby: "Xona kutmoqda", roomSettings: "Xona sozlamalari", turnLabel: "Tezlik", turn30: "Odatiy", turn60: "Sekin (×2)", turn30Hint: "Odatiy tezlik: kubik 10, karta qarori 30, birovning biznesi 20, majburiy to'lov 60 soniya", turn60Hint: "Sekin: hamma vaqt ikki baravar (kubik 20, karta 60 soniya)", hello: "Salom", newGame: "Yangi o'yin", newGameSub: "Xona yarating va do'stlaringizni taklif qiling", joinByCode: "Kod bilan qo'shilish", joinSub: "Do'stingiz yuborgan xona kodi", rulesRow: "O'yin qoidalari", rulesSub: "Kataklar, bank, lombard, g'alaba sharti", boardSub: "Eng kuchli o'yinchilar", tabHome: "Bosh sahifa", nav: "Bo'limlar", tagline: "Moliyaviy savodxonlik o'yini: daromad, xarajat va sarmoya", online: "Ulangan", or: "yoki", codeLabel: "Do'stingiz bergan xona kodi", joinShort: "Kirish", howTitle: "Qanday o'ynaladi",
+    how: ["Xona oching yoki kod bilan qo'shiling (2–8 o'yinchi, kam bo'lsa bot qo'shiladi).", "Orzuingizni tanlang. Kubik tashlab kichik aylana bo'ylab yuring, imkoniyatlarni baholang.", "Pul oqimingiz yetarli bo'lsa katta aylanaga chiqasiz va orzuingizga yetishga harakat qilasiz."], create: "Xona yaratish", join: "Kod bilan qo'shilish", code: "Xona kodi", name: "Ismingiz", connecting: "Ulanmoqda…", offline: "Aloqa yo'q. Qayta ulanmoqda…" },
   dreams: { title: "Orzuingizni tanlang", hint: "Har bir o'yinchi o'z orzusini tanlaydi. Bir orzuni ikki kishi tanlay olmaydi. Vaqt tugasa — bo'sh orzulardan biri avtomatik beriladi.", taken: "band", yours: "Sizning tanlovingiz", waiting: "Boshqa o'yinchilar tanlashini kutyapmiz", timeLeft: "Qolgan vaqt", pick: "Tanlash", change: "Shuni tanlash", chosen: "tanlagan", choosing: "tanlayapti", price: "Narxi" },
   onboarding: { next: "Keyingisi", back: "Orqaga", skip: "O'tkazib yuborish", done: "Tushunarli", rules: "To'liq qoidalarni o'qish", replay: "Yo'riqnomani qayta ko'rsatish", replayHint: "Hamma sahifalardagi qisqa yo'riqnomalar qaytadan chiqadi.", help: "Yo'riqnoma", step: "qadam" },
-  time: { year: "yil", month: "oy", label: "O'yin vaqti", delta: "o'tdi", you: "Siz", total: "jami" },
+  time: { limitLabel: "Qolgan vaqt", limitPaused: "to'xtab turibdi (hamma uzilgan)", year: "yil", month: "oy", label: "O'yin vaqti", delta: "o'tdi", you: "Siz", total: "jami" },
   // Sahifa yo'riqnomalari (onboarding): har sahifada birinchi kirishda bir marta. {..} — taxminiy raqamlar (client/src/estimates.ts, docs/BALANCE.md).
   tour: {
     home: [
       { title: "POYGA'ga xush kelibsiz", text: "Bu moliyaviy savodxonlik o'yini: pul oqimi va passiv daromad yaratishni o'ynab o'rganasiz. Hozir qisqacha tanishib chiqamiz. Istalgan payt o'tkazib yuborishingiz mumkin." },
-      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Kod bilan qo'shilish». O'yinda 2–6 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
+      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Kod bilan qo'shilish». O'yinda 2–8 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
       { title: "Qoidalar, reyting va profil", text: "Pastdagi menyuda: «Qoidalar» — to'liq qoidalar, «Reyting» — eng kuchli o'yinchilar, «Profil» — ismingiz, fishka rangi va yutuqlaringiz." },
     ],
     lobby: [
@@ -73,7 +73,7 @@ export const uz = {
     first_big: { name: "Katta aylanaga chiqish", desc: "Kichik aylanadan chiqish shartlarini bajarish" },
     no_restart_win: { name: "Toza g'alaba", desc: "Yangi kasbga o'tmasdan g'alaba qozonish" },
     comeback_win: { name: "Qaytish", desc: "Qayta boshlab, baribir g'alaba qozonish" },
-    full_table: { name: "To'la stol", desc: "6 kishilik o'yinda qatnashish" },
+    full_table: { name: "To'la stol", desc: "6 va undan ko'p kishilik o'yinda qatnashish" },
     games_10: { name: "Tajribali o'yinchi", desc: "10 ta o'yin tugatish" },
     wins_5: { name: "Sarmoyador", desc: "5 ta g'alaba" },
   } as Record<string, { name: string; desc: string }>,
@@ -84,10 +84,11 @@ export const uz = {
     moreAssets: "Yana {n} ta aktiv qo'shildi", lostMany: "{n} ta aktiv yo'qoldi",
     assetKinds: { buy: "Yangi aktiv", business: "Biznes", shares: "Aksiyalar", partner_stake: "Sheriklik ulushi", other: "Aktiv" } as Record<string, string>,
   },
-  lobby: { turnBadge: "Qaror vaqti", events: "«Kutilmagan hodisa!» kartalari", eventsHint: "Yoqilsa, «Boshidan boshlang» katagi hodisa kartasini ochadi (katta to‘lov bo‘lishi mumkin). O‘chirilsa — oddiy katak.", title: "Xona", players: "O'yinchilar", start: "O'yinni boshlash", wait: "Xona egasi o'yinni boshlashini kuting", bot: "Bot", you: "Siz", offline: "oflayn", hint: "Odam yetmasa bot qo'shiladi",
+  lobby: { turnBadge: "Tezlik", events: "«Kutilmagan hodisa!» kartalari", eventsHint: "Yoqilsa, «Boshidan boshlang» katagi hodisa kartasini ochadi (katta to‘lov bo‘lishi mumkin). O‘chirilsa — oddiy katak.", title: "Xona", players: "O'yinchilar", start: "O'yinni boshlash", wait: "Xona egasi o'yinni boshlashini kuting", bot: "Bot", you: "Siz", offline: "oflayn", hint: "Odam yetmasa bot qo'shiladi",
     share: "Kodni do'stlaringizga yuboring — ular «Kirish» orqali qo'shiladi.", copy: "Kodni nusxalash", copied: "Nusxalandi", leave: "Xonadan chiqish", hostWord: "xona egasi", playerN: "O'yinchi", waitingPlayer: "O'yinchi kutilmoqda…", seatsWord: "o'yinchi", slotsNote: "Xona egasi {n} kishilik o'yin belgiladi. Boshlanganda bo'sh o'rinlarni botlar egallaydi.", botsNote: "Kamida 2 ta ishtirokchi kerak: yetishmayotgan {n} ta o'rinni bot egallaydi." },
   hud: {
     tabs: { field: "Maydon", blank: "Blank", players: "O'yinchilar", rules: "Qoidalar", nav: "O'yin bo'limlari" },
+    autopilot: { title: "Avtopilot yoqilgan", text: "Ketma-ket 3 marta vaqt tugagani uchun o'yin siz uchun avtomatik davom etmoqda (ixtiyoriy kartalar o'tkaziladi, har safar −2 ball). O'yinni o'zingiz davom ettirish uchun bosing.", back: "Men qaytdim", pill: "Avtopilot", others: "{name} avtopilotda" },
     badge: { myTurn: "navbat sizda: kubik yoki karta qarori kutilmoqda", urgent: "{n} ta javob kutilmoqda", info: "{n} ta yangilik", both: "{u} ta javob kutilmoqda, {i} ta yangilik" },
     smallCircle: "Kichik aylana", bigCircle: "Katta aylana", turnWord: "tur", toWin: "G'alabagacha", flowMonthly: "Oylik pul oqimi",
     hintSmall: "1 kubik · soat yo'nalishida", hintBig: "2 kubik · soat yo'nalishida", rollSmall: "Kubikni tashlash", rollBig: "Kubiklarni tashlash",
@@ -104,7 +105,7 @@ export const uz = {
     drew: "karta tortdi", close: "Yopish", offlineBanner: "Aloqa uzildi. Qayta ulanmoqda… O'yin davom etadi, qaytganingizda holat tiklanadi.", moneyActions: "Moliya amallari", events: "So'nggi voqealar", noEvents: "Hozircha voqea yo'q", finance: "Moliyaviy holat", done: "bajarilgan", notYet: "hali emas", bigCircle: "Katta aylana", decideBelow: "Qaror kartada", secShort: "s", players: "O'yinchilar", turnNow: "navbat", diceNone: "Kubik hali tashlanmagan", diceLabel: "Kubik", rolled: "tashladi", yourTurn: "Sizning navbatingiz", waitFor: "Navbat:", roll: "Kubik tashlash", accept: "Qabul qilaman", skip: "O'tkazaman",
     cash: "Naqd", cashflow: "Pul oqimi", passive: "Passiv daromad", debt: "Qarz va kreditlar", profession: "Kasb", salary: "Ish haqi", expenses: "Oylik xarajat",
     mandatory: "Majburiy karta", optional: "Ixtiyoriy karta", seconds: "soniya", winner: "G'olib", round: "Aylana",
-    exitTitle: "Kichik aylanadan chiqish", exitCash: "Naqd ≥ 1 000 000", exitFlow: "Passiv daromad ≥ 25 000", exitDebt: "Qarz yo'q", exitPartner: "Sheriklik yopilgan",
+    exitTitle: "Kichik aylanadan chiqish", exitCash: "Naqd ≥ 1 000 000", exitFlow: "Passiv daromad ≥ 25 000", exitCashN: "Naqd ≥", exitFlowN: "Passiv daromad ≥", exitDebt: "Qarz yo'q", exitPartner: "Sheriklik yopilgan",
     before: "Oldin", after: "Keyin",
   },
   conn: { lost: "Aloqa uzildi. Qayta ulanmoqda…", restored: "Aloqa tiklandi" },
@@ -152,7 +153,7 @@ export const uz = {
     exit: "Katta aylanaga chiqdingiz!", exitOther: "katta aylanaga chiqdi", exitText: "Endi har navbatda 2 ta kubik tashlaysiz.", exitHanded: "{n} ta biznes bankka topshirildi.", exitNote: "Chiqish paytidagi pul oqimi ({flow}) blankning orqasiga yozildi — katta aylanada u kamaymaydi.",
     unlock: "Yangi imkoniyat ochildi", unlockText: "Naqdingiz 25 000 dan oshdi.", unlockNote: "Endi «Imkoniyat» katagida kichik yoki katta sarmoya dekasini o'zingiz tanlaysiz.",
     lock: "Deka tanlovi yopildi", lockText: "Naqd 25 000 dan kamaydi.", lockNote: "«Imkoniyat» katagida «Kichik sarmoyalar» avtomatik ochiladi.",
-    condition: "Chiqish sharti: {k}/{n}", condCash: "Naqd 1 000 000 ga yetdi", condFlow: "Passiv daromad 25 000 ga yetdi", condDebt: "Qarz va kreditlar yopildi", condPartner: "Sheriklik yopildi",
+    condition: "Chiqish sharti: {k}/{n}", condCash: "Naqd chiqish chegarasiga yetdi", condFlow: "Passiv daromad chiqish chegarasiga yetdi", condDebt: "Qarz va kreditlar yopildi", condPartner: "Sheriklik yopildi",
     ready: "Chiqishga tayyorsiz!", readyText: "Barcha shartlar bajarildi.", readyNote: "Navbat oxirida kichik aylanadan chiqasiz; bizneslaringiz bankka topshiriladi, pul oqimingiz blankka yoziladi.",
   },
   history: {
@@ -187,7 +188,7 @@ export const uz = {
   },
   react: { label: "Reaksiya", title: "Reaksiyalar", from: "dan" },
   result: {
-    fewData: "Grafik uchun ma'lumot hali kam", chartRange: "oraliq", chartX: "aylanalar bo'yicha pul oqimi →", youWon: "Tabriklaymiz, g'alaba sizniki!", noWinner: "O'yin g'olibsiz tugadi.",
+    fewData: "Grafik uchun ma'lumot hali kam", chartRange: "oraliq", chartX: "aylanalar bo'yicha pul oqimi →", youWon: "Tabriklaymiz, g'alaba sizniki!", timeUp: "Vaqt tugadi. O'rinlar shunday belgilandi: avval kichik aylanadan chiqqanlar, so'ng passiv daromad, so'ng naqd bo'yicha.", noWinner: "O'yin g'olibsiz tugadi.",
     title: "O'yin natijasi", winner: "G'olib", analysis: "O'yin tahlili", loading: "Tahlil tayyorlanmoqda…", failed: "Tahlilni yuklab bo'lmadi", home: "Bosh sahifa",
     cashflowChart: "Pul oqimi (aylanalar bo'yicha)", exitRound: "Kichik aylanadan chiqdi", never: "chiqmadi", restarts: "Qayta boshlash", peakCash: "Eng ko'p naqd", peakFlow: "Eng yuqori pul oqimi",
     accepted: "Qabul qilingan kartalar", skipped: "O'tkazilgan kartalar", assets: "Aktivlar", round: "aylana", you: "Siz",
@@ -197,6 +198,23 @@ export const uz = {
     hint: "Bu qurilmada avval boshqa hisob bilan kirgansiz. Agar siz shu o'yinda o'ynagan bo'lsangiz, o'zingizni tanlang — o'yin davom etadi. Faqat uzilib qolgan (oflayn) o'yinchilar ko'rsatiladi. «O'yindan chiqish» ni o'zingiz bosgan bo'lsangiz, qaytib bo'lmaydi.",
     none: "Qaytarib oladigan o'rin yo'q: hamma o'yinchi onlayn yoki o'yindan chiqqan. Uzilgan o'yinchi bir daqiqadan keyin oflayn bo'ladi — keyinroq qayta urinib ko'ring.",
     failed: "O'yinchilar ro'yxatini olib bo'lmadi", unnamed: "ismsiz o'yinchi",
+  },
+  coach: {
+    title: "O'quv o'yini", ok: "Tushundim",
+    steps: {
+      start: "Bu sizning balansingiz: maosh minus xarajatlar — oylik pul oqimi. O'yindagi eng muhim raqam. Kubikni tashlab, yuring.",
+      opportunity: "Imkoniyat! Kichik biznes har oy daromad beradi, siz ishlamasangiz ham — bu passiv daromad. Naqdingiz yetsa, sotib oling.",
+      shares: "Aksiya arzon. Uni hozir olib, bozor narxi ko'tarilganda sotish mumkin. Miqdorni tanlang.",
+      expense: "Xarajat kartasi majburiy: pul yetmasa, qarzga yoziladi. Shuning uchun naqd pul zaxirasi kerak.",
+      market: "Bozor! Aksiya narxi o'zgardi. «Moliya amallari» ichidagi taklifdan sotib, foydani ko'ring.",
+      payday: "Daromad sektori — 1 oy o'tdi. Pul oqimingiz naqdingizga qo'shildi: biznes daromad qo'shgani uchun u kattaroq.",
+      goal: "Maqsad: passiv daromad {passive} ga, naqd {cash} ga yetsin va qarz qolmasin. Shunda kichik aylanadan chiqasiz. Tayyor bo'lsangiz — do'stlar bilan yoki reytingli o'yinda o'ynab ko'ring.",
+    },
+  },
+  progress: {
+    points: "Ball", maxLevel: "Eng yuqori daraja (50)",
+    ranks: { newbie: "Yangi boshlovchi", active: "Faol o'yinchi", experienced: "Tajribali", veteran: "Faxriy o'yinchi" } as Record<string, string>,
+    leagues: { bronze: "Bronza", silver: "Kumush", gold: "Oltin", platinum: "Platina", diamond: "Olmos", master: "Donishmand" } as Record<string, string>,
   },
   slots: {
     names: { realty: "ko'chmas mulk", small_business: "kichik biznes", business: "katta biznes" } as Record<string, string>,
@@ -224,7 +242,7 @@ export const uz = {
     already_started: "O'yin allaqachon boshlangan", not_host: "Faqat xona egasi boshlay oladi", stale_seq: "Holat yangilandi. Qayta urinib ko'ring",
     bad_name: "Ism 2–24 belgi bo'lishi kerak", bad_color: "Rang noto'g'ri", bad_birth_year: "Tug'ilgan yil noto'g'ri", restricted_age: "16 yoshgacha bu amal yopiq", in_game: "Avval o'yindan chiqing", confirm_required: "Tasdiqlash so'zi noto'g'ri",
     already_reminded: "Bu qarz uchun bu raundda eslatma yuborilgan", no_debt: "Qarz topilmadi", offline: "Aloqa yo'q. Ulanish tiklanishini kuting", network: "Tarmoq xatosi. Qayta urinib ko'ring", locked: "Juda ko'p xato urinish. 15 daqiqadan keyin qayta urinib ko'ring", bad_token: "Kirish rad etildi. Qayta urinib ko'ring", bad_phone: "Telefon raqami noto'g'ri", bad_code: "Kod noto'g'ri", expired: "Kod eskirgan. Yangisini so'rang", sms_failed: "SMS yuborilmadi. Birozdan keyin urinib ko'ring", not_enabled: "Kirish yoqilmagan", dream_taken: "Bu orzuni boshqa o'yinchi tanlagan", dreams_phase: "Avval orzular tanlansin", bad_dream: "Orzu noto'g'ri", not_dream_phase: "Orzu tanlash tugagan",
-    already_sold: "Siz allaqachon sotgansiz", not_found: "Topilmadi", slot_full: "Hisob varag'ida joy qolmagan. Avval birini soting", pledged: "Garovdagi aktivni sotib bo'lmaydi", in_partnership: "Sheriklikdagi aktivni sotib bo'lmaydi", not_sellable: "Bu aktivni ixtiyoriy sotib bo'lmaydi (aksiya faqat bozor kartasi bilan)", nothing_to_sell: "Sotiladigan mos aktiv yo'q",
+    already_sold: "Siz allaqachon sotgansiz", not_timed: "Bu o'yin vaqt bilan cheklanmagan", bad_mode: "Bunday o'yin turi yo'q", not_enough_players: "Reytingli o'yinni boshlash uchun kamida 2 ta odam kerak", not_found: "Topilmadi", slot_full: "Hisob varag'ida joy qolmagan. Avval birini soting", pledged: "Garovdagi aktivni sotib bo'lmaydi", in_partnership: "Sheriklikdagi aktivni sotib bo'lmaydi", not_sellable: "Bu aktivni ixtiyoriy sotib bo'lmaydi (aksiya faqat bozor kartasi bilan)", nothing_to_sell: "Sotiladigan mos aktiv yo'q",
     left_game: "Siz bu o'yindan chiqqansiz — qaytib kira olmaysiz", bad_reaction: "Bunday reaksiya yo'q",
     invalid_amount: "Summa noto'g'ri", bank_limit: "Bank krediti berilmaydi: garov (120 %) yetmaydi, summa 2 000–5 000 oralig‘ida emas yoki oylik to‘lov daromaddan katta", bank_purpose: "Kredit faqat sotib olish kartasi ochiq turganda olinadi", too_early: "Muddatidan oldin yopish kamida 3 aylanadan keyin mumkin", no_loan: "Bunday kredit yo‘q", no_asset: "Bunday aktiv yo‘q", not_pledgeable: "Bu aktivni garovga qo‘yib bo‘lmaydi (aksiya, sheriklik yoki allaqachon garovda)", already_given: "Siz allaqachon bergansiz", small_circle_only: "Faqat kichik aylanada", not_needed: "Naqd yoki bank limiti yetadi",
     partner_cash: "Sherikning naqdi yetmaydi", owner_cash: "Sizning naqdingiz yetmaydi", insufficient_cash: "Naqd yetmaydi", bot: "Botlar qatnashmaydi", no_proposal: "Taklif muddati tugadi",

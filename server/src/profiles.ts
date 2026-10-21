@@ -2,13 +2,14 @@
 import type { GamePlayer } from "@poyga/rules";
 import { RULES, POINTS } from "@poyga/rules";
 import { WriteQueue } from "./persist";
+import { pointsOf, xpOf, levelOfXp, rankOfLevel, skillsOf, displayRating, leagueOf, seasonOf, DONISHMAND_TOP, DONISHMAND_MIN_GAMES, type League, type Skill } from "./progress";
 
 export interface Profile { userId: string; name: string; color: number; birthYear: number; /** Ixtiyoriy: faqat standart avatar ko'rinishi uchun */ gender?: "m" | "f"; updatedAt: number }
 export interface ResultPlayer {
   id: string; bot: boolean; circle: "small" | "big"; restarts: number; won: boolean; unreliable?: boolean;
   left?: boolean; assets?: number; quitJob?: boolean; autos?: number; place?: number; // ball uchun (qo'llanma §15); eski natijalarda yo'q = 0
 }
-export interface GameResult { tag?: { kind: "class" | "tournament"; id: string }; room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
+export interface GameResult { mode?: "standard" | "quick" | "rated" | "tutorial"; endReason?: "win" | "time"; tag?: { kind: "class" | "tournament"; id: string }; room: string; finishedAt: number; durationMs: number; rounds: number; winner: string | null; contentVersion: number | null; players: ResultPlayer[] }
 
 export interface ProfilePersist {
   loadProfiles(): Promise<Profile[]>; saveProfile(p: Profile): Promise<void>; deleteProfile(userId: string): Promise<void>;
@@ -16,7 +17,7 @@ export interface ProfilePersist {
   loadResults(): Promise<GameResult[]>; saveResult(r: GameResult): Promise<void>; anonymizeResults(userId: string): Promise<void>;
 }
 
-export const PROFILE_COLORS = 6; // §7: fishka rangi (6 ta)
+export const PROFILE_COLORS = 8; // §7: fishka rangi (8 ta: 2–8 o'yinchi)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
 /** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */
@@ -52,7 +53,7 @@ export const ageOf = (p: Pick<Profile, "birthYear">, year: number) => year - p.b
 export const isRestricted = (p: Pick<Profile, "birthYear"> | undefined, year: number) => !!p && ageOf(p, year) < MIN_AGE_RESTRICT;
 
 /** §5.9: 5 yulduz — «Yollanma ishchi → Sarmoyador». Qaror #69: yulduz = daraja (ko'pi bilan 5); oraliq unvon nomlari SPEC'da yo'q, shuning uchun faqat ikki chekka nomlanadi. */
-export const starsOf = (level: number) => Math.min(5, Math.max(0, level));
+export const starsOf = (level: number) => Math.min(5, Math.max(0, Math.floor(level / 10))); // XP darajasi 1…50 → 0…5 yulduz (10 darajada bitta)
 export const titleOf = (stars: number): "employee" | "investor" | null => (stars >= 5 ? "investor" : stars === 0 ? "employee" : null);
 /** Yutuqlar (§5.9): faqat o'yin natijalaridan hisoblanadi (alohida holat saqlanmaydi). Chegaralar — qaror (OPEN_QUESTIONS #76), SPEC raqam bermaydi. */
 export const ACHIEVEMENTS = ["first_game", "first_win", "first_big", "no_restart_win", "comeback_win", "full_table", "games_10", "wins_5"] as const;
@@ -79,8 +80,10 @@ function placeOf(st: { players: GamePlayer[]; winner: string | null; bots: strin
   const sorted = [...humans].sort((a, b) => { const x = key(a), y = key(b); for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return y[i] - x[i]; return 0; });
   const i = sorted.findIndex((p) => p.id === id); return i < 0 ? undefined : i + 1;
 }
-export interface Stats { achievements: Achievement[]; stars: number; title: "employee" | "investor" | null; unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number }
-export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel); // §5.9
+export interface Stats { achievements: Achievement[]; stars: number; title: "employee" | "investor" | null; unreliable: number; games: number; wins: number; reachedBig: number; points: number; level: number;
+  xp: number; xpInto: number; xpNeed: number; rank: "newbie" | "active" | "experienced" | "veteran"; rating: number | null; league: League | null; ratedGames: number; donishmand: boolean; season: string }
+/** Eski qo'llanma §5.9 (har 100 ball — daraja). Endi daraja XP dan (progress.ts); bu funksiya eski hisobotlar uchun saqlangan. */
+export const levelOf = (points: number) => Math.floor(Math.max(0, points) / RULES.pointsPerLevel);
 
 export class ProfileService {
   profiles = new Map<string, Profile>();
@@ -126,19 +129,25 @@ export class ProfileService {
 
   private lvl = new Map<string, number>(); /** Daraja keshi (har xona yangilanishida natijalarni qayta sanamaslik uchun); yangi natijada tozalanadi. */
   levelCached(userId: string) { let v = this.lvl.get(userId); if (v === undefined) { v = this.stats(userId).level; this.lvl.set(userId, v); } return v; }
-  record(r: GameResult) { this.lvl.clear(); this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
+  private skillC: ReturnType<typeof skillsOf> | null = null; private skills() { return (this.skillC ??= skillsOf(this.results)); }
+  /** «Donishmand» ligasi: mavsumning eng yaxshi 100 reytingli o'yinchisi (kamida 5 ta reytingli o'yin). */
+  private donishC: Set<string> | null = null;
+  private donishmandSet() { if (this.donishC) return this.donishC; const { skills, games } = this.skills(); return (this.donishC = new Set([...skills.entries()].filter(([id]) => (games.get(id) ?? 0) >= DONISHMAND_MIN_GAMES && this.profiles.has(id)).sort((a, b) => displayRating(b[1]) - displayRating(a[1])).slice(0, DONISHMAND_TOP).map(([id]) => id))); }
+  record(r: GameResult) { this.lvl.clear(); this.skillC = null; this.donishC = null; this.results.push(r); this.writes.push(async () => this.persist?.saveResult(r)); }
   /** `leftIds`: o'yindan ixtiyoriy chiqqanlar — ularning natijasi statistika va reytingga kirmaydi (o'rnini bot o'ynagan). */
-  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[] }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = [], tag?: { kind: "class" | "tournament"; id: string }) {
-    this.record({ tag, room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
+  recordFromGame(room: string, st: { players: GamePlayer[]; round: number; winner: string | null; bots: string[]; mode?: GameResult["mode"]; endReason?: "win" | "time" }, startedAt: number, contentVersion: number | null, leftIds: string[] = [], unreliableIds: string[] = [], tag?: { kind: "class" | "tournament"; id: string }) {
+    this.record({ mode: st.mode, endReason: st.endReason, tag, room, finishedAt: this.now(), durationMs: this.now() - startedAt, rounds: st.round, winner: st.winner, contentVersion,
       players: st.players.map((p) => ({ id: p.id, bot: st.bots.includes(p.id) || leftIds.includes(p.id), circle: p.circle, restarts: p.restarts, won: p.won, unreliable: unreliableIds.includes(p.id) || undefined,
         left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds) })) });
   }
 
   stats(userId: string): Stats {
-    let games = 0, wins = 0, reachedBig = 0, points = 0, unreliable = 0;
-    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p && r.tag?.kind !== "tournament") points += gamePoints(this.cleared.has(userId) ? { ...p, unreliable: false } : p); /* turnir ballari alohida: umumiy ball o'zgarmaydi */ if (p?.unreliable && !this.cleared.has(userId)) unreliable++; if (!p || p.bot) continue; // bot (yoki chiqib ketgan) statistikaga kirmaydi
-      games++; if (p.won) wins++; if (p.circle === "big") reachedBig++; }
-    const level = levelOf(points); return { achievements: achievementsOf(this.results, userId), stars: starsOf(level), title: titleOf(starsOf(level)), unreliable, games, wins, reachedBig, points, level };
+    let games = 0, wins = 0, reachedBig = 0, unreliable = 0;
+    for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p?.unreliable && !this.cleared.has(userId)) unreliable++; if (!p || p.bot) continue; /* bot (yoki chiqib ketgan) statistikaga kirmaydi */ games++; if (p.won) wins++; if (p.circle === "big") reachedBig++; }
+    const now = this.now(), points = pointsOf(this.results, userId, now, this.cleared.has(userId)), xp = xpOf(this.results, userId), lv = levelOfXp(xp);
+    const sk: Skill | undefined = this.skills().skills.get(userId), rating = sk ? displayRating(sk) : null, ratedGames = this.skills().games.get(userId) ?? 0;
+    return { achievements: achievementsOf(this.results, userId), stars: starsOf(lv.level), title: titleOf(starsOf(lv.level)), unreliable, games, wins, reachedBig, points, level: lv.level,
+      xp, xpInto: lv.into, xpNeed: lv.need, rank: rankOfLevel(lv.level), rating, league: rating === null ? null : leagueOf(rating), ratedGames, donishmand: this.donishmandSet().has(userId), season: seasonOf(now) };
   }
   /** Shaxssiz voronka (§12): ro'yxatdan o'tish → profil → birinchi o'yin → qaytib kelish → g'alaba. */
   funnel(registered: number) {
@@ -156,16 +165,16 @@ export class ProfileService {
     return this.results.filter((r) => r.players.some((p) => p.id === userId && !p.bot)).slice(-limit).reverse()
       .map((r) => ({ room: r.room, finishedAt: r.finishedAt, rounds: r.rounds, durationMs: r.durationMs, won: r.winner === userId, reachedBig: r.players.find((p) => p.id === userId)!.circle === "big", players: r.players.filter((p) => !p.bot).length }));
   }
-  /** Reyting: g'alabalar, so'ng o'yinlar soni kam bo'lgani yuqori. Faqat ismi bor va 1 tadan ko'p o'ynagan odamlar; botlar yo'q. Ball qoidasi yo'q bo'lgani uchun ball bo'yicha emas. */
+  /** Reyting jadvali: avval reytingli o'yin o'ynaganlar (liga reytingi bo'yicha), so'ng g'alabalar, so'ng o'yinlar soni kam bo'lgani yuqori. Botlar yo'q. */
   leaderboard(limit = 20) {
     return [...this.profiles.values()].map((p) => ({ userId: p.userId, name: p.name, color: p.color, ...this.stats(p.userId) }))
-      .filter((x) => x.games > 0).sort((a, b) => b.wins - a.wins || a.games - b.games || a.name.localeCompare(b.name)).slice(0, limit)
-      .map((x, i) => ({ rank: i + 1, name: x.name, color: x.color, games: x.games, wins: x.wins, level: x.level }));
+      .filter((x) => x.games > 0).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.wins - a.wins || a.games - b.games || a.name.localeCompare(b.name)).slice(0, limit)
+      .map((x, i) => ({ rank: i + 1, name: x.name, color: x.color, games: x.games, wins: x.wins, level: x.level, rating: x.rating, league: x.league, donishmand: x.donishmand }));
   }
   export(userId: string) { return { profile: this.profiles.get(userId) ?? null, stats: this.stats(userId), history: this.history(userId, 10_000) }; }
   /** Hisobni o'chirish: profil o'chadi, natijalardagi shaxsiy ID anonimlashadi (§7). */
   delete(userId: string) {
-    this.lvl.clear();
+    this.lvl.clear(); this.skillC = null; this.donishC = null;
     this.profiles.delete(userId); this.removePhoto(userId);
     for (const r of this.results) { if (r.winner === userId) r.winner = "deleted"; for (const p of r.players) if (p.id === userId) p.id = "deleted"; }
     this.writes.push(async () => { await this.persist?.deleteProfile(userId); await this.persist?.anonymizeResults(userId); });

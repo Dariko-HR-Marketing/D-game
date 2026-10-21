@@ -25,12 +25,13 @@ import { TurnPanel } from "./TurnPanel";
 import { DecisionCard } from "./DecisionCard";
 import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
-import { TimeBar } from "./TimeBar";
+import { TimePanel } from "./TimeBar";
+import { TutorialCoach } from "./TutorialCoach";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { color, font, HEADER_H, radius, space, tone } from "../theme";
-import { bankRoom, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
+import { bankRoom, phaseSeconds, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
 import { useMovement } from "../useMovement";
@@ -69,7 +70,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
-export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const { width, height } = useWindowDimensions();
@@ -120,7 +121,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   useGameSounds({ room, userId, settled, mineTurn, left });
   const mom = useMoments(room, userId, settled); const [momH, setMomH] = useState(0); // lahzalar: ovoz + animatsiya + tushuntirish (moments.ts)
   const snd = useSoundPrefs();
-  const big = mine?.circle === "big"; const e = mine ? exitProgress(mine) : null;
+  const big = mine?.circle === "big"; const e = mine ? exitProgress(mine, state.mode) : null;
   const ledgerNow = room.calc?.ledger?.[userId] ?? (mine && e ? { cash: mine.cash, passive: e.passive, flow: e.cashflow } : { cash: 0, passive: 0, flow: 0 });
   const gate = due && mineTurn && !cardRaw && settled && !state.winner ? <LedgerPad testID="ledger-gate" title={uz.ledger.gateTitle} hint={uz.ledger.gateHint} current={ledgerNow} feedback={calcFb} submitLabel={uz.ledger.gateSubmit} onSubmit={(c) => onAct({ type: "confirm_calc", calc: c })} /> : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
@@ -128,7 +129,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const deckPick = tri && !!card && mineTurn && !!mine && (card as any).effect?.kind === "deckChoice";
   const timeInSide = wide && !tri && boardWidth < 760; // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
-  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(room.turnSeconds ?? 30)).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
+  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(phaseSeconds(room))).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
   const stats = mine && e && (
     <View style={s.stats} role="group" aria-label={uz.game.finance}>
@@ -157,10 +158,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
   const sideMain = (
     <View style={{ gap: space.md }}>
-      {timeInSide && <TimeBar room={room} userId={userId} settled={settled} />}
+      {timeInSide && <TimePanel room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
-      {mine && <View testID="finance"><FinanceCard p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
+      {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
@@ -173,26 +174,32 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
   const reactPanel = (<Card label={uz.react.title}><SectionTitle>{uz.react.title}</SectionTitle>{reactRow}</Card>);
   const rightCol = (
     <ScrollView tabIndex={0} role="region" aria-label={uz.hud.playersTitle} style={{ width: rightW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>
-      <TimeBar room={room} userId={userId} settled={settled} />
+      <TimePanel room={room} userId={userId} settled={settled} />
       {eventsCard(6)}
       <PlayerList room={room} userId={userId} />
       {leaveBlock}
     </ScrollView>);
-  const banners = (<>{error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
+  const autoMe = !!room.members.find((m) => m.userId === userId)?.autopilot;
+  const banners = (<>
+    {room.mode === "tutorial" && !state.winner && <TutorialCoach room={room} userId={userId} />}
+    {autoMe && <View testID="autopilot-banner" role="alert"><Banner kind="warn"><Text style={{ fontWeight: "800", color: tone.warn }}>{uz.hud.autopilot.title}. </Text>{uz.hud.autopilot.text}</Banner>{onResume && <View style={{ marginTop: space.sm }}><Button label={uz.hud.autopilot.back} onPress={onResume} /></View>}</View>}
+    {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const header = (
-    <View style={s.header}>
-      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }]} aria-hidden />
-      <Text style={s.hTitle} aria-level={1} accessibilityRole="header">{circleName}</Text>
-      <Text style={s.hSub}>{state.round}-{uz.hud.turnWord}</Text>
+    <View style={[s.header, !wide && { gap: 2, paddingHorizontal: space.md }]}>
+      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
+      <View style={wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
+        <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
+        <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
+      </View>
       <View style={{ flex: 1 }} />
       {wide && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={s.hBtn} testID="portfolio-open"><Icon name="file" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={s.hBtn} testID="sheet-open"><Icon name="chart" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
-      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={s.hBtn} testID="history-open"><Icon name="clock" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
-      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={s.hBtn} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.hBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={s.hBtn}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="portfolio-open"><Icon name="file" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="sheet-open"><Icon name="chart" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
+      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, !wide && s.hBtnP]} testID="history-open"><Icon name="clock" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
+      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, !wide && s.hBtnP]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, !wide && s.hBtnP]} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, !wide && s.hBtnP]}><Icon name="book" size={22} color={color.navy} />{wide && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
     </View>
   );
 
@@ -208,21 +215,21 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
         {card && mineTurn && mine && !deckPick ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
-              <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
+              <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
         ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{gate}{sideMain}{tri && reactPanel}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
-          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimeBar room={room} userId={userId} settled={settled} /></View>}</View>}
+          {!tri && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
           <Board room={room} width={boardWidth} wide tight={tight} movement={mv.shown} currentId={cur}>{centre}</Board>
           <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>
           {tri && mine && (
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
               {deckPick && card ? (
                 <CardEnter id={card.id}>
-                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
+                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
                 </CardEnter>) : null}
               <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} cols={3} />
             </View>)}
@@ -247,12 +254,12 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
       <ScrollView contentContainerStyle={[s.mwrap, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
         {tab === "field" && (<>
-          <TimeBar room={room} userId={userId} settled={settled} />
+          <TimePanel room={room} userId={userId} settled={settled} />
           {stats}
           <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
-            {left > 0 && <TimerRing left={left} total={room.turnSeconds ?? 30} size={52} label={`${left} ${uz.game.seconds}`} />}
+            {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={52} label={`${left} ${uz.game.seconds}`} />}
             <Text style={s.turnHint} accessibilityLiveRegion="polite"><Text style={{ fontWeight: "800", color: mineTurn ? tone.good : color.navy }}>{mineTurn ? uz.hud.yourTurn : ""}</Text>{mineTurn ? " " : ""}{hint}</Text>
           </View>
         </>)}
@@ -265,7 +272,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, reactions, o
       {sheetOpen && mine && (
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
-          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={room.turnSeconds ?? 30} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet left={left} die={myDie}
+          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet left={left} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
@@ -281,7 +288,7 @@ const s = StyleSheet.create({
   sideScroll: { paddingBottom: space.lg }, mainScroll: { alignItems: "center", gap: space.md, paddingBottom: space.lg },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
-  hBtn: { minHeight: 44, minWidth: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
+  hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
   codePill: { backgroundColor: "#F4F7F8", borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4 }, codeT: { fontWeight: "800", letterSpacing: 2, color: color.navy },
   stats: { flexDirection: "row", gap: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, stat: { flex: 1, gap: 2 },
   statL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, statV: { color: color.navy, fontSize: font.xl, fontWeight: "800", fontVariant: ["tabular-nums"] }, statS: { color: tone.muted, fontSize: 11, fontVariant: ["tabular-nums"] },

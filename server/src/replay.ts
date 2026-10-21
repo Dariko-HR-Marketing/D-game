@@ -7,7 +7,7 @@ export interface ReplayStep { i: number; seq: number; at: number; type: string; 
 const brief = (s: GameState) => s.players.map((p) => ({ id: p.id, cash: Math.round(p.cash), cashflow: Math.round(playerCashflow(p)), pos: p.pos, circle: p.circle, assets: p.assets.length, debt: Math.round((p.bankDebt ?? 0) + (p.owe ?? 0) + (p.bigDebt ?? 0)), restarts: p.restarts }));
 
 export function replay(ctx: Ctx, final: GameState, journal: JournalEntry[], cap = 3000): { steps: ReplayStep[]; truncated: boolean; winner: string | null; players: string[] } {
-  let s = newGame(ctx, final.players.map((p) => p.id), final.seed, final.bots, final.restricted ?? [], { dreamPhase: !!final.dreamPhase, events: !!final.events, openingDice: !!final.openingDice });
+  let s = newGame(ctx, final.players.map((p) => p.id), final.seed, final.bots, final.restricted ?? [], { dreamPhase: !!final.dreamPhase, events: !!final.events, openingDice: !!final.openingDice, mode: final.mode });
   if (!final.dreamPhase) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % ctx.dreams.length)));
   const steps: ReplayStep[] = [{ i: 0, seq: 0, at: 0, type: "start", by: null, auto: null, ok: true, round: s.round, phase: s.phase, turn: s.players[s.turn % s.players.length]?.id ?? null, players: brief(s) }];
   const list = journal.slice(0, cap);

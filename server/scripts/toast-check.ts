@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Karta xabari: boshqa o'yinchi tortgan karta (jumladan bozor kartasi) 30 soniya yoki «✕» bosilguncha turadi, o'zi erta yo'qolmaydi.
 // `OUT=papka pnpm tsx scripts/toast-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, slowTimers } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@poyga/rules";
 
@@ -20,7 +20,7 @@ await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
 await a.waitForSelector("text=Naqd");
-const room = x.rooms.rooms.get(code)!; const toast = a.locator('[role="status"][aria-label]').filter({ hasText: "karta tortdi" }); // xabar kartasi: lahza-bannerlari («Bozor xabari») va moliya chiplari emas
+const room = x.rooms.rooms.get(code)!; slowTimers(x, room); const toast = a.locator('[role="status"][aria-label]').filter({ hasText: "karta tortdi" }); // xabar kartasi: lahza-bannerlari («Bozor xabari») va moliya chiplari emas
 // «c» o'yinchisi navbatida karta tortilguncha: «a» ning sahifasida xabar chiqadi
 let seenAt = 0;
 for (let i = 0; i < 300 && !seenAt; i++) {
@@ -41,6 +41,6 @@ if (seenAt) {
   await a.waitForTimeout(6500); const same = (await toast.count()) === 1 && (await toast.first().textContent()) === txt0; check(!same, "30 soniyadan keyin o'sha xabar o'zi yopildi");
   // «✕» bilan yopish: keyingi karta xabari
   let again = false; for (let i = 0; i < 300 && !again; i++) { const cur = currentPlayer(room.state!).id; if (room.state!.pending) await x.rooms.act(code, cur, { type: "decide", accept: false, playerId: cur }, room.seq).catch(() => {}); else await x.rooms.act(code, cur, { type: "roll", playerId: cur }, room.seq); if (cur === "xb" && (room.state!.lastCard as any)?.playerId === "xb") { await a.waitForTimeout(400); again = (await toast.count()) > 0; } }
-  if (again) { await a.getByRole("button", { name: "Yopish" }).first().click(); await a.waitForTimeout(300); check((await toast.count()) === 0, "«✕» bilan yopiladi"); } else console.log("INFO  ikkinchi xabar chiqmadi");
+  if (again) { await toast.first().getByRole("button", { name: "Yopish" }).click(); await a.waitForTimeout(300); check((await toast.count()) === 0, "«✕» bilan yopiladi"); } else console.log("INFO  ikkinchi xabar chiqmadi");
 }
 await b.close(); await x.app.close(); console.log(failed ? `TOAST: ${failed} ta xato` : "TOAST: hammasi to'g'ri"); process.exit(failed ? 1 : 0);

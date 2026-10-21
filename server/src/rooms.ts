@@ -1,5 +1,5 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
-import { passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, slotBlocked, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
+import { MODES, modeOf, type GameMode, passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, slotBlocked, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
 import type { RoomMeta, RoomTag, Store } from "./store";
 import type { ContentRegistry } from "./registry";
@@ -7,8 +7,9 @@ import type { ContentRegistry } from "./registry";
 export interface Clock { now(): number; setTimeout(f: () => void, ms: number): unknown; clearTimeout(h: unknown): void }
 export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (h) => clearTimeout(h as NodeJS.Timeout) };
 
-export const MAX_PLAYERS = 6, MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 8, MIN_PLAYERS = 2;
 export const DECISION_MS = RULES.cardDecisionSeconds * 1000;
+const AUTOPILOT_MS = 1500; // avtopilotdagi o'yinchi navbati: qaytgan o'yinchi «Men qaytdim» ni bosishga ulgursin
 /** Xona egasi xona ochganda tanlaydigan qaror vaqti (buyurtmachi qarori): 30 yoki 60 soniya. Hamkorlik takliflari muddati (§5.6) o'zgarmaydi. */
 /** Hisob daftari (o'quv rejimi): o'yinchi pul o'zgarishini o'zi hisoblab kiritadi, server tekshiradi. «auto» — hisob avtomatik (SPEC: blank «avtomatik» / «o'zim to'ldiraman»). */
 export type CalcMode = "auto" | "manual";
@@ -19,12 +20,14 @@ const sameSnap = (a: Snap, b: Snap) => a.cash === b.cash && a.passive === b.pass
 export const CALC_HINT_AFTER = 3;
 export const TURN_SECONDS = [30, 60] as const; export type TurnSeconds = (typeof TURN_SECONDS)[number];
 
-export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
+export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean; autoStreak?: number; offlineAt?: number } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
-  /** Xona egasi oldindan belgilagan o'yinchilar soni (2–6); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 6 gacha qo'shilish, 2 tagacha bot. */
+  timerSeconds?: number | null; armKey?: string | null; // joriy taymer davomiyligi (mijoz halqasi uchun) va qaysi bosqich uchun o'rnatilgani (bir xil bosqichda qayta o'rnatilmaydi)
+  /** Xona egasi oldindan belgilagan o'yinchilar soni (2–8); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 8 gacha qo'shilish, 2 tagacha bot. */
   seats?: number;
+  mode: GameMode; limitLeftMs?: number | null; limitStartedAt?: number | null; limitTimer?: unknown; // vaqtli rejim: qolgan vaqt (hamma uzilsa to'xtaydi)
   calcMode: CalcMode; ledger: Record<string, Snap>; calcTries: Record<string, number>; calcNotes: Record<string, { kind: "decide" | "confirm"; wrong: number; hint: boolean }[]>; calcStats: Record<string, { firstTry: number; retried: number }>;
   ctx: Ctx; contentVersion: number | null; // o'yin boshlanganda qulflanadi (§11)
   createdAt: number; endedAt: number | null;
@@ -55,7 +58,7 @@ function assetCardOf(ctx: Ctx, code: string): AssetCard | undefined {
   return m.get(code);
 }
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string }
-export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Member[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
+export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; dreams?: { name: string; price: number }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -83,7 +86,7 @@ export class RoomManager {
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color, level: pf.level, photo: pf.photo, ...(pf.gender ? { gender: pf.gender } : {}), cos: pf.cos }; }
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: ce.effect }; }
-    return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ ...m })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds,
+    return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online, left: m.left, unreliable: m.unreliable, ...(m.autopilot ? { autopilot: true } : {}) })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, timerTotal: r.deadline && r.timerSeconds ? r.timerSeconds : null, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds, mode: r.mode, limit: this.limitView(r),
       calc: (() => { const due = r.calcMode === "manual" ? this.dueOf(r) : []; return { mode: r.calcMode, due, ledger: Object.fromEntries(due.map((id) => [id, r.ledger[id]])), stats: r.calcStats }; })(),
       assetCards: r.state ? Object.fromEntries([...new Set(r.state.players.flatMap((p) => p.assets.map((a) => a.code)))].flatMap((c) => { const x = assetCardOf(r.ctx, c); return x ? [[c, x]] : []; })) : undefined,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: ce.effect, mode: ce.mode, file: ce.file }; })() : null,
@@ -94,7 +97,7 @@ export class RoomManager {
   }
 
   private meta(r: Room): RoomMeta {
-    return { tag: r.tag, hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt, turnSeconds: r.turnSeconds, calcMode: r.calcMode, ...(r.seats !== undefined ? { seats: r.seats } : {}) };
+    return { tag: r.tag, hostId: r.hostId, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable })), contentVersion: r.contentVersion, seq: r.seq, createdAt: r.createdAt, turnSeconds: r.turnSeconds, calcMode: r.calcMode, mode: r.mode, ...(r.limitLeftMs != null ? { limitLeftMs: this.limitLeft(r) } : {}), ...(r.seats !== undefined ? { seats: r.seats } : {}) };
   }
 
   /** Server qayta ishga tushganda tugamagan o'yinlarni tiklaydi (§6.3). O'yinchilar oflayn deb belgilanadi va qayta ulanganda davom etadi. */
@@ -107,7 +110,7 @@ export class RoomManager {
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
       const r: Room = { tag: a.meta.tag, code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable, online: false })), state: a.state, seq: a.meta.seq,
-        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", ...(a.meta.seats !== undefined ? { seats: a.meta.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
+        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", mode: modeOf(a.meta.mode), limitLeftMs: a.meta.limitLeftMs ?? null, limitStartedAt: null, ...(a.meta.seats !== undefined ? { seats: a.meta.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.ledgerSync(r); this.armProposals(r); this.arm(r); n++;
@@ -116,7 +119,7 @@ export class RoomManager {
     for (const l of await this.store.loadLobbies()) {
       if (this.rooms.has(l.code)) continue;
       const { ctx } = this.activeCtx(); const m = l.meta;
-      const r: Room = { tag: m.tag, code: l.code, hostId: m.hostId, members: m.members.map((x) => ({ userId: x.userId, bot: x.bot, online: false })), state: null, seq: 0, timer: null, deadline: null, turnSeconds: m.turnSeconds === 60 ? 60 : 30, calcMode: m.calcMode === "manual" ? "manual" : "auto",
+      const r: Room = { tag: m.tag, code: l.code, hostId: m.hostId, members: m.members.map((x) => ({ userId: x.userId, bot: x.bot, online: false })), state: null, seq: 0, timer: null, deadline: null, turnSeconds: m.turnSeconds === 60 ? 60 : 30, calcMode: m.calcMode === "manual" ? "manual" : "auto", mode: modeOf(m.mode),
         ...(m.seats !== undefined ? { seats: m.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: null, createdAt: m.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(l.code, r);
       for (const x of r.members) if (!x.bot) this.activeRoomOf.set(x.userId, l.code);
@@ -136,11 +139,13 @@ export class RoomManager {
     }
   }
 
-  create(hostId: string, tag?: RoomTag, turnSeconds: TurnSeconds = 30, calcMode: CalcMode = "auto", seats?: number): { ok: true; code: string } | { ok: false; error: Err } {
+  create(hostId: string, tag?: RoomTag, turnSeconds: TurnSeconds = 30, calcMode: CalcMode = "auto", seats?: number, mode: GameMode = "standard"): { ok: true; code: string } | { ok: false; error: Err } {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
-    if (seats !== undefined && (!Number.isInteger(seats) || seats < MIN_PLAYERS || seats > MAX_PLAYERS)) return { ok: false, error: "bad_seats" };
+    if (!(mode in MODES)) return { ok: false, error: "bad_mode" };
+    const [lo, hi] = MODES[mode].seats; if (mode === "tutorial") seats = lo; else if (seats === undefined && lo > MIN_PLAYERS) seats = lo; // rejimning o'z chegarasi: o'quv — 3 (1 odam + 2 bot), reytingli — kamida 4
+    if (seats !== undefined && (!Number.isInteger(seats) || seats < Math.max(MIN_PLAYERS, lo) || seats > Math.min(MAX_PLAYERS, hi))) return { ok: false, error: "bad_seats" };
     const code = this.newCode();
-    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
+    this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, mode, limitLeftMs: null, limitStartedAt: null, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
       ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null, tag });
     this.activeRoomOf.set(hostId, code); this.saveLobby(this.rooms.get(code)!);
     return { ok: true, code };
@@ -153,7 +158,7 @@ export class RoomManager {
     if (this.activeRoomOf.has(userId)) return { ok: false, error: "already_in_game" };
     if (r.state) return { ok: false, error: "already_started" };
     if (r.tag && this.hooks.canJoin && !this.hooks.canJoin(r.tag, userId)) return { ok: false, error: "not_allowed" }; // sinf/turnir xonasi: faqat a'zolar
-    if (r.members.length >= (r.seats ?? MAX_PLAYERS)) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
+    if (r.members.length >= (r.seats ?? MAX_PLAYERS) || r.members.filter((m) => !m.bot).length >= (MODES[r.mode].maxHumans ?? Infinity)) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
     r.members.push({ userId, bot: false, online: true });
     this.activeRoomOf.set(userId, r.code); this.saveLobby(r);
     this.emit(r);
@@ -166,14 +171,16 @@ export class RoomManager {
     if (!r) return { ok: false, error: "room_not_found" };
     if (r.hostId !== userId) return { ok: false, error: "not_host" };
     if (r.state) return { ok: false, error: "already_started" };
+    if (r.mode === "rated" && r.members.filter((m) => !m.bot).length < 2) return { ok: false, error: "not_enough_players" }; // reytingli o'yin: kamida 2 odam
     let b = 1;
     while (r.members.length < (r.seats ?? MIN_PLAYERS)) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
-    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false, openingDice: opts.dreams !== false && opts.opening !== false }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
+    let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false, openingDice: opts.dreams !== false && opts.opening !== false, mode: r.mode }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
     if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz
     r.state = s; this.ledgerSync(r);
     await this.store.saveSnapshot(code, s, this.meta(r)); this.dropLobby(code);
     this.hooks.onStart?.(code, r);
+    const mins = MODES[r.mode].minutes; if (mins) { r.limitLeftMs = mins * 60_000; r.limitStartedAt = null; } // vaqtli rejim (reytingli 120, o'quv 15 daqiqa)
     this.arm(r);
     this.emit(r);
     return { ok: true };
@@ -185,13 +192,14 @@ export class RoomManager {
     if (!r) return { ok: false, error: "room_not_found" };
     if (!r.state) return { ok: false, error: "not_started" };
     if (!r.members.some((m) => m.userId === userId && !m.left)) return { ok: false, error: "not_member" };
-    if (action.playerId !== userId || (action as { type: string }).type === "expire" || (action as { type: string }).type === "auto_dreams") return { ok: false, error: "not_member" };
+    if (action.playerId !== userId || (action as { type: string }).type === "expire" || (action as { type: string }).type === "auto_dreams" || (action as { type: string }).type === "time_up") return { ok: false, error: "not_member" };
     if (seq !== r.seq) return { ok: false, error: "stale_seq" };
     if ("auto" in action) return { ok: false, error: "not_member" }; // «avtomatik» bayrog'ini faqat server qo'yadi (ball −2)
     const a = action as Action & { calc?: Snap }; const calc = a.calc; if (calc) delete a.calc; // qoidalar dvigateli `calc` ni bilmaydi
     let verified = false;
     if (r.calcMode === "manual") { const g = this.calcGate(r, userId, a, calc); if (g && "done" in g) return g.done; verified = !!g?.verified; }
     const out = await this.apply(r, a, null);
+    if (out.ok) { const me = r.members.find((x) => x.userId === userId); if (me) { me.autoStreak = 0; if (me.autopilot) { me.autopilot = false; this.emit(r); } } } // o'zi harakat qildi: avtopilot o'chadi
     if (out.ok && verified) { const p = r.state!.players.find((x) => x.id === userId); if (p) r.ledger[userId] = snapOf(p); } // to'g'ri hisoblangan o'zgarish daftarga o'tdi
     return out;
   }
@@ -263,13 +271,14 @@ export class RoomManager {
       this.proposalTimers.set(k, this.clock.setTimeout(() => {
         this.proposalTimers.delete(k);
         if (r.state?.proposals.some((x) => x.id === p.id)) void this.apply(r, { type: "expire", playerId: "server", proposalId: p.id }, "proposal_timeout");
-      }, DECISION_MS));
+      }, (p.kind === "market" ? RULES.timerMarketSeconds * 1000 : DECISION_MS) * (r.turnSeconds / 30)));
     }
   }
 
   /** Navbat taymeri (§5.2, §6.3): 30 s ichida qaror bo'lmasa — avtomatik. Bot va oflayn o'yinchi ham shu yo'ldan. */
   private arm(r: Room) {
     if (!this.humansOnline(r)) { this.pause(r); return; } // hech bir odam onlayn emas: o'yin to'xtab turadi (birinchi qaytgan bilan davom etadi)
+    this.limitResume(r);
     if (r.state!.phase === "dreams") { // orzu bosqichi: bitta mutlaq muddat (har harakatda uzaymaydi), so'ng tanlamaganlarga avtomatik
       if (r.timer && r.deadline) return;
       const ms = RULES.dreamSeconds * 1000;
@@ -277,10 +286,15 @@ export class RoomManager {
       r.timer = this.clock.setTimeout(() => { r.timer = null; r.deadline = null; void this.apply(r, { type: "auto_dreams", playerId: "server" }, "dream_timeout").catch((e) => this.hooks.onError?.("autoMove", e)); }, ms);
       return;
     }
+    const key = `${r.state!.turn}|${r.state!.pending ? r.state!.pending.cardId + (r.state!.pending.type ?? "") : "-"}`;
+    if (r.timer && r.armKey === key) return; // shu bosqich uchun taymer allaqachon ishlayapti (boshqalarning harakati uni yangilamaydi)
     if (r.timer) this.clock.clearTimeout(r.timer);
+    r.armKey = key;
     const cur = currentPlayer(r.state!);
     const m = r.members.find((x) => x.userId === cur.id)!;
-    const delay = m.bot ? 0 : r.turnSeconds * 1000;
+    const secs = this.phaseSeconds(r), quick = m.bot || this.isAutopilot(m);
+    const delay = m.bot ? 0 : quick ? AUTOPILOT_MS : secs * 1000;
+    r.timerSeconds = quick ? null : secs;
     r.deadline = this.clock.now() + delay;
     r.timer = this.clock.setTimeout(() => { this.autoMove(r).catch((e) => { this.hooks.onError?.("autoMove", e); if (r.state && !r.state.winner && !r.endedAt) this.arm(r); }); }, delay);
   }
@@ -288,7 +302,27 @@ export class RoomManager {
   /** Onlayn odam bormi (botlar va ixtiyoriy chiqqanlar hisobga kirmaydi). */
   private humansOnline(r: Room) { return r.members.some((m) => !m.bot && !m.left && m.online); }
   /** Hamma odam uzilgan (tok/internet o'chdi): taymerlar to'xtaydi — oflayn o'yinchining navbatlari «o'tkazib yuborilmaydi», botlar o'ynab ketmaydi. */
-  private pause(r: Room) { if (r.timer) this.clock.clearTimeout(r.timer); r.timer = null; r.deadline = null; }
+  private pause(r: Room) { if (r.timer) this.clock.clearTimeout(r.timer); r.timer = null; r.deadline = null; r.timerSeconds = null; r.armKey = null; this.limitPause(r); }
+  // ───── Vaqtli rejim: umumiy o'yin vaqti (hamma uzilsa to'xtaydi) ─────
+  private limitLeft(r: Room): number { return Math.max(0, (r.limitLeftMs ?? 0) - (r.limitStartedAt != null ? this.clock.now() - r.limitStartedAt : 0)); }
+  private limitView(r: Room): { leftMs: number; deadline: number | null } | null { if (r.limitLeftMs == null) return null; const left = this.limitLeft(r); return { leftMs: left, deadline: r.limitStartedAt != null ? this.clock.now() + left : null }; }
+  private limitPause(r: Room) { if (r.limitStartedAt != null) { r.limitLeftMs = this.limitLeft(r); r.limitStartedAt = null; } if (r.limitTimer) { this.clock.clearTimeout(r.limitTimer); r.limitTimer = null; } }
+  private limitResume(r: Room) {
+    if (r.limitLeftMs == null || r.limitTimer || !r.state || r.state.winner || r.endedAt) return;
+    r.limitStartedAt = this.clock.now();
+    r.limitTimer = this.clock.setTimeout(() => {
+      r.limitTimer = null; r.limitStartedAt = null; r.limitLeftMs = 0;
+      void this.apply(r, { type: "time_up", playerId: "server" }, "time_up").then((o) => { if (!o.ok) { r.limitLeftMs = 5_000; this.limitResume(r); } }).catch((e) => this.hooks.onError?.("timeUp", e)); // orzu bosqichida bo'lsa — 5 soniyadan keyin qayta
+    }, r.limitLeftMs);
+  }
+  /** Avtopilot: ketma-ket 3 marta vaqt tugagan yoki 5 daqiqadan beri uzilgan o'yinchining navbati kutmasdan (qisqa pauza bilan) o'tadi. */
+  private isAutopilot(m: Member) { return !!m.autopilot || (!m.online && m.offlineAt !== undefined && this.clock.now() - m.offlineAt >= RULES.disconnectAutopilotMinutes * 60_000); }
+  /** Navbat bosqichining davomiyligi: kubik 10 s, karta 30 s, birovning biznesi 20 s, majburiy to'lov 60 s (xona «sekin» bo'lsa ×2). */
+  private phaseSeconds(r: Room): number {
+    const s = r.state!; const k = s.pending ? (effectOf(r.ctx, s.pending.cardId, s.pending).effect as { kind?: string }).kind : null;
+    const base = !s.pending ? RULES.timerDiceSeconds : k === "rentChoice" ? RULES.timerRentSeconds : k === "payOrLoseBusiness" ? RULES.timerForcedPaySeconds : RULES.cardDecisionSeconds;
+    return Math.round(base * (r.turnSeconds / 30));
+  }
 
   private async autoMove(r: Room) {
     r.timer = null;
@@ -296,7 +330,8 @@ export class RoomManager {
     if (!this.humansOnline(r)) { r.deadline = null; return; }
     if (r.state.phase === "dreams") return;
     const cur = currentPlayer(r.state);
-    const bot = r.members.find((x) => x.userId === cur.id)?.bot;
+    const mem = r.members.find((x) => x.userId === cur.id); const bot = mem?.bot;
+    if (mem && !bot) { mem.autoStreak = (mem.autoStreak ?? 0) + 1; if (!mem.autopilot && mem.autoStreak >= RULES.autopilotAfter) mem.autopilot = true; } // ketma-ket vaqt tugashi: 3-sidan keyin avtopilot
     if (!r.state.pending) return void (await this.apply(r, bot ? { type: "roll", playerId: cur.id } : { type: "roll", playerId: cur.id, auto: true }, bot ? "bot" : "timeout"));
     // Ixtiyoriy karta vaqt tugasa o'tkaziladi (§5.2). Bot: naqdi yetsa qabul qiladi; qarzda qatnashmaydi (§6.5).
     const e = effectOf(r.ctx, r.state.pending.cardId, r.state.pending).effect;
@@ -316,7 +351,7 @@ export class RoomManager {
 
   disconnect(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
-    if (r && m) { m.online = false; this.markOffline(r); if (r.state && !r.state.winner && !this.humansOnline(r)) this.pause(r); this.emit(r); }
+    if (r && m) { m.online = false; m.offlineAt = this.clock.now(); this.markOffline(r); if (r.state && !r.state.winner && !this.humansOnline(r)) this.pause(r); this.emit(r); }
   }
 
   /** §6.3: qayta ulanganda holat to'liq tiklanadi (snapshot + seq). */
@@ -324,10 +359,19 @@ export class RoomManager {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (!r || !m) return { ok: false, error: "not_member" };
     if (m.left) return { ok: false, error: "left_game" }; // ixtiyoriy chiqish qaytarilmaydi: o'rnini bot egallagan
-    m.online = true; r.offlineSince = null;
-    if (r.state && !r.state.winner && !r.endedAt && !r.timer) this.arm(r); // to'xtab turgan o'yin davom etadi
+    const wasAuto = this.isAutopilot(m); m.online = true; m.offlineAt = undefined; m.autopilot = false; m.autoStreak = 0; r.offlineSince = null;
+    if (r.state && !r.state.winner && !r.endedAt && (!r.timer || (wasAuto && currentPlayer(r.state).id === userId))) { r.armKey = null; this.arm(r); } // to'xtab turgan o'yin davom etadi; avtopilotdan qaytgan o'yinchiga to'liq vaqt
     this.emit(r);
     return { ok: true };
+  }
+
+  /** «Men qaytdim»: avtopilot o'chadi, navbat o'ziniki bo'lsa to'liq vaqt beriladi. */
+  resumePlay(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
+    const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
+    if (!r || !m || m.left) return { ok: false, error: "not_member" };
+    const was = this.isAutopilot(m); m.autopilot = false; m.autoStreak = 0; if (m.online) m.offlineAt = undefined;
+    if (was && r.state && !r.state.winner && currentPlayer(r.state).id === userId) { r.armKey = null; this.arm(r); }
+    this.emit(r); return { ok: true };
   }
 
   /** Ixtiyoriy chiqish: mijoz alohida tasdiq so'raydi; o'rinni bot egallaydi (o'yin to'xtamaydi). */
@@ -344,7 +388,7 @@ export class RoomManager {
       m.bot = true; m.left = true; m.online = false;
       if (!this.humansOnline(r)) this.pause(r);
       else if (r.state.phase === "dreams") void this.apply(r, { type: "auto_dreams", playerId: "server", only: [userId] }, "left").catch((e) => this.hooks.onError?.("autoMove", e)); // chiqqan odam orzusi darrov beriladi
-      else if (currentPlayer(r.state).id === userId) this.arm(r); }
+      else if (currentPlayer(r.state).id === userId) { r.armKey = null; this.arm(r); } } // endi bot: navbati darrov o'tadi
     this.emit(r);
   }
 
@@ -380,6 +424,7 @@ export class RoomManager {
   }
 
   private finish(r: Room) {
+    this.limitPause(r); r.limitLeftMs = null;
     if (r.timer) this.clock.clearTimeout(r.timer);
     r.timer = null; r.deadline = null; r.endedAt = this.clock.now();
     this.hooks.onEnd?.(r.code, r);

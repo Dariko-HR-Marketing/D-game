@@ -8,7 +8,7 @@ export const CTA_H = 52;
 export const FOCUS = { color: "#11835A", width: 2, offset: 2 } as const;
 /** O'yin sarlavhasi balandligi: xabarlar (CardToast) undan pastda chiqadi, shunda «Qoidalar» va xona kodi tugmalari to'silmaydi. */
 export const HEADER_H = 56;
-export const PLAYER_COLORS = ["#11835A", "#F2B233", "#9E2A30", "#2C6DB5", "#7B4FA3", "#E07A2F"]; // 6 ta fishka rangi
+export const PLAYER_COLORS = ["#11835A", "#F2B233", "#9E2A30", "#2C6DB5", "#7B4FA3", "#E07A2F", "#0E8FA0", "#C44E8A"]; // 8 ta fishka rangi (2–8 o'yinchi); fishkada raqam ham bor — rang yagona belgi emas
 
 /** Bo'shliq shkalasi (4 px asosida), burchak va soyalar — barcha ekranlarda bir xil. */
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;

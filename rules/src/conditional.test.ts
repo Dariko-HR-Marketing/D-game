@@ -20,9 +20,9 @@ describe("shartli xarajat kartalari (qo'llanma §07: «agar bolangiz/mashinangiz
     const bought = { ...base, profession: noCar?.n ?? withCar.n, assets: [{ kind: "car", code: "X", price: 1, monthlyIncome: 0, creditPayment: 0, credit: 0 }] };
     expect(hasCar(ctx, bought as any)).toBe(true);
   });
-  it("shartsiz xarajat hamma to'laydi; 15 ta shartli kartadan 13 tasi bola/avtomobilga bog'liq", () => {
+  it("shartsiz xarajat hamma to'laydi; 16 ta shartli kartadan 14 tasi bola/avtomobilga bog'liq", () => {
     const s = mk(), ce = effectOf(ctx, "xar-1"); expect((ce.effect as any).needs).toBeUndefined();
     expect(applyMandatory(s, ctx, { ...s.players[0], cash: 5000 }, ce.effect).cash).toBe(5000 - (ce.effect as any).amount);
-    const n = Object.values(ctx.effects).filter((e: any) => e.effect.kind === "pay" && e.effect.needs).length; expect(n).toBe(13);
+    const n = Object.values(ctx.effects).filter((e: any) => e.effect.kind === "pay" && e.effect.needs).length; expect(n).toBe(14);
   });
 });

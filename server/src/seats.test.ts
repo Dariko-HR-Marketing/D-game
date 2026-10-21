@@ -3,9 +3,9 @@ import { buildApp } from "./app";
 import { parseMessage } from "./protocol";
 
 describe("oldindan belgilangan o'yinchilar soni (xona egasi tanlaydi)", () => {
-  it("2–6 tanlanadi; to'lgach qo'shilib bo'lmaydi; noto'g'ri son rad etiladi", () => {
+  it("2–8 tanlanadi; to'lgach qo'shilib bo'lmaydi; noto'g'ri son rad etiladi", () => {
     const x = buildApp();
-    for (const bad of [1, 7, 2.5, 0]) { expect(x.rooms.create("h" + bad, undefined, 30, "auto", bad)).toEqual({ ok: false, error: "bad_seats" }); }
+    for (const bad of [1, 9, 2.5, 0]) { expect(x.rooms.create("h" + bad, undefined, 30, "auto", bad)).toEqual({ ok: false, error: "bad_seats" }); }
     const r = x.rooms.create("host", undefined, 30, "auto", 3); if (!r.ok) throw 0;
     expect(x.rooms.view(x.rooms.rooms.get(r.code)!).seats).toBe(3);
     expect(x.rooms.join(r.code, "a")).toEqual({ ok: true }); expect(x.rooms.join(r.code, "b")).toEqual({ ok: true });
@@ -28,7 +28,7 @@ describe("oldindan belgilangan o'yinchilar soni (xona egasi tanlaydi)", () => {
     const x = buildApp(); const r = x.rooms.create("host"); if (!r.ok) throw 0;
     await x.rooms.start(r.code, "host", 3, { dreams: false }); expect(x.rooms.rooms.get(r.code)!.state!.players).toHaveLength(2);
   });
-  it("protokol: players 2–6 qabul qilinadi", () => {
+  it("protokol: players 2–8 qabul qilinadi", () => {
     expect(parseMessage(JSON.stringify({ type: "create", players: 4 })).ok).toBe(true);
     expect(parseMessage(JSON.stringify({ type: "create", players: 1 })).ok).toBe(false); expect(parseMessage(JSON.stringify({ type: "create", players: 9 })).ok).toBe(false);
   });

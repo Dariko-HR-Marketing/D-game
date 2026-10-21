@@ -15,3 +15,6 @@ export async function passGate(p: any, name = "Sinov", year = "1990") {
   await Promise.race([gate.waitFor({ timeout: 15000 }).catch(() => {}), home.waitFor({ timeout: 15000 }).catch(() => {})]);
   if (await gate.count()) { await gate.fill(name); await p.getByTestId("gate-year").fill(year); await p.getByRole("button", { name: "Davom etish" }).click(); }
 }
+
+/** Uzoq kutadigan brauzer tekshiruvlari uchun: xona taymerlari ×10 (server o'zi kubik tashlab/karta o'tkazib yubormasin). Faqat test. */
+export function slowTimers(x: { rooms: unknown }, room: any) { room.turnSeconds = 300; room.armKey = null; (x.rooms as any).arm(room); }

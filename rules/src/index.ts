@@ -23,6 +23,10 @@ export const RULES = {
   pointsPerLevel: 100, // §5.9
   crisisLaps: 9, // §5.7
   cardDecisionSeconds: 30,
+  // Taymer jadvali («Qoidalar» varag'i, buyurtmachi tasdig'i): qaror turiga qarab alohida; xona «sekin» bo'lsa hammasi ×2
+  timerDiceSeconds: 10, timerMarketSeconds: 20, timerRentSeconds: 20, timerForcedPaySeconds: 60,
+  autopilotAfter: 3,            // ketma-ket shuncha marta vaqt tugasa — avtopilot (qaytgach o'chadi, o'rin saqlanadi)
+  disconnectAutopilotMinutes: 5, // shuncha vaqt uzilgan o'yinchi avtopilotda (o'rni saqlanadi, qaytsa o'chadi)
   dreamSeconds: 60, // orzu tanlash bosqichi (§6.4, N09): SPEC muddat aytmaydi — qaror (OPEN_QUESTIONS #61)
 } as const;
 
@@ -62,11 +66,23 @@ export function advanceMonth(b: Blank): Blank {
   return { ...b, cash: b.cash + cashflow(b) };
 }
 
-/** §5.4 / qo'llanma §10: chiqish uchun uchta shart bir vaqtda (passiv daromad ≥ 25 000, naqd ≥ 1 000 000, qarzsiz) + hamkorlik yopilgan. */
-export function canExitSmallCircle(b: Blank): boolean {
+/** O'yin rejimlari (platforma fayli, buyurtmachi tasdig'i): standart, tez, reytingli, o'quv. `minutes` — vaqt chegarasi (tugagach o'yin yakunlanadi), `seats` — [eng kam, eng ko'p] o'yinchi. */
+export type GameMode = "standard" | "quick" | "rated" | "tutorial";
+export const GAME_MODES: readonly GameMode[] = ["standard", "quick", "rated", "tutorial"];
+export const MODES: Record<GameMode, { seats: [number, number]; exitCash: number; exitPassive: number; minutes: number | null; rated: boolean; maxHumans?: number }> = {
+  standard: { seats: [2, 8], exitCash: RULES.exitCash, exitPassive: RULES.exitPassiveFlow, minutes: null, rated: false },
+  quick: { seats: [2, 6], exitCash: 250_000, exitPassive: 15_000, minutes: null, rated: false }, // «Tez o'yin»: 30–45 daqiqa; chiqish sharti yengil
+  rated: { seats: [4, 6], exitCash: RULES.exitCash, exitPassive: RULES.exitPassiveFlow, minutes: 120, rated: true }, // «Reytingli»: 4–6 kishi, 120 daqiqa, liga reytingiga ta'sir qiladi
+  tutorial: { seats: [3, 3], exitCash: 250_000, exitPassive: 15_000, minutes: 15, rated: false, maxHumans: 1 }, // «O'quv o'yini»: 1 odam + 2 bot, 15 daqiqa
+};
+export const modeOf = (m?: GameMode | null): GameMode => (m && m in MODES ? m : "standard");
+
+/** §5.4 / qo'llanma §10: chiqish uchun uchta shart bir vaqtda (passiv daromad ≥ 25 000, naqd ≥ 1 000 000, qarzsiz) + hamkorlik yopilgan. Tez va o'quv rejimida chegaralar yengil (15 000 / 250 000). */
+export function canExitSmallCircle(b: Blank, mode?: GameMode | null): boolean {
+  const m = MODES[modeOf(mode)];
   return (
-    b.cash >= RULES.exitCash &&
-    b.passiveIncome >= RULES.exitPassiveFlow && // qo'llanma §10, TZ, yagona spetsifikatsiya: «25 000 sh.b. oylik passiv daromad» (xarajat ayrilmaydi)
+    b.cash >= m.exitCash &&
+    b.passiveIncome >= m.exitPassive && // qo'llanma §10, TZ, yagona spetsifikatsiya: «25 000 sh.b. oylik passiv daromad» (xarajat ayrilmaydi)
     b.bankDebt + b.otherDebt === 0 &&
     b.openPartnerships === 0
   );
@@ -110,6 +126,17 @@ export function partnerBuyoutPrice(fullPrice: number, monthlyProfit: number) {
 }
 
 /** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja. */
+// Platforma: Ball, XP va liga (platforma fayli, buyurtmachi tasdig'i). Hisoblash — server/src/progress.ts.
+export const BALL = {
+  finish: 50, exit: 80, win: 150, firstOfDay: 20, tutorial: 50, place: [100, 60, 30], placeBase: 6,
+  dailyCap: 500, expireDays: 365, minHumansFinish: 3, minHumans: 2,
+} as const;
+export const XP = { game: 100, botGame: 60, tutorial: 150, base: 200, step: 50, maxLevel: 50 } as const;
+/** Liga chegaralari (reyting): platforma faylidagi jadval. */
+export const LEAGUES = [
+  { key: "bronze", from: 0 }, { key: "silver", from: 1100 }, { key: "gold", from: 1300 }, { key: "platinum", from: 1500 }, { key: "diamond", from: 1700 },
+] as const;
+
 export const POINTS = { finish: 10, asset: 5, quitJob: 20, exitSmallCircle: 40, win: 100, second: 30, third: 15, auto: -2, abandon: -20, unreliable: -50 } as const;
 
 /** §5.8 Qarov: oylik xarajat +100. */

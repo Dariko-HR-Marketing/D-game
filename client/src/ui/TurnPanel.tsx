@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { Dice } from "./Dice";
 import { TimerRing } from "./TimerRing";
 import { cellLabel } from "./Board";
-import { nameOf } from "../model";
+import { nameOf, phaseSeconds } from "../model";
 import { uz } from "../i18n/uz";
 import { color, font, space, tone } from "../theme";
 import type { RoomView } from "../net/connection";
@@ -25,7 +25,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
       <Text style={s.sub}>{hint}</Text>
       {wide && (
         <View style={s.wideRow}>
-          {left > 0 && <TimerRing left={left} total={room.turnSeconds ?? 30} size={48} label={`${left} ${uz.game.seconds}`} />}
+          {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={48} label={`${left} ${uz.game.seconds}`} />}
           <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
         </View>)}
       {wide && gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : null}

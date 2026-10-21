@@ -15,13 +15,13 @@ export function PlayerList({ room, userId }: { room: RoomView; userId: string })
   return (
     <View style={{ gap: space.md }}>
       <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.hud.playersTitle}</Text>
-      {room.state.players.map((p: any, k: number) => { const name = nameOf(room, p.id), e = exitProgress(p), isMe = p.id === userId; const mem = room.members.find((m) => m.userId === p.id);
+      {room.state.players.map((p: any, k: number) => { const name = nameOf(room, p.id), e = exitProgress(p, room.state.mode), isMe = p.id === userId; const mem = room.members.find((m) => m.userId === p.id);
         return (
           <Card key={p.id} label={`${name}${isMe ? `, ${uz.hud.you}` : ""}: ${uz.game.cash} ${money(p.cash)}, ${uz.game.cashflow} ${money(e.cashflow)}`} style={p.id === cur ? { borderColor: color.green, borderWidth: 2 } : undefined}>
             <View style={s.head} aria-hidden>
               <Avatar name={name} colorIdx={room.names?.[p.id]?.color ?? k} level={levelOf(room, p.id)} online={room.state.bots.includes(p.id) ? undefined : mem?.online !== false} size={44} gender={room.names?.[p.id]?.gender} frame={room.names?.[p.id]?.cos?.frame} photo={room.names?.[p.id]?.photo} bgColor={room.names?.[p.id]?.cos?.avatar} />
               <View style={{ flex: 1 }}><Text style={s.name}>{name}{isMe ? ` (${uz.hud.you})` : ""}</Text><Text style={s.sub}>{room.professions?.[p.id] ?? ""}</Text></View>
-              <Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />
+              <View style={{ gap: 4, alignItems: "flex-end" }}><Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />{mem?.autopilot && <Pill label={uz.hud.autopilot.pill} kind="warn" />}</View>
             </View>
             <View style={s.stats} aria-hidden>
               <View><Text style={s.l}>{uz.hud.cashLabel}</Text><Text style={s.v}>{money(p.cash)}</Text></View>

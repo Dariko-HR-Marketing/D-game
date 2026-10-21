@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
-import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, SEATS, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
+import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, type GameMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
 import { uz, errText } from "../i18n/uz";
 import { color, font, radius, space, tone, MIN_TAP } from "../theme";
@@ -23,11 +23,12 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
 }
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
-export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
-  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [seats, setSeats] = useState<Seats>(getSeatsPref); const [optsOpen, setOptsOpen] = useState(false);
+export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: GameMode) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
+  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<GameMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false);
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
-  const [me, setMe] = useState<{ name: string; color: number; level: number; gender?: "m" | "f" } | null>(null);
-  useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0, gender: r.profile.gender }); }).catch(() => {}); return () => { off = true; }; }, [http]);
+  const pickMode = (m: GameMode) => { setMode(m); setModePref(m); setSeats((n) => clampSeats(m, n)); };
+  const [me, setMe] = useState<{ name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null>(null);
+  useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0, games: r.stats?.games ?? 1, gender: r.profile.gender }); }).catch(() => {}); return () => { off = true; }; }, [http]);
   const [active, setActive] = useState<{ code: string; started: boolean; round: number; players: number } | null>(null);
   useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
@@ -48,19 +49,28 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
             {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn, calc, seats)} disabled={!online} />
+            {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn, calc, 3, "tutorial")} disabled={!online} />}
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn, calc, seats, mode)} disabled={!online} />
             {compact && (
-              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(turn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
-                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.seatsOpt.replace("{n}", String(seats))} · {turnLabel(turn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
+              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${mode === "tutorial" ? "" : uz.home.seatsOpt.replace("{n}", String(seats)) + ","} ${turnLabel(turn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
+                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {mode === "tutorial" ? "" : `${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(turn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
             {(!compact || optsOpen) && (<>
-            <View style={s.turnRow} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
-              <Text style={s.turnL} aria-hidden>{uz.home.seatsLabel}</Text>
-              {SEATS.map((v) => (
+            <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
+              <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.modeLabel}</Text>
+              {GAME_MODES_UI.map((m) => (
+                <Pressable key={m} role="radio" aria-checked={mode === m} testID={`mode-${m}`} accessibilityLabel={`${uz.home.modes[m]}. ${uz.home.modeHints[m]}`} onPress={() => pickMode(m)} style={[s.seg, mode === m && s.segOn]}>
+                  <Text style={[s.segT, mode === m && { color: color.white }]} aria-hidden>{uz.home.modes[m]}</Text>
+                </Pressable>))}
+              <Text style={[s.turnL, { flexBasis: "100%", fontWeight: "600" }]}>{uz.home.modeHints[mode]}</Text>
+            </View>
+            {mode !== "tutorial" && <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
+              <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.seatsLabel}</Text>
+              {seatsFor(mode).map((v) => (
                 <Pressable key={v} role="radio" aria-checked={seats === v} accessibilityLabel={`${uz.home.seatsOpt.replace("{n}", String(v))}. ${uz.home.seatsHint}`} onPress={() => { setSeats(v); setSeatsPref(v); }} style={[s.seg, seats === v && s.segOn, { paddingHorizontal: space.sm, minWidth: MIN_TAP }]} testID={`seats-${v}`}>
                   <Text style={[s.segT, seats === v && { color: color.white }]} aria-hidden>{v}</Text>
                 </Pressable>))}
-            </View>
+            </View>}
             <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
               <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
               {([30, 60] as const).map((v) => (

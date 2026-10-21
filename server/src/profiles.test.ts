@@ -8,7 +8,7 @@ describe("profil tekshiruvi (§7)", () => {
   it("to'g'ri profil", () => expect(validateProfile(ok, Y)).toEqual({ ok: true, value: ok }));
   it.each([
     [{ ...ok, name: "A" }, "bad_name"], [{ ...ok, name: "x".repeat(25) }, "bad_name"], [{ ...ok, name: "<b>hi" }, "bad_name"],
-    [{ ...ok, color: 6 }, "bad_color"], [{ ...ok, color: -1 }, "bad_color"], [{ ...ok, color: 1.5 }, "bad_color"],
+    [{ ...ok, color: 8 }, "bad_color"], [{ ...ok, color: -1 }, "bad_color"], [{ ...ok, color: 1.5 }, "bad_color"],
     [{ ...ok, birthYear: 1899 }, "bad_birth_year"], [{ ...ok, birthYear: Y + 1 }, "bad_birth_year"], [{ ...ok, birthYear: "2000" }, "bad_birth_year"],
   ])("rad: %j", (input, error) => expect(validateProfile(input, Y)).toEqual({ ok: false, error }));
   it("ism bo'shliqlari tozalanadi", () => expect((validateProfile({ ...ok, name: "  Ali   Vali " }, Y) as any).value.name).toBe("Ali Vali"));
@@ -17,7 +17,7 @@ describe("profil tekshiruvi (§7)", () => {
     expect(isRestricted({ birthYear: 2010 }, Y)).toBe(false); // 16
     expect(isRestricted(undefined, Y)).toBe(false);
   });
-  it("daraja: har 100 ball (§5.9); ball qoidasi (#63)", () => { expect(starsOf(7)).toBe(5); expect(titleOf(0)).toBe("employee"); expect(titleOf(5)).toBe("investor"); expect(titleOf(3)).toBeNull(); expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toMatchObject({ finish: 10, asset: 5, quitJob: 20, exitSmallCircle: 40, win: 100, second: 30, third: 15, auto: -2, abandon: -20, unreliable: -50 }); });
+  it("yulduz: XP darajasi 10 darajada bitta; eski levelOf (qo'llanma §5.9) saqlangan; ball qoidasi (#63)", () => { expect(starsOf(7)).toBe(0); expect(starsOf(10)).toBe(1); expect(starsOf(50)).toBe(5); expect(starsOf(99)).toBe(5); expect(titleOf(0)).toBe("employee"); expect(titleOf(5)).toBe("investor"); expect(titleOf(3)).toBeNull(); expect(levelOf(99)).toBe(0); expect(levelOf(250)).toBe(2); expect(POINTS).toMatchObject({ finish: 10, asset: 5, quitJob: 20, exitSmallCircle: 40, win: 100, second: 30, third: 15, auto: -2, abandon: -20, unreliable: -50 }); });
 });
 
 describe("tarix va reyting", () => {
@@ -32,7 +32,7 @@ describe("tarix va reyting", () => {
   it("statistika va reyting: g'alaba ko'p yuqorida, botlar reytingda yo'q", () => {
     const s = mk();
     s.record(res("a", [["a", false, "big"], ["b", false], ["bot-1", true]])); s.record(res("a", [["a", false, "big"], ["c", false]])); s.record(res("b", [["b", false, "big"], ["c", false]]));
-    expect(s.stats("a")).toMatchObject({ games: 2, wins: 2, reachedBig: 2, points: 300, level: 3 });
+    expect(s.stats("a")).toMatchObject({ games: 2, wins: 2, reachedBig: 2, points: 480, level: 1, xp: 200 }); // 2 odam: chiqish 80 + g'alaba 150 (ikki o'yin) + kunning birinchi o'yini 20; har o'yin XP 100
     const lb = s.leaderboard();
     expect(lb.map((x) => [x.rank, x.name, x.wins])).toEqual([[1, "Ali", 2], [2, "Bobur", 1], [3, "Sara", 0]]);
     expect(JSON.stringify(lb)).not.toContain("userId"); // shaxsiy ID chiqmaydi

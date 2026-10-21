@@ -37,7 +37,7 @@ export function snapRoom(room: any, userId: string): RoomSnap | null {
   const players: Record<string, PSnap> = {};
   for (const p of st.players) players[p.id] = { children: p.children ?? 0, noSalary: p.noSalary ?? 0, quitJob: !!p.quitJob, restarts: p.restarts ?? 0, circle: p.circle, assets: (p.assets ?? []).length, cash: p.cash, months: p.monthsPlayed ?? 0, crisis: p.crisisMonths ?? 0, business: bizCount(p) };
   const mine = st.players.find((p: any) => p.id === userId);
-  const ep = mine && mine.circle === "small" ? exitProgress(mine) : null;
+  const ep = mine && mine.circle === "small" ? exitProgress(mine, st.mode) : null;
   return { players, cardN: st.lastCard?.n ?? 0, offers: new Set(marketOffers(room, userId).map((o) => o.proposalId)),
     unlocked: mine && mine.circle === "small" ? mine.cash > UNLOCK_CASH : null, conds: ep ? { cash: ep.checks.cash, flow: ep.checks.flow, debt: ep.checks.debt, partner: ep.checks.partner } : null };
 }

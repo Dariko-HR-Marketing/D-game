@@ -1,7 +1,7 @@
 // O'yin tahlili (SPEC §5.9, §12): urug' + harakatlar jurnalidan o'yinni qayta o'ynab, har bir aylana uchun ko'rsatkichlar va qarorlar statistikasini chiqaradi.
-import { Action, Ctx, GameState, chooseDream, monthlyExpenses, newGame, passiveIncome, playerCashflow, reduce, totalDebt } from "./index";
+import { Action, Ctx, GameMode, GameState, chooseDream, monthlyExpenses, newGame, passiveIncome, playerCashflow, reduce, totalDebt } from "./index";
 
-export interface Init { playerIds: string[]; seed: number; bots: string[]; restricted: string[]; dreamPhase?: boolean; openingDice?: boolean }
+export interface Init { playerIds: string[]; seed: number; bots: string[]; restricted: string[]; dreamPhase?: boolean; openingDice?: boolean; mode?: GameMode }
 export interface Point { round: number; cash: number; cashflow: number; passive: number; expenses: number; debt: number }
 export interface GameEvent { round: number; player: string; kind: "bought" | "restart" | "exit" | "won" | "sold"; detail?: string }
 export interface PlayerAnalysis {
@@ -15,7 +15,7 @@ export interface Analysis {
 
 /** `actions` — jurnaldagi harakatlar (avtomatik yozuvlar ham ichidagi harakat bilan). Noto'g'ri harakat — xato (jurnal buzilgan). */
 export function analyzeGame(ctx: Ctx, init: Init, actions: Action[]): { analysis: Analysis; final: GameState } {
-  let s = newGame(ctx, init.playerIds, init.seed, init.bots, init.restricted, { dreamPhase: !!init.dreamPhase, openingDice: !!init.openingDice });
+  let s = newGame(ctx, init.playerIds, init.seed, init.bots, init.restricted, { dreamPhase: !!init.dreamPhase, openingDice: !!init.openingDice, mode: init.mode });
   if (!init.dreamPhase) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % ctx.dreams.length))); // eski (bosqichsiz) o'yinlar
   const pa = new Map<string, PlayerAnalysis>(s.players.map((p) => [p.id, { id: p.id, bot: init.bots.includes(p.id), series: [], exitRound: null, restarts: 0, peakCashflow: -Infinity, peakCash: -Infinity, decisions: { accepted: 0, skipped: 0 }, assetsAtEnd: 0 }]));
   const events: GameEvent[] = []; const cards: Analysis["cards"] = {}; let turns = 0;

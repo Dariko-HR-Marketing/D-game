@@ -13,14 +13,14 @@ export function PlayerStrip({ room, userId }: { room: RoomView; userId: string }
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row} role="group" aria-label={uz.game.players}>
       {players.map((p, k) => {
-        const hue = PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % 6], isCur = p.id === cur, isMe = p.id === userId, off = room.members.find((m) => m.userId === p.id)?.online === false;
+        const hue = PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % PLAYER_COLORS.length], isCur = p.id === cur, isMe = p.id === userId, off = room.members.find((m) => m.userId === p.id)?.online === false;
         return (
           <View key={p.id} role="group" accessible aria-label={`${k + 1}. ${nameOf(room, p.id)}${isMe ? `, ${uz.result.you}` : ""}. ${uz.game.cash}: ${money(p.cash)}${isCur ? `. ${uz.game.turnNow}` : ""}${off ? `. ${uz.lobby.offline}` : ""}`}
             style={[s.chip, isCur && s.cur, off && { opacity: 0.55 }]}>
             <View style={[s.dot, { backgroundColor: hue }]} aria-hidden><Text style={[s.dotT, { color: readableOn(hue) }]}>{k + 1}</Text></View>
             <View aria-hidden>
               <Text style={s.name} numberOfLines={1}>{nameOf(room, p.id)}{isMe ? ` · ${uz.result.you}` : ""}{p.circle === "big" ? " ★" : ""}</Text>
-              <Text style={s.cash}>{money(p.cash)}{isCur ? ` · ${uz.game.turnNow}` : ""}</Text>
+              <Text style={s.cash}>{money(p.cash)}{isCur ? ` · ${uz.game.turnNow}` : ""}{room.members.find((m) => m.userId === p.id)?.autopilot ? ` · ${uz.hud.autopilot.pill}` : ""}</Text>
             </View>
           </View>);
       })}
