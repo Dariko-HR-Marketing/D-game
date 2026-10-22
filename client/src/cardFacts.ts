@@ -1,5 +1,5 @@
 // Karta qarori uchun raqamlar: o'yinchi narx, boshlang'ich to'lov, daromad va pul oqimiga ta'sirni ko'rib qaror qiladi.
-import { crisisAdjusted, newAssetIncome, passiveIncome, RULES } from "@poyga/rules";
+import { crisisAdjusted, newAssetIncome, passiveIncome, salaryOf, RULES } from "@poyga/rules";
 import { uz } from "./i18n/uz";
 import { opsFacts, offerFacts, depositFacts } from "./opsFacts";
 
@@ -45,7 +45,8 @@ export function cardFacts(effect: any, p: P, bankRoom = 0): Facts {
     case "pay": rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); need = e.amount; if (e.needs) notes.push(e.needs === "car" ? F.needsCar : F.needsChild); break;
     case "lendRequest": need = e.amount; rows.push({ label: F.lend, value: fmt(e.amount) }, { label: F.lendBack, value: fmt(e.returnAmount), tone: "good" }); notes.push(F.lendNote); break;
     case "qarOffer": rows.push({ label: F.qarMonthly, value: signed(-e.monthlyExpense), tone: "bad" }); flow = -e.monthlyExpense; notes.push(F.qarNote); break;
-    case "courseSalaryPlus": need = e.price; rows.push({ label: F.price, value: fmt(e.price) }, { label: F.salaryPlus, value: signed(e.salaryPlus), tone: "good" }); flow = e.salaryPlus; break;
+    case "courseSalaryPlus": { need = e.price; const plus = salaryOf({ salary: p.salary + e.salaryPlus, mods: p.mods }) - salaryOf({ salary: p.salary, mods: p.mods }); // faol ish haqi ta'siri bilan (server shunday hisoblaydi)
+      rows.push({ label: F.price, value: fmt(e.price) }, { label: F.salaryPlus, value: signed(plus), tone: "good" }); flow = plus; if (plus !== e.salaryPlus) notes.push(F.salaryModNote.replace("{n}", fmt(e.salaryPlus))); break; }
     case "charity": { need = Math.round(e.incomeShare * (p.salary + passiveIncome({ assets: p.assets } as any))); rows.push({ label: F.charity, value: fmt(need) }, { label: F.twoDice, value: `${e.turns}` }); break; }
     case "carInsurance": need = e.price; rows.push({ label: F.price, value: fmt(e.price) }); if (!p.assets.some((a) => a.kind === "car")) notes.push(F.noCar); break;
     case "payOrLoseBusiness": need = e.amount; rows.push({ label: F.pay, value: signed(-e.amount), tone: "bad" }); notes.push(F.hod7Note); break;

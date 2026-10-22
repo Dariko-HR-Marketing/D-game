@@ -52,3 +52,13 @@ describe("faol daromad ta'siri karta raqamlarida (server natijasi bilan bir xil)
     const f = cardFacts(buy, { cash: 5000, salary: 700, assets: [] } as any, 0); expect(f.flowDelta).toBe(300); expect(f.notes.join(" ")).not.toContain("daromad o'zgargan");
   });
 });
+
+describe("ish haqi o'sishi faol ta'sir bilan", () => {
+  it("«ish haqi +10 %» faol bo'lsa kurs kartasidagi o'sish ham server hisobi bilan bir xil", async () => {
+    const { applyEffect, salaryOf } = await import("@poyga/rules");
+    const e = { kind: "courseSalaryPlus", price: 500, salaryPlus: 200 };
+    const p: any = { id: "t", cash: 9000, salary: 1000, assets: [], mods: [{ t: "salary", pct: 10, months: 6, wait: false, src: "t", id: 1 }], baseExpenses: 400, children: 0, childCost: 0, bankLoans: [], lombards: [], bankDebt: 0 };
+    const f = cardFacts(e, p, 0); const r: any = applyEffect(p, e as any); expect(r.ok).toBe(true);
+    const real = salaryOf(r.player) - salaryOf(p); expect(real).toBe(220); expect(f.flowDelta).toBe(real); expect(f.notes.join(" ")).toContain("ish haqi o'zgargan");
+  });
+});

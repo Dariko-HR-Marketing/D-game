@@ -4,7 +4,7 @@ import { money } from "./format";
 
 export interface HEv {
   n: number; seq: number; at: number; round: number; by: string; mine: boolean; type: string; auto: string | null; ok: boolean; error?: string;
-  move?: { from: number; to: number; die: number | null; fromCircle: "small" | "big"; toCircle: "small" | "big"; cell: { t: string; name?: string }; months: number };
+  move?: { from: number; to: number; die: number | null; dice?: number[]; fromCircle: "small" | "big"; toCircle: "small" | "big"; cell: { t: string; name?: string }; months: number };
   card?: { id: string; stage: "drawn" | "applied" | "decided"; deck: string; mode: string; kind: string; text: string; file: string };
   decision?: { accept: boolean; qty?: number; useBank?: boolean };
   invest?: { price: number; down: number; income: number; yieldPct: number | null; paybackMonths: number | null; bankLoan: number };
@@ -30,7 +30,7 @@ export function whyOf(e: HEv): string[] {
   const h = uz.history, out: string[] = [];
   if (e.auto) out.push(h.auto[e.auto] ?? e.auto);
   if (e.type === "roll" && e.move) {
-    if (e.move.die != null) out.push(`${h.die}: ${e.move.die}`);
+    if (e.move.die != null) out.push(e.move.dice && e.move.dice.length > 1 ? `${h.die}: ${e.move.dice.join(" + ")} = ${e.move.die}` : `${h.die}: ${e.move.die}`);
     out.push(`${h.landed}: ${cellName(e.move)}`);
     if (e.move.fromCircle !== e.move.toCircle) out.push(e.move.toCircle === "big" ? h.toBig : h.toSmall);
     if (e.move.months > 0) out.push(`${e.move.months} ${h.monthsPassed}`);

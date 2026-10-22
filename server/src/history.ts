@@ -8,7 +8,7 @@ export interface HEvent {
   n: number; seq: number; at: number; round: number; by: string; type: string;
   /** Avtomatik bajarilgan bo'lsa sababi: timeout (vaqt tugadi), bot, left, dream_timeout, proposal_timeout */
   auto: string | null;
-  move?: { from: number; to: number; die: number | null; fromCircle: "small" | "big"; toCircle: "small" | "big"; cell: { t: string; name?: string }; months: number };
+  move?: { from: number; to: number; die: number | null; dice?: number[]; fromCircle: "small" | "big"; toCircle: "small" | "big"; cell: { t: string; name?: string }; months: number };
   /** drawn — karta tortildi, qaror kutilmoqda; applied — majburiy karta darhol qo'llandi; decided — shu amalda qaror qilindi */
   card?: { id: string; stage: "drawn" | "applied" | "decided"; deck: string; mode: string; kind: string; text: string; file: string };
   decision?: { accept: boolean; qty?: number; useBank?: boolean; deck?: string };
@@ -46,7 +46,7 @@ export function buildHistory(ctx: Ctx, final: GameState, journal: JournalEntry[]
       for (const [key, n] of now) if (n > (had.get(key) ?? 0)) ev.assetsAdded.push(key.split(":").slice(1).join(":"));
       for (const [key, n] of had) if (n > (now.get(key) ?? 0)) ev.assetsLost.push(key.split(":").slice(1).join(":"));
     }
-    if (act.type === "roll" && bp && ap) ev.move = { from: bp.pos, to: ap.pos, die: s.lastRoll?.playerId === by ? s.lastRoll.die : null, fromCircle: bp.circle, toCircle: ap.circle, cell: cellOf(ctx, ap.circle, ap.pos), months: (ap.monthsPlayed ?? 0) - (bp.monthsPlayed ?? 0) };
+    if (act.type === "roll" && bp && ap) ev.move = { from: bp.pos, to: ap.pos, die: s.lastRoll?.playerId === by ? s.lastRoll.die : null, ...(s.lastRoll?.playerId === by && (s.lastRoll.dice?.length ?? 0) > 1 ? { dice: s.lastRoll.dice } : {}), fromCircle: bp.circle, toCircle: ap.circle, cell: cellOf(ctx, ap.circle, ap.pos), months: (ap.monthsPlayed ?? 0) - (bp.monthsPlayed ?? 0) };
     const cardInfo = (id: string, stage: "drawn" | "applied" | "decided") => { const ce = effectOf(ctx, id, id === s.pending?.cardId ? s.pending : before.pending); return ce ? { id, stage, deck: ce.deck, mode: ce.mode, kind: (ce.effect as { kind?: string }).kind ?? "", text: ce.text ?? "", file: ce.file } : undefined; };
     if (act.type === "decide" && before.pending) {
       ev.card = cardInfo(before.pending.cardId, "decided"); ev.decision = { accept: act.accept, ...(act.qty ? { qty: act.qty } : {}), ...(act.useBank !== undefined ? { useBank: act.useBank } : {}), ...(act.deck ? { deck: act.deck } : {}) };
