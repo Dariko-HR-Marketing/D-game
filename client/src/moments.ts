@@ -101,9 +101,9 @@ export function detectMoments(prev: RoomSnap | null, room: any, userId: string):
     if (prev.conds && now.conds) {
       const done = (c: typeof now.conds) => (c!.cash ? 1 : 0) + (c!.flow ? 1 : 0) + (c!.debt ? 1 : 0) + (c!.partner ? 1 : 0);
       const labels: [keyof NonNullable<RoomSnap["conds"]>, string][] = [["cash", M.condCash], ["flow", M.condFlow], ["debt", M.condDebt], ["partner", M.condPartner]];
-      for (const [k, label] of labels) if (now.conds[k] && !prev.conds[k]) out.push(mk(done(now.conds) === 4
-        ? { kind: "ready", mine: true, who: uz.result.you, tone: "special", strong: true, anim: "bounce", sfx: "levelup", title: M.ready, text: M.readyText, note: M.readyNote, ttl: TTL.long }
-        : { kind: "condition", mine: true, who: uz.result.you, tone: "good", anim: "pulse", sfx: "milestone", title: M.condition.replace("{k}", String(done(now.conds))).replace("{n}", "4"), text: label, ttl: TTL.normal }));
+      const fresh = labels.filter(([k]) => now.conds![k] && !prev.conds![k]);
+      if (fresh.length && done(now.conds) === 4) out.push(mk({ kind: "ready", mine: true, who: uz.result.you, tone: "special", strong: true, anim: "bounce", sfx: "levelup", title: M.ready, text: M.readyText, note: M.readyNote, ttl: TTL.long })); // bir vaqtda bir nechta shart bajarilsa ham «Chiqishga tayyorsiz!» bitta
+      else for (const [, label] of fresh) out.push(mk({ kind: "condition", mine: true, who: uz.result.you, tone: "good", anim: "pulse", sfx: "milestone", title: M.condition.replace("{k}", String(done(now.conds))).replace("{n}", "4"), text: label, ttl: TTL.normal }));
     }
   }
   return out.slice(0, 4);
