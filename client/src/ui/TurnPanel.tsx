@@ -20,7 +20,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
   const st = room.state; const lr = st.lastRoll as { playerId: string; die: number; n: number } | null | undefined;
   const cur = st.players[st.turn % st.players.length]; const curId: string = cur.id;
   const who = lr ? (lr.playerId === userId ? uz.result.you : nameOf(room, lr.playerId)) : null;
-  const big = cur.circle === "big";
+  const big = cur.circle === "big"; const mineC = st.players.find((p: any) => p.id === userId)?.circle as string | undefined;
   if (st.winner) return (<><Text style={s.eyebrow}>{uz.game.winner}</Text><Text style={s.title}>{nameOf(room, st.winner)}</Text></>);
   const hint = big ? uz.hud.hintBig : uz.hud.hintSmall;
   if (compact) return ( // yotiq telefon: taxta markazi kichik — kubik, taymer, qisqa matn va tugma
@@ -35,10 +35,10 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, left, onRoll, wide,
   );
   return (
     <View style={s.wrap} testID="turn-panel">
-      {!compact && <Text style={s.eyebrow}>{cellLabel(cur.circle, cur.pos)}</Text>}
+      {!compact && <Text style={s.eyebrow}>{mineC && mineC !== cur.circle ? (cur.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle) : cellLabel(cur.circle, cur.pos)}</Text>}{/* navbat egasi boshqa aylanada: uning katagi bu taxtada yo'q — aylana nomi */}
       <DiceRow lr={lr} circle={cur.circle} twoDice={cur.twoDice} size={wide ? 56 : 44} />
       <Text style={s.title} accessibilityLiveRegion="polite">{lr ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? uz.hud.rollNow : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
-      {!compact && <Text style={s.sub}>{hint}</Text>}
+      {!compact && (!mineC || mineC === cur.circle) && <Text style={s.sub}>{hint}</Text>}
       {wide && (
         <View style={s.wideRow}>
           {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={48} label={`${left} ${uz.game.seconds}`} />}

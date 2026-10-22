@@ -58,31 +58,32 @@ export function boardGeometry(width: number, wide: boolean, n: number, tight = f
 }
 
 /** Taxta: kvadrat halqa (soat yo'nalishida), ikonkali kataklar, o'yinchi fishkalari; markazda — kubik/navbat paneli (`children`). */
-export function Board({ room, width, wide, currentId, tight, compact, roomy, movement, children }: { room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; compact?: boolean; roomy?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
+export function Board({ room, width, wide, currentId, tight, compact, roomy, viewCircle, movement, children }: { /** viewCircle: ko'ruvchining O'Z aylanasi — taxta shu aylananiki; boshqa aylana o'yinchilari ichki halqada. */ viewCircle?: "small" | "big"; room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; compact?: boolean; roomy?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
   const players: any[] = room.state.players;
-  const anySmall = players.some((p) => p.circle === "small"), anyBig = players.some((p) => p.circle === "big");
-  const circle: "small" | "big" = anySmall ? "small" : "big";
+  const anySmall = players.some((p) => p.circle === "small");
+  const circle: "small" | "big" = viewCircle ?? (anySmall ? "small" : "big"); // ko'ruvchi kimligi ma'lum bo'lmasa (kuzatuvchi) — eski qoida
+  const other: "small" | "big" = circle === "small" ? "big" : "small", otherN = other === "big" ? 53 : 48, otherOffset = other === "big" ? 24 : wide ? 4 : 12;
   const n = circle === "small" ? 48 : 53;
   const g = boardGeometry(width, wide, n, tight, compact, roomy), { W, H, c } = g;
   const offset = circle === "small" ? (wide ? 4 : 12) : 24;
   const tiles = squareRing(n, g.cols, W, H, c);
-  const mixed = anySmall && anyBig;
-  // Aralash o'yin: katta aylana o'yinchilari uchun ichki halqa (kichik nuqtalar)
+  const mixed = players.some((p) => p.circle === other);
+  // Aralash o'yin: boshqa aylana o'yinchilari uchun ichki halqa (kichik nuqtalar); asosiy taxta — ko'ruvchining o'z aylanasi
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
-  const innerTiles = mixed ? squareRing(53, Math.max(8, Math.round(iW / (ic * 1.6))), iW, iH, ic) : [];
+  const innerTiles = mixed ? squareRing(otherN, Math.max(8, Math.round(iW / (ic * 1.6))), iW, iH, ic) : [];
   const hue = (p: any, k: number) => room.names?.[p.id]?.cos?.pawn ?? PLAYER_COLORS[(room.names?.[p.id]?.color ?? k) % PLAYER_COLORS.length]; // do'kon kosmetikasi: faqat rang
   const pawn = pawnSize(wide), PAD = boardPad(wide);
   const curP = players.find((p) => p.id === currentId);
   const at = (p: any): { pos: number; circle: string } => movement?.[p.id] ?? { pos: p.pos, circle: p.circle }; // fishka hozir turgan (yurib kelayotgan) katak
   /** Fishka katak USTIDA emas, taxta RAMKASI (tashqi chet) bo'ylab yuradi: katak ikonkasi yopilmaydi. `inward` — katak tomonga qaragan strelka burchagi (gradus). */
   const where = (p: any): { x: number; y: number; inward: number | null; tx: number; ty: number } => {
-    const q = at(p), big = q.circle === "big" && mixed; const t: Tile = big ? innerTiles[pathIndex(q.pos, 53, 24)] : tiles[pathIndex(q.pos, q.circle === "small" ? 48 : 53, q.circle === "small" ? (wide ? 4 : 12) : 24)];
+    const q = at(p), big = q.circle !== circle && mixed; const t: Tile = big ? innerTiles[pathIndex(q.pos, otherN, otherOffset)] : tiles[pathIndex(q.pos, n, offset)];
     if (big) return { x: inset + t.x + t.w / 2, y: inset + t.y + t.h / 2, inward: null, tx: 1, ty: 0 };
     const dx = t.x + t.w >= W - 0.5 ? 1 : t.x <= 0.5 ? -1 : 0, dy = t.y + t.h >= H - 0.5 ? 1 : t.y <= 0.5 ? -1 : 0, lift = pawn * 0.28; // chetdan biroz tashqariga
     return { x: t.x + t.w / 2 + dx * (t.w / 2 + lift), y: t.y + t.h / 2 + dy * (t.h / 2 + lift), inward: (Math.atan2(-dy, -dx) * 180) / Math.PI, tx: dy !== 0 ? 1 : 0, ty: dy !== 0 ? 0 : 1 };
   };
   return (
-    <View testID="board" style={{ padding: PAD }}>
+    <View testID="board" {...({ dataSet: { circle } } as any)} style={{ padding: PAD }}>
       <View style={{ width: W, height: H }}>
         <View style={StyleSheet.absoluteFill} role="img" aria-label={`Taxta. ${players.map((p) => `${nameOf(room, p.id)}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}`}>
           {tiles.map((t, pi) => {

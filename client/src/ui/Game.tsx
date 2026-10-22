@@ -87,8 +87,9 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   const mv = useMovement(room), settled = mv.settled; // fishka kataklar ustidan yurib bo'lguncha karta/qaror ko'rsatilmaydi
   const card = settled ? cardRaw : null;
   const state = room.state; const cur = currentId(room); const curP = state.players.find((p: any) => p.id === cur);
+  const viewCircle: "small" | "big" | undefined = mine?.circle ?? curP?.circle; // taxta va sarlavha — ko'ruvchining O'Z aylanasi (kuzatuvchida — navbat egasiniki)
   const tri = wide && !compact && width >= 1366; // kompyuter (≥ 1366 px): uch ustun — chapda moliya va reaksiyalar, markazda taxta, o'ngda vaqt, voqealar va o'yinchilar
-  const sideW = compact ? Math.max(280, Math.min(380, Math.round(width * 0.4))) : tri ? 340 : 380, rightW = 300, nCells = state.players.some((p: any) => p.circle === "small") ? 48 : 53;
+  const sideW = compact ? Math.max(280, Math.min(380, Math.round(width * 0.4))) : tri ? 340 : 380, rightW = 300, nCells = viewCircle === "big" ? 53 : viewCircle === "small" ? 48 : state.players.some((p: any) => p.circle === "small") ? 48 : 53;
   // Kompyuterda taxta kenglikka ham, balandlikka ham moslanadi: sarlavha, o'yinchilar qatori, izoh va pastki qator uchun joy qoldiriladi
   const pad = boardPad(wide), short = wide && !compact && height < 820, reserveH = compact ? HEADER_H + 2 * pad + 2 * space.md : tri ? HEADER_H + space.md + space.lg + WIDE_LEGEND_H + WIDE_NOTE_H + 3 * space.md + 2 * pad : HEADER_H + space.md + space.lg + WIDE_LANE_H + WIDE_LEGEND_H + WIDE_NOTE_H + (short ? WIDE_STRIP_SHORT_H : WIDE_STRIP_H) + 4 * space.md + 2 * pad;
   const { boardWidth, tight } = useMemo(() => { // faqat oyna/aylana o'zgarganda qayta hisoblanadi (har kadrda emas)
@@ -208,11 +209,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
     {room.mode === "tutorial" && !state.winner && <TutorialCoach room={room} userId={userId} />}
     {autoMe && <View testID="autopilot-banner" role="alert"><Banner kind="warn"><Text style={{ fontWeight: "800", color: tone.warn }}>{uz.hud.autopilot.title}. </Text>{uz.hud.autopilot.text}</Banner>{onResume && <View style={{ marginTop: space.sm }}><Button label={uz.hud.autopilot.back} onPress={onResume} /></View>}</View>}
     {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
-  const circleName = curP?.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
+  const circleName = viewCircle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const tiny = width < 360; // 320 px telefon: oltita tugma va sarlavha sig'sin
   const header = (
     <View style={[s.header, (!wide || compact) && { gap: 2, paddingHorizontal: space.md }]}>
-      <View style={[s.dotC, { backgroundColor: big ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
+      <View style={[s.dotC, { backgroundColor: viewCircle === "big" ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
       <View style={wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
         <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
         <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
@@ -248,7 +249,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
-          <Board room={room} width={boardWidth} wide tight={tight} compact={compact} movement={mv.shown} currentId={cur}>{centre}</Board>
+          <Board room={room} width={boardWidth} wide tight={tight} compact={compact} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board>
           {!compact && <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>}
           {tri && mine && (
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
@@ -281,7 +282,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
         {tab === "field" && (<>
           <TimePanel room={room} userId={userId} settled={settled} />
           {stats}
-          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} roomy={tablet} movement={mv.shown} currentId={cur}>{centre}</Board></View>
+          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} roomy={tablet} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
             {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={52} label={`${left} ${uz.game.seconds}`} />}
