@@ -11,6 +11,10 @@ describe("tarix matnlari", () => {
     expect(titleOf(e)).toContain("4 → 8"); expect(cellName(e.move!)).toContain("Imkoniyat");
     expect(whyOf(e).join("|")).toContain("Kubik: 4");
   });
+  it("katta aylana: ikkita kubik «4 + 5 = 9» ko'rinishida", () => {
+    const e = base({ move: { from: 3, to: 12, die: 9, dice: [4, 5], fromCircle: "big", toCircle: "big", cell: { t: "I" }, months: 0 } });
+    expect(whyOf(e).join("|")).toContain("Kubik: 4 + 5 = 9");
+  });
   it("qaror: sotib olish raqamlari va avtomatik sabab", () => {
     const e = base({ type: "decide", auto: "timeout", decision: { accept: true }, card: { id: "c1", stage: "decided", deck: "x", mode: "m", kind: "buy", text: "Kichik biznes", file: "" }, invest: { price: 1020000, down: 100000, income: 5000, yieldPct: 5.9, paybackMonths: 204, bankLoan: 920000 } });
     const w = whyOf(e).join("|");

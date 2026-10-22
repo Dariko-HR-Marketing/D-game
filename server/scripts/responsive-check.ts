@@ -84,4 +84,4 @@ for (const [w, h] of SIZES) {
 }
 writeFileSync(`${OUT}/issues.json`, JSON.stringify(issues, null, 1));
 const byKind: Record<string, number> = {}; for (const i of issues) byKind[i.kind] = (byKind[i.kind] ?? 0) + 1; console.log(byKind);
-await b.close(); await x.app.close(); process.exit(0);
+await b.close(); await x.app.close(); console.log(issues.length ? `RESPONSIVE: ${issues.length} ta muammo (${OUT}/issues.json)` : "RESPONSIVE: hammasi to'g'ri"); process.exit(process.env.STRICT === "1" && issues.length ? 1 : 0);

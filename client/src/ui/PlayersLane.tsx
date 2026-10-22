@@ -14,7 +14,7 @@ export const levelOf = (room: RoomView, id: string): number | undefined => room.
 export function PlayersLane({ room, userId, wide }: { room: RoomView; userId: string; wide?: boolean }) {
   const players: any[] = room.state.players; const cur = currentId(room);
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.row, wide && { flexWrap: "nowrap" }]} role="group" aria-label={uz.game.players}>
+    <ScrollView horizontal tabIndex={0} showsHorizontalScrollIndicator={false} contentContainerStyle={[s.row, wide && { flexWrap: "nowrap" }]} role="group" aria-label={uz.game.players}>
       {players.map((p, k) => {
         const isCur = p.id === cur, isMe = p.id === userId, mem = room.members.find((m) => m.userId === p.id);
         const bot = room.state.bots.includes(p.id), off = !bot && mem?.online === false;

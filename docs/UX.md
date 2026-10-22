@@ -51,3 +51,12 @@ Ekranlar avtomatik rasm va axe bilan tekshirilgan, lekin haqiqiy telefon/planshe
 ## Do'kon, sinf, turnir ekranlari
 
 Bosh sahifada uchta yangi qator: «Turnirlar», «Sinf», «Do'kon va Plus» (`ui/Biz.tsx`). Do'kon: telefon tasdig'i bloki, Plus kartasi (narx belgilanmagan bo'lsa tugma o'chiq), kutilayotgan buyurtma (ota-ona kutish / to'lov), fishka-ramka-fon tablari. Sinf: kod bilan qo'shilish, sinf xonasiga kirish, o'qituvchi paneli (sinflar, xona, topshiriqlar, o'quvchilar hisoboti, CSV). Turnir: shartlar, ro'yxatdan o'tish (16 yoshgacha ota-ona telefoni), xona, reyting. Kosmetika taxtadagi fishka rangi, avatar ramkasi va foniga ta'sir qiladi. Axe: `server/scripts/axe-biz.ts` — 390 va 1440 px da buzilish yo'q.
+
+## Ekran turlari va moslashuvchanlik (2026-10-22)
+`client/src/layout.ts` — bitta qoida: **phone** (tik telefon, < 600 px: bitta ustun, pastki menyu, qaror — pastki varaq), **tablet** (tik planshet ≥ 600 px: telefon tartibi, taxta kengroq va balandlikka sig'adi, ustun markazda ≤ 760 px), **compact** (yotiq telefon, balandlik < 520: chapda qaror/moliya, o'ngda sig'adigan taxta, qaror tugmalari yonma-yon, sahifa aylanmaydi), **wide** (yotiq planshet/kompyuter ≥ 900 px; ≥ 1366 da uch ustun). Native ilova ikkala yo'nalishda ishlaydi (`app.json` orientation: default).
+- Shriftlar: matn ≥ 12 px, nishon raqamlari ≥ 10, katak yozuvlari ≥ 8 (kichikroq bo'lsa yashiriladi — ikonka + rang + «Katak turlari»).
+- Tekshiruv: `server/scripts/responsive-check.ts` (21 o'lcham × 15 ekran: gorizontal aylanish, ekrandan chiqqan boshqaruv, bosish maydoni, shrift, asosiy tugma ko'rinishi; `STRICT=1` bo'lsa muammoda xato bilan chiqadi — CI da 3 o'lchamda), `pnpm a11y` (axe: 5 o'lcham, yotiq telefon va tik planshet ham).
+
+## Kubik oynasi (modal)
+O'z navbatingizda «Kubikni tashlash» (katta aylanada «Kubiklarni tashlash», 2 ta kubik) tugmasi oynaning eng oldida chiqadi (`ui/DiceModal.tsx`): kubik(lar) «?», navbat taymeri, tugma fokusda (probel/Enter). «Avval hisobni ko'raman» (yoki fon/Esc) — shu tashlash imkoniyati uchun yopiladi, sahifadagi oddiy tugma qoladi (avval aktiv sotish, kredit va h.k.). «Bu oynani o'chirish» — oddiy tugmaga qaytadi (`poyga-roll-modal=off`). Tashlagandan keyin kubik(lar) shu oynada aylanadi, so'ng «Yig'indi: 4 + 5 = 9» (~2,3 s); boshqa o'yinchilarda to'smaydigan ko'rsatma. Yo'riqnoma ochiq bo'lsa tashlash oynasi chiqmaydi, kubik natijasi ko'rsatilayotganda yo'riqnoma ochilmaydi. Tekshiruv: `server/scripts/dice-check.ts` (axe bilan, CI da).
+
