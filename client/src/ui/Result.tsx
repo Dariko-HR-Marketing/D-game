@@ -3,64 +3,41 @@ import { accuracyOf, type HView } from "../history";
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Button } from "./Button";
-import { Banner, Card, Pill, Stat } from "./kit";
+import { Banner, Card, Pill } from "./kit";
 import { Screen } from "./Screen";
+import { ReportView } from "./ReportView";
 import { uz } from "../i18n/uz";
-import { money } from "../format";
-import { color, font, radius, space, tone } from "../theme";
-import { bars, downsample } from "../analysisView";
+import { color, font, space, tone } from "../theme";
+import type { ReportData } from "../report";
 import type { Http } from "../net/http";
 
-/** Pul oqimi grafigi: o'qlar (eng katta qiymat va aylanalar), manfiy qiymat nol chizig'idan pastga qizil; ma'lumot kam bo'lsa tushuntiriladi. */
-function Chart({ values }: { values: number[] }) {
-  if (values.length < 4) return <Text style={s.muted}>{uz.result.fewData}</Text>;
-  const pts = downsample(values, 28); const b = bars(pts); const hasNeg = b.some((x) => x.neg); const H = hasNeg ? 36 : 72; const max = Math.max(1, ...pts.map(Math.abs)); // o'q ham ustunlar bilan bir xil masshtabda
-  return (
-    <View accessibilityRole="image" accessibilityLabel={`${uz.result.cashflowChart}: ${uz.result.chartRange} ${money(Math.min(...values))} – ${money(Math.max(...values))}`} style={{ gap: space.xs }}>
-      <View style={s.chartRow} aria-hidden>
-        <View style={[s.axis, hasNeg && { paddingVertical: 0 }]}><Text style={s.axisT}>{money(max)}</Text><Text style={s.axisT}>0</Text>{hasNeg && <Text style={s.axisT}>{money(-max)}</Text>}</View>
-        <View style={s.chart}>{b.map((x, i) => (
-          <View key={i} style={s.col}>
-            <View style={{ height: H, justifyContent: "flex-end" }}>{!x.neg && <View style={[s.bar, { height: Math.max(2, x.h * H), backgroundColor: color.green }]} />}</View>
-            {hasNeg && <View style={{ height: H }}>{x.neg && <View style={[s.bar, { height: Math.max(2, x.h * H), backgroundColor: color.red }]} />}</View>}
-          </View>))}</View>
-      </View>
-      <Text style={s.axisT} aria-hidden>{uz.result.chartX}</Text>
-    </View>
-  );
-}
-
+/** O'yin natijasi: g'olib, har bir o'yinchi uchun to'liq tahlil hisoboti (o'ziniki batafsil, boshqalar — umumiy), CSV yuklab olish, tarix. */
 export function Result({ http, code, onHome }: { http: Http; code: string; onHome: () => void }) {
-  const [a, setA] = useState<any>(null); const [err, setErr] = useState(false);
-  const [acc, setAcc] = useState<ReturnType<typeof accuracyOf>>(null);
-  useEffect(() => { http.analysis(code).then(setA).catch(() => setErr(true)); }, [http, code]);
+  const [d, setD] = useState<ReportData | null>(null); const [err, setErr] = useState<null | "plus" | "fail">(null); const [tries, setTries] = useState(0); const [csvErr, setCsvErr] = useState(false);
+  const [acc, setAcc] = useState<ReturnType<typeof accuracyOf>>(null); const [hist, setHist] = useState(false);
+  useEffect(() => { setErr(null); (http.report(code) as Promise<ReportData>).then(setD).catch((e: any) => setErr(e?.status === 402 ? "plus" : "fail")); }, [http, code, tries]);
   useEffect(() => { http.gameLog(code).then((h: HView) => setAcc(accuracyOf(h.players.find((p) => p.isMe)?.calc ?? null))).catch(() => {}); }, [http, code]); // hisob aniqligi — qo'shimcha ma'lumot, xato bo'lsa ko'rsatilmaydi
-  const me = a?.players.find((p: any) => p.isMe); const [hist, setHist] = useState(false);
+  const download = async () => {
+    const doc = (globalThis as any).document; if (!doc) return; setCsvErr(false);
+    try { const text = await http.reportCsv(code); const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })); const a = doc.createElement("a"); a.href = url; a.download = `poyga-hisobot-${code}.csv`; doc.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); } catch { setCsvErr(true); }
+  };
   return (
-    <Screen title={uz.result.title} subtitle={a ? `${uz.result.analysis} · ${a.rounds} ${uz.result.round}` : undefined} maxWidth={720}>
-      {a?.winner ? (
-        <Card accent="green" style={{ alignItems: "center", gap: space.xs }} label={`${uz.result.winner}: ${a.winner}`}>
-          <Text style={s.trophy} aria-hidden>★</Text><Text style={s.winLabel}>{uz.result.winner}</Text><Text style={s.winName}>{a.winner}</Text>
-          {me && a.players.find((p: any) => p.isMe)?.id === a.winner && <Pill label={uz.result.youWon} kind="good" />}
-        </Card>) : a ? <Banner kind="info">{uz.result.noWinner}</Banner> : null}
-      {a?.endReason === "time" && <Banner kind="warn">{uz.result.timeUp}</Banner>}
-      {!a && !err && <Text style={s.muted} accessibilityLiveRegion="polite">{uz.result.loading}</Text>}
-      {err && <Banner kind="bad">{uz.result.failed}</Banner>}
-      <View style={s.grid}>
-        {a?.players.map((p: any) => (
-          <View key={p.id} style={s.cell}>
-            <Card accent={p.isMe ? "green" : undefined} style={{ flex: 1 }}>
-              <View style={s.nameRow}><Text style={s.name}>{p.id}</Text>{p.isMe && p.id !== uz.result.you && <Pill label={uz.result.you} kind="good" />}{p.id === a.winner && <Pill label={uz.result.winner} kind="warn" />}</View>
-              <Chart values={p.series.map((x: any) => x.cashflow)} />
-              <View style={s.stats}>
-                <Stat label={uz.result.peakCash} value={money(p.peakCash)} /><Stat label={uz.result.peakFlow} value={money(p.peakCashflow)} kind="good" />
-                <Stat label={uz.result.exitRound} value={p.exitRound ?? uz.result.never} text={p.exitRound == null} /><Stat label={uz.result.restarts} value={String(p.restarts)} kind={p.restarts > 0 ? "bad" : "neutral"} />
-                <Stat label={uz.result.accepted} value={String(p.decisions.accepted)} /><Stat label={uz.result.skipped} value={String(p.decisions.skipped)} />
-              </View>
-            </Card>
-          </View>))}
-      </View>
-      {a && <Button label={uz.history.title} kind="ghost" onPress={() => setHist(true)} />}
+    <Screen title={uz.result.title} subtitle={d ? `${uz.report.title} · ${d.meta.rounds} ${uz.result.round}` : undefined} maxWidth={1080}>
+      {d?.meta.winner ? (
+        <Card accent="green" style={{ alignItems: "center", gap: space.xs }} label={`${uz.result.winner}: ${d.meta.winner}`}>
+          <Text style={s.trophy} aria-hidden>★</Text><Text style={s.winLabel}>{uz.result.winner}</Text><Text style={s.winName}>{d.meta.winner}</Text>
+          {d.me.outcome === "won" && <Pill label={uz.result.youWon} kind="good" />}
+        </Card>) : d ? <Banner kind="info">{uz.result.noWinner}</Banner> : null}
+      {d?.meta.endReason === "time" && <Banner kind="warn">{uz.result.timeUp}</Banner>}
+      {!d && !err && <Text style={s.muted} accessibilityLiveRegion="polite">{uz.report.loading}</Text>}
+      {err === "plus" && <Banner kind="info">{uz.report.plus}</Banner>}
+      {err === "fail" && (<View style={{ gap: space.sm }}><Banner kind="bad">{uz.report.failed}</Banner><Button label={uz.report.retry} kind="ghost" onPress={() => setTries((n) => n + 1)} /></View>)}
+      {d && <ReportView data={d} />}
+      {d && <View style={s.actions}>
+        <View style={s.actionCell}><Button label={uz.report.csv} kind="ghost" onPress={download} /></View>
+        <View style={s.actionCell}><Button label={uz.report.history} kind="ghost" onPress={() => setHist(true)} /></View>
+      </View>}
+      {csvErr && <Banner kind="bad">{uz.report.csvFailed}</Banner>}
       {acc && <Card accent="green" label={uz.ledger.accuracy}><Text style={s.winLabel}>{uz.ledger.accuracy}</Text><Text style={s.winName} testID="calc-accuracy">{acc.pct} %</Text><Text style={s.muted}>{acc.firstTry} / {acc.total} {uz.history.accuracyOf}. {uz.history.accuracyNote}</Text></Card>}
       <Button label={uz.result.home} onPress={onHome} />
       {hist && <HistoryDetail http={http} code={code} onClose={() => setHist(false)} />}
@@ -68,6 +45,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
   );
 }
 const s = StyleSheet.create({
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: space.md }, actionCell: { flexGrow: 1, flexBasis: 240 },
   muted: { color: tone.muted, fontSize: font.md }, trophy: { fontSize: 36, color: color.gold }, winLabel: { color: tone.muted, fontWeight: "700", fontSize: font.sm, textTransform: "uppercase", letterSpacing: 1 }, winName: { color: color.navy, fontSize: font.xxl, fontWeight: "800", textAlign: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md }, cell: { flexGrow: 1, flexBasis: 300 },
   nameRow: { flexDirection: "row", gap: space.sm, alignItems: "center", flexWrap: "wrap" }, name: { fontWeight: "800", color: color.navy, fontSize: font.lg },

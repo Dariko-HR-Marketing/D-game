@@ -60,3 +60,8 @@ Bosh sahifada uchta yangi qator: «Turnirlar», «Sinf», «Do'kon va Plus» (`u
 ## Kubik oynasi (modal)
 O'z navbatingizda «Kubikni tashlash» (katta aylanada «Kubiklarni tashlash», 2 ta kubik) tugmasi oynaning eng oldida chiqadi (`ui/DiceModal.tsx`): kubik(lar) «?», navbat taymeri, tugma fokusda (probel/Enter). «Avval hisobni ko'raman» (yoki fon/Esc) — shu tashlash imkoniyati uchun yopiladi, sahifadagi oddiy tugma qoladi (avval aktiv sotish, kredit va h.k.). «Bu oynani o'chirish» — oddiy tugmaga qaytadi (`poyga-roll-modal=off`). Tashlagandan keyin kubik(lar) shu oynada aylanadi, so'ng «Yig'indi: 4 + 5 = 9» (~2,3 s); boshqa o'yinchilarda to'smaydigan ko'rsatma. Yo'riqnoma ochiq bo'lsa tashlash oynasi chiqmaydi, kubik natijasi ko'rsatilayotganda yo'riqnoma ochilmaydi. Tekshiruv: `server/scripts/dice-check.ts` (axe bilan, CI da).
 
+## O'yin tugagach shaxsiy hisobot (2026-10-22)
+- Natija ekrani har bir o'yinchiga **o'z hisobotini** ko'rsatadi: yakuniy ko'rsatkichlar, oyma-oy dinamika (sof boylik, naqd, pul oqimi, passiv daromad; grafik + jadval ko'rinishi), maqsad sari yo'l, qarorlar (qabul/o'tkazildi/majburiy), investitsiyalar, xarajat va xavflar, xulosa va tavsiyalar, muhim lahzalar, boshqalar bilan taqqoslash, CSV yuklab olish.
+- Hisob serverda jurnaldan qayta o'ynatib quriladi (`rules/src/report.ts`); boshqa o'yinchilarning faqat umumiy ko'rsatkichlari beriladi. Tavsiyalar qoida bilan ma'lumotdan chiqariladi (matnlar `uz.ts`da), taxmin yo'q.
+- Rang yagona belgi emas: grafikka jadval ko'rinishi, qarorlar ustunida raqamlar beriladi. Tekshiruv: `server/scripts/report-check.ts` (4 o'lcham, axe, CSV, jadval, gorizontal aylanish yo'q).
+

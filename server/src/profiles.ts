@@ -159,6 +159,8 @@ export class ProfileService {
       gamesFinished: finished, gamesWithWinner: withWinner, winShare: finished ? withWinner / finished : 0 };
   }
   hasResult(room: string) { return this.results.some((r) => r.room === room); }
+  /** Tugagan xonaning saqlangan natijasi (ball va chiqib ketganlar hisobot uchun). */
+  resultOf(room: string): GameResult | undefined { return this.results.find((r) => r.room === room); }
   /** Foydalanuvchining eng oxirgi tugagan o'yini (bepul tarifda faqat shuning tahlili ochiq). */
   latestRoomOf(userId: string): string | null { for (let i = this.results.length - 1; i >= 0; i--) if (this.results[i].players.some((p) => p.id === userId && !p.bot)) return this.results[i].room; return null; }
   history(userId: string, limit = 50) {

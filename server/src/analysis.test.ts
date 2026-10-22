@@ -18,6 +18,30 @@ async function playRoom(x: ReturnType<typeof buildApp>, turns: number) {
   return { code: r.code, room };
 }
 
+describe("o'yin tugagach hisobot API (har bir o'yinchi uchun)", () => {
+  it("o'ziniki — batafsil, boshqalar — qisqa xulosa; ID lar ismga almashadi; ishtirokchi bo'lmaganga ruxsat yo'q", async () => {
+    const x = buildApp({ adminAuth: envAdminAuth(ADM) }); const { code, room } = await playRoom(x, 160);
+    room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room);
+    const res = await x.app.inject({ method: "GET", url: `/me/games/${code}/report`, headers: H("alice") }); expect(res.statusCode).toBe(200); const b = res.json();
+    expect(b.me.name).toBe("Alisa"); expect(b.me.id).toBe("me"); expect(b.me.series.length).toBeGreaterThan(1); expect(Array.isArray(b.me.insights)).toBe(true); expect(Array.isArray(b.me.moments)).toBe(true);
+    expect(b.others).toHaveLength(1); expect(b.others[0].name).toBe("Bobur"); expect(b.others[0].decisions).toBeDefined(); expect(b.others[0].insights).toBeUndefined(); expect(b.others[0].moments).toBeUndefined(); expect(b.others[0].assets).toEqual(expect.any(Number));
+    expect(b.ranking).toHaveLength(2); expect(b.ranking).toContain("me"); expect(b.meta.winner === null || typeof b.meta.winner === "string").toBe(true);
+    expect(JSON.stringify(b)).not.toContain("\"bob\""); expect(JSON.stringify(b)).not.toContain("\"alice\"");
+    const rb = await x.app.inject({ method: "GET", url: `/me/games/${code}/report`, headers: H("bob") }).then((r) => r.json()); expect(rb.me.name).toBe("Bobur"); expect(rb.others[0].name).toBe("Alisa");
+    expect(rb.me.rank + b.me.rank).toBe(3);
+    expect((await x.app.inject({ method: "GET", url: `/me/games/${code}/report`, headers: H("eve") })).statusCode).toBe(403);
+    expect((await x.app.inject({ method: "GET", url: `/me/games/ZZZZZZ/report`, headers: H("alice") })).statusCode).toBe(404);
+    expect((await x.app.inject({ method: "GET", url: `/me/games/${code}/report` })).statusCode).toBe(401);
+  });
+  it("CSV: bo'limlar (summary, series, assets, moments, insights) va Excel uchun BOM", async () => {
+    const x = buildApp({ adminAuth: envAdminAuth(ADM) }); const { code, room } = await playRoom(x, 100);
+    room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room);
+    const res = await x.app.inject({ method: "GET", url: `/me/games/${code}/report?format=csv`, headers: H("alice") }); expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toContain("text/csv"); expect(res.headers["content-disposition"]).toContain(`poyga-hisobot-${code}.csv`);
+    const t = res.body; expect(t.charCodeAt(0)).toBe(0xfeff); expect(t).toContain("section,a,b"); expect(t).toContain("\r\nseries,0,"); expect(t).toContain("summary,o'yinchi,Alisa");
+  });
+});
+
 describe("tahlil API", () => {
   it("jurnaldan qayta o'ynab holatni tiklaydi; ID lar ismga almashadi; ishtirokchi bo'lmaganga ruxsat yo'q", async () => {
     const x = buildApp({ adminAuth: envAdminAuth(ADM) }); const { code, room } = await playRoom(x, 80);
