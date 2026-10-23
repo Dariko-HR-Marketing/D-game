@@ -42,6 +42,11 @@ describe("lahzalar: holat farqidan his-tuyg'uli ishoralar", () => {
     const biz = { kind: "business", code: "B", price: 1, monthlyIncome: 25_000, creditPayment: 0, credit: 0 };
     const ready = step(room({ cash: 1_000_000, assets: [{ ...biz, monthlyIncome: 24_999 }] }), room({ cash: 1_000_000, assets: [biz] })); expect(ready.some((m) => m.kind === "ready")).toBe(true);
   });
+  it("bir vaqtda bir nechta shart bajarilsa «Chiqishga tayyorsiz!» faqat bitta chiqadi", () => {
+    const biz = { kind: "business", code: "B", price: 1, monthlyIncome: 25_000, creditPayment: 0, credit: 0 };
+    const both = step(room({ cash: 900_000, assets: [{ ...biz, monthlyIncome: 24_999 }] }), room({ cash: 1_000_000, assets: [biz] }));
+    expect(both.filter((m) => m.kind === "ready")).toHaveLength(1); expect(both.filter((m) => m.kind === "condition")).toHaveLength(0);
+  });
   it("katta aylanaga chiqish: topshirilgan bizneslar va yozilgan pul oqimi tushuntiriladi", () => {
     const biz = { kind: "small_business", code: "S", price: 1, monthlyIncome: 100, creditPayment: 0, credit: 0 };
     const m = step(room({ assets: [biz, biz] }), room({ circle: "big", assets: [], lockedFlow: 25_400 }))[0];

@@ -47,6 +47,7 @@ const claimBtn = d.getByTestId("claim-seats").getByRole("button"); await claimBt
 check(await claimBtn.count() === 1 && /Bu menman/.test(await claimBtn.first().innerText()), "oflayn o'yinchi (a) ro'yxatda: yagona «Bu menman»");
 await claimBtn.first().click();
 check(await inGame(d), "o'rin qaytarib olindi: boshqa brauzerdan o'yinga qaytdi (sahifa o'zi yangilandi)");
+for (let i = 0; i < 80 && room.members.find((m: any) => m.userId === "rja")!.online !== true; i++) await new Promise((r) => setTimeout(r, 100)); // sahifa qayta yuklanib ulanguncha (poyga yuklanish tezligiga bog'liq)
 check(room.members.find((m: any) => m.userId === "rja")!.online === true && !room.members.some((m: any) => m.userId === "rjd"), "serverda a o'rni onlayn; yangi a'zo qo'shilmadi");
 // 3) O'zi «O'yindan chiqish»ni bosgan qayta kira olmaydi
 x.rooms.leave(code, "rjb"); await ctxOf(b0).close(); const b1 = await open("rjb");

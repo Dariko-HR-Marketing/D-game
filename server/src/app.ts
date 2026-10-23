@@ -4,7 +4,9 @@ import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
-import { AnalysisService, presentable } from "./analysis";
+import { AnalysisService, presentable, presentReport, reportCsv } from "./analysis";
+import { gamePointsV2 } from "./progress";
+import { BALL, XP } from "@poyga/rules";
 import { historyCsv, presentHistory } from "./history";
 import { Metrics } from "./metrics";
 import { WriteQueue } from "./persist";
@@ -244,6 +246,19 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
     if (!commerce.analysisAllowed(uid, !profiles.hasResult(code) || profiles.latestRoomOf(uid) === code)) return reply.code(402).send({ error: "plus_required" }); // bepul: faqat oxirgi o'yin tahlili
     return { ...presentable(r.analysis, (id) => profiles.get(id)?.name, uid), mode: (r.state as any).mode ?? "standard", endReason: (r.state as any).endReason ?? "win" };
+  }));
+  // O'yin tugagach har bir o'yinchi uchun to'liq hisobot: o'ziniki — batafsil, boshqalar — qisqa xulosa. ?format=csv — Excel/tahlil uchun.
+  app.get("/me/games/:code/report", secured(async (uid, req, reply) => {
+    const code = String((req.params as any).code).toUpperCase();
+    const res = profiles.resultOf(code); const left = res ? res.players.filter((p) => p.left).map((p) => p.id) : [];
+    const r = await analysis.report(code, left); if (!r) return reply.code(404).send({ error: "no_game" });
+    if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
+    if (!commerce.analysisAllowed(uid, !profiles.hasResult(code) || profiles.latestRoomOf(uid) === code)) return reply.code(402).send({ error: "plus_required" });
+    const rp = res?.players.find((p) => p.id === uid); const humans = res ? res.players.filter((p) => !p.bot).length : 0;
+    const score = res && rp && !rp.bot ? { points: gamePointsV2(res, rp), xp: res.mode === "tutorial" || rp.left ? null : (humans >= BALL.minHumans ? XP.game : XP.botGame) + (rp.xpBonus ?? 0) } : null;
+    const rep = presentReport(r.report, (id) => profiles.get(id)?.name, uid, score);
+    if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="poyga-hisobot-${code}.csv"`).send(reportCsv(rep));
+    return rep;
   }));
   // O'yin tarixi (har bir amal): faqat ishtirokchi; tugagan va davom etayotgan o'yinlar uchun. ?format=csv — tahlil (Excel/SWOT) uchun.
   app.get("/me/games/:code/log", secured(async (uid, req, reply) => {

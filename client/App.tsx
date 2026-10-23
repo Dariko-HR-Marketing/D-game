@@ -3,6 +3,7 @@ import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useFonts, Manrope_400Regular, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
 import { Connection, ConnState } from "./src/net/connection";
+import { paced } from "./src/net/paced";
 import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
 import { DreamPick } from "./src/ui/DreamPick";
@@ -80,7 +81,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const http = useMemo(() => { setAvatarBase(httpBase(SERVER)); return makeHttp(httpBase(SERVER), session.token); }, [session.token]);
   const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments">("home");
   const [rulesOpen, setRulesOpen] = useState(false); // o'yin davomida ham ochiladi
-  useEffect(() => { const un = conn.subscribe(setSt); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
+  useEffect(() => { const un = conn.subscribe(paced(setSt)); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
   useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "POYGA"; } }, []);
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
   useForeground(() => conn.resume(), () => conn.markLost()); // ilovadan/ustundan qaytilganda yoki tarmoq qaytganda: «Aloqa uzildi» → qayta ulanish
