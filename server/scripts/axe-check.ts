@@ -45,7 +45,7 @@ for (const [w, h] of [[390, 844], [844, 390], [768, 1024], [1024, 768], [1440, 9
   for (let i = 0; i < 300 && !room.state!.pending; i++) { const me = currentPlayer(room.state!).id; await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq); }
   if (room.state!.pending) { const me = currentPlayer(room.state!).id; const pg = me === "ua" + w ? a : c; await pg.waitForTimeout(600); await scan(pg, `o'yin+karta ${tag}`); }
   room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room); (x.rooms as any).emit(room);
-  await a.waitForSelector("text=O'yin natijasi"); await a.waitForSelector("text=Kichik aylanadan chiqdi", { timeout: 15000 }); await scan(a, `natija ${tag}`);
+  await a.waitForSelector("text=O'yin natijasi"); await a.getByTestId("report").waitFor({ timeout: 15000 }); await scan(a, `natija ${tag}`);
 }
 console.log(total === 0 ? "\nAXE: buzilish yo'q" : `\nAXE: ${total} ta buzilish`);
 await b.close(); await x.app.close(); process.exit(total === 0 ? 0 : 1);
