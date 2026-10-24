@@ -134,6 +134,13 @@ export function applyImport(base: Cards, rows: RawRow[], opts: { importId: strin
     const meta: CardMetaT = { ...rowToMeta(r), ...(hit.deck !== "kasb" && mv && mv !== "kasb" && mv !== own ? { deck: mv } : {}) };
     setMeta(kasbN !== undefined ? `kasb-${kasbN}` : key, meta, r.operation as LogEntry["op"], r.card_id);
   }
+  // Orzular guruhi to'liq sinxronlanadi (texnik topshiriq 6.6): jadvalda bo'lmagan mavjud orzu kartalari olib tashlanadi (ID saqlanadi, kolodaga tushmaydi).
+  const dreamIds = new Set(rows.filter((r) => r.card_kind === "DREAM" && r.operation !== "REMOVE").map((r) => r.card_id));
+  if (dreamIds.size) cards.catalog.forEach((c, i) => {
+    if (c.kind !== "DREAM" || dreamIds.has(c.id) || c.retired) return;
+    const neu = { ...c, retired: "orzular to'plami almashtirildi (jadvalda yo'q)", draw: false, publish: false } as CatalogCardT; cards.catalog[i] = neu;
+    if (touch("catalog", c.id, c.id, "REMOVE", c, neu)) retired++;
+  });
   const drawEnabled = rows.filter((r) => r.operation !== "REMOVE" && r.draw_enabled === "TRUE").length, needsMapping = rows.filter((r) => r.needs_engine_mapping === "TRUE").length;
   return { cards, log, report: { importId: opts.importId, rows: rows.length, counts, inserted, updated, retired, unchanged, metaUpdated, drawEnabled, needsMapping, imageStatus, art, warnings } };
 }

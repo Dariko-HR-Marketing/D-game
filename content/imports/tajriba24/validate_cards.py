@@ -60,6 +60,9 @@ def main(p):
         if kind=='ASSET_BUY' and r['income_monthly'] and pr and r['source_batch']=='V4_HOZIRGI_MUHIT':
             pb=pr/int(r['income_monthly']);lo,hi=(2.5,9) if d==2 else (12,60)
             if not lo<=pb<=hi: E(f"qoplanish {pb:.1f} oy oraliqdan tashqari ({lo}-{hi})")
+        if kind=='DREAM':
+            if not(pr and 800000<=pr<=3000000): E('orzu narxi 800 000–3 000 000 oralig‘ida bo‘lishi kerak')
+            if re.search(r'kazino|casino|qimor|tikish|lotereya|tungi klub|spirtli|tamaki|qurol',(r['title']+' '+r['text']).lower()): E('nomaqbul mavzudagi orzu')
         if r['down_payment'] and r['loan'] and pr and int(r['down_payment'])+int(r['loan'])!=pr: E("down_payment + loan != price")
         if r['loan_payment_monthly'] and int(r['loan_payment_monthly'])>0: E("loan_payment_monthly manfiy bo'lishi kerak")
         if r['pool']=='DECK' and r['publish']=='FALSE': W("publish=FALSE")

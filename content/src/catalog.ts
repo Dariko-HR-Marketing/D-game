@@ -42,7 +42,7 @@ export const CatalogCard = z.object({
   salary: int.optional(), surplus: int.optional(), sharePct: int.optional(), qtyMin: int.optional(), qtyMax: int.optional(),
   duration: z.string().optional(), goal: z.string().optional(), age: z.string().optional(), pool: z.enum(["DECK", "TEACHER_PANEL"]), ranked: z.enum(["BASE", "EXTENDED"]), sector: z.string().optional(),
   effects: z.array(CatalogEffect).max(2), display: z.string().optional(),
-  needsMapping: z.boolean(), draw: z.boolean(), publish: z.boolean(), batch: z.string(), review: z.string(), image: z.enum(IMAGE_STATUSES), file: z.string().optional(), reason: z.string().optional(),
+  needsMapping: z.boolean(), draw: z.boolean(), publish: z.boolean(), batch: z.string(), review: z.string(), image: z.enum(IMAGE_STATUSES), file: z.string().optional(), reason: z.string().optional(), retired: z.string().optional(),
 });
 export type CatalogCardT = z.infer<typeof CatalogCard>;
 

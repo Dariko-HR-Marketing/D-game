@@ -13,7 +13,10 @@ python3 content/imports/tajriba24/validate_cards.py content/imports/tajriba24/ta
 ```
 Xato bo'lsa chiqish kodi 1, hech narsa yozilmaydi. Qayta import — 0 o'zgarish (CI da tekshiriladi). Jurnal: `content/data/import_log/`.
 
-## Joriy holat (import `imp_20261021_tajriba24`)
+## Joriy holat
+Ikkinchi import `imp_20261024_tajriba24_orzular` (paket «(3)», 24-oktabr): jadval 1 052 qator; **40 ta orzu (ORZ-01…ORZ-40)** qo'shildi, avvalgi 20 ta orzu kartasi (Y321–Y340) jadvalda yo'qligi uchun olib tashlandi (ID saqlanadi; texnik topshiriq 6.6 «orzular guruhi to'liq sinxronlanadi»). Faol kartalar **1 033**, jonli **817**, ushlab turilgan **216** (40 orzu dvigatelda hali qo'llanmaydi — OPEN_QUESTIONS 156). Qayta import — 0 o'zgarish.
+
+Birinchi import `imp_20261021_tajriba24`:
 INSERT 614 · UPDATE 153 · NOCHANGE 246 · REMOVE 19. Faol kartalar **1013** (eski 418 − 19 + 614). Ulardan **817 tasi o'yinda jonli** (dvigatel to'liq qo'llaydi), **196 tasi ushlab turilgan** (kolodaga tushmaydi; sabab `cards import --dry-run` hisobotida).
 Olib tashlangan 19 karta kolodadan chiqadi, lekin ID si saqlanadi (saqlangan o'yinlar topa olsin). Kasblar 52 (yangi 20 ta; xarajat qatorlari jadvalda yo'q — blankda faqat jami).
 

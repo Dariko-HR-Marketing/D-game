@@ -39,4 +39,4 @@ TypeScript monorepo (pnpm); `rules` — sof TS + Vitest; `server` — Node + Fas
 ## Buyruqlar
 `pnpm typecheck` · `pnpm test` (PostgreSQL testlari uchun `TEST_DATABASE_URL`) · server: `cd server && npx tsx src/main.ts` · veb: `cd client && npx expo start --web` · admin: `cd admin && npx vite`.
 Kartalar importi: `docs/CARDS_IMPORT.md` (`pnpm --filter @poyga/content cards ...`).
-Holat: qoidalar dvigateli, kontent (katalog: faol 1013, jonli 817), server (xonalar, hamkorlik, saqlash, tiklash), admin, profil/reyting, mijoz (veb) tayyor. Ochiq masalalar: `docs/OPEN_QUESTIONS.md`.
+Holat: qoidalar dvigateli, kontent (katalog: faol 1033, jonli 817), server (xonalar, hamkorlik, saqlash, tiklash), admin, profil/reyting, mijoz (veb) tayyor. Ochiq masalalar: `docs/OPEN_QUESTIONS.md`.

@@ -5,12 +5,12 @@ const { cards, bigBoard, dreams } = loadContent();
 const effects = deriveEffects(cards);
 
 describe("kontent", () => {
-  it("kolodalar soni: eski kolodalar 442 (kasb 52 — jadvaldagi 24 yangi kasb bilan), katalog 590; olib tashlangan 19 → faol 1 013 (Tajriba24)", () => {
+  it("kolodalar soni: eski kolodalar 442 (kasb 52 — jadvaldagi 24 yangi kasb bilan), katalog 630 (shundan 20 eski orzu olib tashlangan); olib tashlangan 19 → faol 1 033 (Tajriba24 + 40 orzu)", () => {
     for (const [k, n] of Object.entries(EXPECTED_COUNTS)) expect((cards as any)[k]).toHaveLength(n);
     expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(442);
-    expect(cards.catalog).toHaveLength(590);
+    expect(cards.catalog).toHaveLength(630);
     const retired = Object.values(cards.meta).filter((m) => m.retired).length;
-    expect(retired).toBe(19); expect(442 + cards.catalog.length - retired).toBe(1013);
+    const retiredCat = cards.catalog.filter((c) => c.retired).length; expect(retired).toBe(19); expect(retiredCat).toBe(20); expect(442 + cards.catalog.length - retired - retiredCat).toBe(1033);
   });
   it("ko'chmas mulk kartalari: bo'nak + kredit = to'liq qiymat (manba rasmlaridagi 2 ta xato — KV4-006, DX-005 — qaror bilan tuzatilgan)", () => {
     for (const c of cards.katta as any[]) if (c.down !== undefined) expect(c.down + c.credit, c.file).toBe(c.full);
@@ -30,7 +30,7 @@ describe("kontent", () => {
 });
 
 describe("kartalar ta'siri (100 %)", () => {
-  it("har bir karta uchun ta'sir bor (eski 442 + katalog 590)", () => expect(effects).toHaveLength(442 + 590));
+  it("har bir karta uchun ta'sir bor (eski 442 + katalog 630)", () => expect(effects).toHaveLength(442 + 630));
   it("hal qilinmagan karta faqat ushlab turilgan (held) katalog kartasi; sababi yozilgan va kolodaga tushmaydi", () => {
     const un = effects.filter((e) => e.effect.kind === "unresolved");
     for (const e of un) { expect(e.info?.catalog, e.id).toBe(true); expect(e.info?.held, e.id).toBeTruthy(); expect(isLive(e), e.id).toBe(false); }

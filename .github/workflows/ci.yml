@@ -24,7 +24,7 @@ jobs:
         run: |
           python3 content/imports/tajriba24/validate_cards.py content/imports/tajriba24/tajriba24_cards_import.csv
           pnpm --filter @poyga/content cards import imports/tajriba24/tajriba24_cards_import.csv --kasb imports/tajriba24/tajriba24_kasblar.csv --dry-run | tee /tmp/dry.txt
-          grep -q "o'zgarishsiz: 1032" /tmp/dry.txt
+          grep -q "o'zgarishsiz: 1052" /tmp/dry.txt
       - run: pnpm build:web
   docker:
     # Dockerfile'ni haqiqatan quradi va konteyner /ready ga javob berishini tekshiradi (sandboxda Docker daemon yo'q edi).
