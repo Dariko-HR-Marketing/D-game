@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import { sheetOf, SLOTS, type IncomeLine, type SheetBig, type SheetSmall } from "../sheet";
 import { money } from "../format";
+import { monthsText, splitMonths, MONTHS_PER_YEAR } from "../estimates";
 import { uz } from "../i18n/uz";
 import { color, font, HEADER_H, MIN_TAP, radius, space, tone } from "../theme";
 
@@ -21,7 +22,7 @@ const Meta = ({ d }: { d: { name: string; profession: string; dream: { name: str
     <View style={s.metaRow}><Cell l={`${uz.sheet.dream}: ${d.dream?.name ?? uz.sheet.none}`} flex={1.4} strong /><Cell l={`${uz.sheet.dreamPrice}: ${d.dream ? money(d.dream.price) : uz.sheet.none}`} strong /></View></Box>);
 
 function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
-  const e = d.expenses, left = (
+  const { years, months: inYear } = splitMonths(d.months); const e = d.expenses, left = (
     <Box title={uz.sheet.incomes}>
       <Line l={uz.sheet.salary} v={money(d.salary)} />
       <Slots label={uz.sheet.realty} rows={d.realty} n={SLOTS.realty} /><Slots label={uz.sheet.smallBiz} rows={d.small} n={SLOTS.small} /><Slots label={uz.sheet.bigBiz} rows={d.big} n={SLOTS.big} />
@@ -45,8 +46,9 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
       {Array.from({ length: Math.max(SLOTS.bank, d.banks.length) }, (_, i) => <Line key={"b" + i} l={uz.sheet.sumBank} v={d.banks[i] ? money(d.banks[i].amount) : ""} />)}<Line l={uz.sheet.pledge} v={d.collateral.join(", ")} /></Box>
     <Box title={uz.sheet.newCredits}>{Array.from({ length: Math.max(SLOTS.lombard, d.lombards.length) }, (_, i) => <Line key={"pl" + i} l={uz.sheet.payLombard} v={d.lombards[i] ? money(d.lombards[i].payment) : ""} />)}
       {Array.from({ length: Math.max(SLOTS.bank, d.banks.length) }, (_, i) => <Line key={"pb" + i} l={uz.sheet.payBank} v={d.banks[i] ? money(d.banks[i].payment) : ""} />)}</Box>
-    <View><Text style={s.months}>{uz.sheet.months}: <Text style={{ fontWeight: "900" }} testID="sheet-months">{d.months}</Text></Text>
-      <View style={s.grid} aria-hidden>{Array.from({ length: Math.max(24, d.months) }, (_, i) => <View key={i} style={[s.mc, i < d.months && { backgroundColor: color.green }]} />)}</View></View></View>);
+    <View><Text style={s.months}>{uz.sheet.months}: <Text style={{ fontWeight: "900" }} testID="sheet-months">{monthsText(d.months, { year: uz.time.year, month: uz.time.month })}</Text>{d.months >= MONTHS_PER_YEAR ? ` (${uz.time.total} ${d.months} ${uz.time.month})` : ""}</Text>
+      <View style={s.grid} aria-hidden>{Array.from({ length: Math.max(24, years + 1) }, (_, i) => <View key={i} style={[s.mc, i < years ? { backgroundColor: color.green } : i === years && inYear > 0 ? { backgroundColor: "#9FD6B9" } : null]} />)}</View>
+      <Text style={s.note}>{uz.sheet.yearCell}</Text></View></View>);
   return (<View style={{ gap: space.md }}>
     <Head title={`POYGA | ${uz.sheet.small}`} sub={uz.sheet.smallSub} /><Meta d={d} />
     <View style={[wide && { flexDirection: "row", alignItems: "flex-start" }, { gap: space.md }]}><View style={wide ? { flex: 1 } : undefined}>{left}</View><View style={wide ? { flex: 1 } : undefined}>{right}</View></View>

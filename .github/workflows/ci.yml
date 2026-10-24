@@ -85,6 +85,7 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/dreams-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/mods-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/recap-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/time-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/chat-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/voice-check.ts
       - name: Moslashuvchanlik (tik telefon, yotiq telefon, tik planshet)

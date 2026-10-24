@@ -39,15 +39,21 @@ export function TimeBar({ room, userId, settled }: { room: RoomView; userId: str
   }, [st]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (settled) setShown(total); }, [settled, total]); // jami vaqt fishka yurib bo'lgach yangilanadi (kamaytirilgan harakatda — darrov)
   useEffect(() => { if (!pending || !settled) return; setDelta(pending); setPending(null); const h = setTimeout(() => setDelta(null), 5000); return () => clearTimeout(h); }, [pending, settled]);
-  const { months: inYear, total: all } = splitMonths(shown); const w = { year: uz.time.year, month: uz.time.month };
-  const text = monthsText(all, w);
+  const { years, months: inYear, total: all } = splitMonths(shown); const w = { year: uz.time.year, month: uz.time.month };
+  const text = monthsText(all, w); const [narrow, setNarrow] = useState(false); // tor panel (yon ustun): ikki qatorli ko'rinish; keng (taxta ostidagi chiziq): bitta qator
+  const who = delta ? (delta.who === userId ? "" : `${nameOf(room, delta.who)} `) : "";
+  const pill = delta && <View style={s.delta} aria-hidden><Text style={s.deltaT} numberOfLines={1}>{who}+{delta.m} {uz.time.month}</Text></View>;
+  const dots = <View style={s.dots} aria-hidden>{Array.from({ length: MONTHS_PER_YEAR }, (_, k) => <View key={k} style={[s.dot, k < inYear && s.dotOn]} />)}</View>;
+  const big = (n: number, unit: string) => <View style={s.num}><Text style={s.big}>{n}</Text><Text style={s.unit}>{unit}</Text></View>;
   return (
-    <View style={s.bar} testID="timebar" role="group" accessible aria-label={`${uz.time.label}: ${text}${delta ? `, ${delta.who === userId ? uz.time.you : nameOf(room, delta.who)}: +${delta.m} ${uz.time.month}` : ""}`}>
-      <Icon name="clock" size={18} color={color.navy} />
-      <View style={{ flexShrink: 1 }} aria-hidden><Text style={s.l}>{uz.time.label}</Text><Text style={s.v} numberOfLines={1}>{text}</Text></View>
-      <View style={s.dots} aria-hidden>{Array.from({ length: MONTHS_PER_YEAR }, (_, k) => <View key={k} style={[s.dot, k < inYear && s.dotOn]} />)}</View>
-      {delta && <View style={s.delta} aria-hidden><Text style={s.deltaT} numberOfLines={1}>{delta.who === userId ? "" : `${nameOf(room, delta.who)} `}+{delta.m} {uz.time.month}</Text></View>}
-      {all >= MONTHS_PER_YEAR && <Text style={s.tot} aria-hidden>{all} {uz.time.month}</Text>}
+    <View style={[s.bar, narrow && s.barNarrow]} onLayout={(e) => setNarrow(e.nativeEvent.layout.width < 360)} testID="timebar" role="group" accessible aria-label={`${uz.time.label}: ${text}${all >= MONTHS_PER_YEAR ? `, ${uz.time.total} ${all} ${uz.time.month}` : ""}${delta ? `, ${delta.who === userId ? uz.time.you : nameOf(room, delta.who)}: +${delta.m} ${uz.time.month}` : ""}`}>
+      <View style={s.head} aria-hidden><Icon name="clock" size={18} color={color.navy} /><Text style={s.l} numberOfLines={1}>{uz.time.label}</Text>{narrow && pill}</View>
+      <View style={s.row} aria-hidden>
+        {big(years, uz.time.year)}{big(inYear, uz.time.month)}
+        {!narrow && pill}
+        <Text style={s.tot} numberOfLines={1}>{uz.time.total}: {all} {uz.time.month}</Text>
+      </View>
+      {dots}
     </View>
   );
 }
@@ -58,9 +64,12 @@ export function TimePanel({ room, userId, settled }: { room: RoomView; userId: s
 }
 const s = StyleSheet.create({
   limit: { flexDirection: "row", alignItems: "center", gap: space.xs, paddingHorizontal: space.md, paddingVertical: 6, borderRadius: radius.md, backgroundColor: "#F4F7F8" }, limitT: { color: color.navy, fontSize: font.sm, fontWeight: "800", fontVariant: ["tabular-nums"] },
-  bar: { flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: color.white, borderWidth: 1, borderColor: "#E6ECEF", borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: 6, minHeight: 44 },
-  l: { color: tone.muted, fontSize: 12, fontWeight: "700", letterSpacing: 0.4 }, v: { color: color.navy, fontSize: font.md, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  bar: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: space.md, rowGap: 4, backgroundColor: color.white, borderWidth: 1, borderColor: "#E6ECEF", borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: 8, minHeight: 44 },
+  barNarrow: { flexDirection: "column", alignItems: "stretch", columnGap: 0 },
+  head: { flexDirection: "row", alignItems: "center", gap: space.xs, flexShrink: 1 }, row: { flexDirection: "row", alignItems: "baseline", gap: space.md, flexShrink: 1, flexGrow: 1 },
+  l: { color: tone.muted, fontSize: 12, fontWeight: "700", letterSpacing: 0.4, flexShrink: 1 }, num: { flexDirection: "row", alignItems: "baseline", gap: 4 },
+  big: { color: color.navy, fontSize: font.xl, fontWeight: "900", fontVariant: ["tabular-nums"], lineHeight: 28 }, unit: { color: tone.muted, fontSize: font.sm, fontWeight: "700" },
   dots: { flexDirection: "row", gap: 3, flexShrink: 0 }, dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.line }, dotOn: { backgroundColor: color.green },
-  delta: { backgroundColor: "#E7F4EE", borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2, flexShrink: 1 }, deltaT: { color: tone.good, fontWeight: "800", fontSize: font.sm },
+  delta: { backgroundColor: "#E7F4EE", borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2, flexShrink: 1, marginLeft: "auto" as any }, deltaT: { color: tone.good, fontWeight: "800", fontSize: font.sm },
   tot: { marginLeft: "auto" as any, color: tone.muted, fontSize: font.sm, fontVariant: ["tabular-nums"], flexShrink: 0 },
 });
