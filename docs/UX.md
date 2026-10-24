@@ -69,3 +69,24 @@ O'z navbatingizda «Kubikni tashlash» (katta aylanada «Kubiklarni tashlash», 
 - **Faol ta'sirlar** (chap ustun, moliyaviy holat): endi yig'iladigan bo'lim — yopiq holatda faqat sarlavha va soni (balandlik ~49 px); bosilsa ro'yxat (240 px dan oshsa aylanadi). Yangi ta'sir kelsa sarlavhada «+N yangi» belgisi chiqadi va ekran o'qigichga xabar beriladi; ochilganda yangilari ajratib ko'rsatiladi, o'yin boshida/sahifa yangilanganda mavjud ta'sirlar «yangi» sanalmaydi. Tekshiruv: `server/scripts/mods-check.ts`.
 - **«Mening kartalarim»da kichik biznes nomlari:** barcha 35 ta kichik biznes kartasining `code` i bir xil («KB»), shuning uchun hamma aktiv birinchi kartaning nomi bilan chiqardi («Mahallangizda elchixona ochilmoqda»). Endi aktivga sotib olingan karta ID si yoziladi (`Asset.cardId`) va nom aynan shu kartadan olinadi. **Eski (shu tuzatishdan oldin sotib olingan) aktivlarda karta ID si yo'q** — ular avvalgidek tur bo'yicha nom bilan chiqadi; yangi sotib olinganlar to'g'ri.
 
+## Bankrot (yangi kasb) tanaffusi (2026-10-24, buyurtmachi talabi)
+Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kartaga o'tib ketardi. Endi:
+- O'yin **to'xtaydi** (`recapPause`, yangi o'yinlarda). Egasiga tahlil oynasi: avvalgi va yangi kasb, **nima bo'ldi** (majburiy to'lov va qarz chegarasi, zaxira naqd, manfiy pul oqimi, qarz, passiv daromad yetmagani), sabab bo'lgan karta, bankrotgacha holat, yo'qotilgan aktivlar (nom, narx, daromad), oxirgi voqealar, yangi boshlanish. Sabablar faqat o'yin ma'lumotidan qoida bilan chiqariladi (`client/src/recap.ts`), taxmin yo'q.
+- Tanlov: **«Yangi kasb bilan davom etish»** (asosiy tugma), **«Vaqtincha chiqib turish»** (avtopilot yoqiladi, «Men qaytdim» bilan qaytiladi), **«O'yindan chiqish»** (tasdiq bilan; o'rnini bot egallaydi, 2 kishilik o'yinda ham).
+- Boshqa o'yinchilarga faqat qisqa xabar («X bankrot bo'ldi…») va qolgan vaqt. Vaqt tugasa (karta qarori vaqti: 30 s) yoki bot/avtopilot bo'lsa o'yin o'zi davom etadi; bu «o'tkazib yuborilgan harakat» (ball −2) hisoblanmaydi.
+- Yotiq telefonda tahlil chapda (aylanadi), tanlovlar o'ngda. Tekshiruv: `server/scripts/recap-check.ts`.
+- **Qoida o'zgarmagan:** SPEC §5.3 bo'yicha bankrotda hamma aktiv va qarz yo'qoladi, yangi kasb tasodifiy tortiladi. «Bir qism aktiv qolsin» taklifi — OPEN_QUESTIONS 158.
+
+## O'yin ichida chat (2026-10-24, buyurtmachi talabi)
+- Sarlavhadagi «Chat» tugmasi (o'qilmagan xabarlar soni belgisi bilan) yon panel (kompyuter) yoki pastki varaq (telefon) ochadi. Yopiq paytda yangi xabar ekran o'qigichga e'lon qilinadi.
+- **Erkin matn** (≤ 200 belgi) — 16 yoshgacha va ota-ona o'chirgan bolalar uchun **yopiq** (SPEC §2.8); ularga va hammaga **12 ta tayyor ibora** ochiq (matnlar `uz.chat.phrases`). Server erkin matnni o'zi tekshiradi (`chat_restricted`).
+- Himoya: tezlik chegarasi (taxminan 1 xabar / 2 s, burst 4), bir xil xabarni 10 s ichida takrorlash rad etiladi, boshqaruv/yo'nalish belgilari tozalanadi, xabarlar xotirada (so'nggi 100 ta, bazaga yozilmaydi).
+- **Jim qilish** — o'yinchi xabarlarini faqat shu qurilmada yashiradi. **Shikoyat** — xabar matni bilan mavjud `/complaints` ga yuboriladi (admin «Shikoyatlar»da ko'radi). Tekshiruv: `server/scripts/chat-check.ts`.
+
+## Ovozli aloqa: naushnik/dinamik orqali gaplashish (2026-10-24, buyurtmachi talabi)
+- Chat panelining tepasida «Ovozli aloqa»: **Ovozga qo'shilish** (mikrofon so'raladi) yoki **Faqat tinglash** (mikrofonsiz/ruxsatsiz ham ulanadi). Qo'shilgach: mikrofonni o'chirish/yoqish (sarlavhada ham tugma — chat yopiq bo'lsa ham), kim ovozda, kim **gapiryapti** (yashil belgi), har bir o'yinchini shu qurilmada **jim qilish**, qurilmalar (mikrofon va dinamik/naushnik tanlash — brauzer qo'llasa).
+- Audio **P2P (WebRTC)**: o'yinchilar o'rtasida to'g'ridan-to'g'ri, serverda saqlanmaydi/yozilmaydi. Signalizatsiya mavjud WebSocket orqali (`voice` xabari); taklifni har juftlikda ID si kichigi yuboradi (to'qnashuv bo'lmaydi). 8 kishigacha (har biri 7 ulanish).
+- **16 yoshgacha va ota-ona o'chirgan bolalarga yopiq** (erkin gaplashish = erkin chat, SPEC §2.8); server ham rad etadi (`voice_restricted`).
+- Aks-sado: naushnik tavsiya etiladi (hint), brauzer echo/noise suppression yoqilgan. Qo'shilgach chiqib ketsa/uzilsa, ovozdan avtomatik chiqadi; uzilishdan keyin qaytsa qayta qo'shiladi.
+- Cheklov: hozir faqat **veb** (telefon brauzeri ham). Native ilovada ovoz — keyingi bosqich (react-native-webrtc, dev client). TURN sozlamasi: `docs/DEPLOY.md`. Tekshiruv: `server/scripts/voice-check.ts` (soxta mikrofon bilan haqiqiy P2P, uch o'yinchi, jim qilish, ruxsatsiz tinglovchi, bola yopiq).
+

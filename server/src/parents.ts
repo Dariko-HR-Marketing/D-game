@@ -65,6 +65,8 @@ export class ParentConsents {
   controlsOf(childId: string): ParentControls | undefined { return this.controls.get(childId); }
   /** Ota-ona o'zaro qarz va sherikliklarni o'chirgan bolalar. */
   loansBlocked(ids: string[]) { return ids.filter((id) => this.controls.get(id)?.loans === false); }
+  /** Ota-ona erkin chatni o'chirgan bolalar (faqat tayyor iboralar). */
+  chatBlocked(ids: string[]) { return ids.filter((id) => this.controls.get(id)?.chat === false); }
   approvedFor(childId: string, kind: ConsentKind, ref: string) { return this.reqs.values().some((r) => r.childId === childId && r.kind === kind && r.ref === ref && r.status === "approved"); }
   erase(childId: string) { for (const r of this.reqs.values()) if (r.childId === childId) this.reqs.delete(r.id); this.controls.delete(childId); }
 }

@@ -20,7 +20,7 @@ export function ruleItems(r: R): RuleItem[] {
     { id: "lombard", title: "Lombard", source: "Qo'llanma §08",
       text: `Aktivni garovga qo'yib qiymatining ${Math.round(r.lombardShare * 100)} % ini naqd olasiz (qimmatbaho qog'ozlar va sheriklikdan tashqari). Foiz oyiga ${Math.round(r.lombardMonthlyRate * 100)} % (xarajatga qo'shiladi), asosiy qarz ${r.lombardTermMonths} oydan keyin birdaniga. Foiz yoki asosiy qarz to'lanmasa garov yo'qoladi.` },
     { id: "debt", title: "Qarz (kichik aylana)", source: "Qo'llanma §09",
-      text: `Naqd yetmasa summa qarz sifatida yoziladi va naqd paydo bo'lishi bilan darhol qaytariladi. Qarz ${m(r.bankLimit)} sh.b. dan oshsa — yangi kasb bilan boshidan boshlanadi.` },
+      text: `Naqd yetmasa summa qarz sifatida yoziladi va naqd paydo bo'lishi bilan darhol qaytariladi. Qarz ${m(r.bankLimit)} sh.b. dan oshsa — avval aktivlaringiz (biznes, uy, aksiya, obligatsiya) sotilib qarzga yo'naltiriladi; qarz hali ham chegaradan oshsa kasbingiz almashadi. Bolalar, jarimalar, imtiyozlar va qoldiq qarz saqlanadi.` },
     { id: "exit", title: "Kichik aylanadan chiqish", source: "SPEC §5.4",
       text: `Uchta shart bir vaqtda bajarilishi kerak: naqd ≥ ${m(r.exitCash)}; oylik passiv pul oqimi ≥ ${m(r.exitPassiveFlow)}; qarz va kreditlar = 0. Chiqishdan oldin hamkorlik qarzlari va sheriklik yopilgan bo'lishi shart.` },
     { id: "win", title: "Katta aylana: g'alaba", source: "SPEC §5.5",

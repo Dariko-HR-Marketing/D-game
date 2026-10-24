@@ -1,3 +1,4 @@
+import { money } from "./format";
 import { canExitSmallCircle, MODES, modeOf, type GameMode, monthlyExpenses, passiveIncome, playerCashflow, openPartnerships } from "@poyga/rules";
 
 export const me = (room: any, userId: string) => room?.state?.players.find((p: any) => p.id === userId) ?? null;
@@ -107,5 +108,6 @@ export function nameOf(room: any, id: string | null | undefined): string {
 /** Jurnal satridagi xom identifikatorlarni ismlarga almashtiradi (uzunroqlari avval). */
 export function humanize(room: any, line: string): string {
   const ids: string[] = (room?.state?.players ?? []).map((p: any) => p.id).sort((a: string, b: string) => b.length - a.length);
-  let out = line; for (const id of ids) out = out.split(id).join(nameOf(room, id)); return out;
+  let out = line; for (const id of ids) out = out.split(id).join(nameOf(room, id));
+  return out.replace(/\b\d{4,}\b/g, (n) => money(Number(n))); // katta summalar to'liq va bo'shliq bilan: «9500» → «9 500»
 }

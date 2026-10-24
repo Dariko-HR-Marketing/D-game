@@ -10,6 +10,10 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     return j as any;
   };
   return {
+    /** Shikoyat (chat xabari va h.k.): `against` — o'yinchi ID si, `room` — xona kodi, `text` — nima bo'lgani. */
+    complain: (against: string | null, room: string | null, text: string) => call("POST", "/complaints", { against, room, text }),
+    /** Ovozli aloqa: STUN/TURN ro'yxati (server sozlamasidan). */
+    voiceConfig: () => call("GET", "/voice/config") as Promise<{ iceServers: RTCIceServer[] }>,
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number; gender?: "m" | "f" | null }) => call("PUT", "/me/profile", p),
     uploadAvatar: (image: string) => call("PUT", "/me/avatar", { image }) as Promise<{ photo: string }>, removeAvatar: () => call("DELETE", "/me/avatar"),
     devSeats: (code: string) => call("GET", `/dev/seats/${encodeURIComponent(code)}`) as Promise<{ seats: { userId: string; name: string | null; online: boolean }[] }>,

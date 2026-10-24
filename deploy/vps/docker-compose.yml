@@ -34,6 +34,7 @@ services:
       SMS_PROVIDER: ${SMS_PROVIDER:-}
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
       APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      ICE_SERVERS: ${ICE_SERVERS:-}   # ovozli aloqa: STUN/TURN (JSON). Bo'sh bo'lsa ommaviy STUN; barqaror aloqa uchun TURN kerak (docs/DEPLOY.md)
       LOG_LEVEL: info
       PORT: "3000"
       TRUST_PROXY: "1" # Caddy ortida: haqiqiy mijoz IP (tezlik cheklovi uchun)

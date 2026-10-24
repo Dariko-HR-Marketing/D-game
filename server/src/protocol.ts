@@ -26,16 +26,22 @@ export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("partner_offer"), partnerId: id }).strict(),
   z.object({ type: z.literal("partner_accept"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("partner_buyout"), assetCode: z.string().min(1).max(64) }).strict(),
+  z.object({ type: z.literal("ack_restart"), id: int(1, 1e9) }).strict(), // bankrot tahlili ko'rildi — o'yin davom etadi
 ]);
 
+const Sdp = z.object({ type: z.enum(["offer", "answer"]), sdp: z.string().min(1).max(30_000) }).strict();
+const Cand = z.object({ candidate: z.string().max(2000), sdpMid: z.string().max(64).nullable().optional(), sdpMLineIndex: z.number().int().min(0).max(64).nullable().optional(), usernameFragment: z.string().max(64).nullable().optional() }).strict();
 export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(8).optional(), mode: z.enum(["standard", "quick", "rated", "tutorial"]).optional() }).strict(), // players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),
   z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
+  z.object({ type: z.literal("chat"), text: z.string().min(1).max(1000).optional(), phrase: int(0, 99).optional() }).strict(), // yoki erkin matn, yoki tayyor ibora (ikkalasi birga — serverda rad etiladi)
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
-  z.object({ type: z.literal("resume") }).strict(), // «Men qaytdim»: avtopilotni o'chiradi (o'yin harakati emas)
+  z.object({ type: z.literal("resume") }).strict(),
+  z.object({ type: z.literal("voice"), op: z.enum(["join", "leave", "signal"]), to: id.optional(), sdp: Sdp.optional(), candidate: Cand.optional() }).strict(), // ovozli aloqa: ovozga qo'shilish/chiqish va WebRTC signalizatsiyasi (P2P)
+  z.object({ type: z.literal("break") }).strict(), // «Vaqtincha chiqib turish»: avtopilot yoqiladi, «Men qaytdim» bilan qaytiladi // «Men qaytdim»: avtopilotni o'chiradi (o'yin harakati emas)
 ]);
 export type Msg = z.infer<typeof Message>;
 

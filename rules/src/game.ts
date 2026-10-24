@@ -3,7 +3,7 @@
 import type { CardEffect, Effect, Op } from "@poyga/content/effects";
 import { matches, type Selector } from "@poyga/content/groups";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
-import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
+import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankPrincipalDue, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, policyFor, tickDeposits, withdrawDeposit, type Mod,
@@ -51,6 +51,18 @@ export type Pending =
   | null
   | { type: "card"; playerId: string; cardId: string; deck: DeckName; rent?: { cell: number; owner: string; income: number; buyPrice: number; mult: 2 | 3 } };
 
+/** Majburiy sotuv va kasb almashtirish tahlili (`recapPause`): nima bo'ldi, nima sotildi, nima saqlandi. `outcome`: "sold" — aktivlar sotilib qarz yopildi, kasb o'zgarmadi; "job" — sotuvdan keyin ham qarz chegaradan oshdi yoki «boshidan» katagi: kasb almashdi. Tasdiqlanguncha o'yin to'xtab turadi. */
+export interface RestartRecap {
+  id: number; playerId: string; month: number; round: number; outcome?: "sold" | "job";
+  cause: { kind: "pay" | "cell"; amount?: number; cardId?: string };
+  before: { kasb: string; cash: number; owe: number; bankDebt: number; handDebt: number; salary: number; expenses: number; passive: number; cashflow: number; assets: { code: string; cardId?: string; kind: string; name?: string; price: number; income: number }[] };
+  /** Majburiy sotuv: sotilganlar (nom, tushum) va jami tushum. */
+  sold?: { name: string; price: number }[]; soldTotal?: number;
+  /** Tahlildan keyingi holat: qarz (sotuvdan keyin qolgan) va saqlanib qolgan bolalar soni. */
+  after?: { debt: number; children: number };
+  newKasb: string; recent: string[];
+}
+
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
   | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
@@ -80,6 +92,8 @@ export interface GameState {
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
+  /** `recapPause`: bankrot (yangi kasb) bo'lganda o'yin to'xtaydi va o'yinchiga tahlil ko'rsatiladi; jurnaldan qayta o'ynash uchun yoziladi. `recaps`: tasdiqlanmaganlar. */
+  recapPause?: boolean; recaps?: RestartRecap[]; nextRecap?: number;
   mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
@@ -94,9 +108,9 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode } = {}): GameState {
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode; recapPause?: boolean } = {}): GameState {
   const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
-    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
+    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [], ...(opts.recapPause ? { recapPause: true, recaps: [], nextRecap: 1 } : {}) } as GameState;
   withRng(s, (r) => {
     // Reytingli o'yinda faqat asosiy havza (ranked_pool=BASE): EXTENDED kartalar sozlama (RULES.rankedPools) bilan yoqilmaguncha kirmaydi (Tajriba24 TZ §6.7)
     const closed = new Set(modeOf(opts.mode) === "rated" && !RANKED_ALLOWED_POOLS.includes("EXTENDED") ? ctx.extended ?? [] : []);
@@ -147,15 +161,65 @@ function notify(s: GameState, to: string, key: Notice["key"], extra: Partial<Not
 }
 const logf = (s: GameState, m: string) => { s.log.push(m); s.logN = (s.logN ?? 0) + 1; if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
 
-/** Yangi kasb bilan boshidan (§5.3): hamma aktiv va qarz yo'qoladi. */
-function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
+const firstSentence = (t?: string) => { const x = (t ?? "").split(/(?<=[.!?])\s/)[0]?.trim() ?? ""; return x.length > 56 ? x.slice(0, 55) + "…" : x; };
+const assetLabel = (ctx: Ctx, a: { code: string; cardId?: string; name?: string }) => a.name ?? firstSentence(ctx.effects[a.cardId ?? ""]?.text) ?? a.code;
+const debtTotal = (p: GamePlayer) => (p.owe ?? 0) + p.bankDebt + p.handDebts.reduce((x, d) => x + d.amount, 0);
+
+/** Majburiy sotuv (`recapPause` o'yinlari): depozit/obligatsiyalar yechiladi, aktivlar (biznes, ko'chmas mulk, aksiya, avto…) ixtiyoriy sotuv narxida sotiladi (kredit sotuvdan yopiladi). Sheriklikdagi, garovdagi va zarar bilan sotiladigan aktivlar qoladi. */
+function liquidate(ctx: Ctx, p: GamePlayer) {
+  let q = p; const sold: { name: string; price: number }[] = []; let total = 0;
+  for (const d of [...(q.deposits ?? [])]) { const r = withdrawDeposit(q, d.id); if (r.ok) { q = r.player; sold.push({ name: d.label, price: r.amount }); total += r.amount; } }
+  const keep: GamePlayer["assets"] = [];
+  for (const a of q.assets) {
+    const proceeds = a.partnerId || a.stakeOf || a.pledged || a.kind === "partner_stake" ? -1 : voluntarySalePrice(q, a) - a.credit;
+    if (proceeds < 0) { keep.push(a); continue; }
+    q = { ...q, cash: q.cash + proceeds }; sold.push({ name: assetLabel(ctx, a), price: proceeds }); total += proceeds;
+  }
+  return { player: { ...q, assets: keep } as GamePlayer, sold, total };
+}
+
+/** Kasb almashganda qo'ldagi naqd bilan qarzlar yopiladi: kichik qarz → qo'l qarzlari → bank kreditlari (to'liq yopib bo'lsagina). Qolgani yangi kasbga o'tadi. */
+function settleDebts(s: GameState, p: GamePlayer): GamePlayer {
+  let q = p; const o = Math.min(Math.max(0, q.cash), q.owe ?? 0); q = { ...q, cash: q.cash - o, owe: (q.owe ?? 0) - o };
+  const left: GamePlayer["handDebts"] = [];
+  for (const d of q.handDebts) {
+    const pay = Math.min(Math.max(0, q.cash), d.amount), g = s.players.find((x) => x.id === d.to);
+    if (pay > 0 && g) { setP(s, { ...g, cash: g.cash + pay }); q = { ...q, cash: q.cash - pay }; }
+    if (d.amount - (g ? pay : 0) > 0) left.push({ ...d, amount: d.amount - (g ? pay : 0) });
+  }
+  q = { ...q, handDebts: left };
+  const loans = q.bankLoans.filter((l) => { const due = bankPrincipalDue(l.amount, l.left); if (q.cash < due) return true; q = { ...q, cash: q.cash - due }; return false; });
+  return { ...q, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + bankPrincipalDue(l.amount, l.left), 0) };
+}
+
+/** Tahlilni yozadi (`recapPause`): `before` — majburiy sotuvdan oldingi holat. */
+function recordRecap(s: GameState, ctx: Ctx, p: GamePlayer, cause: RestartRecap["cause"], extra: Pick<RestartRecap, "outcome" | "sold" | "soldTotal" | "after" | "newKasb">) {
+  const cardId = cause.cardId ?? s.pending?.cardId ?? (s.lastCard?.playerId === p.id ? s.lastCard.cardId : undefined);
+  (s.recaps ??= []).push({ id: (s.nextRecap = (s.nextRecap ?? 1) + 1) - 1, playerId: p.id, month: p.monthsPlayed ?? 0, round: s.round, cause: { ...cause, ...(cardId ? { cardId } : {}) },
+    before: { kasb: ctx.kasb[p.profession]?.name ?? "", cash: p.cash, owe: p.owe ?? 0, bankDebt: p.bankDebt, handDebt: p.handDebts.reduce((x, d) => x + d.amount, 0), salary: salaryOf(p), expenses: monthlyExpenses(p), passive: passiveIncome(p), cashflow: playerCashflow(p),
+      assets: p.assets.slice(0, 24).map((a) => ({ code: a.code, ...(a.cardId ? { cardId: a.cardId } : {}), kind: a.kind, ...(a.name || a.cardId ? { name: a.name ?? firstSentence(ctx.effects[a.cardId!]?.text) } : {}), price: a.price, income: a.monthlyIncome })) },
+    ...extra, recent: s.log.slice(-5) });
+}
+
+/**
+ * Kasb almashtirish (qo'llanma §5.3, «yangi kasb bilan boshidan»): ishdan ketib yangi kasb kartasi olinadi.
+ * `recapPause` o'yinlarida: aktivlar (va depozit/obligatsiyalar) avval sotilib qarzga yo'naltiriladi; QOLADI: bolalar, jarima/imtiyoz/bonus (faol ta'sirlar), qoldiq qarz, sug'urta va h.k. — o'yinchi o'sha hayotni davom ettiradi, faqat ishini almashtiradi.
+ * `post`: majburiy sotuv allaqachon bajarilgan holat (qarz yetmaganidan chaqirilganda); yo'q bo'lsa shu yerda sotiladi (katak).
+ */
+function restart(s: GameState, ctx: Ctx, p: GamePlayer, cause: RestartRecap["cause"] = { kind: "cell" }, post?: { player: GamePlayer; sold: { name: string; price: number }[]; total: number }): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
+  if (!s.recapPause) return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
+  const L = post ?? (() => { const l = liquidate(ctx, p); return { player: settleDebts(s, l.player), sold: l.sold, total: l.total }; })(), q = L.player;
+  const next: GamePlayer = settleOwe({ ...newPlayer(p.id, k), skipTurns: 0, handDebts: q.handDebts, dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed,
+    children: q.children, mods: q.mods, modSeq: q.modSeq, qar: q.qar, insuredCar: q.insuredCar, handLoans: q.handLoans, twoDice: q.twoDice, noSalary: q.noSalary, depSeq: q.depSeq,
+    bankDebt: q.bankDebt, bankLoans: q.bankLoans, owe: q.owe, lombards: q.lombards, xp: p.xp }); // yangi kasbning boshlang'ich naqdi qoldiq kichik qarzni darhol yopadi (§09)
+  recordRecap(s, ctx, p, cause, { outcome: "job", sold: L.sold.slice(0, 24), soldTotal: L.total, after: { debt: debtTotal(next), children: next.children }, newKasb: k.name ?? "" });
+  return next;
 }
 
-/** Majburiy to'lov: naqd yetmasa avtomatik bank krediti (limit ichida), bo'lmasa restart. */
+/** Majburiy to'lov: naqd yetmasa kichik qarz (owe, chegara 10 000); chegaradan oshsa avval aktivlar majburan sotiladi, hali ham oshsa kasb almashadi. */
 function forcePay(s: GameState, ctx: Ctx, p: GamePlayer, amount: number): GamePlayer {
   if (p.cash >= amount) return { ...p, cash: p.cash - amount };
   if (p.circle === "big") { // katta aylana (qo'llanma §11): pul yetmasa qarz yoziladi va «Yana pullar»da yopiladi; bank limiti kichik aylanaga xos
@@ -163,9 +227,17 @@ function forcePay(s: GameState, ctx: Ctx, p: GamePlayer, amount: number): GamePl
     logf(s, `${p.id}: ${amount - pay} qarzga yozildi`);
     return { ...p, cash: p.cash - pay, bigDebt: (p.bigDebt ?? 0) + (amount - pay) };
   }
-  // Kichik aylana (qo'llanma §09): naqd yetmasa summa qarz (owe) sifatida yoziladi, naqd paydo bo'lishi bilan darhol qaytariladi; 10 000 dan oshsa — yangi kasb bilan boshidan
+  // Kichik aylana (qo'llanma §09): naqd yetmasa summa qarz (owe) sifatida yoziladi, naqd paydo bo'lishi bilan darhol qaytariladi; 10 000 dan oshsa — majburiy sotuv, so'ng (kerak bo'lsa) yangi kasb
   const pay = Math.max(0, p.cash), rest = amount - pay;
-  if ((p.owe ?? 0) + rest > RULES.bankLimit) return restart(s, ctx, p);
+  if ((p.owe ?? 0) + rest > RULES.bankLimit) {
+    if (!s.recapPause) return restart(s, ctx, p, { kind: "pay", amount });
+    const L = liquidate(ctx, p), q = L.player, pay2 = Math.max(0, Math.min(q.cash, amount)), rest2 = amount - pay2;
+    const after: GamePlayer = { ...q, cash: q.cash - pay2, owe: (q.owe ?? 0) + rest2 };
+    if (after.owe! > RULES.bankLimit) return restart(s, ctx, p, { kind: "pay", amount }, { player: after, sold: L.sold, total: L.total });
+    logf(s, `${p.id}: qarzni yopish uchun aktivlar sotildi (${L.total})`);
+    recordRecap(s, ctx, p, { kind: "pay", amount }, { outcome: "sold", sold: L.sold.slice(0, 24), soldTotal: L.total, after: { debt: debtTotal(after), children: after.children }, newKasb: "" });
+    return after;
+  }
   logf(s, `${p.id}: ${rest} qarzga yozildi`);
   return { ...p, cash: p.cash - pay, owe: (p.owe ?? 0) + rest };
 }
@@ -208,6 +280,7 @@ export type Action =
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "time_up"; playerId: "server" }
+  | { type: "ack_restart"; playerId: string; id: number; auto?: true }
   | { type: "deposit_withdraw"; playerId: string; depositId: number }
   | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; choice?: "A" | "B" | "V"; auto?: true };
 
@@ -223,6 +296,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   // Orzu bosqichi: faqat orzu tanlash (yoki serverning avtomatik tanlovi/taklif muddati)
   if (s.phase === "dreams" && a.type !== "choose_dream" && a.type !== "auto_dreams" && a.type !== "expire") return { ok: false, error: "dreams_phase" };
   if (a.type === "choose_dream" || a.type === "auto_dreams") return cooperate(s, ctx, a);
+  if (s.recaps?.length && a.type !== "ack_restart" && a.type !== "time_up" && a.type !== "expire") return { ok: false, error: "recap_open" }; // bankrot tahlili tasdiqlanguncha o'yin to'xtab turadi
   const cur = currentPlayer(s);
   if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
@@ -573,7 +647,7 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
   const p = s.players[idx(s, p0.id)];
   switch (act.kind) {
     case "none": return;
-    case "restart": setP(s, restart(s, ctx, p)); return;
+    case "restart": setP(s, restart(s, ctx, p, { kind: "cell" })); return;
     case "skipTurns": setP(s, { ...p, skipTurns: (p.skipTurns ?? 0) + act.turns }); logf(s, `${p.id}: ${act.turns} navbat o'tkazadi`); return;
     case "payday": {
       const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
@@ -819,6 +893,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const top = standings(s)[0]; s.winner = top; s.endReason = "time"; s.pending = null; logf(s, `vaqt tugadi — birinchi o'rin: ${top}`); return ok();
     }
     case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();
+    case "ack_restart": { // bankrot tahlili ko'rildi: o'yin davom etadi (yangi kasb allaqachon tasodifiy tortilgan)
+      const r = s.recaps?.find((x) => x.id === a.id); if (!r) return err("no_recap");
+      if (a.playerId !== r.playerId) return err("not_yours");
+      s.recaps = s.recaps!.filter((x) => x.id !== r.id); return ok();
+    }
 
     case "suyunchi": {
       const pr = s.proposals.find((x) => x.id === a.proposalId);
