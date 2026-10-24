@@ -25,6 +25,14 @@ for (const [tag, w, h] of [["tel", 390, 844], ["plan", 820, 1180], ["kmp", 1440,
     check(!!bb && !!label && label.height < 24 && bb.width >= 200, `${tag}: sarlavha bitta qatorda, panel siqilmagan (${Math.round(bb?.width ?? 0)}×${Math.round(bb?.height ?? 0)})`);
     const ov = await a.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}: gorizontal aylanish yo'q (${ov})`);
   }
+  if (tag === "kmp") { // sarlavha: tugmalar uch guruhda, sarlavha qirqilmaydi, xona kodi sarlavha yonida
+    for (const g of ["Hujjatlar va tarix", "Aloqa va ovoz", "Yordam"]) check(await a.getByRole("group", { name: g }).count() === 1, `${tag}: sarlavha guruhi «${g}»`);
+    const tt = await a.getByText("Kichik aylana", { exact: true }).first().boundingBox(); check(!!tt && tt.x >= 0, `${tag}: sarlavha qirqilmagan`);
+    await a.setViewportSize({ width: 1024, height: 800 }); await a.waitForTimeout(500);
+    check(await a.getByRole("button", { name: "Chat" }).first().innerText().then((s) => s.trim() === "").catch(() => true), `${tag}: tor keng ekranda tugmalar faqat belgi`);
+    check((await a.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)) <= 1, `${tag}: 1024 da gorizontal aylanish yo'q`);
+    await a.setViewportSize({ width: w, height: h });
+  }
   await a.screenshot({ path: `${OUT}/${tag}-vaqt.png` });
   await c.close();
 }

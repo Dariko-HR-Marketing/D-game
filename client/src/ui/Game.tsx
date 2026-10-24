@@ -81,6 +81,19 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
+/** Sarlavha tugmalari: keng ekranda guruhlarga (hujjatlar · aloqa · yordam) yig'ilgan, telefonda tekis qator. */
+type HUi = { flat: boolean; labels: boolean; ib: number; tiny: boolean };
+function HBtn({ ui, icon, label, text, onPress, tid, active, children, role, checked }: { ui: HUi; icon: any; label: string; text?: string; onPress: () => void; tid?: string; active?: string; children?: React.ReactNode; role?: "switch"; checked?: boolean }) {
+  return (
+    <Pressable accessibilityRole={role ? undefined : "button"} role={role} aria-checked={role ? checked : undefined} accessibilityLabel={label} aria-label={label} {...({ title: label } as any)} onPress={onPress} testID={tid}
+      style={[s.hBtn, ui.flat && s.hBtnP, ui.tiny && { minWidth: 32 }, !ui.flat && s.hBtnSeg, active ? { backgroundColor: active } : null]}>
+      <Icon name={icon} size={ui.ib} color={color.navy} />{ui.labels && text ? <Text style={s.hBtnT}>{text}</Text> : null}{children}
+    </Pressable>);
+}
+function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; label: string }) {
+  return ui.flat ? <>{children}</> : <View style={s.seg} role="group" aria-label={label}>{children}</View>;
+}
+
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
@@ -89,7 +102,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const chatNew = chatList.filter((m) => m.id > seenChat && m.from !== userId && !getMuted().has(m.from)); const chatUnread = chatOpen ? 0 : chatNew.length;
   const vs = useVoice(voice);
   const chatErr = error && ["bad_chat", "chat_restricted", "duplicate", "rate_limited"].includes(error) ? error : null;
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions(); const [hdrW, setHdrW] = useState(0);
   const lay = layoutOf(width, height), compact = lay.compact, tablet = lay.tablet;
   const wide = lay.wide; // yotiq planshet/kompyuter/yotiq telefon: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
   const left = useCountdown(room.deadline);
@@ -227,23 +240,32 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = viewCircle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const tiny = width < 360; // 320 px telefon: oltita tugma va sarlavha sig'sin
+  const roomy = wide && !compact; // keng ekran: tugmalar guruhlarga yig'iladi; juda keng bo'lsa yozuvlar ham chiqadi, aks holda faqat belgi (sarlavha hech qachon qirqilmasin)
+  const labels = roomy && hdrW >= 1180, ib = tiny ? 20 : 22, flat = !roomy;
+  const ui: HUi = { flat, labels, ib, tiny };
   const header = (
-    <View style={[s.header, (!wide || compact) && { gap: 2, paddingHorizontal: space.md }]}>
+    <View style={[s.header, flat && { gap: 2, paddingHorizontal: space.md }]} onLayout={(e) => setHdrW(e.nativeEvent.layout.width)}>
       <View style={[s.dotC, { backgroundColor: viewCircle === "big" ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
-      <View style={wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
+      <View style={[wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }, { flexShrink: 1, minWidth: 0 }]}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
         <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
         <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
       </View>
-      <View style={{ flex: 1 }} />
-      {wide && !compact && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="portfolio-open"><Icon name="file" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sheet-open"><Icon name="chart" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
-      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="history-open"><Icon name="clock" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
-      {onChat && <Pressable accessibilityRole="button" accessibilityLabel={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} onPress={() => setChatOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="chat-open"><Icon name="chat" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.chat.title}</Text>}{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</Pressable>}
-      {voice && vs && vs.status === "on" && vs.hasMic && <Pressable role="switch" aria-checked={!vs.muted} aria-label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} onPress={() => voice.setMuted(!vs.muted)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }, !vs.muted && vs.speaking && { backgroundColor: "#E3F5EA", borderRadius: 10 }]} testID="voice-header-mic"><Icon name={vs.muted ? "micOff" : "mic"} size={tiny ? 20 : 22} color={vs.muted ? color.red : color.green} /></Pressable>}
-      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={tiny ? 20 : 22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="tour-help"><Icon name="help" size={tiny ? 20 : 22} color={color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]}><Icon name="book" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
+      {roomy && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
+      <View style={{ flex: 1, minWidth: 0 }} />
+      <Seg ui={ui} label={uz.hud.group.docs}>
+        <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
+        <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
+        {http && <HBtn ui={ui} icon="clock" label={uz.history.title} text={uz.history.open} onPress={() => setHistoryOpen(true)} tid="history-open" />}
+      </Seg>
+      <Seg ui={ui} label={uz.hud.group.talk}>
+        {onChat && <HBtn ui={ui} icon="chat" label={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} text={uz.chat.title} onPress={() => setChatOpen(true)} tid="chat-open">{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</HBtn>}
+        {voice && vs && vs.status === "on" && vs.hasMic && <HBtn ui={ui} icon={vs.muted ? "micOff" : "mic"} label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} role="switch" checked={!vs.muted} onPress={() => voice.setMuted(!vs.muted)} tid="voice-header-mic" active={!vs.muted && vs.speaking ? "#E3F5EA" : undefined} />}
+        <HBtn ui={ui} icon={snd.muted ? "mute" : "volume"} label={uz.sound.label} role="switch" checked={!snd.muted} onPress={snd.toggle} tid="sound-toggle" />
+      </Seg>
+      <Seg ui={ui} label={uz.hud.group.help}>
+        <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />
+        <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />
+      </Seg>
     </View>
   );
 
@@ -334,7 +356,7 @@ const s = StyleSheet.create({
   chatBadge: { position: "absolute", top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: color.red, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }, chatBadgeT: { color: color.white, fontSize: 10, fontWeight: "800" },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
-  hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
+  hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtnSeg: { minHeight: 40, borderRadius: 10, paddingHorizontal: 10 }, seg: { flexDirection: "row", alignItems: "center", gap: 2, backgroundColor: "#F1F5F7", borderRadius: 12, padding: 2, flexShrink: 0 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
   codePill: { backgroundColor: "#F4F7F8", borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4 }, codeT: { fontWeight: "800", letterSpacing: 2, color: color.navy },
   stats: { flexDirection: "row", gap: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, stat: { flex: 1, gap: 2 },
   statL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, statV: { color: color.navy, fontSize: font.xl, fontWeight: "800", fontVariant: ["tabular-nums"] }, statS: { color: tone.muted, fontSize: 11, fontVariant: ["tabular-nums"] },
