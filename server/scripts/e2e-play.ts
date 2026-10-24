@@ -38,9 +38,11 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
     if (await p.getByText("O'yin natijasi").count()) break;
   }
   // ikkilamchi bo'limlar xatosiz ochilsin
-  for (let k = 0; k < 3; k++) { const rc = p.getByTestId("recap").getByRole("button", { name: /davom etish$/i }); if (!(await rc.count())) break; if (await tryClick(rc)) recaps++; await p.waitForTimeout(300); } // oxirgi navbatda chiqqan tahlil oynasi bo'limlarni to'sib qo'ymasin
-  const fin = p.getByRole("button", { name: /Moliya amallari/ }); if (await fin.count()) { await fin.click(); await p.waitForTimeout(200); }
-  const rules = p.getByRole("button", { name: "Qoidalar" }); if (await rules.count()) { await rules.first().click(); await p.waitForSelector("text=O'yin qoidalari"); await p.getByRole("button", { name: "Orqaga" }).click(); }
+  // Oxirgi navbatda kasb almashtirish/sotuv tahlili chiqishi mumkin (mijozga holat sekin keladi): oyna to'sib qo'ymasin — yopamiz, holat tinchigach bosamiz
+  const clearRecap = async () => { for (let k = 0, quiet = 0; k < 40 && quiet < 3; k++) { const rc = p.getByTestId("recap").getByRole("button", { name: /davom etish$/i }); if (await rc.count()) { quiet = 0; if (await tryClick(rc)) recaps++; } else quiet++; await p.waitForTimeout(250); } };
+  const press = async (l: any) => { for (let k = 0; k < 5; k++) { await clearRecap(); try { await l.first().click({ timeout: 5000 }); return; } catch (e) { if (k === 4) throw e; } } };
+  const fin = p.getByRole("button", { name: /Moliya amallari/ }); if (await fin.count()) { await press(fin); await p.waitForTimeout(200); }
+  const rules = p.getByRole("button", { name: "Qoidalar" }); if (await rules.count()) { await press(rules); await p.waitForSelector("text=O'yin qoidalari"); await press(p.getByRole("button", { name: "Orqaga" })); }
   console.log(`${tag}: kubik=${rolls} qabul=${accepted} o'tkazildi=${skipped} tahlil=${recaps} xatolar=${errors.length}`);
   for (const e of errors.slice(0, 5)) fail(`${tag}: ${e}`);
   if (rolls < 10) fail(`${tag}: kam navbat (${rolls})`);
