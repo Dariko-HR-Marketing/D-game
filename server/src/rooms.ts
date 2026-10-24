@@ -47,7 +47,8 @@ export function publicState(st: GameState | null) {
 /** Aktiv kodi → asl karta (matn, rasm, tur): «Mening kartalarim» ro'yxati uchun. Kontekst bo'yicha bir marta quriladi. */
 export interface AssetCard { text: string; file: string; asset?: string }
 const codeIndex = new WeakMap<Ctx, Map<string, AssetCard>>();
-function assetCardOf(ctx: Ctx, code: string): AssetCard | undefined {
+function assetCardOf(ctx: Ctx, code: string, cardId?: string): AssetCard | undefined {
+  const ce = cardId ? ctx.effects[cardId] : undefined; if (ce) { const e: any = ce.effect; if (e?.kind === "buy" || e?.kind === "buyShares" || e?.kind === "gamble") return { text: ce.text ?? "", file: ce.file, asset: e.asset }; } // aniq karta (aktiv shu kartadan sotib olingan)
   let m = codeIndex.get(ctx);
   if (!m) {
     m = new Map();
@@ -90,7 +91,7 @@ export class RoomManager {
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market" || pr.kind === "offer") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: publicEffect(ce.effect) }; }
     return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online, left: m.left, unreliable: m.unreliable, ...(m.autopilot ? { autopilot: true } : {}) })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, timerTotal: r.deadline && r.timerSeconds ? r.timerSeconds : null, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds, mode: r.mode, limit: this.limitView(r),
       calc: (() => { const due = r.calcMode === "manual" ? this.dueOf(r) : []; return { mode: r.calcMode, due, ledger: Object.fromEntries(due.map((id) => [id, r.ledger[id]])), stats: r.calcStats }; })(),
-      assetCards: r.state ? Object.fromEntries([...new Set(r.state.players.flatMap((p) => p.assets.map((a) => a.code)))].flatMap((c) => { const x = assetCardOf(r.ctx, c); return x ? [[c, x]] : []; })) : undefined,
+      assetCards: r.state ? Object.fromEntries([...new Map(r.state.players.flatMap((p) => p.assets.map((a) => [a.cardId ?? a.code, a] as const))).values()].flatMap((a) => { const x = assetCardOf(r.ctx, a.code, a.cardId); return x ? [[a.cardId ?? a.code, x]] : []; })) : undefined,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: publicEffect(ce.effect), mode: ce.mode, file: ce.file, deck: ce.deck, title: ce.title }; })() : null,
       professionExp: r.state ? Object.fromEntries(r.state.players.flatMap((p) => { const e = r.ctx.kasb[p.profession]?.exp; return e ? [[p.id, e]] : []; })) : undefined, // kasb kartasidagi 9 ta xarajat satri (hisob varag'i)
       professions: r.state ? Object.fromEntries(r.state.players.map((p) => [p.id, r.ctx.kasb[p.profession]?.name ?? ""])) : undefined,

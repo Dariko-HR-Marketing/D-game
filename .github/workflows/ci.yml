@@ -83,5 +83,6 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/circles-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/report-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/dreams-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/mods-check.ts
       - name: Moslashuvchanlik (tik telefon, yotiq telefon, tik planshet)
         run: STRICT=1 ONLY=390x844,844x390,768x1024 pnpm --filter @poyga/server exec tsx scripts/responsive-check.ts

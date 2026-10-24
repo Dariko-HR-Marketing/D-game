@@ -65,3 +65,7 @@ O'z navbatingizda «Kubikni tashlash» (katta aylanada «Kubiklarni tashlash», 
 - Hisob serverda jurnaldan qayta o'ynatib quriladi (`rules/src/report.ts`); boshqa o'yinchilarning faqat umumiy ko'rsatkichlari beriladi. Tavsiyalar qoida bilan ma'lumotdan chiqariladi (matnlar `uz.ts`da), taxmin yo'q.
 - Rang yagona belgi emas: grafikka jadval ko'rinishi, qarorlar ustunida raqamlar beriladi. Tekshiruv: `server/scripts/report-check.ts` (4 o'lcham, axe, CSV, jadval, gorizontal aylanish yo'q).
 
+## Faol ta'sirlar ixchamlashtirildi va portfel karta nomlari (2026-10-24, buyurtmachi izohi)
+- **Faol ta'sirlar** (chap ustun, moliyaviy holat): endi yig'iladigan bo'lim — yopiq holatda faqat sarlavha va soni (balandlik ~49 px); bosilsa ro'yxat (240 px dan oshsa aylanadi). Yangi ta'sir kelsa sarlavhada «+N yangi» belgisi chiqadi va ekran o'qigichga xabar beriladi; ochilganda yangilari ajratib ko'rsatiladi, o'yin boshida/sahifa yangilanganda mavjud ta'sirlar «yangi» sanalmaydi. Tekshiruv: `server/scripts/mods-check.ts`.
+- **«Mening kartalarim»da kichik biznes nomlari:** barcha 35 ta kichik biznes kartasining `code` i bir xil («KB»), shuning uchun hamma aktiv birinchi kartaning nomi bilan chiqardi («Mahallangizda elchixona ochilmoqda»). Endi aktivga sotib olingan karta ID si yoziladi (`Asset.cardId`) va nom aynan shu kartadan olinadi. **Eski (shu tuzatishdan oldin sotib olingan) aktivlarda karta ID si yo'q** — ular avvalgidek tur bo'yicha nom bilan chiqadi; yangi sotib olinganlar to'g'ri.
+
