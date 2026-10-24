@@ -1,4 +1,5 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
+import { cleanText, CHAT_KEEP, PHRASES, type ChatMsg } from "./chat";
 import { MODES, modeOf, type GameMode, passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, slotBlocked, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
 import { RULES } from "@poyga/rules";
 import type { RoomMeta, RoomTag, Store } from "./store";
@@ -23,6 +24,7 @@ export const TURN_SECONDS = [30, 60] as const; export type TurnSeconds = (typeof
 export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean; autoStreak?: number; offlineAt?: number } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
+  chat?: ChatMsg[]; chatSeq?: number; lastChat?: Record<string, { text: string; at: number }>; // so'nggi xabarlar (xotirada) va takroriy xabarni to'xtatish
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
   timerSeconds?: number | null; armKey?: string | null; // joriy taymer davomiyligi (mijoz halqasi uchun) va qaysi bosqich uchun o'rnatilgani (bir xil bosqichda qayta o'rnatilmaydi)
   /** Xona egasi oldindan belgilagan o'yinchilar soni (2–8); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 8 gacha qo'shilish, 2 tagacha bot. */
@@ -37,7 +39,7 @@ export interface Room {
 }
 /** §6.7: reaksiyalar ochiq. Ruxsat etilgan to'plam kichik va neytral (SPEC to'plamni aytmaydi — OPEN_QUESTIONS #52). */
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const;
-export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "reaction"; from: string; emoji: string; at: number };
+export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "reaction"; from: string; emoji: string; at: number } | { type: "chat"; msg: ChatMsg };
 /** Mijozga ketadigan holat: tasodifiy urug', RNG holati va deka tartibi YASHIRILADI (aks holda kelgusi kubik va kartalarni oldindan hisoblab aldash mumkin). */
 export function publicState(st: GameState | null) {
   if (!st) return null;
@@ -61,7 +63,7 @@ function assetCardOf(ctx: Ctx, code: string, cardId?: string): AssetCard | undef
 /** Mijozga yuboriladigan ta'sir: viktorinaning to'g'ri javobi yashiriladi (faqat server biladi; javobdan keyin `state.lastQuiz` da ochiladi). */
 const publicEffect = (e: any) => (e && e.kind === "quiz" ? { ...e, correct: undefined } : e);
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string; deck?: string; title?: string }
-export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string; deck?: string; title?: string } | null }
+export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string; deck?: string; title?: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -75,7 +77,7 @@ export class RoomManager {
   listeners = new Set<(code: string, ev: RoomEvent) => void>();
 
   constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random,
-    private hooks: { restricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } } | undefined;
+    private hooks: { restricted?: (ids: string[]) => string[]; chatRestricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } } | undefined;
       canJoin?: (tag: RoomTag, userId: string) => boolean; onStart?: (code: string, r: Room) => void; onAbandon?: (code: string) => void; onError?: (where: string, e: unknown) => void; onApply?: (type: string, ok: boolean, ms: number, error?: string) => void } = {}) {}
   private activeCtx(): { version: number | null; ctx: Ctx } {
     return "active" in this.content ? this.content.active() : { version: null, ctx: this.content };
@@ -96,6 +98,7 @@ export class RoomManager {
       professionExp: r.state ? Object.fromEntries(r.state.players.flatMap((p) => { const e = r.ctx.kasb[p.profession]?.exp; return e ? [[p.id, e]] : []; })) : undefined, // kasb kartasidagi 9 ta xarajat satri (hisob varag'i)
       professions: r.state ? Object.fromEntries(r.state.players.map((p) => [p.id, r.ctx.kasb[p.profession]?.name ?? ""])) : undefined,
       dreams: r.state ? r.ctx.dreams.map((d) => ({ name: d.name, price: d.price, text: d.text, sector: d.sector, horizon: d.horizon })) : undefined,
+      chatRestricted: this.hooks.chatRestricted ? this.hooks.chatRestricted(r.members.filter((m) => !m.bot).map((m) => m.userId)) : [],
       recapCard: (() => { const id = r.state?.recaps?.[0]?.cause.cardId; const ce = id ? r.ctx.effects[id] : undefined; return ce ? { text: ce.text ?? "", title: ce.title } : null; })(),
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: publicEffect(pc.effect), file: pc.file, deck: pc.deck, title: pc.title } : null };
   }
@@ -344,6 +347,28 @@ export class RoomManager {
     const affordable = ea.kind === "buy" ? cur.cash >= (ea.down ?? ea.price) : e.kind === "gamble" ? cur.cash >= e.price : e.kind === "rentChoice" ? false : e.kind !== "lendRequest";
     await this.apply(r, { type: "decide", playerId: cur.id, accept: e.kind === "payOrLoseBusiness" ? true : !!bot && affordable && !slotBlocked(e, cur), ...(bot ? {} : { auto: true as const }) }, bot ? "bot" : "timeout");
   }
+
+  /** Chat: faqat xona a'zosi (lobbida ham). Erkin matn — 16 yoshgacha va ota-ona o'chirgan bolalar uchun yopiq (faqat tayyor iboralar). Tezlik cheklovi tashqarida (app). */
+  chat(code: string, userId: string, input: { text?: string; phrase?: number }): { ok: true; msg: ChatMsg } | { ok: false; error: Err } {
+    const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
+    if (!r || !m || m.left || m.bot) return { ok: false, error: "not_member" };
+    let msg: ChatMsg; if ((input.text === undefined) === (input.phrase === undefined)) return { ok: false, error: "bad_chat" };
+    if (input.phrase !== undefined) {
+      if (!Number.isInteger(input.phrase) || input.phrase < 0 || input.phrase >= PHRASES) return { ok: false, error: "bad_chat" };
+      msg = { id: 0, from: userId, at: this.clock.now(), phrase: input.phrase };
+    } else {
+      if (this.hooks.chatRestricted?.([userId]).length) return { ok: false, error: "chat_restricted" };
+      const text = cleanText(input.text); if (!text) return { ok: false, error: "bad_chat" };
+      const last = (r.lastChat ??= {})[userId]; if (last && last.text === text && this.clock.now() - last.at < 10_000) return { ok: false, error: "duplicate" }; // bir xil xabarni qayta-qayta yuborish
+      last ? (last.text = text, last.at = this.clock.now()) : (r.lastChat[userId] = { text, at: this.clock.now() });
+      msg = { id: 0, from: userId, at: this.clock.now(), text };
+    }
+    msg.id = r.chatSeq = (r.chatSeq ?? 0) + 1; (r.chat ??= []).push(msg); if (r.chat.length > CHAT_KEEP) r.chat.splice(0, r.chat.length - CHAT_KEEP);
+    for (const l of this.listeners) l(r.code, { type: "chat", msg });
+    return { ok: true, msg };
+  }
+  /** Qayta ulangan/yangi kirgan a'zoga so'nggi xabarlar. */
+  chatLog(code: string): ChatMsg[] { return this.rooms.get(code)?.chat ?? []; }
 
   /** §6.7 Reaksiya: faqat xona a'zosi, ruxsat etilgan to'plamdan; tezlik cheklovi tashqarida (app). Holatga ta'sir qilmaydi, saqlanmaydi. */
   react(code: string, userId: string, emoji: string): { ok: true } | { ok: false; error: Err } {

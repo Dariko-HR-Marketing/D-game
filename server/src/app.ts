@@ -77,6 +77,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   const edu = opts.edu ?? new Edu(opts.docs); const tournaments = opts.tournaments ?? new Tournaments(opts.docs);
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
   const rooms = new RoomManager(registry, store, undefined, undefined, {
+    chatRestricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.chatBlocked(ids)])], // erkin chat: 16 yoshgacha va ota-ona o'chirgan
     restricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.loansBlocked(ids)])], // §2.8: 16 yoshgacha va ota-ona o'chirgan bolalar — qarz/sheriklik yopiq
     profile: (id) => { const p = profiles.get(id); return p ? { ...p, level: profiles.levelCached(id), cos: commerce.cosmetics(id), photo: photoUrl(id) } : undefined; },
     canJoin: (tag, uid) => (tag.kind === "class" ? edu.canJoinRoom(tag.id, uid) : tournaments.canJoinRoom(tag.id, uid)), // sinf/turnir xonasi — faqat a'zolar
@@ -126,6 +127,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   // Xavfsizlik sarlavhalari va HTTP tezlik cheklovi (IP bo'yicha; admin kirish urinishlari qattiqroq).
   // WS ulanishi alohida va kengroq: maktab/ofis NAT ortidagi ko'p o'yinchi bir IP dan ulanadi (ta'lim auditoriyasi, §1).
   const complaintLimit = new KeyedLimiter(1 / 60, 3); // ~1 shikoyat/daqiqa, burst 3
+  const chatLimit = new KeyedLimiter(0.5, 4); // ~1 xabar / 2 s, burst 4
   const reactLimit = new KeyedLimiter(0.7, 3); // ~1 reaksiya / 1.5 s, burst 3
   const wsPingMs = Number(process.env.WS_PING_MS ?? 25_000);
   const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(3, 60), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
@@ -194,7 +196,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
           case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players, (m as { mode?: "standard" | "quick" | "rated" | "tutorial" }).mode); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
-            const c = String(m.code).toUpperCase(); attach(c); return reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); }
+            const c = String(m.code).toUpperCase(); attach(c); reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); return reply({ type: "chat_log", msgs: rooms.chatLog(c) }); }
           case "start": { if (!code) return reply({ type: "error", error: "no_room" });
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
             const r = await rooms.start(code, userId, seed, { events: (m as { events?: boolean }).events }); if (!r.ok) reply({ type: "error", error: r.error }); return; }
@@ -205,6 +207,9 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
             if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
             const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "resume": { if (!code) return reply({ type: "error", error: "no_room" }); const r = rooms.resumePlay(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
+          case "chat": { if (!code) return reply({ type: "error", error: "no_room" });
+            if (!chatLimit.allow(userId)) { cLimited({ scope: "chat" }); return reply({ type: "error", error: "rate_limited" }); }
+            const r = rooms.chat(code, userId, { text: m.text, phrase: m.phrase }); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "break": { if (!code) return reply({ type: "error", error: "no_room" }); const r = await rooms.takeBreak(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "leave": if (code) { sockets.get(code)?.delete(client); rooms.leave(code, userId); code = null; } return; // avval ulanishni xonadan ajratamiz: chiqayotganga holat qaytib kelmasin
           default: return reply({ type: "error", error: "unknown_type" });

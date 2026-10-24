@@ -35,6 +35,7 @@ export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),
   z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
+  z.object({ type: z.literal("chat"), text: z.string().min(1).max(1000).optional(), phrase: int(0, 99).optional() }).strict(), // yoki erkin matn, yoki tayyor ibora (ikkalasi birga — serverda rad etiladi)
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
   z.object({ type: z.literal("resume") }).strict(),
   z.object({ type: z.literal("break") }).strict(), // «Vaqtincha chiqib turish»: avtopilot yoqiladi, «Men qaytdim» bilan qaytiladi // «Men qaytdim»: avtopilotni o'chiradi (o'yin harakati emas)

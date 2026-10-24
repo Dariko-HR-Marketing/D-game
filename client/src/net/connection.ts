@@ -3,14 +3,16 @@ export interface WS { readyState?: number; send(s: string): void; close(): void;
 export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
-export interface RoomView { seats?: number; turnSeconds?: number; timerTotal?: number | null; mode?: "standard" | "quick" | "rated" | "tutorial"; limit?: { leftMs: number; deadline: number | null } | null; calc?: { mode: "auto" | "manual"; due: string[]; ledger?: Record<string, { cash: number; passive: number; flow: number }>; stats: Record<string, { firstTry: number; retried: number }> }; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string; deck?: string; title?: string } | null }
+export interface RoomView { seats?: number; turnSeconds?: number; timerTotal?: number | null; mode?: "standard" | "quick" | "rated" | "tutorial"; limit?: { leftMs: number; deadline: number | null } | null; calc?: { mode: "auto" | "manual"; due: string[]; ledger?: Record<string, { cash: number; passive: number; flow: number }>; stats: Record<string, { firstTry: number; retried: number }> }; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string; deck?: string; title?: string } | null }
 export interface Reaction { id: number; from: string; emoji: string; at: number }
+/** Chat xabari: erkin matn yoki tayyor ibora tartib raqami (matni `uz.chat.phrases`da). */
+export interface ChatMsg { id: number; from: string; at: number; text?: string; phrase?: number }
 /** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
-export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
+export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
-  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], lost: false, restoredAt: null, calcFb: null };
+  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], chat: [], lost: false, restoredAt: null, calcFb: null };
   private rid = 0; private fbN = 0;
   private ws: WS | null = null;
   private listeners = new Set<(s: ConnState) => void>();
@@ -42,6 +44,11 @@ export class Connection {
         this.rejoinCode = m.room.code; this.set({ room: m.room, error: null, ...(this.state.lost ? { lost: false, restoredAt: Date.now() } : {}) });
         // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
         if (this.retryNext && this.lastAct && !this.lastAct.retried) { this.retryNext = false; this.lastAct.retried = true; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
+      } else if (m.type === "chat_log") {
+        this.set({ chat: Array.isArray(m.msgs) ? (m.msgs as ChatMsg[]).slice(-100) : [] });
+      } else if (m.type === "chat") {
+        const msg = m.msg as ChatMsg; if (!msg || this.state.chat.some((x) => x.id === msg.id)) return;
+        this.set({ chat: [...this.state.chat, msg].slice(-100) });
       } else if (m.type === "reaction") {
         this.set({ reactions: [...this.state.reactions, { id: ++this.rid, from: m.from, emoji: m.emoji, at: Date.now() }].slice(-3) }); // so'nggi 3 tasi
       } else if (m.type === "error") {
@@ -77,12 +84,14 @@ export class Connection {
   create(turnSeconds: 30 | 60 = 30, calc: "auto" | "manual" = "auto", players?: number, mode?: "standard" | "quick" | "rated" | "tutorial") { this.expecting = true; this.send({ type: "create", turnSeconds, calc, ...(players ? { players } : {}), ...(mode && mode !== "standard" ? { mode } : {}) }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
-  leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [] }); }
+  leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [], chat: [] }); }
   /** «Men qaytdim»: avtopilotni o'chiradi. */
   resumePlay() { this.send({ type: "resume" }); }
   /** «Vaqtincha chiqib turish»: avtopilot yoqiladi (bankrot tahlilidan keyin ham). */
   breakPlay() { this.send({ type: "break" }); }
   react(emoji: string) { this.send({ type: "react", emoji }); }
+  /** Chat: erkin matn yoki tayyor ibora (xona a'zolariga). */
+  sendChat(m: { text: string } | { phrase: number }) { return this.send({ type: "chat", ...m }); }
   /** Harakat: mijoz ko'rgan oxirgi `seq` bilan (eski holatdagi harakat serverda rad etiladi). */
   act(action: Record<string, unknown>) { this.lastAct = { action, retried: false }; this.retryNext = false; this.send({ type: "act", seq: this.state.room?.seq ?? 0, action }); }
 }

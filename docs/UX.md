@@ -77,3 +77,9 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - Yotiq telefonda tahlil chapda (aylanadi), tanlovlar o'ngda. Tekshiruv: `server/scripts/recap-check.ts`.
 - **Qoida o'zgarmagan:** SPEC §5.3 bo'yicha bankrotda hamma aktiv va qarz yo'qoladi, yangi kasb tasodifiy tortiladi. «Bir qism aktiv qolsin» taklifi — OPEN_QUESTIONS 158.
 
+## O'yin ichida chat (2026-10-24, buyurtmachi talabi)
+- Sarlavhadagi «Chat» tugmasi (o'qilmagan xabarlar soni belgisi bilan) yon panel (kompyuter) yoki pastki varaq (telefon) ochadi. Yopiq paytda yangi xabar ekran o'qigichga e'lon qilinadi.
+- **Erkin matn** (≤ 200 belgi) — 16 yoshgacha va ota-ona o'chirgan bolalar uchun **yopiq** (SPEC §2.8); ularga va hammaga **12 ta tayyor ibora** ochiq (matnlar `uz.chat.phrases`). Server erkin matnni o'zi tekshiradi (`chat_restricted`).
+- Himoya: tezlik chegarasi (taxminan 1 xabar / 2 s, burst 4), bir xil xabarni 10 s ichida takrorlash rad etiladi, boshqaruv/yo'nalish belgilari tozalanadi, xabarlar xotirada (so'nggi 100 ta, bazaga yozilmaydi).
+- **Jim qilish** — o'yinchi xabarlarini faqat shu qurilmada yashiradi. **Shikoyat** — xabar matni bilan mavjud `/complaints` ga yuboriladi (admin «Shikoyatlar»da ko'radi). Tekshiruv: `server/scripts/chat-check.ts`.
+

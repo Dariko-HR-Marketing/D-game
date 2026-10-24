@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
 import { RecapLayer } from "./RecapLayer";
+import { ChatSheet, chatText } from "./ChatSheet";
+import { getMuted } from "../chatMute";
 import { DiceModal } from "./DiceModal";
 import { getRollModalPref, setRollModalPref } from "../turnPref";
 import { isTourOpen, subscribeTourOpen } from "./tourStore";
@@ -38,7 +40,7 @@ import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { color, font, HEADER_H, radius, space, tone } from "../theme";
 import { bankRoom, phaseSeconds, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
-import { REACTIONS, type Reaction, type RoomView } from "../net/connection";
+import { REACTIONS, type ChatMsg, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
 import { useMovement } from "../useMovement";
 import { useGameSounds, useSoundPrefs } from "../useGameSounds";
@@ -77,9 +79,13 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
-export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
+  const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
+  useEffect(() => { if (chatOpen) setSeenChat(lastChat); }, [chatOpen, lastChat]);
+  const chatNew = chatList.filter((m) => m.id > seenChat && m.from !== userId && !getMuted().has(m.from)); const chatUnread = chatOpen ? 0 : chatNew.length;
+  const chatErr = error && ["bad_chat", "chat_restricted", "duplicate", "rate_limited"].includes(error) ? error : null;
   const { width, height } = useWindowDimensions();
   const lay = layoutOf(width, height), compact = lay.compact, tablet = lay.tablet;
   const wide = lay.wide; // yotiq planshet/kompyuter/yotiq telefon: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
@@ -140,6 +146,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       if (e.code === "Space" && !interactive && !doc.querySelector('[role="dialog"]') && !["input", "textarea", "button", "select", "a"].includes(tag) && !e.repeat) { e.preventDefault(); onAct({ type: "roll" }); } };
     doc.addEventListener("keydown", h); return () => doc.removeEventListener("keydown", h);
   }, [canRoll, onAct]);
+  const lastIn = chatNew[chatNew.length - 1];
+  const chatNode = onChat ? (<>
+    <View role="status" accessibilityLiveRegion="polite" style={s.srOnly}><Text>{lastIn && !chatOpen ? `${nameOf(room, lastIn.from)}: ${chatText(lastIn)}` : ""}</Text></View>
+    {chatOpen && <ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} />}
+  </>) : null;
   const lcMine = state.lastCard && (state.lastCard as any).playerId === userId ? room.lastCard?.text ?? null : null;
   const fx = useFx(mine, lcMine, settled);
   useGameSounds({ room, userId, settled, mineTurn, left });
@@ -225,6 +236,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="portfolio-open"><Icon name="file" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sheet-open"><Icon name="chart" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
       {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="history-open"><Icon name="clock" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
+      {onChat && <Pressable accessibilityRole="button" accessibilityLabel={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} onPress={() => setChatOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="chat-open"><Icon name="chat" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.chat.title}</Text>}{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</Pressable>}
       <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={tiny ? 20 : 22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="tour-help"><Icon name="help" size={tiny ? 20 : 22} color={color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]}><Icon name="book" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
@@ -233,7 +245,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} />{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
@@ -273,7 +285,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} />{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
@@ -314,6 +326,8 @@ const s = StyleSheet.create({
   decide: { flex: 1, minHeight: 0, borderRadius: radius.lg, borderWidth: 2, borderColor: color.gold, backgroundColor: color.white, padding: space.md, gap: space.md },
   decideActions: { paddingTop: space.sm, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
   sideScroll: { paddingBottom: space.lg }, mainScroll: { alignItems: "center", gap: space.md, paddingBottom: space.lg },
+  srOnly: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 },
+  chatBadge: { position: "absolute", top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: color.red, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }, chatBadgeT: { color: color.white, fontSize: 10, fontWeight: "800" },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
   hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },

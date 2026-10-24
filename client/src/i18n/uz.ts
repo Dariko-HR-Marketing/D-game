@@ -206,6 +206,13 @@ export const uz = {
     cashflowChart: "Pul oqimi (aylanalar bo'yicha)", exitRound: "Kichik aylanadan chiqdi", never: "chiqmadi", restarts: "Qayta boshlash", peakCash: "Eng ko'p naqd", peakFlow: "Eng yuqori pul oqimi",
     accepted: "Qabul qilingan kartalar", skipped: "O'tkazilgan kartalar", assets: "Aktivlar", round: "aylana", you: "Siz",
   },
+  chat: {
+    title: "Chat", open: "Chat ochish", close: "Chatni yopish", empty: "Hozircha xabar yo'q. Birinchi bo'lib salomlashing!", input: "Xabar yozing…", send: "Yuborish", you: "Siz",
+    phrasesTitle: "Tayyor iboralar", muted: "jim", mute: "Jim qilish", unmute: "Ovozini yoqish", mutedNote: "Siz bu o'yinchining xabarlarini yashirdingiz", report: "Shikoyat", reported: "Shikoyat yuborildi",
+    restricted: "Erkin yozish yopiq (16 yoshgacha yoki ota-ona o'chirgan). Tayyor iboralardan foydalaning.", unread: "{n} yangi xabar", count: "{n}/{max}", hint: "Hurmat bilan yozing. Haqoratli xabarlarga shikoyat qilishingiz mumkin.",
+    errors: { bad_chat: "Xabar bo'sh yoki juda uzun", chat_restricted: "Erkin yozish sizga yopiq", duplicate: "Bu xabarni yaqinda yuborgansiz", rate_limited: "Juda tez yozyapsiz, biroz kuting" } as Record<string, string>,
+    phrases: ["Salom!", "Omad tilayman!", "Yaxshi yurish!", "Rahmat!", "Kechirasiz", "Bir daqiqa kuting", "Iltimos, tezroq", "Qiziq o'yin!", "Yana o'ynaymizmi?", "Hozir qaytaman", "Ajoyib qaror!", "Xayr, ko'rishguncha!"] as string[],
+  },
   recap: {
     title: "Bankrot bo'ldingiz", sub: "O'yin to'xtatildi. Nima bo'lganini ko'rib chiqing, so'ng davom eting.", from: "Avvalgi kasb", to: "Yangi kasb",
     what: "Nima bo'ldi?", lost: "Yo'qotilgan aktivlar", more: "yana {n} ta", income: "oyiga", state: "Bankrotgacha holat", cash: "Naqd", debt: "Qarz", flow: "Pul oqimi", salary: "Ish haqi", expenses: "Oylik xarajat", passive: "Passiv daromad",
@@ -305,6 +312,7 @@ export const uz = {
     partner_cash: "Sherikning naqdi yetmaydi", owner_cash: "Sizning naqdingiz yetmaydi", insufficient_cash: "Naqd yetmaydi", bot: "Botlar qatnashmaydi", no_proposal: "Taklif muddati tugadi",
     "5 dan kam o'yinchi": "Qarz uchun kamida 5 o'yinchi kerak", "beruvchi naqdining 20 % idan oshdi": "Beruvchi naqdining 20 % idan oshdi", "oluvchi limitidan oshdi": "Oluvchi limitidan oshdi",
     bad_action: "Bu harakat hozir mumkin emas", bad_field: "Maydon noto'g'ri to'ldirilgan", bad_giver: "Bu o'yinchidan qarz so'rab bo'lmaydi", bad_json: "Xabar tushunarsiz. Sahifani yangilang", bad_message: "Xabar tushunarsiz. Sahifani yangilang", bad_partner: "Bu o'yinchi sherik bo'la olmaydi", bad_text: "Matn bo'sh yoki juda uzun (2000 belgigacha)",
+    bad_chat: "Xabar bo'sh yoki juda uzun", chat_restricted: "Erkin yozish sizga yopiq", duplicate: "Bu xabarni yaqinda yuborgansiz",
     recap_open: "Bankrot tahlili ochiq: o'yin tahlil tasdiqlanguncha to'xtatilgan", no_recap: "Bu tahlil allaqachon yopilgan", not_yours: "Bu sizning tahlilingiz emas", banned: "Hisobingiz bloklangan. Shikoyat uchun qo'llab-quvvatlashga yozing", business_only: "Sheriklik faqat sarmoya biznesi uchun", card_gone: "Karta endi mavjud emas", circle_mismatch: "Sheriklik faqat bir aylanadagi o'yinchilar o'rtasida", decision_pending: "Avval karta bo'yicha qaror qiling", game_over: "O'yin tugagan",
     internal: "Ichki xatolik. Birozdan keyin qayta urinib ko'ring", no_game: "O'yin topilmadi", no_partnership: "Sheriklik topilmadi", no_pending_card: "Hozir qaror kutayotgan karta yo'q", no_player: "O'yinchi topilmadi", no_room: "Avval xonaga kiring", not_giver: "Bu qarz sizga tegishli emas", not_member: "Siz bu xonada emassiz",
     not_participant: "Siz bu o'yinda qatnashmagansiz", not_partner: "Bu taklif sizga yo'llanmagan", not_started: "O'yin hali boshlanmagan", nothing_pending: "Hozir hal qilinadigan narsa yo'q", rate_limited: "Juda tez. Biroz kuting", self: "O'zingizga qila olmaysiz", unknown_action: "Noma'lum harakat", unknown_type: "Noma'lum so'rov",
