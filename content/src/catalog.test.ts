@@ -7,16 +7,17 @@ const dir = new URL("../imports/tajriba24/", import.meta.url);
 const csv = readFileSync(new URL("tajriba24_cards_import.csv", dir), "utf-8");
 const kasbCsv = readFileSync(new URL("tajriba24_kasblar.csv", dir), "utf-8");
 const log = JSON.parse(readFileSync(new URL("../data/import_log/imp_20261021_tajriba24.json", import.meta.url), "utf-8")) as { entries: LogEntry[] };
+const log2 = JSON.parse(readFileSync(new URL("../data/import_log/imp_20261024_tajriba24_orzular.json", import.meta.url), "utf-8")) as { entries: LogEntry[] }; // orzular to'plami (V5_ORZULAR)
 const rows = parseCatalogCsv(csv);
 const current = loadContent().cards;
 const kasb = parseKasbSupplement(kasbCsv);
-const before = rollbackImport(current, log.entries); // import oldidan holat (jurnaldan)
+const before = rollbackImport(rollbackImport(current, log2.entries), log.entries); // birinchi import oldidan holat (ikki jurnalni teskari qaytarib)
 const strip = (c: unknown) => JSON.parse(JSON.stringify(c));
 
 describe("jadval tekshiruvi (validate_cards.py ning TS ko'rinishi)", () => {
   it("joriy jadval: 0 xato, 0 ogohlantirish (TZ §9.1)", () => {
     const v = validateRows(rows); expect(v.errors).toEqual([]); expect(v.warnings).toEqual([]);
-    expect(rows).toHaveLength(1032);
+    expect(rows).toHaveLength(1052);
   });
   const bad = (patch: Record<string, string>, i = 700) => validateRows(rows.map((r, k) => (k === i ? { ...r, ...patch } : r))).errors;
   it("xatolar ushlanadi: noma'lum effekt, kirill harf, takror ID, noto'g'ri koloda, kredit yig'indisi", () => {
@@ -35,17 +36,19 @@ describe("jadval tekshiruvi (validate_cards.py ning TS ko'rinishi)", () => {
 });
 
 describe("import hisobi va qaytarish", () => {
-  it("qatorlar: INSERT 614, UPDATE 153, NOCHANGE 246, REMOVE 19 (TZ §9.2)", () => {
+  it("qatorlar: INSERT 634, UPDATE 153, NOCHANGE 246, REMOVE 19 (TZ §9.2)", () => {
     const r = applyImport(before, rows, { importId: "t1", kasb }).report;
-    expect(r.counts).toEqual({ INSERT: 614, UPDATE: 153, NOCHANGE: 246, REMOVE: 19 }); expect(r.drawEnabled).toBe(931); expect(r.needsMapping).toBe(62);
-    expect(r.art.REDRAW).toHaveLength(108); expect(r.art.NEW_ART).toHaveLength(594);
+    expect(r.counts).toEqual({ INSERT: 634, UPDATE: 153, NOCHANGE: 246, REMOVE: 19 }); expect(r.drawEnabled).toBe(951); expect(r.needsMapping).toBe(62);
+    expect(r.art.REDRAW).toHaveLength(108); expect(r.art.NEW_ART).toHaveLength(614);
   });
-  it("qo'llangan holat: faol kartalar = eski faol − 19 + 614 (TZ §9.3); eski 418 + 4 vaqtinchalik kasb (№29–32) jadvaldagi kasblar bilan almashtirilgan", () => {
+  it("qo'llangan holat: faol kartalar = eski faol − 19 + 634 (TZ §9.3); eski 418 + 4 vaqtinchalik kasb (№29–32) jadvaldagi kasblar bilan almashtirilgan", () => {
     const res = applyImport(before, rows, { importId: "t1", kasb });
     const retired = Object.values(res.cards.meta).filter((m) => m.retired).length; expect(retired).toBe(19);
     const legacy = (["kasb", "kichik", "katta", "bozor", "xar", "kxar", "hod", "new"] as const).reduce((n, d) => n + res.cards[d].length, 0);
-    expect(legacy + res.cards.catalog.length - retired).toBe(418 - 19 + 614);
-    expect(strip(res.cards)).toEqual(strip(current)); // bazadagi holat shu import natijasi
+    expect(legacy + res.cards.catalog.length - retired).toBe(418 - 19 + 634);
+    const afterFirst = rollbackImport(current, log2.entries); // birinchi import natijasi (orzular to'plamidan oldin)
+    expect(strip(applyImport(afterFirst, rows, { importId: "t1", kasb }).cards)).toEqual(strip(current)); // bazadagi holat shu import natijasi
+    expect(afterFirst.catalog.filter((c) => c.kind === "DREAM" && !c.retired)).toHaveLength(20); expect(current.catalog.filter((c) => c.kind === "DREAM" && !c.retired)).toHaveLength(40); // 20 eski orzu o'rniga 40 ta yangi
   });
   it("ikkinchi import: 0 ta o'zgarish (idempotent, TZ §9.4)", () => {
     const again = applyImport(current, rows, { importId: "t2", kasb });
@@ -69,7 +72,7 @@ describe("import hisobi va qaytarish", () => {
 describe("qo'llangan kontent: havzalar va holatlar", () => {
   const fx = deriveEffects(current); const pools = buildPools(fx); const byId = new Map(fx.map((e) => [e.id, e]));
   it("olib tashlangan 19 karta kolodada yo'q, lekin ID si saqlanadi (saqlangan o'yinlar topa oladi)", () => {
-    const retired = fx.filter((e) => e.info?.retired); expect(retired).toHaveLength(19);
+    const retired = fx.filter((e) => e.info?.retired); expect(retired).toHaveLength(39); // 19 jadvaldan + 20 eski orzu (orzular to'plami almashtirildi)
     const all = new Set(Object.values(pools.deckIds).flat()); for (const e of retired) { expect(all.has(e.id), e.id).toBe(false); expect(byId.has(e.id)).toBe(true); }
   });
   it("o'qituvchi paneli kartalari (20) o'yin kolodasida yo'q (TZ §9.8)", () => {
@@ -84,7 +87,7 @@ describe("qo'llangan kontent: havzalar va holatlar", () => {
     expect(pools.adult.length).toBeGreaterThanOrEqual(24); for (const id of pools.adult) { const e = byId.get(id)!; expect(e.info?.age?.startsWith("16+") || e.info?.kind === "SPONSOR_INFO", id).toBe(true); } // 16+ kartalar va homiy (reklama) kartalari
   });
   it("jonli karta ta'siri aniq; ushlab turilganlarning sababi hisobotda", () => {
-    const s = catalogSummary(fx); expect(s.active).toBe(1013); expect(s.live + s.held).toBe(1013); expect(s.live).toBeGreaterThan(500);
+    const s = catalogSummary(fx); expect(s.active).toBe(1033); expect(s.live + s.held).toBe(1033); expect(s.live).toBeGreaterThan(500);
     for (const e of fx) if (isLive(e)) expect(e.effect.kind).not.toBe("unresolved");
   });
   it("eski kartalar o'zgartirilgan: «Xarajat_033» dagi kirill harfi tuzatilgan; 008_xarajat, Xarajat_034, Xarajat_054 dekasi jadvalga mos", () => {
@@ -95,5 +98,12 @@ describe("qo'llangan kontent: havzalar va holatlar", () => {
     const ks = current.kasb.filter((k) => k.n >= 33); expect(ks).toHaveLength(20);
     for (const k of ks) { expect(k.salary - k.total).toBe(k.cf); expect(k.exp).toBeUndefined(); expect(k.file).toBe(""); }
     expect(current.kasb.find((k) => k.n === 4)!.total).toBe(675); expect(current.kasb.find((k) => k.n === 4)!.exp).toBeUndefined(); // qatorlar qayta taqsimlanmaguncha
+  });
+});
+
+describe("orzular (V5_ORZULAR)", () => {
+  it("dreams.json karta jadvalidan hosil bo'ladi (yagona manba): 40 ta, kod bo'yicha tartiblangan", async () => {
+    const { dreamsFromRows } = await import("./catalog"); const disk = JSON.parse(readFileSync(new URL("../data/dreams.json", import.meta.url), "utf-8"));
+    expect(disk).toEqual(dreamsFromRows(rows)); expect(disk).toHaveLength(40); expect(disk.filter((d: any) => d.horizon === "Istiqbol")).toHaveLength(20);
   });
 });

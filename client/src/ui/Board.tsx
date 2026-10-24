@@ -88,7 +88,7 @@ export function Board({ room, width, wide, currentId, tight, compact, roomy, vie
         <View style={StyleSheet.absoluteFill} role="img" aria-label={`Taxta. ${players.map((p) => `${nameOf(room, p.id)}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}`}>
           {tiles.map((t, pi) => {
             const i = (((pi - offset) % n) + n) % n; const L = lookOf(circle, i); const cq = curP ? at(curP) : null, here = !!cq && cq.circle === circle && cq.pos === i;
-            const dream = circle === "big" && BIG_CELLS[i].t === "O" && players.some((p) => p.dreamIdx !== null && room.dreams?.[p.dreamIdx]?.name === BIG_CELLS[i].name && p.id === currentId);
+            const dream = circle === "big" && BIG_CELLS[i].t === "O" && players.some((p) => p.dreamIdx !== null && p.id === currentId); // istalgan «O» katagi orzu katagi (OPEN_QUESTIONS 156)
             const side = !t.corner && (pi >= g.cols && pi < g.cols + Math.ceil((n - 2 * g.cols) / 2) || pi >= 2 * g.cols + Math.ceil((n - 2 * g.cols) / 2));
             const small = side && !wide; // telefonda yon kataklar nozik: faqat ikonka
             return (

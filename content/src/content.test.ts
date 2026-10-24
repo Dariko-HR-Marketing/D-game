@@ -5,19 +5,20 @@ const { cards, bigBoard, dreams } = loadContent();
 const effects = deriveEffects(cards);
 
 describe("kontent", () => {
-  it("kolodalar soni: eski kolodalar 442 (kasb 52 — jadvaldagi 24 yangi kasb bilan), katalog 590; olib tashlangan 19 → faol 1 013 (Tajriba24)", () => {
+  it("kolodalar soni: eski kolodalar 442 (kasb 52 — jadvaldagi 24 yangi kasb bilan), katalog 630 (shundan 20 eski orzu olib tashlangan); olib tashlangan 19 → faol 1 033 (Tajriba24 + 40 orzu)", () => {
     for (const [k, n] of Object.entries(EXPECTED_COUNTS)) expect((cards as any)[k]).toHaveLength(n);
     expect(Object.values(EXPECTED_COUNTS).reduce((a, b) => a + b, 0)).toBe(442);
-    expect(cards.catalog).toHaveLength(590);
+    expect(cards.catalog).toHaveLength(630);
     const retired = Object.values(cards.meta).filter((m) => m.retired).length;
-    expect(retired).toBe(19); expect(442 + cards.catalog.length - retired).toBe(1013);
+    const retiredCat = cards.catalog.filter((c) => c.retired).length; expect(retired).toBe(19); expect(retiredCat).toBe(20); expect(442 + cards.catalog.length - retired - retiredCat).toBe(1033);
   });
   it("ko'chmas mulk kartalari: bo'nak + kredit = to'liq qiymat (manba rasmlaridagi 2 ta xato — KV4-006, DX-005 — qaror bilan tuzatilgan)", () => {
     for (const c of cards.katta as any[]) if (c.down !== undefined) expect(c.down + c.credit, c.file).toBe(c.full);
   });
-  it("katta aylana: 53 katak, 14 orzu katagi, START=34", () => {
+  it("katta aylana: 53 katak, 14 orzu katagi (umumiy nom), START=34; orzular — 40 ta, jadvaldan", () => {
     expect(bigBoard).toHaveLength(53);
-    expect(bigBoard.filter((c) => c.t === "O")).toHaveLength(dreams.length);
+    expect(bigBoard.filter((c) => c.t === "O")).toHaveLength(14); expect(bigBoard.filter((c) => c.t === "O").every((c) => c.name === "Orzu katagi")).toBe(true);
+    expect(dreams).toHaveLength(40); expect(new Set(dreams.map((d) => d.name)).size).toBe(40); expect(dreams.every((d) => d.price >= 800000 && d.price <= 3000000 && d.code?.startsWith("ORZ-"))).toBe(true);
     expect(bigBoard[34].name).toBe("Start");
   });
   it("rasm fayl nomlari takrorlanmaydi (deka ichida; rasmsiz kartalar hisobga kirmaydi)", () => {
@@ -30,7 +31,7 @@ describe("kontent", () => {
 });
 
 describe("kartalar ta'siri (100 %)", () => {
-  it("har bir karta uchun ta'sir bor (eski 442 + katalog 590)", () => expect(effects).toHaveLength(442 + 590));
+  it("har bir karta uchun ta'sir bor (eski 442 + katalog 630)", () => expect(effects).toHaveLength(442 + 630));
   it("hal qilinmagan karta faqat ushlab turilgan (held) katalog kartasi; sababi yozilgan va kolodaga tushmaydi", () => {
     const un = effects.filter((e) => e.effect.kind === "unresolved");
     for (const e of un) { expect(e.info?.catalog, e.id).toBe(true); expect(e.info?.held, e.id).toBeTruthy(); expect(isLive(e), e.id).toBe(false); }
@@ -62,9 +63,11 @@ describe("admin kontentini tekshirish", () => {
     const r = raw(); r.cards.xar[0].amount = -5;
     expect(() => parseBundle(r)).toThrow();
   });
-  it("orzu katagi topilmasa — muammo", () => {
-    const r = raw(); r.dreams[0].name = "yo'q orzu";
-    expect(validateBundle(parseBundle(r)).join()).toContain("orzu");
+  it("orzu nomlari takrorlansa yoki orzu katagi yo'q bo'lsa — muammo", () => {
+    const r = raw(); r.dreams[1].name = r.dreams[0].name;
+    expect(validateBundle(parseBundle(r)).join()).toContain("orzu nomlari");
+    const q = raw(); q.bigBoard.forEach((c: any) => { if (c.t === "O") c.t = "Y"; });
+    expect(validateBundle(parseBundle(q)).join()).toContain("orzu");
   });
   it("kasb jami xarajati noto'g'ri bo'lsa rad", () => {
     const r = raw(); r.cards.kasb[0].total += 1;

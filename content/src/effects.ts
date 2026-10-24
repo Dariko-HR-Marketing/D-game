@@ -161,7 +161,7 @@ export function deriveEffects(c: Cards): CardEffect[] {
   for (const k of c.catalog) {
     const d = catalogEffect(k, universe);
     out.push({ deck: CAT_DECK[k.deck], id: `cat-${k.id}`, file: k.file ?? "", mode: d.mode, effect: d.effect, text: catalogText(k), title: k.title,
-      info: { ranked: k.ranked, age: k.age, sector: k.sector, kind: k.kind, image: k.image, goal: k.goal, ...(d.held ? { held: d.held } : {}), catalog: true } });
+      info: { ranked: k.ranked, age: k.age, sector: k.sector, kind: k.kind, image: k.image, goal: k.goal, ...(d.held ? { held: d.held } : {}), ...(k.retired ? { retired: k.retired } : {}), catalog: true } });
   }
   // Karta matni (UI uchun): har kolodada tartib manba massivi bilan bir xil.
   const src: Record<string, string[]> = {

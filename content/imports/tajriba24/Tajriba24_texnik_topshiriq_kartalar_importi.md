@@ -7,7 +7,7 @@ Ushbu hujjat bilan birga beriladigan fayllar:
 | Fayl | Vazifasi |
 |---|---|
 | `Tajriba24_kartalar_import.xlsx` | Odam o‘qiydigan import jadvali (varaqlar: README, Kartalar, Effekt turlari, Qo‘lda xaritalash, Tekshiruv) |
-| `tajriba24_cards_import.csv` | Mashina o‘qiydigan manba (UTF-8, 1 032 qator, 50 ustun) |
+| `tajriba24_cards_import.csv` | Mashina o‘qiydigan manba (UTF-8, 1 052 qator, 50 ustun) |
 | `tajriba24_cards_import.json` | Xuddi shu ma’lumot JSON ko‘rinishida (`schema_version`, `columns`, `cards`) |
 | `validate_cards.py` | Import oldidan tekshiruv (faqat standart kutubxona) |
 
@@ -17,7 +17,7 @@ CSV va JSON — yagona haqiqat manbai. XLSX faqat ko‘rish va tahrirlash uchun;
 
 ## 1. Maqsad
 
-1. O‘yin bazasidagi mavjud 399 ta kartani yangilash (153 ta o‘zgarish), 19 tasini olib tashlash va 614 ta yangi kartani qo‘shish.
+1. O‘yin bazasidagi mavjud 399 ta kartani yangilash (153 ta o‘zgarish), 19 tasini olib tashlash va 634 ta yangi kartani qo‘shish.
 2. Jarayon qo‘lda tahrirsiz, takrorlanuvchi (idempotent) va orqaga qaytariladigan bo‘lishi kerak: bir xil faylni ikki marta yuklash natijani o‘zgartirmaydi.
 3. Kelgusida karta o‘zgarsa: jadval tahrirlanadi → `validate_cards.py` → import buyrug‘i. Kod o‘zgartirilmaydi.
 4. Yangi karta effektlari (Bozor, Hodisa, Xarajat, Sug‘urta va h.k.) tuzilgan maydonlar orqali dvigatelda ishlaydi, matndan o‘qilmaydi.
@@ -49,7 +49,7 @@ Sir ma’lumotlar (parollar, kalitlar, server manzillari) import fayllariga va h
 - `card_id` — yagona kalit. Eski kartalar uchun rasm fayl nomi (kengaytmasiz), masalan `KB_011`; yangi kartalar uchun kod (`Y001`, `BZ001`, `NK2-01`, `K33` va h.k.).
 - `legacy_file` — eski kartaning rasm fayli (`UPDATE`, `NOCHANGE`, `REMOVE` uchun majburiy; `INSERT` uchun bo‘sh).
 - `operation`:
-  - `INSERT` — yangi karta qo‘shiladi (614).
+  - `INSERT` — yangi karta qo‘shiladi (634).
   - `UPDATE` — mavjud karta `legacy_file` bo‘yicha topiladi va jadvaldagi maydonlar bilan almashtiriladi (153).
   - `NOCHANGE` — tegilmaydi (246). Ulardan 12 tasida `review_status=DECIDED` (kvartira kredit foizi va do‘st qarzi bo‘yicha qaror qabul qilingan; karta o‘zgarmaydi).
   - `REMOVE` — karta kolodadan chiqariladi (19). Qattiq o‘chirish emas: `status=retired`, tarix saqlanadi.
@@ -164,7 +164,8 @@ Daromadlar «oy»da (D katagi o‘tganda oy o‘tadi). Ta’sir muddati «aylana
 - Auksion (20): kamida 3 o‘yinchi; boshlang‘ich narx `effect1_value`, qadam `effect1_condition` (`qadam=500`); g‘olib to‘laydi va aktivni oladi.
 - Viktorina (20): savol `text`, variantlar `option_a/b/v`, to‘g‘ri javob `effect1_value`; to‘g‘ri javob XP beradi, pulga ta’sir qilmaydi; javob vaqti 30 soniya.
 - Homiy (20): pulga ta’sir qilmaydi, XP +5. 16 yoshgacha reklamasiz (`age_rating=6+ (reklamasiz)`).
-- Missiya (20) va Orzu (20): maqsad kartalari. Orzu: g‘alaba sharti — pul oqimi ≥ 100 000 + orzu katagi + naqd ≥ orzu narxi.
+- Missiya (20) va Orzu (40): maqsad kartalari. Orzu: g‘alaba sharti — pul oqimi ≥ 100 000 + orzu katagi + naqd ≥ orzu narxi. Orzu narxi 800 000–3 000 000 sh.b.
+- **Orzular guruhini to‘liq sinxronlash (muhim):** `card_type = Orzu (katta aylana)` (`source_batch = V5_ORZULAR`, `card_id = ORZ-01…ORZ-40`) jadvaldagi yagona to‘g‘ri ro‘yxat. Importda bu guruh uchun: jadvalda bo‘lmagan barcha mavjud orzu elementlari (kazino va boshqa nomaqbul orzular, shu jumladan o‘yin kodida yoki orzu katagi sozlamasida qattiq yozilganlari) `retired` qilinadi, hisobotda ro‘yxati chiqariladi. Orzu tanlash interfeysi faqat shu 40 ta orzudan tanlatadi; `sector` ustunida yo‘nalish, `display_effect` da ufq (Hozirgi/Istiqbol) bor.
 - Jamg‘arma va depozit (20): `DEPOZIT_FOIZ`; muddatidan oldin yechilsa foiz yo‘qoladi.
 - Ta’lim keysi (20): `pool=TEACHER_PANEL` — o‘yin kolodasiga kirmaydi; o‘qituvchi panelida ko‘rsatiladi.
 
@@ -185,7 +186,7 @@ Qatlamlar nisbati sozlama (`MARKET_LAYER_RATIO`), boshlang‘ich qiymat 50/50; y
 
 ## 7. `draw_enabled` va qo‘lda xaritalash
 
-- `draw_enabled=TRUE` (931 ta) — kolodaga tushadi.
+- `draw_enabled=TRUE` (951 ta) — kolodaga tushadi.
 - `draw_enabled=FALSE` (101 ta): 62 ta karta effekti hali tuzilgan maydonlarga o‘tkazilmagan (`needs_engine_mapping=TRUE`, ro‘yxat «Qo‘lda xaritalash» varag‘ida), 20 ta o‘qituvchi paneli kartasi, 19 ta olib tashlangan karta.
 - 62 ta kartaning effektlari ikkinchi bosqichda yoziladi: har biri uchun jadvalda taklif etilgan mexanika bor. Ular tayyor bo‘lganda CSV da `needs_engine_mapping=FALSE`, `draw_enabled=TRUE` qilinadi va importni qayta yuklash yetadi.
 
@@ -205,8 +206,8 @@ Import dasturi shu qoidalarni o‘z ichiga olishi (yoki skriptni chaqirishi) sha
 ## 9. Testlar (qabul mezonlari)
 
 1. `validate_cards.py` joriy CSV da: 0 xato, 0 ogohlantirish.
-2. `--dry-run`: bazaga yozmaydi, hisobot: INSERT 614, UPDATE 153, NOCHANGE 246, REMOVE 19.
-3. `--apply`: tranzaksiya; baza ichida kartalar soni = eski faol kartalar − 19 + 614.
+2. `--dry-run`: bazaga yozmaydi, hisobot: INSERT 634, UPDATE 153, NOCHANGE 246, REMOVE 19.
+3. `--apply`: tranzaksiya; baza ichida kartalar soni = eski faol kartalar − 19 + 634.
 4. Ikkinchi `--apply`: 0 o‘zgarish.
 5. `rollback`: baza zaxira nusxaga teng.
 6. Bir xato qator qo‘shilganda (masalan noma’lum `effect1_type`) — hech narsa yozilmaydi.

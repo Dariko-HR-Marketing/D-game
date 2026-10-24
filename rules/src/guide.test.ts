@@ -170,19 +170,25 @@ describe("Birovning biznesi: A — oylik daromadni to'lash; B — 2× narxda sot
   });
 });
 
-describe("Orzu katagi", () => {
-  const O = ctx.bigBoard.findIndex((c) => c.t === "O");
-  it("boshqa orzuga tushsa — katta aylana xarajat kartasi (kxar) olinadi", () => {
-    const s = land("big", O, (g) => { g.players[0].dreamIdx = ctx.dreams.findIndex((d) => d.name !== ctx.bigBoard[O].name); });
-    expect(ctx.effects[s.lastCard!.cardId].deck).toBe("kxar");
-  });
-  it("o'z orzuiga pul oqimi yetmay tushsa — g'alaba yo'q, kxar", () => {
-    const s = land("big", O, (g) => { g.players[0].dreamIdx = ctx.dreams.findIndex((d) => d.name === ctx.bigBoard[O].name); g.players[0].lockedFlow = 5000; });
+describe("Orzu katagi (istalgan «O» katagi, OPEN_QUESTIONS 156 — qaror A)", () => {
+  const Os = ctx.bigBoard.filter((c) => c.t === "O").map((c) => c.i), O = Os[0];
+  it("orzusi tanlanmagan o'yinchi orzu katagiga tushsa — katta aylana xarajat kartasi (kxar) olinadi", () => {
+    const s = land("big", O, (g) => { g.players[0].dreamIdx = null; });
     expect(s.winner).toBeNull(); expect(ctx.effects[s.lastCard!.cardId].deck).toBe("kxar");
   });
-  it("o'z orzuiga 100 000 pul oqimi va yetarli naqd bilan tushsa — g'alaba", () => {
-    const s = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: ctx.dreams.findIndex((d) => d.name === ctx.bigBoard[O].name), lockedFlow: 100_000, cash: 50_000_000 }); });
-    expect(s.winner).toBe("p0");
+  it("pul oqimi yetmay tushsa — g'alaba yo'q, kxar", () => {
+    const s = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: 0, lockedFlow: 5000, cash: 50_000_000 }); });
+    expect(s.winner).toBeNull(); expect(ctx.effects[s.lastCard!.cardId].deck).toBe("kxar");
+  });
+  it("naqd orzu narxidan kam bo'lsa — g'alaba yo'q", () => {
+    const s = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: 0, lockedFlow: 100_000, cash: ctx.dreams[0].price - 1 }); });
+    expect(s.winner).toBeNull();
+  });
+  it("100 000 pul oqimi va yetarli naqd bilan istalgan «O» katagida g'alaba", () => {
+    for (const cell of Os) {
+      const s = land("big", cell, (g) => { Object.assign(g.players[0], { dreamIdx: 5, lockedFlow: 100_000, cash: ctx.dreams[5].price + 1234 }); });
+      expect(s.winner, `katak ${cell}`).toBe("p0"); expect(s.players[0].won).toBe(true);
+    }
   });
 });
 

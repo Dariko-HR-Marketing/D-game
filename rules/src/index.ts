@@ -93,8 +93,8 @@ export function canExitSmallCircle(b: Blank, mode?: GameMode | null): boolean {
 }
 
 /** §5.5: g'alaba sharti uchta. */
-export function hasWonBigCircle(p: { cashflow: number; onOwnDreamCell: boolean; cash: number; dreamPrice: number }): boolean {
-  return p.cashflow >= RULES.winCashflow && p.onOwnDreamCell && p.cash >= p.dreamPrice;
+export function hasWonBigCircle(p: { cashflow: number; onDreamCell: boolean; cash: number; dreamPrice: number }): boolean {
+  return p.cashflow >= RULES.winCashflow && p.onDreamCell && p.cash >= p.dreamPrice;
 }
 
 /** §5.6 Suyunchi: ixtiyoriy 10–500, 10 qadam, naqdidan oshmaydi. */

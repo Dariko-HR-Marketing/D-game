@@ -42,7 +42,7 @@ export const CatalogCard = z.object({
   salary: int.optional(), surplus: int.optional(), sharePct: int.optional(), qtyMin: int.optional(), qtyMax: int.optional(),
   duration: z.string().optional(), goal: z.string().optional(), age: z.string().optional(), pool: z.enum(["DECK", "TEACHER_PANEL"]), ranked: z.enum(["BASE", "EXTENDED"]), sector: z.string().optional(),
   effects: z.array(CatalogEffect).max(2), display: z.string().optional(),
-  needsMapping: z.boolean(), draw: z.boolean(), publish: z.boolean(), batch: z.string(), review: z.string(), image: z.enum(IMAGE_STATUSES), file: z.string().optional(), reason: z.string().optional(),
+  needsMapping: z.boolean(), draw: z.boolean(), publish: z.boolean(), batch: z.string(), review: z.string(), image: z.enum(IMAGE_STATUSES), file: z.string().optional(), reason: z.string().optional(), retired: z.string().optional(),
 });
 export type CatalogCardT = z.infer<typeof CatalogCard>;
 
@@ -143,4 +143,10 @@ export function rowToCard(r: RawRow): CatalogCardT {
 export function rowToMeta(r: RawRow): CardMetaT {
   return CardMeta.parse({ id: r.card_id, ranked: r.ranked_pool, age: str(r.age_rating), sector: str(r.sector), goal: str(r.learning_goal), image: r.image_status, kind: str(r.card_kind),
     needsMapping: r.needs_engine_mapping === "TRUE" || undefined, draw: r.draw_enabled === "FALSE" ? false : undefined, retired: r.operation === "REMOVE" ? (r.change_reason || r.old_value || "olib tashlangan") : undefined });
+}
+
+/** Orzular ro'yxati karta jadvalidan (texnik topshiriq 6.6: jadval — yagona to'g'ri ro'yxat); tartib — karta kodi bo'yicha. */
+export function dreamsFromRows(rows: RawRow[]): { name: string; price: number; code: string; text: string; sector: string; horizon: "Hozirgi" | "Istiqbol" }[] {
+  return rows.filter((r) => r.card_kind === "DREAM" && r.operation !== "REMOVE" && r.draw_enabled === "TRUE").sort((a, b) => a.card_id.localeCompare(b.card_id))
+    .map((r) => ({ name: r.title, price: Number(r.price), code: r.card_id, text: r.text, sector: r.sector, horizon: /Ufq:\s*Istiqbol/.test(r.display_effect) ? "Istiqbol" as const : "Hozirgi" as const }));
 }

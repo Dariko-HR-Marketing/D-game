@@ -54,7 +54,7 @@ Bu bitta fayl Claude Code'ga POYGA stol o'yinining onlayn versiyasini profession
 
 **5.4 Kichik aylanadan chiqish.** Uchta shart bir vaqtda: naqd ≥ 1 000 000; oylik passiv daromad ≥ 25 000 (xarajat ayrilmaydi — asl qo'llanma, TZ, yagona spetsifikatsiya); qarz va kreditlar = 0. Chiqishda barcha kichik va katta bizneslar bankka topshiriladi (kartalar to'plamga qaytadi); kvartira, aksiya, yer, uy va avtomobil o'yinchida qoladi. Blankning orqa tomoniga chiqish paytidagi oylik pul oqimi (daromad − xarajat, topshirishdan oldin) yoziladi. Chiqishdan oldin hamkorlik qarzlari va sheriklik yopilgan bo'lishi shart. (Namuna holat: naqd 1 020 000, pul oqimi 25 400.) Katta aylanada o'tgan pul oqimi kamaymaydi.
 
-**5.5 Katta aylana.** G'alaba sharti uchta: oylik pul oqimi ≥ 100 000; o'z orzu katagiga tushish; naqd ≥ orzu qiymati. Progress ekranda doim ko'rinadi. Katak turlari B ilovada.
+**5.5 Katta aylana.** G'alaba sharti uchta: oylik pul oqimi ≥ 100 000; orzu katagiga tushish (2026-10-24, buyurtmachi qarori: istalgan «O» katagi — OPEN_QUESTIONS 156); naqd ≥ tanlangan orzu qiymati. Progress ekranda doim ko'rinadi. Katak turlari B ilovada.
 
 **5.6 Hamkorlik.**
 | Qoida | Shart |

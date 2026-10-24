@@ -42,11 +42,11 @@ describe("§5.4 chiqish", () => {
 });
 
 describe("§5.5 g'alaba", () => {
-  const ok = { cashflow: 100_000, onOwnDreamCell: true, cash: 3_000_000, dreamPrice: 3_000_000 };
+  const ok = { cashflow: 100_000, onDreamCell: true, cash: 3_000_000, dreamPrice: 3_000_000 };
   it("uchala shart", () => expect(R.hasWonBigCircle(ok)).toBe(true));
   it("bittasi yetmasa yutmaydi", () => {
     expect(R.hasWonBigCircle({ ...ok, cashflow: 99_999 })).toBe(false);
-    expect(R.hasWonBigCircle({ ...ok, onOwnDreamCell: false })).toBe(false);
+    expect(R.hasWonBigCircle({ ...ok, onDreamCell: false })).toBe(false);
     expect(R.hasWonBigCircle({ ...ok, cash: 2_999_999 })).toBe(false);
   });
 });
