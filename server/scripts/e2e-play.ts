@@ -20,12 +20,14 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
   await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd");
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
-  let rolls = 0, accepted = 0, skipped = 0, idle = 0;
+  let rolls = 0, accepted = 0, skipped = 0, idle = 0, recaps = 0;
   for (let i = 0; i < 400 && rolls < 60; i++) {
     const roll = p.getByRole("button", { name: /^Kubik(ni|larni) tashlash/ }), accept = p.getByRole("button", { name: /sh\.b\. olish$|^Qabul qilaman/ }), no = p.getByRole("button", { name: "O'tkazaman" });
     const deck = p.getByRole("button", { name: /^Kichik sarmoyalar, / }), rentA = p.getByRole("button", { name: /^A · Oylik daromadni/ });
     const pay = p.getByRole("button", { name: /^To'layman|^Pul to'layman/ });
-    if (await deck.count()) { if (await tryClick(deck)) idle = 0; }
+    const again = p.getByRole("button", { name: "Yangi kasb bilan davom etish" }); // bankrotlik: o'yin to'xtab, tahlil oynasi — odam davom etishni tanlaydi
+    if (await again.count()) { if (await tryClick(again)) { recaps++; idle = 0; } }
+    else if (await deck.count()) { if (await tryClick(deck)) idle = 0; }
     else if (await rentA.count()) { if (await tryClick(rentA)) idle = 0; }
     else if (await accept.count()) { if ((rolls + accepted) % 3 === 0 && await accept.first().isEnabled({ timeout: 1000 }).catch(() => false)) { if (await tryClick(accept)) accepted++; } else { if (await tryClick(no)) skipped++; } idle = 0; }
     else if (await p.getByTestId("quiz-options").count()) { const opt = p.getByTestId("quiz-options").getByRole("button", { name: /^[ABV]\. / }); if (await tryClick(opt.nth((rolls + accepted) % 3))) accepted++; idle = 0; } // viktorina (katalog): javob variantlaridan biri
@@ -38,7 +40,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   // ikkilamchi bo'limlar xatosiz ochilsin
   const fin = p.getByRole("button", { name: /Moliya amallari/ }); if (await fin.count()) { await fin.click(); await p.waitForTimeout(200); }
   const rules = p.getByRole("button", { name: "Qoidalar" }); if (await rules.count()) { await rules.first().click(); await p.waitForSelector("text=O'yin qoidalari"); await p.getByRole("button", { name: "Orqaga" }).click(); }
-  console.log(`${tag}: kubik=${rolls} qabul=${accepted} o'tkazildi=${skipped} xatolar=${errors.length}`);
+  console.log(`${tag}: kubik=${rolls} qabul=${accepted} o'tkazildi=${skipped} bankrotlik=${recaps} xatolar=${errors.length}`);
   for (const e of errors.slice(0, 5)) fail(`${tag}: ${e}`);
   if (rolls < 10) fail(`${tag}: kam navbat (${rolls})`);
   await c.close();
