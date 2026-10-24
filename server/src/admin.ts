@@ -4,6 +4,7 @@ import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 import type { ContentRegistry, Part } from "./registry";
 import { WriteQueue, type Persist } from "./persist";
+import { loadContent } from "@poyga/content";
 
 export type Role = "administrator" | "content_editor" | "support" | "analyst" | "moderator" | "finance" | "edu_manager" | "tournament_manager";
 export type Perm = "content.read" | "content.write" | "content.publish" | "users.read" | "users.ban" | "users.manage" | "rooms.read" | "rooms.close" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read"
@@ -97,6 +98,7 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
     if (!["cards", "bigBoard", "dreams", "cellRules"].includes(part)) return { error: "no_part" };
     return d.registry.createVersion(part, body.data, who.id, body.note ?? "");
   }, "content.create_version"));
+  app.post("/admin/content/sync-package", guard("content.publish", (_req, who) => d.registry.syncPackage(loadContent(), who.id, true), "content.publish")); // paketdagi (kod bilan kelgan) kontentni faollashtiradi, admin tahrirlarini ham almashtiradi
   app.post("/admin/content/versions/:v/publish", guard("content.publish", (req) => ({ ok: d.registry.publish(Number((req.params as any).v)) }), "content.publish"));
 
   // --- xonalar va jurnal ---
