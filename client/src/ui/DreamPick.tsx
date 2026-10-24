@@ -40,7 +40,7 @@ export function DreamPick({ room, userId, error, onPick }: { room: RoomView; use
           return (
             <View key={i} style={[s.cell, { width: `${100 / cols - 2}%` as any }]}>
               <Card accent={isMine ? "green" : undefined} style={[{ flex: 1, justifyContent: "space-between" }, by && !isMine && { opacity: 0.6 }]}>
-                <View style={{ gap: space.sm }}><Text style={s.name}>{d.name}</Text><Text style={s.price}>{uz.dreams.price}: <Text style={s.priceV}>{money(d.price)}</Text> sh.b.</Text></View>
+                <View style={{ gap: space.sm }}><Text style={s.name}>{d.name}</Text>{d.text ? <Text style={s.text}>{d.text}</Text> : null}{d.sector || d.horizon ? <Text style={s.meta}>{[d.sector, d.horizon ? uz.dreams.horizon[d.horizon] : null].filter(Boolean).join(" · ")}</Text> : null}<Text style={s.price}>{uz.dreams.price}: <Text style={s.priceV}>{money(d.price)}</Text> sh.b.</Text></View>
                 {by ? <Pill label={isMine ? uz.dreams.yours : `${uz.dreams.taken} · ${nameOf(room, by)}${k >= 0 ? ` (${k + 1})` : ""}`} kind={isMine ? "good" : "plain"} />
                   : <Button label={mine === null ? uz.dreams.pick : uz.dreams.change} kind={mine === null ? "primary" : "ghost"} onPress={() => onPick(i)} />}
               </Card>
@@ -56,5 +56,5 @@ const s = StyleSheet.create({
   who: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, alignItems: "center" }, who1: { flexDirection: "row", alignItems: "center", gap: space.xs, backgroundColor: color.white, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, paddingVertical: space.xs, paddingHorizontal: space.md },
   dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, whoT: { color: color.navy, fontSize: font.sm, fontWeight: "700" }, cnt: { color: tone.muted, fontWeight: "800", marginLeft: space.sm },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md }, cell: { minWidth: 260, flexGrow: 1 },
-  name: { color: color.navy, fontSize: font.lg, fontWeight: "800", lineHeight: 23 }, price: { color: tone.muted, fontSize: font.md }, priceV: { color: color.navy, fontWeight: "800" },
+  name: { color: color.navy, fontSize: font.lg, fontWeight: "800", lineHeight: 23 }, text: { color: color.text2, fontSize: font.sm, lineHeight: 19 }, meta: { color: tone.muted, fontSize: font.xs, fontWeight: "700" }, price: { color: tone.muted, fontSize: font.md }, priceV: { color: color.navy, fontWeight: "800" },
 });

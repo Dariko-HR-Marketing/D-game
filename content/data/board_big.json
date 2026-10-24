@@ -39,7 +39,7 @@
  {
   "i": 4,
   "t": "O",
-  "name": "Golf klubini sotib olib, do‘stlar bilan golf o‘ynash",
+  "name": "Orzu katagi",
   "income": null,
   "price": 3000000,
   "note": ""
@@ -76,7 +76,7 @@
  {
   "i": 8,
   "t": "O",
-  "name": "2 000 kishilik yetimxona qurish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1000000,
   "note": ""
@@ -113,7 +113,7 @@
  {
   "i": 12,
   "t": "O",
-  "name": "Zominda chang‘i ko‘targichlari bor shaxsiy yer sotib olib, chang‘ida uchish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 2800000,
   "note": ""
@@ -158,7 +158,7 @@
  {
   "i": 17,
   "t": "O",
-  "name": "Retro avtomobillar kolleksiyasini yig‘ish: Pobeda, ZIM, Volga, Moskvich 403, BMW (1940), Mercedes-Benz",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1000000,
   "note": ""
@@ -174,7 +174,7 @@
  {
   "i": 19,
   "t": "O",
-  "name": "Mashhur yozuvchi asari asosida jangari film suratga olish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 2000000,
   "note": ""
@@ -232,7 +232,7 @@
  {
   "i": 25,
   "t": "O",
-  "name": "Chorvoq suv ombori bo‘yida pansionat sotib olish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 2000000,
   "note": ""
@@ -248,7 +248,7 @@
  {
   "i": 27,
   "t": "O",
-  "name": "Skoliozga chalinganlar uchun shifoxona qurish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1000000,
   "note": ""
@@ -284,7 +284,7 @@
  {
   "i": 31,
   "t": "O",
-  "name": "Avstraliyada orol sotib olib, osoyishtalikda dam olish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 3000000,
   "note": ""
@@ -316,7 +316,7 @@
  {
   "i": 35,
   "t": "O",
-  "name": "O‘g‘lingizni o‘zbek estradasi va kino yulduzi qilish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 700000,
   "note": ""
@@ -352,7 +352,7 @@
  {
   "i": 39,
   "t": "O",
-  "name": "Bir yil davomida dunyo bo‘ylab sayohat qilish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 700000,
   "note": ""
@@ -389,7 +389,7 @@
  {
   "i": 43,
   "t": "O",
-  "name": "Shaxsiy samolyot sotib olish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1700000,
   "note": ""
@@ -405,7 +405,7 @@
  {
   "i": 45,
   "t": "O",
-  "name": "Chorvoq suv omborida suzish uchun yaxta sotib olish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1000000,
   "note": ""
@@ -437,7 +437,7 @@
  {
   "i": 49,
   "t": "O",
-  "name": "Entoni Robbinsning bir yillik ta’lim dasturiga yozilish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1000000,
   "note": ""
@@ -453,7 +453,7 @@
  {
   "i": 51,
   "t": "O",
-  "name": "Ronaldoni jamoangizda futbol o‘ynashga taklif qilish",
+  "name": "Orzu katagi",
   "income": null,
   "price": 1500000,
   "note": ""

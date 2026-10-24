@@ -44,7 +44,7 @@ describe("aylanalar", () => {
   });
   it("katta aylanada orzu katagida 3 shart bajarilsa g'alaba", () => {
     const dreamIdx = 0, dream = ctx.dreams[dreamIdx];
-    const cell = ctx.bigBoard.find((c) => c.t === "O" && c.name === dream.name)!.i;
+    const cell = ctx.bigBoard.find((c) => c.t === "O")!.i; // istalgan «O» katagi (OPEN_QUESTIONS 156, qaror A)
     for (let die = 1; die <= 6; die++) {
       const s = newGame(ctx, ["a", "b"], 1);
       const p = s.players[0];
@@ -60,7 +60,7 @@ describe("aylanalar", () => {
   });
   it("naqd yetmasa yutmaydi", () => {
     const dream = ctx.dreams[0];
-    const cell = ctx.bigBoard.find((c) => c.t === "O" && c.name === dream.name)!.i;
+    const cell = ctx.bigBoard.find((c) => c.t === "O")!.i; // istalgan «O» katagi (OPEN_QUESTIONS 156, qaror A)
     for (let seed = 1; seed < 400; seed++) {
       const s = newGame(ctx, ["a", "b"], 1);
       Object.assign(s.players[0], { circle: "big", pos: (cell - 1 + 53) % 53, dreamIdx: 0, cash: dream.price - 1, lockedFlow: 100_000, salary: 0, baseExpenses: 0 });

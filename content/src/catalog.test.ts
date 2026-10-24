@@ -100,3 +100,10 @@ describe("qo'llangan kontent: havzalar va holatlar", () => {
     expect(current.kasb.find((k) => k.n === 4)!.total).toBe(675); expect(current.kasb.find((k) => k.n === 4)!.exp).toBeUndefined(); // qatorlar qayta taqsimlanmaguncha
   });
 });
+
+describe("orzular (V5_ORZULAR)", () => {
+  it("dreams.json karta jadvalidan hosil bo'ladi (yagona manba): 40 ta, kod bo'yicha tartiblangan", async () => {
+    const { dreamsFromRows } = await import("./catalog"); const disk = JSON.parse(readFileSync(new URL("../data/dreams.json", import.meta.url), "utf-8"));
+    expect(disk).toEqual(dreamsFromRows(rows)); expect(disk).toHaveLength(40); expect(disk.filter((d: any) => d.horizon === "Istiqbol")).toHaveLength(20);
+  });
+});

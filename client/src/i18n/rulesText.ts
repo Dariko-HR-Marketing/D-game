@@ -24,7 +24,7 @@ export function ruleItems(r: R): RuleItem[] {
     { id: "exit", title: "Kichik aylanadan chiqish", source: "SPEC §5.4",
       text: `Uchta shart bir vaqtda bajarilishi kerak: naqd ≥ ${m(r.exitCash)}; oylik passiv pul oqimi ≥ ${m(r.exitPassiveFlow)}; qarz va kreditlar = 0. Chiqishdan oldin hamkorlik qarzlari va sheriklik yopilgan bo'lishi shart.` },
     { id: "win", title: "Katta aylana: g'alaba", source: "SPEC §5.5",
-      text: `G'alaba uchun uchta shart: oylik pul oqimi ≥ ${m(r.winCashflow)}; o'z orzu katagiga tushish; naqd ≥ orzu qiymati.` },
+      text: `G'alaba uchun uchta shart: oylik pul oqimi ≥ ${m(r.winCashflow)}; orzu katagiga tushish (istalgan «O» katak); naqd ≥ orzu qiymati.` },
     { id: "suyunchi", title: "Suyunchi", source: "SPEC §5.6",
       text: `Farzand tug'ilsa bank ${m(r.suyunchiBank)} sh.b. beradi. Har bir o'yinchi ixtiyoriy ${m(r.suyunchiMin)}–${m(r.suyunchiMax)} sh.b. (${r.suyunchiStep} qadam bilan) berishi mumkin, naqdidan oshmasligi kerak. Navbatni to'xtatmaydi; faqat kichik aylanada.` },
     { id: "loan", title: "O'zaro qarz", source: "SPEC §5.6",

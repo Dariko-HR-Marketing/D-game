@@ -50,9 +50,10 @@ describe("o'yin simulyatsiyasi", () => {
     const r = reduce(s, ctx, { type: "roll", playerId: "a" });
     expect(r.ok && r.die! >= 1 && r.die! <= 6).toBe(true);
   });
-  it("orzu nomlari katta aylana O-kataklari bilan mos", () => {
-    const cells = new Set(bigBoard.filter((c) => c.t === "O").map((c) => c.name));
-    for (const d of dreams) expect(cells.has(d.name), d.name).toBe(true);
+  it("orzular: nomlari noyob, narxi 800 000–3 000 000; O-kataklar umumiy («Orzu katagi»), soni 14", () => {
+    expect(new Set(dreams.map((d) => d.name)).size).toBe(dreams.length); expect(dreams.length).toBeGreaterThanOrEqual(8);
+    for (const d of dreams) expect(d.price >= 800000 && d.price <= 3000000, d.name).toBe(true);
+    const O = bigBoard.filter((c) => c.t === "O"); expect(O).toHaveLength(14); expect(O.every((c) => c.name === "Orzu katagi")).toBe(true);
   });
   it("A ilova 48 katak", () => expect(SMALL_BOARD).toHaveLength(48));
 });

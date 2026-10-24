@@ -1,58 +1,322 @@
 [
  {
-  "name": "Golf klubini sotib olib, do‘stlar bilan golf o‘ynash",
-  "price": 3000000
+  "name": "O‘z uyingiz va hovli",
+  "price": 900000,
+  "code": "ORZ-01",
+  "text": "Oilangiz uchun keng, ta’mirlangan o‘z uy-joy sotib oling.",
+  "sector": "Oila va uy-joy",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "2 000 kishilik yetimxona qurish",
-  "price": 1000000
+  "name": "Oilaviy avtomobil va ta’til fondi",
+  "price": 800000,
+  "code": "ORZ-02",
+  "text": "O‘z avtomobilingiz va har yil oila bilan dam olish uchun jamg‘arma yarating.",
+  "sector": "Oila va uy-joy",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Zominda chang‘i ko‘targichlari bor shaxsiy yer sotib olib, chang‘ida uchish",
-  "price": 2800000
+  "name": "Farzandlar ta’limi fondi",
+  "price": 1000000,
+  "code": "ORZ-03",
+  "text": "Farzandlaringizning maktab va universitet ta’limi uchun to‘liq jamg‘arma yarating.",
+  "sector": "Ta’lim",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Retro avtomobillar kolleksiyasini yig‘ish: Pobeda, ZIM, Volga, Moskvich 403, BMW (1940), Mercedes-Benz",
-  "price": 1000000
+  "name": "Ota-onalar uchun xotirjam hayot",
+  "price": 900000,
+  "code": "ORZ-04",
+  "text": "Ota-onangizning davolanish va yashash xarajatlarini doimiy ta’minlaydigan fond yarating.",
+  "sector": "Oila va uy-joy",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Mashhur yozuvchi asari asosida jangari film suratga olish",
-  "price": 2000000
+  "name": "Moliyaviy erkinlik",
+  "price": 1500000,
+  "code": "ORZ-05",
+  "text": "Passiv daromadingiz xarajatlaringizdan oshsin: ishlamasangiz ham yashay oling.",
+  "sector": "Shaxsiy moliya",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Chorvoq suv ombori bo‘yida pansionat sotib olish",
-  "price": 2000000
+  "name": "Mahalla obodonlashtirish fondi",
+  "price": 800000,
+  "code": "ORZ-06",
+  "text": "Mahallangizda yo‘l, yoritish va bolalar maydonchasini yangilang.",
+  "sector": "Jamiyat",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Bir yil davomida dunyo bo‘ylab sayohat qilish",
-  "price": 700000
+  "name": "O‘z ishlab chiqarish korxonangiz",
+  "price": 1400000,
+  "code": "ORZ-07",
+  "text": "Mahalliy xomashyodan tayyor mahsulot chiqaradigan zamonaviy sex quring.",
+  "sector": "Biznes",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "O‘g‘lingizni o‘zbek estradasi va kino yulduzi qilish",
-  "price": 700000
+  "name": "Zamonaviy fermer xo‘jaligi",
+  "price": 1300000,
+  "code": "ORZ-08",
+  "text": "Tomchilatib sug‘orishli intensiv bog‘ va qadoqlash sexi bo‘lgan xo‘jalik yarating.",
+  "sector": "Agro",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Avstraliyada orol sotib olib, osoyishtalikda dam olish",
-  "price": 3000000
+  "name": "Hunarmandlar mahallasi",
+  "price": 1100000,
+  "code": "ORZ-09",
+  "text": "Turistlar uchun hunarmandlar ustaxonalari va savdo rastalari mahallasini yarating.",
+  "sector": "Turizm va madaniyat",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Skoliozga chalinganlar uchun shifoxona qurish",
-  "price": 1000000
+  "name": "Zamonaviy xususiy maktab",
+  "price": 1200000,
+  "code": "ORZ-10",
+  "text": "Mahallangizda xalqaro standartdagi xususiy maktab quring.",
+  "sector": "Ta’lim",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Ronaldoni jamoangizda futbol o‘ynashga taklif qilish",
-  "price": 1500000
+  "name": "Oilaviy poliklinika",
+  "price": 1700000,
+  "code": "ORZ-11",
+  "text": "Bolalar va oilalar uchun zamonaviy tibbiyot markazi qurish.",
+  "sector": "Sog‘liq",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Entoni Robbinsning bir yillik ta’lim dasturiga yozilish",
-  "price": 1000000
+  "name": "Stipendiya fondi",
+  "price": 1000000,
+  "code": "ORZ-12",
+  "text": "Yuz nafar iqtidorli talabaga stipendiya beradigan fond yarating.",
+  "sector": "Ta’lim",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Chorvoq suv omborida suzish uchun yaxta sotib olish",
-  "price": 1000000
+  "name": "Sport akademiyasi",
+  "price": 1500000,
+  "code": "ORZ-13",
+  "text": "Iqtidorli bolalar uchun sport akademiyasi oching.",
+  "sector": "Sport",
+  "horizon": "Hozirgi"
  },
  {
-  "name": "Shaxsiy samolyot sotib olish",
-  "price": 1700000
+  "name": "Kutubxona va madaniyat markazi",
+  "price": 800000,
+  "code": "ORZ-14",
+  "text": "Mahallangizga zamonaviy kutubxona va madaniyat markazi quring.",
+  "sector": "Turizm va madaniyat",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Mehmon uylari tarmog‘i",
+  "price": 1600000,
+  "code": "ORZ-15",
+  "text": "Ichki turizm uchun bir nechta mehmon uyi va xostellardan iborat tarmoq yarating.",
+  "sector": "Turizm va madaniyat",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Tog‘da ekologik kurort",
+  "price": 2500000,
+  "code": "ORZ-16",
+  "text": "Tog‘da tabiatga zarar yetkazmaydigan ekologik kurort quring.",
+  "sector": "Turizm va madaniyat",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Milliy taomlar restoran tarmog‘i",
+  "price": 1500000,
+  "code": "ORZ-17",
+  "text": "Milliy taomlar restoranlarini franshiza asosida kengaytiring.",
+  "sector": "Biznes",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Onlayn ta’lim platformasi",
+  "price": 1200000,
+  "code": "ORZ-18",
+  "text": "Kasb o‘rgatadigan o‘zbek tilidagi onlayn ta’lim platformasini yarating.",
+  "sector": "Ta’lim",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Yetkazib berish va logistika kompaniyasi",
+  "price": 2000000,
+  "code": "ORZ-19",
+  "text": "Shaharlararo yetkazib berish va ombor xizmatini yirik kompaniyaga aylantiring.",
+  "sector": "Biznes",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Suv tozalash zavodi",
+  "price": 1300000,
+  "code": "ORZ-20",
+  "text": "Qishloqlar uchun ichimlik suvini tozalaydigan zavod quring.",
+  "sector": "Ekologiya",
+  "horizon": "Hozirgi"
+ },
+ {
+  "name": "Quyosh energetikasi fermasi",
+  "price": 2200000,
+  "code": "ORZ-21",
+  "text": "Katta quyosh elektr stansiyasi quring va energiyani tarmoqqa soting.",
+  "sector": "Energiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Elektr transport zaryad tarmog‘i",
+  "price": 1800000,
+  "code": "ORZ-22",
+  "text": "Viloyat yo‘llari bo‘ylab tez zaryad stansiyalari tarmog‘ini yarating.",
+  "sector": "Energiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Startaplar uchun texnopark",
+  "price": 2000000,
+  "code": "ORZ-23",
+  "text": "Yosh tadbirkorlar uchun texnopark va inkubator yarating.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Sun’iy intellekt kompaniyasi",
+  "price": 2400000,
+  "code": "ORZ-24",
+  "text": "Mahalliy tilda ishlaydigan sun’iy intellekt mahsulotlarini yarating.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Kiberxavfsizlik kompaniyasi",
+  "price": 1900000,
+  "code": "ORZ-25",
+  "text": "Biznes va bank tizimlarini himoya qiladigan kiberxavfsizlik kompaniyasi.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Ilmiy laboratoriya",
+  "price": 1600000,
+  "code": "ORZ-26",
+  "text": "Ixtirochilar va tadqiqotchilar uchun zamonaviy ilmiy laboratoriya quring.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Aqlli uy va aqlli mahalla tizimlari",
+  "price": 1700000,
+  "code": "ORZ-27",
+  "text": "Energiyani tejaydigan aqlli uy va mahalla tizimlarini ishlab chiqaring.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Suvni tejaydigan agrotexnologiya",
+  "price": 1900000,
+  "code": "ORZ-28",
+  "text": "Kam suv sarflaydigan sug‘orish va sensorli dehqonchilik tizimini yarating.",
+  "sector": "Agro",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Chiqindidan energiya zavodi",
+  "price": 2100000,
+  "code": "ORZ-29",
+  "text": "Organik chiqindidan biogaz va o‘g‘it ishlab chiqaradigan zavod quring.",
+  "sector": "Ekologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Dron xizmatlari kompaniyasi",
+  "price": 1500000,
+  "code": "ORZ-30",
+  "text": "Dehqonchilik va yetkazib berish uchun dron xizmati kompaniyasini yarating.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Telemeditsina platformasi",
+  "price": 1600000,
+  "code": "ORZ-31",
+  "text": "Chekka hududlarga shifokor maslahatini yetkazadigan raqamli platforma yarating.",
+  "sector": "Sog‘liq",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Eksport fabrikasi",
+  "price": 2700000,
+  "code": "ORZ-32",
+  "text": "Dunyo bozoriga mahsulot sotadigan zamonaviy fabrika quring.",
+  "sector": "Biznes",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Moda brendi",
+  "price": 1400000,
+  "code": "ORZ-33",
+  "text": "Jahon bozoriga chiqadigan milliy moda brendini yarating.",
+  "sector": "Biznes",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Xavfsiz raqamli to‘lov xizmati",
+  "price": 2300000,
+  "code": "ORZ-34",
+  "text": "Kichik biznes uchun xavfsiz va arzon to‘lov xizmatini yarating.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Elektr batareya yig‘ish zavodi",
+  "price": 3000000,
+  "code": "ORZ-35",
+  "text": "Elektr transport va quyosh tizimlari uchun batareya yig‘adigan zavod quring.",
+  "sector": "Energiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Yuk logistika terminali",
+  "price": 2600000,
+  "code": "ORZ-36",
+  "text": "Temir yo‘l va avtomobil yuklarini birlashtiradigan zamonaviy terminal quring.",
+  "sector": "Biznes",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Yoshlar olimpiada jamoasi homiyligi",
+  "price": 900000,
+  "code": "ORZ-37",
+  "text": "Yoshlar olimpiada jamoasini ko‘p yillik homiylik qiling.",
+  "sector": "Sport",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Dehqonchilik kooperativi",
+  "price": 2000000,
+  "code": "ORZ-38",
+  "text": "Ming oilani birlashtirgan agrokooperativ tuzing.",
+  "sector": "Agro",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Raqamli kontent studiyasi",
+  "price": 1800000,
+  "code": "ORZ-39",
+  "text": "Kino, animatsiya va o‘yinlar yaratadigan raqamli studiya oching.",
+  "sector": "Texnologiya",
+  "horizon": "Istiqbol"
+ },
+ {
+  "name": "Ikki yillik malaka sayohati",
+  "price": 1000000,
+  "code": "ORZ-40",
+  "text": "Ikki yil davomida dunyo bo‘ylab o‘qib, ishlab va tajriba orttiring.",
+  "sector": "Shaxsiy moliya",
+  "horizon": "Istiqbol"
  }
 ]

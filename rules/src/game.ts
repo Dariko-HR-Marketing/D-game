@@ -17,7 +17,7 @@ export const CONFIG = {
 
 export interface BigCell { i: number; t: string; name: string; income: number | null; price: number | null; faces?: number[]; lump?: number }
 export interface Kasb { n: number; name?: string; salary: number; total: number; save: number; child: number; car?: number; kv?: number; exp?: number[] }
-export interface Dream { name: string; price: number }
+export interface Dream { name: string; price: number; code?: string; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }
 
 /** O'zgarmas kontent: serverda yuklanadi, holatga kirmaydi. */
 export interface Ctx {
@@ -539,9 +539,9 @@ function smallLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
 
 function bigLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
   const cell = ctx.bigBoard[p.pos];
-  if (cell.t === "O" && p.dreamIdx !== null && ctx.dreams[p.dreamIdx].name === cell.name) {
+  if (cell.t === "O" && p.dreamIdx !== null) { // orzu katagi — istalgan «O» katagi (OPEN_QUESTIONS 156, qaror A): g'alaba — pul oqimi, naqd ≥ tanlangan orzu narxi
     const dream = ctx.dreams[p.dreamIdx];
-    if (hasWonBigCircle({ cashflow: Math.max(playerCashflow(p), p.lockedFlow), onOwnDreamCell: true, cash: p.cash, dreamPrice: dream.price })) {
+    if (hasWonBigCircle({ cashflow: Math.max(playerCashflow(p), p.lockedFlow), onDreamCell: true, cash: p.cash, dreamPrice: dream.price })) {
       setP(s, { ...p, won: true, cash: p.cash - dream.price }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
     }
   }

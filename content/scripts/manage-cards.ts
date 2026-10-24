@@ -6,9 +6,9 @@
 // Xato bo'lsa chiqish kodi 1 va hech narsa yozilmaydi. Parollar/kalitlar/server manzillari bu fayllarda bo'lmaydi.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { Cards } from "../src/schema";
-import { parseCatalogCsv, validateRows } from "../src/catalog";
+import { parseCatalogCsv, validateRows, dreamsFromRows } from "../src/catalog";
 import { applyImport, rollbackImport, parseKasbSupplement, type LogEntry } from "../src/import";
 import { deriveEffects, catalogSummary } from "../src/effects";
 
@@ -49,6 +49,7 @@ if (cmd === "validate" || cmd === "import") {
     mkdirSync(logDir, { recursive: true });
     writeFileSync(join(logDir, `${importId}.json`), JSON.stringify({ importId, at: new Date().toISOString(), source: csvPath.split("/").pop(), sha256: sha, entries: res!.log }, null, 1) + "\n");
     writeFileSync(join(logDir, `import_report_${importId}.json`), JSON.stringify({ ...r, summary: S }, null, 1) + "\n");
+    const dreams = dreamsFromRows(rows); if (dreams.length) { const dp = join(dirname(cardsPath), "dreams.json"); writeFileSync(dp, JSON.stringify(dreams, null, 1) + "\n"); console.log(`orzular: ${dreams.length} ta → ${dp}`); } // jadval — orzular uchun yagona manba
     save(res!.cards); console.log(`yozildi: ${cardsPath}\nimport ID: ${importId} (qaytarish: cards rollback --import-id ${importId})`);
   }
 } else if (cmd === "rollback") {

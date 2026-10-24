@@ -46,7 +46,8 @@ export type Cards = z.infer<typeof Cards>;
 
 export const EXPECTED_COUNTS = { kasb: 52, kichik: 82, katta: 85, bozor: 98, xar: 85, kxar: 25, hod: 9, new: 6 } as const;
 
-export const Dream = z.object({ name: z.string().min(1), price: money });
+/** Orzu: `code`/`text`/`sector`/`horizon` — karta jadvalidan (ORZ-xx); eski ro'yxatda faqat nom va narx. */
+export const Dream = z.object({ name: z.string().min(1), price: money, code: z.string().optional(), text: z.string().optional(), sector: z.string().optional(), horizon: z.enum(["Hozirgi", "Istiqbol"]).optional() });
 export const BigCell = z.object({ i: z.number().int(), t: z.enum(["T", "V", "O", "X", "Y"]), name: z.string(),
   income: money.nullable(), price: money.nullable(), note: z.string(),
   faces: z.array(z.number().int().min(1).max(6)).min(1).max(6).optional(), // tavakkal (V): yutuqli kubik qirralari
