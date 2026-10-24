@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts, Manrope_400Regular, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
 import { Connection, ConnState } from "./src/net/connection";
 import { paced } from "./src/net/paced";
+import { VoiceEngine } from "./src/voice/engine";
 import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
 import { DreamPick } from "./src/ui/DreamPick";
@@ -85,6 +86,12 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "POYGA"; } }, []);
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
   useForeground(() => conn.resume(), () => conn.markLost()); // ilovadan/ustundan qaytilganda yoki tarmoq qaytganda: «Aloqa uzildi» → qayta ulanish
+  const voice = useMemo(() => new VoiceEngine({ selfId: userId, send: (m) => conn.send(m), iceServers: async () => (await http.voiceConfig()).iceServers }), [conn, http, userId]);
+  useEffect(() => { // ovozli aloqa: server signali va «kim ovozda» ro'yxati dvigatelga uzatiladi; xonadan chiqilsa — ovoz yopiladi
+    conn.voiceSignal = (from, data) => void voice.onSignal(from, data);
+    const un = conn.subscribe((s) => { if (!s.room) voice.dispose(); else voice.onVoiceState(s.voice); });
+    return () => { un(); conn.voiceSignal = null; voice.dispose(); };
+  }, [conn, voice]);
   const room = st.room;
   // Sinov rejimi (token = qurilma identifikatori): boshlangan o'yinga kod bilan kirilsa-yu, bu qurilma o'yinchisi emas bo'lsa — o'z o'rnini qaytarib olish
   const devMode = session.token === session.userId; const [joinTry, setJoinTry] = useState<string | null>(null); const [claim, setClaim] = useState<string | null>(null);
@@ -122,7 +129,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
-        : <Game http={http} room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} onResume={() => conn.resumePlay()} onBreak={() => conn.breakPlay()} chat={st.chat} onChat={(m) => conn.sendChat(m)} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} calcFb={st.calcFb} />}
+        : <Game http={http} room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} onResume={() => conn.resumePlay()} onBreak={() => conn.breakPlay()} chat={st.chat} onChat={(m) => conn.sendChat(m)} voice={voice} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} calcFb={st.calcFb} />}
       </View>
       <Tour id={tourId} defer={(!!room?.state && (tourId === "game-small" || tourId === "game-big") && isMyTurn(room, userId))} onRules={() => setRulesOpen(true)} />
     </SafeAreaView>

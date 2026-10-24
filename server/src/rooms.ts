@@ -24,7 +24,7 @@ export const TURN_SECONDS = [30, 60] as const; export type TurnSeconds = (typeof
 export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean; autoStreak?: number; offlineAt?: number } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
-  chat?: ChatMsg[]; chatSeq?: number; lastChat?: Record<string, { text: string; at: number }>; // so'nggi xabarlar (xotirada) va takroriy xabarni to'xtatish
+  voice?: Set<string>; chat?: ChatMsg[]; chatSeq?: number; lastChat?: Record<string, { text: string; at: number }>; // so'nggi xabarlar (xotirada) va takroriy xabarni to'xtatish
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
   timerSeconds?: number | null; armKey?: string | null; // joriy taymer davomiyligi (mijoz halqasi uchun) va qaysi bosqich uchun o'rnatilgani (bir xil bosqichda qayta o'rnatilmaydi)
   /** Xona egasi oldindan belgilagan o'yinchilar soni (2–8); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 8 gacha qo'shilish, 2 tagacha bot. */
@@ -39,7 +39,7 @@ export interface Room {
 }
 /** §6.7: reaksiyalar ochiq. Ruxsat etilgan to'plam kichik va neytral (SPEC to'plamni aytmaydi — OPEN_QUESTIONS #52). */
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const;
-export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "reaction"; from: string; emoji: string; at: number } | { type: "chat"; msg: ChatMsg };
+export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "reaction"; from: string; emoji: string; at: number } | { type: "chat"; msg: ChatMsg } | { type: "voice_state"; members: string[] } | { type: "voice_signal"; from: string; to: string; data: { sdp?: unknown; candidate?: unknown } };
 /** Mijozga ketadigan holat: tasodifiy urug', RNG holati va deka tartibi YASHIRILADI (aks holda kelgusi kubik va kartalarni oldindan hisoblab aldash mumkin). */
 export function publicState(st: GameState | null) {
   if (!st) return null;
@@ -367,6 +367,24 @@ export class RoomManager {
     for (const l of this.listeners) l(r.code, { type: "chat", msg });
     return { ok: true, msg };
   }
+  /** Ovozli aloqa: ovozga qo'shilish/chiqish. Erkin gaplashish — erkin chat bilan bir xil cheklov (16 yoshgacha va ota-ona o'chirgan bolalarga yopiq, SPEC §2.8). Audio serverdan o'tmaydi. */
+  voice(code: string, userId: string, op: "join" | "leave"): { ok: true } | { ok: false; error: Err } {
+    const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
+    if (!r || !m || m.left || m.bot) return { ok: false, error: "not_member" };
+    const v = (r.voice ??= new Set());
+    if (op === "join") { if (this.hooks.chatRestricted?.([userId]).length) return { ok: false, error: "voice_restricted" }; v.add(userId); } else v.delete(userId);
+    this.emitVoice(r); return { ok: true };
+  }
+  /** Signal (SDP/ICE) faqat ikkala tomon ham ovozda bo'lsa uzatiladi. */
+  voiceSignal(code: string, from: string, to: string, data: { sdp?: unknown; candidate?: unknown }): { ok: true } | { ok: false; error: Err } {
+    const r = this.rooms.get(code); const v = r?.voice;
+    if (!r || !v || !v.has(from) || !v.has(to) || from === to) return { ok: false, error: "not_in_voice" };
+    for (const l of this.listeners) l(r.code, { type: "voice_signal", from, to, data }); return { ok: true };
+  }
+  voiceMembers(code: string): string[] { return [...(this.rooms.get(code)?.voice ?? [])]; }
+  private emitVoice(r: Room) { for (const l of this.listeners) l(r.code, { type: "voice_state", members: [...(r.voice ?? [])] }); }
+  private dropVoice(r: Room, userId: string) { if (r.voice?.delete(userId)) this.emitVoice(r); }
+
   /** Qayta ulangan/yangi kirgan a'zoga so'nggi xabarlar. */
   chatLog(code: string): ChatMsg[] { return this.rooms.get(code)?.chat ?? []; }
 
@@ -381,7 +399,7 @@ export class RoomManager {
 
   disconnect(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
-    if (r && m) { m.online = false; m.offlineAt = this.clock.now(); this.markOffline(r); if (r.state && !r.state.winner && !this.humansOnline(r)) this.pause(r); this.emit(r); }
+    if (r && m) { this.dropVoice(r, userId); m.online = false; m.offlineAt = this.clock.now(); this.markOffline(r); if (r.state && !r.state.winner && !this.humansOnline(r)) this.pause(r); this.emit(r); }
   }
 
   /** §6.3: qayta ulanganda holat to'liq tiklanadi (snapshot + seq). */
@@ -415,7 +433,7 @@ export class RoomManager {
   leave(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
     if (!r || !m || m.left) return; // takroriy chiqish hech narsani o'zgartirmaydi
-    this.activeRoomOf.delete(userId);
+    this.activeRoomOf.delete(userId); this.dropVoice(r, userId);
     this.markOffline(r, userId);
     if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) { this.rooms.delete(code); this.dropLobby(code); } else if (r.hostId === userId) r.hostId = r.members.find((x) => !x.bot)?.userId ?? r.members[0].userId; /* xona egasi chiqsa — keyingi odam egasi bo'ladi */ if (r.members.length) this.saveLobby(r); }
     else {

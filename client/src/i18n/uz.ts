@@ -206,6 +206,13 @@ export const uz = {
     cashflowChart: "Pul oqimi (aylanalar bo'yicha)", exitRound: "Kichik aylanadan chiqdi", never: "chiqmadi", restarts: "Qayta boshlash", peakCash: "Eng ko'p naqd", peakFlow: "Eng yuqori pul oqimi",
     accepted: "Qabul qilingan kartalar", skipped: "O'tkazilgan kartalar", assets: "Aktivlar", round: "aylana", you: "Siz",
   },
+  voice: {
+    title: "Ovozli aloqa", join: "Ovozga qo'shilish", about: "Qanday ishlaydi?", who: "Kim ovozda", joinListen: "Faqat tinglash", leave: "Ovozdan chiqish", mic: "Mikrofon", micOn: "Mikrofonni o'chirish", micOff: "Mikrofonni yoqish", muted: "mikrofon o'chiq",
+    headerOn: "Ovoz yoniq: mikrofonni o'chirish", headerOff: "Ovoz yoniq: mikrofonni yoqish", inCall: "Ovozda: {n}", only: "Siz ovozdasiz. Boshqalar qo'shilishini kuting.", connecting: "Ulanyapti…", connected: "ulangan", failed: "ulanmadi",
+    you: "Siz", speaking: "gapiryapti", peerMute: "Jim qilish", peerUnmute: "Ovozini yoqish", settings: "Qurilmalar", input: "Mikrofon", output: "Dinamik yoki naushnik", hint: "Naushnik taqing — aks-sado bo'lmaydi. Audio o'yinchilar o'rtasida to'g'ridan-to'g'ri o'tadi va saqlanmaydi.",
+    unsupported: "Ovozli aloqa bu qurilmada hozircha ishlamaydi (veb-versiyada mavjud).", restricted: "Ovozli aloqa 16 yoshgacha yoki ota-ona o'chirgan bolalar uchun yopiq.",
+    errors: { denied: "Mikrofonga ruxsat berilmadi. Brauzer sozlamasidan ruxsat bering yoki faqat tinglang.", no_mic: "Mikrofon topilmadi. Faqat tinglash rejimi.", failed: "Ulanib bo'lmadi. Aloqani tekshirib qayta urinib ko'ring." } as Record<string, string>,
+  },
   chat: {
     title: "Chat", open: "Chat ochish", close: "Chatni yopish", empty: "Hozircha xabar yo'q. Birinchi bo'lib salomlashing!", input: "Xabar yozing…", send: "Yuborish", you: "Siz",
     phrasesTitle: "Tayyor iboralar", muted: "jim", mute: "Jim qilish", unmute: "Ovozini yoqish", mutedNote: "Siz bu o'yinchining xabarlarini yashirdingiz", report: "Shikoyat", reported: "Shikoyat yuborildi",
@@ -312,6 +319,7 @@ export const uz = {
     partner_cash: "Sherikning naqdi yetmaydi", owner_cash: "Sizning naqdingiz yetmaydi", insufficient_cash: "Naqd yetmaydi", bot: "Botlar qatnashmaydi", no_proposal: "Taklif muddati tugadi",
     "5 dan kam o'yinchi": "Qarz uchun kamida 5 o'yinchi kerak", "beruvchi naqdining 20 % idan oshdi": "Beruvchi naqdining 20 % idan oshdi", "oluvchi limitidan oshdi": "Oluvchi limitidan oshdi",
     bad_action: "Bu harakat hozir mumkin emas", bad_field: "Maydon noto'g'ri to'ldirilgan", bad_giver: "Bu o'yinchidan qarz so'rab bo'lmaydi", bad_json: "Xabar tushunarsiz. Sahifani yangilang", bad_message: "Xabar tushunarsiz. Sahifani yangilang", bad_partner: "Bu o'yinchi sherik bo'la olmaydi", bad_text: "Matn bo'sh yoki juda uzun (2000 belgigacha)",
+    voice_restricted: "Ovozli aloqa sizga yopiq", not_in_voice: "Avval ovozga qo'shiling", bad_voice: "Noto'g'ri ovoz xabari",
     bad_chat: "Xabar bo'sh yoki juda uzun", chat_restricted: "Erkin yozish sizga yopiq", duplicate: "Bu xabarni yaqinda yuborgansiz",
     recap_open: "Bankrot tahlili ochiq: o'yin tahlil tasdiqlanguncha to'xtatilgan", no_recap: "Bu tahlil allaqachon yopilgan", not_yours: "Bu sizning tahlilingiz emas", banned: "Hisobingiz bloklangan. Shikoyat uchun qo'llab-quvvatlashga yozing", business_only: "Sheriklik faqat sarmoya biznesi uchun", card_gone: "Karta endi mavjud emas", circle_mismatch: "Sheriklik faqat bir aylanadagi o'yinchilar o'rtasida", decision_pending: "Avval karta bo'yicha qaror qiling", game_over: "O'yin tugagan",
     internal: "Ichki xatolik. Birozdan keyin qayta urinib ko'ring", no_game: "O'yin topilmadi", no_partnership: "Sheriklik topilmadi", no_pending_card: "Hozir qaror kutayotgan karta yo'q", no_player: "O'yinchi topilmadi", no_room: "Avval xonaga kiring", not_giver: "Bu qarz sizga tegishli emas", not_member: "Siz bu xonada emassiz",

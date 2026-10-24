@@ -83,3 +83,10 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - Himoya: tezlik chegarasi (taxminan 1 xabar / 2 s, burst 4), bir xil xabarni 10 s ichida takrorlash rad etiladi, boshqaruv/yo'nalish belgilari tozalanadi, xabarlar xotirada (so'nggi 100 ta, bazaga yozilmaydi).
 - **Jim qilish** — o'yinchi xabarlarini faqat shu qurilmada yashiradi. **Shikoyat** — xabar matni bilan mavjud `/complaints` ga yuboriladi (admin «Shikoyatlar»da ko'radi). Tekshiruv: `server/scripts/chat-check.ts`.
 
+## Ovozli aloqa: naushnik/dinamik orqali gaplashish (2026-10-24, buyurtmachi talabi)
+- Chat panelining tepasida «Ovozli aloqa»: **Ovozga qo'shilish** (mikrofon so'raladi) yoki **Faqat tinglash** (mikrofonsiz/ruxsatsiz ham ulanadi). Qo'shilgach: mikrofonni o'chirish/yoqish (sarlavhada ham tugma — chat yopiq bo'lsa ham), kim ovozda, kim **gapiryapti** (yashil belgi), har bir o'yinchini shu qurilmada **jim qilish**, qurilmalar (mikrofon va dinamik/naushnik tanlash — brauzer qo'llasa).
+- Audio **P2P (WebRTC)**: o'yinchilar o'rtasida to'g'ridan-to'g'ri, serverda saqlanmaydi/yozilmaydi. Signalizatsiya mavjud WebSocket orqali (`voice` xabari); taklifni har juftlikda ID si kichigi yuboradi (to'qnashuv bo'lmaydi). 8 kishigacha (har biri 7 ulanish).
+- **16 yoshgacha va ota-ona o'chirgan bolalarga yopiq** (erkin gaplashish = erkin chat, SPEC §2.8); server ham rad etadi (`voice_restricted`).
+- Aks-sado: naushnik tavsiya etiladi (hint), brauzer echo/noise suppression yoqilgan. Qo'shilgach chiqib ketsa/uzilsa, ovozdan avtomatik chiqadi; uzilishdan keyin qaytsa qayta qo'shiladi.
+- Cheklov: hozir faqat **veb** (telefon brauzeri ham). Native ilovada ovoz — keyingi bosqich (react-native-webrtc, dev client). TURN sozlamasi: `docs/DEPLOY.md`. Tekshiruv: `server/scripts/voice-check.ts` (soxta mikrofon bilan haqiqiy P2P, uch o'yinchi, jim qilish, ruxsatsiz tinglovchi, bola yopiq).
+

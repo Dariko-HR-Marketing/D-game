@@ -3,6 +3,8 @@ import { layoutOf } from "../layout";
 import { RecapLayer } from "./RecapLayer";
 import { ChatSheet, chatText } from "./ChatSheet";
 import { getMuted } from "../chatMute";
+import { VoicePanel, useVoice } from "./VoicePanel";
+import type { VoiceEngine } from "../voice/engine";
 import { DiceModal } from "./DiceModal";
 import { getRollModalPref, setRollModalPref } from "../turnPref";
 import { isTourOpen, subscribeTourOpen } from "./tourStore";
@@ -79,12 +81,13 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
-export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
   useEffect(() => { if (chatOpen) setSeenChat(lastChat); }, [chatOpen, lastChat]);
   const chatNew = chatList.filter((m) => m.id > seenChat && m.from !== userId && !getMuted().has(m.from)); const chatUnread = chatOpen ? 0 : chatNew.length;
+  const vs = useVoice(voice);
   const chatErr = error && ["bad_chat", "chat_restricted", "duplicate", "rate_limited"].includes(error) ? error : null;
   const { width, height } = useWindowDimensions();
   const lay = layoutOf(width, height), compact = lay.compact, tablet = lay.tablet;
@@ -149,7 +152,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const lastIn = chatNew[chatNew.length - 1];
   const chatNode = onChat ? (<>
     <View role="status" accessibilityLiveRegion="polite" style={s.srOnly}><Text>{lastIn && !chatOpen ? `${nameOf(room, lastIn.from)}: ${chatText(lastIn)}` : ""}</Text></View>
-    {chatOpen && <ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} />}
+    {chatOpen && <ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} voice={voice ? <VoicePanel engine={voice} room={room} userId={userId} /> : undefined} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} />}
   </>) : null;
   const lcMine = state.lastCard && (state.lastCard as any).playerId === userId ? room.lastCard?.text ?? null : null;
   const fx = useFx(mine, lcMine, settled);
@@ -237,6 +240,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sheet-open"><Icon name="chart" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
       {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="history-open"><Icon name="clock" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
       {onChat && <Pressable accessibilityRole="button" accessibilityLabel={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} onPress={() => setChatOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="chat-open"><Icon name="chat" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.chat.title}</Text>}{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</Pressable>}
+      {voice && vs && vs.status === "on" && vs.hasMic && <Pressable role="switch" aria-checked={!vs.muted} aria-label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} onPress={() => voice.setMuted(!vs.muted)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }, !vs.muted && vs.speaking && { backgroundColor: "#E3F5EA", borderRadius: 10 }]} testID="voice-header-mic"><Icon name={vs.muted ? "micOff" : "mic"} size={tiny ? 20 : 22} color={vs.muted ? color.red : color.green} /></Pressable>}
       <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={tiny ? 20 : 22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="tour-help"><Icon name="help" size={tiny ? 20 : 22} color={color.navy} /></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]}><Icon name="book" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>

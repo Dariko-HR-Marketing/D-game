@@ -19,7 +19,7 @@ export const chatText = (m: ChatMsg) => (m.text ?? (m.phrase !== undefined ? uz.
  * Har bir yuboruvchini shu qurilmada jim qilish mumkin; haqoratli xabarga shikoyat yuboriladi (admin ko'radi).
  */
 export function ChatSheet({ room, userId, chat, error, onSend, onClose, onReport, voice }: { room: RoomView; userId: string; chat: ChatMsg[]; error?: string | null; onSend: (m: { text: string } | { phrase: number }) => void; onClose: () => void; onReport?: (msg: ChatMsg) => Promise<boolean>; voice?: React.ReactNode }) {
-  const { width, height } = useWindowDimensions(); const side = width >= 900; const free = !(room.chatRestricted ?? []).includes(userId);
+  const { width, height } = useWindowDimensions(); const side = width >= 900 || (width > height && width >= 640), free = !(room.chatRestricted ?? []).includes(userId);
   const [text, setText] = useState(""); const [muted, setMutedState] = useState<Set<string>>(getMuted); const [open, setOpen] = useState<number | null>(null); const [sent, setSent] = useState<Set<number>>(new Set());
   const scroller = useRef<ScrollView>(null); const input = useRef<TextInput>(null);
   useEffect(() => { const t = setTimeout(() => scroller.current?.scrollToEnd({ animated: false }), 30); return () => clearTimeout(t); }, [chat.length]);

@@ -8,11 +8,11 @@ export interface Reaction { id: number; from: string; emoji: string; at: number 
 /** Chat xabari: erkin matn yoki tayyor ibora tartib raqami (matni `uz.chat.phrases`da). */
 export interface ChatMsg { id: number; from: string; at: number; text?: string; phrase?: number }
 /** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
-export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
+export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
-  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], chat: [], lost: false, restoredAt: null, calcFb: null };
+  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], chat: [], voice: [], lost: false, restoredAt: null, calcFb: null };
   private rid = 0; private fbN = 0;
   private ws: WS | null = null;
   private listeners = new Set<(s: ConnState) => void>();
@@ -21,6 +21,8 @@ export class Connection {
   private rejoinCode: string | null = null;
   private lastAct: { action: Record<string, unknown>; retried: boolean } | null = null;
   private retryNext = false;
+  /** Ovozli aloqa signali (SDP/ICE) kelganda chaqiriladi (VoiceEngine o'rnatadi). */
+  voiceSignal: ((from: string, data: any) => void) | null = null;
   private expecting = false; // xonaga kirish so'ralganmi (chiqqandan keyingi tasodifiy 'state' xabari e'tiborga olinmaydi)
 
   constructor(private url: string, private token: string, private make: WSFactory, private setTimer: (f: () => void, ms: number) => unknown = setTimeout) {}
@@ -44,6 +46,10 @@ export class Connection {
         this.rejoinCode = m.room.code; this.set({ room: m.room, error: null, ...(this.state.lost ? { lost: false, restoredAt: Date.now() } : {}) });
         // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
         if (this.retryNext && this.lastAct && !this.lastAct.retried) { this.retryNext = false; this.lastAct.retried = true; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
+      } else if (m.type === "voice_state") {
+        this.set({ voice: Array.isArray(m.members) ? (m.members as string[]) : [] });
+      } else if (m.type === "voice_signal") {
+        this.voiceSignal?.(String(m.from), m.data ?? {});
       } else if (m.type === "chat_log") {
         this.set({ chat: Array.isArray(m.msgs) ? (m.msgs as ChatMsg[]).slice(-100) : [] });
       } else if (m.type === "chat") {
@@ -84,7 +90,7 @@ export class Connection {
   create(turnSeconds: 30 | 60 = 30, calc: "auto" | "manual" = "auto", players?: number, mode?: "standard" | "quick" | "rated" | "tutorial") { this.expecting = true; this.send({ type: "create", turnSeconds, calc, ...(players ? { players } : {}), ...(mode && mode !== "standard" ? { mode } : {}) }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
-  leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [], chat: [] }); }
+  leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [], chat: [], voice: [] }); }
   /** «Men qaytdim»: avtopilotni o'chiradi. */
   resumePlay() { this.send({ type: "resume" }); }
   /** «Vaqtincha chiqib turish»: avtopilot yoqiladi (bankrot tahlilidan keyin ham). */

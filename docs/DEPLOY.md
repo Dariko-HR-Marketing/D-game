@@ -49,3 +49,12 @@ Kontent (`content/data/*.json`) kod bilan yetkaziladi, lekin server uni **Postgr
 - Faol versiya **admin tahriri** bo'lsa avtomatik almashtirilmaydi (jurnalda ogohlantirish); admin `POST /admin/content/sync-package` (ruxsat `content.publish`) paketni majburan faollashtiradi (admin tahrirlari almashtiriladi, eski versiyalar saqlanadi).
 - O'chirish: `CONTENT_SYNC=off`.
 Tekshirish: admin → kontent versiyalari ro'yxatida eng oxirgi versiya «Paket yangilandi» va faol bo'lishi kerak.
+
+## Ovozli aloqa (WebRTC): STUN/TURN
+Audio o'yinchilar o'rtasida **to'g'ridan-to'g'ri** (P2P) o'tadi; server faqat signal uzatadi va audioni saqlamaydi. Ko'p tarmoqlarda to'g'ridan-to'g'ri ulanish ishlaydi, lekin ba'zilarida (korporativ tarmoq, simmetrik NAT, ba'zi mobil operatorlar) **TURN** kerak bo'ladi — aks holda «ulanmadi» deb ko'rinadi.
+1. `deploy/vps/.env` da `ICE_SERVERS` (JSON massiv) bering. Bo'sh bo'lsa ommaviy STUN (`stun.l.google.com`) ishlatiladi — u faqat manzilni aniqlaydi (IP shu xizmatga ko'rinadi).
+2. TURN uchun ochiq manbali **coturn** ni alohida VPS'da (yoki shu serverda alohida konteynerda) ishga tushiring: `3478/udp+tcp` va `5349/tcp` (TLS), `49152–65535/udp` oralig'i ochiq; `lt-cred-mech` bilan foydalanuvchi/parol. Misol sozlama: `ICE_SERVERS=[{"urls":["turn:turn.example.uz:3478","turns:turn.example.uz:5349"],"username":"poyga","credential":"PAROL"}]`.
+3. TURN trafigi sarflanadi (audio ~ 30–50 kb/s bitta ulanishga) — kuzatib boring. Doimiy parol mijozga ko'rinadi: ommaviy ishga tushirishdan oldin vaqtinchalik (REST/HMAC) hisob ma'lumotlariga o'ting (keyingi bosqich).
+4. Tekshirish: ikki turli tarmoqdan (masalan, Wi-Fi va mobil internet) o'yinga kirib, chatdagi «Ovozga qo'shilish» ni bosing; ikkala tomonda «ulangan» ko'rinishi kerak.
+Native ilovalar (iOS/Android) uchun ovoz keyingi bosqich: `react-native-webrtc` va Expo dev client kerak; hozir ovoz veb-versiyada (telefon brauzerida ham ishlaydi).
+
