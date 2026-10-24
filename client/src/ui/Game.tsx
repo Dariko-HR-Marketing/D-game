@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
+import { RecapLayer } from "./RecapLayer";
 import { DiceModal } from "./DiceModal";
 import { getRollModalPref, setRollModalPref } from "../turnPref";
 import { isTourOpen, subscribeTourOpen } from "./tourStore";
@@ -76,7 +77,7 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
-export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, reactions, onRules, error, status, calcFb }: { http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const { width, height } = useWindowDimensions();
@@ -113,7 +114,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
   const log: string[] = state.log.slice(-6).reverse().map((l: string) => humanize(room, l));
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
-  const canRoll = mineTurn && !cardRaw && settled && !state.winner && !due;
+  const recapOpen = (state.recaps?.length ?? 0) > 0; // bankrot tahlili ochiq: o'yin to'xtagan
+  const canRoll = mineTurn && !cardRaw && settled && !state.winner && !due && !recapOpen;
   // Kubik oynasi: o'z navbatingizda «Kubikni tashlash» oynaning eng oldida (modal); «keyinroq» bosilsa shu tashlash imkoniyati uchun yopiladi, sahifadagi tugma qoladi
   const [rollModalOn, setRollModalOn] = useState(getRollModalPref); const [waitRoll, setWaitRoll] = useState(false); const [laterAt, setLaterAt] = useState<number | null>(null); const oppN = state.lastRoll?.n ?? 0;
   useEffect(() => { setWaitRoll(false); }, [oppN]);
@@ -231,7 +233,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
@@ -271,7 +273,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, re
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /><CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}

@@ -43,7 +43,7 @@ const peak = (series: TimePoint[], key: keyof TimePoint, dir: 1 | -1): Peak => {
 
 /** Jurnaldan to'liq hisobot. Noto'g'ri harakat — xato (jurnal buzilgan). */
 export function buildReport(ctx: Ctx, init: Init, actions: Action[], opts: { left?: string[] } = {}): GameReport {
-  let s = newGame(ctx, init.playerIds, init.seed, init.bots, init.restricted, { dreamPhase: !!init.dreamPhase, openingDice: !!init.openingDice, mode: init.mode });
+  let s = newGame(ctx, init.playerIds, init.seed, init.bots, init.restricted, { dreamPhase: !!init.dreamPhase, openingDice: !!init.openingDice, mode: init.mode, recapPause: !!init.recapPause });
   if (!init.dreamPhase) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % ctx.dreams.length)));
   type Acc = { series: TimePoint[]; turns: number; groups: PlayerReport["decisions"]["byGroup"]; auto: number; exitMonth: number | null; assets: AssetRecord[]; moments: Moment[]; expenses: { amount: number; text?: string; month: number }[]; quiz: { answered: number; correct: number }; purchases: number; purchaseTotal: number; sales: number; bankLoans: number; crisisMonths: number; unemployed: number; lastCrisis: number };
   const acc = new Map<string, Acc>(s.players.map((p) => [p.id, { series: [pointOf(p)], turns: 0, groups: emptyGroups(), auto: 0, exitMonth: null, assets: [], moments: [], expenses: [], quiz: { answered: 0, correct: 0 }, purchases: 0, purchaseTotal: 0, sales: 0, bankLoans: 0, crisisMonths: 0, unemployed: 0, lastCrisis: 0 }]));

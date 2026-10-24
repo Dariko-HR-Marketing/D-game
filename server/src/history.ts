@@ -28,7 +28,7 @@ const snap = (p: any): HSnap => ({ cash: Math.round(p.cash), passive: Math.round
 const cellOf = (ctx: Ctx, circle: "small" | "big", pos: number) => (circle === "big" ? { t: ctx.bigBoard[pos]?.t ?? "?", name: ctx.bigBoard[pos]?.name } : { t: smallCell(pos) as string });
 
 export function buildHistory(ctx: Ctx, final: GameState, journal: JournalEntry[], cap = 5000): History {
-  let s = newGame(ctx, final.players.map((p) => p.id), final.seed, final.bots, final.restricted ?? [], { dreamPhase: !!final.dreamPhase, events: !!final.events, openingDice: !!final.openingDice, mode: final.mode });
+  let s = newGame(ctx, final.players.map((p) => p.id), final.seed, final.bots, final.restricted ?? [], { dreamPhase: !!final.dreamPhase, events: !!final.events, openingDice: !!final.openingDice, mode: final.mode, recapPause: !!final.recapPause });
   if (!final.dreamPhase) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % ctx.dreams.length)));
   const events: HEvent[] = [];
   for (const [k, e] of journal.slice(0, cap).entries()) {

@@ -51,6 +51,14 @@ export type Pending =
   | null
   | { type: "card"; playerId: string; cardId: string; deck: DeckName; rent?: { cell: number; owner: string; income: number; buyPrice: number; mult: 2 | 3 } };
 
+/** Yangi kasb bilan boshidan (bankrot) boshlangandan keyin o'yinchiga ko'rsatiladigan tahlil: nima bo'ldi, nimani yo'qotdi. Tasdiqlanguncha o'yin to'xtab turadi (`recapPause`). */
+export interface RestartRecap {
+  id: number; playerId: string; month: number; round: number;
+  cause: { kind: "pay" | "cell"; amount?: number; cardId?: string };
+  before: { kasb: string; cash: number; owe: number; bankDebt: number; handDebt: number; salary: number; expenses: number; passive: number; cashflow: number; assets: { code: string; cardId?: string; kind: string; name?: string; price: number; income: number }[] };
+  newKasb: string; recent: string[];
+}
+
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
   | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
@@ -80,6 +88,8 @@ export interface GameState {
   version: 1; bots: string[]; restricted: string[]; proposals: Proposal[]; nextProposal: number; seed: number; rngState: number;
   players: GamePlayer[]; turn: number; round: number;
   decks: Record<DeckName, DeckState>;
+  /** `recapPause`: bankrot (yangi kasb) bo'lganda o'yin to'xtaydi va o'yinchiga tahlil ko'rsatiladi; jurnaldan qayta o'ynash uchun yoziladi. `recaps`: tasdiqlanmaganlar. */
+  recapPause?: boolean; recaps?: RestartRecap[]; nextRecap?: number;
   mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
@@ -94,9 +104,9 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode } = {}): GameState {
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode; recapPause?: boolean } = {}): GameState {
   const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
-    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [] } as GameState;
+    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [], ...(opts.recapPause ? { recapPause: true, recaps: [], nextRecap: 1 } : {}) } as GameState;
   withRng(s, (r) => {
     // Reytingli o'yinda faqat asosiy havza (ranked_pool=BASE): EXTENDED kartalar sozlama (RULES.rankedPools) bilan yoqilmaguncha kirmaydi (Tajriba24 TZ §6.7)
     const closed = new Set(modeOf(opts.mode) === "rated" && !RANKED_ALLOWED_POOLS.includes("EXTENDED") ? ctx.extended ?? [] : []);
@@ -148,10 +158,19 @@ function notify(s: GameState, to: string, key: Notice["key"], extra: Partial<Not
 const logf = (s: GameState, m: string) => { s.log.push(m); s.logN = (s.logN ?? 0) + 1; if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
 
 /** Yangi kasb bilan boshidan (§5.3): hamma aktiv va qarz yo'qoladi. */
-function restart(s: GameState, ctx: Ctx, p: GamePlayer): GamePlayer {
+function restart(s: GameState, ctx: Ctx, p: GamePlayer, cause: RestartRecap["cause"] = { kind: "cell" }): GamePlayer {
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
+  const recentBefore = s.log.slice(-5);
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
+  if (s.recapPause) { // bankrot: o'yin to'xtaydi, o'yinchiga nima bo'lgani ko'rsatiladi (tasdiqlaguncha harakat yo'q)
+    const first = (t?: string) => { const x = (t ?? "").split(/(?<=[.!?])\s/)[0]?.trim() ?? ""; return x.length > 56 ? x.slice(0, 55) + "…" : x; };
+    const cardId = cause.cardId ?? s.pending?.cardId ?? (s.lastCard?.playerId === p.id ? s.lastCard.cardId : undefined);
+    (s.recaps ??= []).push({ id: (s.nextRecap = (s.nextRecap ?? 1) + 1) - 1, playerId: p.id, month: p.monthsPlayed ?? 0, round: s.round, cause: { ...cause, ...(cardId ? { cardId } : {}) },
+      before: { kasb: ctx.kasb[p.profession]?.name ?? "", cash: p.cash, owe: p.owe ?? 0, bankDebt: p.bankDebt, handDebt: p.handDebts.reduce((x, d) => x + d.amount, 0), salary: salaryOf(p), expenses: monthlyExpenses(p), passive: passiveIncome(p), cashflow: playerCashflow(p),
+        assets: p.assets.slice(0, 24).map((a) => ({ code: a.code, ...(a.cardId ? { cardId: a.cardId } : {}), kind: a.kind, ...(a.name || a.cardId ? { name: a.name ?? first(ctx.effects[a.cardId!]?.text) } : {}), price: a.price, income: a.monthlyIncome })) },
+      newKasb: k.name ?? "", recent: recentBefore });
+  }
   return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
 }
 
@@ -165,7 +184,7 @@ function forcePay(s: GameState, ctx: Ctx, p: GamePlayer, amount: number): GamePl
   }
   // Kichik aylana (qo'llanma §09): naqd yetmasa summa qarz (owe) sifatida yoziladi, naqd paydo bo'lishi bilan darhol qaytariladi; 10 000 dan oshsa — yangi kasb bilan boshidan
   const pay = Math.max(0, p.cash), rest = amount - pay;
-  if ((p.owe ?? 0) + rest > RULES.bankLimit) return restart(s, ctx, p);
+  if ((p.owe ?? 0) + rest > RULES.bankLimit) return restart(s, ctx, p, { kind: "pay", amount });
   logf(s, `${p.id}: ${rest} qarzga yozildi`);
   return { ...p, cash: p.cash - pay, owe: (p.owe ?? 0) + rest };
 }
@@ -208,6 +227,7 @@ export type Action =
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
   | { type: "expire"; playerId: "server"; proposalId: number }
   | { type: "time_up"; playerId: "server" }
+  | { type: "ack_restart"; playerId: string; id: number; auto?: true }
   | { type: "deposit_withdraw"; playerId: string; depositId: number }
   | { type: "decide"; playerId: string; accept: boolean; qty?: number; useBank?: boolean; deck?: "kichik" | "katta"; choice?: "A" | "B" | "V"; auto?: true };
 
@@ -223,6 +243,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   // Orzu bosqichi: faqat orzu tanlash (yoki serverning avtomatik tanlovi/taklif muddati)
   if (s.phase === "dreams" && a.type !== "choose_dream" && a.type !== "auto_dreams" && a.type !== "expire") return { ok: false, error: "dreams_phase" };
   if (a.type === "choose_dream" || a.type === "auto_dreams") return cooperate(s, ctx, a);
+  if (s.recaps?.length && a.type !== "ack_restart" && a.type !== "time_up" && a.type !== "expire") return { ok: false, error: "recap_open" }; // bankrot tahlili tasdiqlanguncha o'yin to'xtab turadi
   const cur = currentPlayer(s);
   if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
@@ -573,7 +594,7 @@ function runCellAction(s: GameState, ctx: Ctx, p0: GamePlayer, act: CellActionT,
   const p = s.players[idx(s, p0.id)];
   switch (act.kind) {
     case "none": return;
-    case "restart": setP(s, restart(s, ctx, p)); return;
+    case "restart": setP(s, restart(s, ctx, p, { kind: "cell" })); return;
     case "skipTurns": setP(s, { ...p, skipTurns: (p.skipTurns ?? 0) + act.turns }); logf(s, `${p.id}: ${act.turns} navbat o'tkazadi`); return;
     case "payday": {
       const flow = p.circle === "big" ? Math.max(playerCashflow(p), p.lockedFlow) : playerCashflow(p);
@@ -819,6 +840,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const top = standings(s)[0]; s.winner = top; s.endReason = "time"; s.pending = null; logf(s, `vaqt tugadi — birinchi o'rin: ${top}`); return ok();
     }
     case "expire": s.proposals = s.proposals.filter((x) => x.id !== a.proposalId); return ok();
+    case "ack_restart": { // bankrot tahlili ko'rildi: o'yin davom etadi (yangi kasb allaqachon tasodifiy tortilgan)
+      const r = s.recaps?.find((x) => x.id === a.id); if (!r) return err("no_recap");
+      if (a.playerId !== r.playerId) return err("not_yours");
+      s.recaps = s.recaps!.filter((x) => x.id !== r.id); return ok();
+    }
 
     case "suyunchi": {
       const pr = s.proposals.find((x) => x.id === a.proposalId);

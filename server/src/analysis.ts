@@ -23,7 +23,7 @@ export class AnalysisService {
     const ctx = this.registry.ctxFor(meta?.contentVersion ?? this.registry.activeVersion); if (!ctx) return null; // versiya noma'lum bo'lsa — faol versiya (taxmin)
     const journal = await this.store.journal(code);
     const actions = journal.map((e) => ("reason" in e.action ? e.action.action : e.action) as Action);
-    const { analysis } = analyzeGame(ctx, { playerIds: state.players.map((p: any) => p.id), seed: state.seed, bots: state.bots, restricted: state.restricted ?? [], dreamPhase: !!state.dreamPhase, openingDice: !!state.openingDice, mode: state.mode }, actions);
+    const { analysis } = analyzeGame(ctx, { playerIds: state.players.map((p: any) => p.id), seed: state.seed, bots: state.bots, restricted: state.restricted ?? [], dreamPhase: !!state.dreamPhase, openingDice: !!state.openingDice, mode: state.mode, recapPause: !!state.recapPause }, actions);
     return { analysis, state };
   }
 
@@ -34,7 +34,7 @@ export class AnalysisService {
     const ctx = this.registry.ctxFor(meta?.contentVersion ?? this.registry.activeVersion); if (!ctx) return null;
     const journal = await this.store.journal(code);
     const actions = journal.map((e) => ("reason" in e.action ? e.action.action : e.action) as Action);
-    const report = buildReport(ctx, { playerIds: state.players.map((p: any) => p.id), seed: state.seed, bots: state.bots, restricted: state.restricted ?? [], dreamPhase: !!state.dreamPhase, openingDice: !!state.openingDice, mode: state.mode }, actions, { left });
+    const report = buildReport(ctx, { playerIds: state.players.map((p: any) => p.id), seed: state.seed, bots: state.bots, restricted: state.restricted ?? [], dreamPhase: !!state.dreamPhase, openingDice: !!state.openingDice, mode: state.mode, recapPause: !!state.recapPause }, actions, { left });
     return { report, state };
   }
 

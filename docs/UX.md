@@ -69,3 +69,11 @@ O'z navbatingizda «Kubikni tashlash» (katta aylanada «Kubiklarni tashlash», 
 - **Faol ta'sirlar** (chap ustun, moliyaviy holat): endi yig'iladigan bo'lim — yopiq holatda faqat sarlavha va soni (balandlik ~49 px); bosilsa ro'yxat (240 px dan oshsa aylanadi). Yangi ta'sir kelsa sarlavhada «+N yangi» belgisi chiqadi va ekran o'qigichga xabar beriladi; ochilganda yangilari ajratib ko'rsatiladi, o'yin boshida/sahifa yangilanganda mavjud ta'sirlar «yangi» sanalmaydi. Tekshiruv: `server/scripts/mods-check.ts`.
 - **«Mening kartalarim»da kichik biznes nomlari:** barcha 35 ta kichik biznes kartasining `code` i bir xil («KB»), shuning uchun hamma aktiv birinchi kartaning nomi bilan chiqardi («Mahallangizda elchixona ochilmoqda»). Endi aktivga sotib olingan karta ID si yoziladi (`Asset.cardId`) va nom aynan shu kartadan olinadi. **Eski (shu tuzatishdan oldin sotib olingan) aktivlarda karta ID si yo'q** — ular avvalgidek tur bo'yicha nom bilan chiqadi; yangi sotib olinganlar to'g'ri.
 
+## Bankrot (yangi kasb) tanaffusi (2026-10-24, buyurtmachi talabi)
+Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kartaga o'tib ketardi. Endi:
+- O'yin **to'xtaydi** (`recapPause`, yangi o'yinlarda). Egasiga tahlil oynasi: avvalgi va yangi kasb, **nima bo'ldi** (majburiy to'lov va qarz chegarasi, zaxira naqd, manfiy pul oqimi, qarz, passiv daromad yetmagani), sabab bo'lgan karta, bankrotgacha holat, yo'qotilgan aktivlar (nom, narx, daromad), oxirgi voqealar, yangi boshlanish. Sabablar faqat o'yin ma'lumotidan qoida bilan chiqariladi (`client/src/recap.ts`), taxmin yo'q.
+- Tanlov: **«Yangi kasb bilan davom etish»** (asosiy tugma), **«Vaqtincha chiqib turish»** (avtopilot yoqiladi, «Men qaytdim» bilan qaytiladi), **«O'yindan chiqish»** (tasdiq bilan; o'rnini bot egallaydi, 2 kishilik o'yinda ham).
+- Boshqa o'yinchilarga faqat qisqa xabar («X bankrot bo'ldi…») va qolgan vaqt. Vaqt tugasa (karta qarori vaqti: 30 s) yoki bot/avtopilot bo'lsa o'yin o'zi davom etadi; bu «o'tkazib yuborilgan harakat» (ball −2) hisoblanmaydi.
+- Yotiq telefonda tahlil chapda (aylanadi), tanlovlar o'ngda. Tekshiruv: `server/scripts/recap-check.ts`.
+- **Qoida o'zgarmagan:** SPEC §5.3 bo'yicha bankrotda hamma aktiv va qarz yo'qoladi, yangi kasb tasodifiy tortiladi. «Bir qism aktiv qolsin» taklifi — OPEN_QUESTIONS 158.
+

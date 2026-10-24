@@ -26,6 +26,7 @@ export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("partner_offer"), partnerId: id }).strict(),
   z.object({ type: z.literal("partner_accept"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("partner_buyout"), assetCode: z.string().min(1).max(64) }).strict(),
+  z.object({ type: z.literal("ack_restart"), id: int(1, 1e9) }).strict(), // bankrot tahlili ko'rildi — o'yin davom etadi
 ]);
 
 export const Message = z.discriminatedUnion("type", [
@@ -35,7 +36,8 @@ export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("leave") }).strict(),
   z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
-  z.object({ type: z.literal("resume") }).strict(), // «Men qaytdim»: avtopilotni o'chiradi (o'yin harakati emas)
+  z.object({ type: z.literal("resume") }).strict(),
+  z.object({ type: z.literal("break") }).strict(), // «Vaqtincha chiqib turish»: avtopilot yoqiladi, «Men qaytdim» bilan qaytiladi // «Men qaytdim»: avtopilotni o'chiradi (o'yin harakati emas)
 ]);
 export type Msg = z.infer<typeof Message>;
 

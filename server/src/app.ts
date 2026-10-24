@@ -205,6 +205,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
             if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
             const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "resume": { if (!code) return reply({ type: "error", error: "no_room" }); const r = rooms.resumePlay(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
+          case "break": { if (!code) return reply({ type: "error", error: "no_room" }); const r = await rooms.takeBreak(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "leave": if (code) { sockets.get(code)?.delete(client); rooms.leave(code, userId); code = null; } return; // avval ulanishni xonadan ajratamiz: chiqayotganga holat qaytib kelmasin
           default: return reply({ type: "error", error: "unknown_type" });
         }
