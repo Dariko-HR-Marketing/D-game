@@ -4,7 +4,7 @@ import { Card, Row, SectionTitle, Stat, Pill } from "./kit";
 import { money } from "../format";
 import { exitProgress } from "../model";
 import { salaryOf, type GameMode } from "@poyga/rules";
-import { modLine } from "../opsFacts";
+import { ModsPanel } from "./ModsPanel";
 import { color, font, radius, space, tone } from "../theme";
 import { uz } from "../i18n/uz";
 
@@ -32,11 +32,7 @@ export function FinanceCard({ p, profession, dream, shown, mode }: { mode?: Game
         <Row l={uz.game.salary} v={money(salaryOf(p))} /><Row l={uz.game.passive} v={money(e.passive)} /><Row l={uz.game.expenses} v={money(e.expenses)} kind="bad" />
         <Row l={uz.game.debt} v={money(e.debt)} kind={e.debt > 0 ? "bad" : "neutral"} />
       </View>
-      {(p.mods ?? []).length > 0 && (
-        <View style={s.mods} role="group" aria-label={uz.ops.mods.title}>
-          <Text style={s.exitTitle} aria-level={3} accessibilityRole="header">{uz.ops.mods.title}</Text>
-          {(p.mods as any[]).map((m) => { const l = modLine(m); return <View key={m.id} style={s.modRow}><Text style={s.modT}>{l.text}</Text><Text style={s.modL}>{l.left}</Text></View>; })}
-        </View>)}
+      <ModsPanel mods={p.mods ?? []} />
       {p.circle === "small" ? (
         <View style={s.exit}>
           <Text style={s.exitTitle} aria-level={3} accessibilityRole="header">{uz.game.exitTitle}</Text>
@@ -52,7 +48,6 @@ export function FinanceCard({ p, profession, dream, shown, mode }: { mode?: Game
 const s = StyleSheet.create({
   dream: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   stats: { flexDirection: "row", gap: space.lg, flexWrap: "wrap" },
-  mods: { gap: space.xs, marginTop: space.xs, paddingTop: space.md, borderTopWidth: 1, borderTopColor: color.line }, modRow: { flexDirection: "row", justifyContent: "space-between", gap: space.md, flexWrap: "wrap" }, modT: { color: color.navy, fontSize: font.md, flexShrink: 1 }, modL: { color: tone.muted, fontSize: font.sm },
   exit: { gap: space.sm, marginTop: space.xs, paddingTop: space.md, borderTopWidth: 1, borderTopColor: color.line }, exitTitle: { color: color.navy, fontWeight: "800", fontSize: font.md },
   condRow: { flexDirection: "row", gap: space.sm, alignItems: "center" }, mark: { width: 16, fontWeight: "800" }, cond: { color: tone.muted, fontSize: font.md, flexShrink: 1 },
   bar: { height: 6, borderRadius: radius.pill, backgroundColor: color.line, overflow: "hidden" }, fill: { height: 6, borderRadius: radius.pill }, detail: { color: tone.muted, fontSize: font.xs, marginTop: 2 },

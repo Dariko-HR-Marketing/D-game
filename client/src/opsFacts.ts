@@ -15,7 +15,7 @@ export const spanText = (months: number | null | undefined, wait?: boolean): str
 };
 /** Tanlagich nomi: kartadagi asl matn (`label`), bo'lmasa soha/nom. */
 export const selLabel = (sel: Selector | undefined, label?: string): string => {
-  if (label) return label; const c = sel?.any[0] as any; return c ? c.sector ?? c.name ?? c.tag ?? c.kind ?? "" : O.mods.all;
+  if (label) return label; const c = sel?.any?.[0] as any; return c ? c.sector ?? c.name ?? c.tag ?? c.kind ?? "" : O.mods.all;
 };
 
 type Op = any;

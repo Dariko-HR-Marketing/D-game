@@ -52,6 +52,7 @@ export function move(pos: number, steps: number, size = 48, isD: (i: number) => 
 
 export interface Asset {
   kind: string; code: string; price: number; monthlyIncome: number; creditPayment: number; credit: number;
+  cardId?: string; // sotib olingan karta ID si (`code` — karta turi, masalan «KB», 35 ta kichik biznes kartasida bir xil); aktiv qaysi kartadan ekanini ko'rsatish uchun
   shares?: number;
   marketValue?: number | null; // kartadagi haqiqiy qiymat (bozor hodisalari uchun); null = noma'lum
   partnerId?: string; // egasi tomonda: sherik

@@ -415,6 +415,10 @@ function applySellOffer(s: GameState, id: string, e: Extract<Effect, { kind: "se
 
 const hasMatch = (p: { assets: import("./engine").Asset[] }, sel: Selector) => p.assets.some((a) => matches(sel, descOf(a)));
 /** Katalog kartasining ta'sirini qo'llaydi (tuzilgan `Op` lar ketma-ket). Tortgan o'yinchida mos aktiv bo'lmasa karta o'tkaziladi (TZ §6.2). */
+/** Sotib olishdan keyin qo'shilgan yangi aktivlarga karta ID si yoziladi (portfelda aynan shu karta nomi chiqsin: `code` bir necha kartada bir xil). */
+function tagNewAssets(before: GamePlayer, after: GamePlayer, cardId: string): GamePlayer {
+  const n = before.assets.length; return after.assets.length > n ? { ...after, assets: after.assets.map((x, i) => (i >= n && !x.cardId ? { ...x, cardId } : x)) } : after;
+}
 function applyOpsCard(s: GameState, ctx: Ctx, drawerId: string, ce: CardEffect, paid = false) {
   const e = ce.effect as Extract<Effect, { kind: "ops" }>; const drawer = s.players[idx(s, drawerId)];
   if (e.requires && !hasMatch(drawer, e.requires)) { logf(s, `${drawerId}: mos aktiv yo'q — karta o'tkazildi`); return; }
@@ -678,13 +682,13 @@ function decide(s: GameState, ctx: Ctx, pid: string, ce: CardEffect, a: Extract<
   };
   if (e.kind === "buyShares") {
     const qty = a.qty ?? e.min; fund(qty * e.pricePerShare);
-    const r = buyShares(p, e, qty); if (r.ok) p = { ...p, ...r.player } as GamePlayer;
+    const r = buyShares(p, e, qty); if (r.ok) p = tagNewAssets(p, { ...p, ...r.player } as GamePlayer, pend.cardId);
   } else {
     const need = e.kind === "buy" ? (e.down ?? e.price) : e.kind === "courseSalaryPlus" || e.kind === "carInsurance" ? e.price
       : e.kind === "lendRequest" ? e.amount : e.kind === "charity" ? Math.round(e.incomeShare * (salaryOf(p) + passiveIncome(p))) : 0;
     fund(need);
     const r = applyEffect(p, e); if (r.ok) {
-      p = { ...p, ...r.player } as GamePlayer;
+      p = tagNewAssets(p, { ...p, ...r.player } as GamePlayer, pend.cardId);
       // Ishdan bo'shash (qo'llanma §09): 3-kichik yoki 1-katta biznesni sotib olganda maosh to'xtaydi
       if (e.kind === "buy" && p.circle === "small" && !p.quitJob && (e.asset === "business" || p.assets.filter((x) => x.kind === "small_business" && !x.stakeOf).length >= 3)) {
         p = { ...p, quitJob: true, salary: 0, noSalary: 0 }; logf(s, `${p.id}: ishdan bo'shadi — endi faqat biznes daromadi`);
@@ -904,8 +908,8 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (owner.cash < half) return err("owner_cash");
       const inc = (e.monthlyIncome ?? 0) / 2;
       const base = { price: e.price, creditPayment: 0, credit: 0 };
-      setP(s, { ...owner, cash: owner.cash - half, assets: [...owner.assets, { ...base, kind: e.asset, code: e.code, monthlyIncome: inc, partnerId: partner.id }] });
-      setP(s, { ...partner, cash: partner.cash - half, assets: [...partner.assets, { ...base, kind: "partner_stake", code: e.code, monthlyIncome: inc, stakeOf: owner.id }] });
+      setP(s, { ...owner, cash: owner.cash - half, assets: [...owner.assets, { ...base, kind: e.asset, code: e.code, cardId: pr.cardId, monthlyIncome: inc, partnerId: partner.id }] });
+      setP(s, { ...partner, cash: partner.cash - half, assets: [...partner.assets, { ...base, kind: "partner_stake", code: e.code, cardId: pr.cardId, monthlyIncome: inc, stakeOf: owner.id }] });
       s.pending = null; s.proposals = s.proposals.filter((x) => x.id !== pr.id);
       endTurn(s, ctx); return ok();
     }

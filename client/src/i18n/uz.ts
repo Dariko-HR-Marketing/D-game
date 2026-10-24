@@ -78,7 +78,7 @@ export const uz = {
     permanent: "doimiy", laps: "{n} aylana", next: "keyingi aylanadan", none: "yo'q", perMonth: "oyiga", times: "{n} barobar", to: { all: "Hamma o'yinchiga", drawer: "Faqat sizga" },
     skip: "Mos aktivingiz bo'lmasa karta o'tkaziladi", cost: "Narxi", pickBest: "Aktivni o'zingiz tanlaysiz (eng foydalisi olinadi)",
     offer: { pct: "Sotish narxi", fixed: "Sotish narxi (qat'iy)", target: "Qaysi aktiv", hold: "Aktiv kamida 1 aylana ushlab turilgan bo'lishi kerak", first: "Faqat birinchi rozi bo'lgan o'yinchi sotadi", from: "sotib olingan narxdan" },
-    mods: { title: "Faol ta'sirlar", left: "{n} oy qoldi", waiting: "keyingi aylanada boshlanadi", salaryPct: "Ish haqi {v}", salaryZero: "Ish haqi yo'q", monthly: "Oylik {v}", expense: "Xarajat {v}", credit: "Kredit to'lovi {v}", income: "{a}: daromad {v}", incomeZero: "{a}: daromad yo'q", incomeMult: "{a}: daromad ×{v}", price: "{a}: narx {v}", all: "aktivlar" },
+    mods: { title: "Faol ta'sirlar", left: "{n} oy qoldi", waiting: "keyingi aylanada boshlanadi", salaryPct: "Ish haqi {v}", salaryZero: "Ish haqi yo'q", monthly: "Oylik {v}", expense: "Xarajat {v}", credit: "Kredit to'lovi {v}", income: "{a}: daromad {v}", incomeZero: "{a}: daromad yo'q", incomeMult: "{a}: daromad ×{v}", price: "{a}: narx {v}", all: "aktivlar", fresh: "yangi", freshOne: "Yangi faol ta'sir: {text}", freshMany: "{n} ta yangi faol ta'sir", none: "Hozir faol ta'sir yo'q", showHint: "bosib ko'ring" },
   },
   achievements: {
     first_game: { name: "Birinchi o'yin", desc: "Odamlar bilan bitta o'yinni tugatish" },
