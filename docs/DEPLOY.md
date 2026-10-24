@@ -42,3 +42,10 @@ Konteyner sog'liq tekshiruvi: `GET /ready` (200 = server va baza ishlayapti).
 1. `.env` ga `ADMIN_BOOTSTRAP_LOGIN` va `ADMIN_BOOTSTRAP_PASSWORD` yozing, `docker compose up -d`.
 2. `https://admin.<domen>` da kiring → parolni almashtiring → 2FA ni sozlang.
 3. «Admin hisoblari»da jamoa uchun shaxsiy hisoblar yarating; bootstrap o'zgaruvchilarini `.env` dan olib tashlang. Batafsil: [ADMIN.md](ADMIN.md).
+
+## Kontent (kartalar, orzular) va deploy
+Kontent (`content/data/*.json`) kod bilan yetkaziladi, lekin server uni **PostgreSQL dagi versiyalardan** o'qiydi: baza bo'sh bo'lmasa paket faqat birinchi ishga tushishda ishlatilardi, shuning uchun deploy'dan keyin ham eski kartalar turardi. Endi har ishga tushishda paket bazadagi faol versiya bilan solishtiriladi (`ContentRegistry.syncPackage`):
+- Farq bo'lsa **yangi versiya** («Paket yangilandi (xesh)») yaratiladi va faollashadi; o'yinlar o'zlari boshlangan versiyada davom etadi, faqat yangi o'yinlar yangi kartalarni oladi.
+- Faol versiya **admin tahriri** bo'lsa avtomatik almashtirilmaydi (jurnalda ogohlantirish); admin `POST /admin/content/sync-package` (ruxsat `content.publish`) paketni majburan faollashtiradi (admin tahrirlari almashtiriladi, eski versiyalar saqlanadi).
+- O'chirish: `CONTENT_SYNC=off`.
+Tekshirish: admin → kontent versiyalari ro'yxatida eng oxirgi versiya «Paket yangilandi» va faol bo'lishi kerak.
