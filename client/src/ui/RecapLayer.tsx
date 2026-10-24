@@ -17,7 +17,7 @@ const useLeft = (deadline: number | null) => {
 };
 
 /**
- * Bankrot (yangi kasb bilan boshidan): o'yin to'xtaydi. Egasiga tahlil (nima bo'ldi, nimani yo'qotdi, yangi boshlanish) va tanlov: davom etish /
+ * Majburiy sotuv / kasb almashtirish: o'yin to'xtaydi. Egasiga tahlil (nima bo'ldi, nima sotildi, nima saqlandi) va tanlov: davom etish /
  * vaqtincha chiqib turish (avtopilot) / o'yindan chiqish. Boshqalarga — qisqa xabar. Vaqt tugasa o'yin o'zi davom etadi (server).
  */
 export function RecapLayer({ room, userId, onAck, onBreak, onLeave }: { room: RoomView; userId: string; onAck: (id: number) => void; onBreak: () => void; onLeave: () => void }) {
@@ -27,22 +27,24 @@ export function RecapLayer({ room, userId, onAck, onBreak, onLeave }: { room: Ro
   if (r.playerId !== userId) {
     return (
       <View style={s.toastWrap} pointerEvents="none" role="status" aria-live="polite" testID="recap-others">
-        <View style={s.toast}><Text style={s.toastT}>{uz.recap.others.replace("{name}", nameOf(room, r.playerId))}</Text>{left !== null && <Text style={s.toastS}>{uz.recap.othersSub.replace("{n}", String(left))}</Text>}</View>
+        <View style={s.toast}><Text style={s.toastT}>{(r.outcome === "sold" ? uz.recap.othersSold : uz.recap.others).replace("{name}", nameOf(room, r.playerId))}</Text>{left !== null && <Text style={s.toastS}>{uz.recap.othersSub.replace("{n}", String(left))}</Text>}</View>
       </View>);
   }
   const mine = me(room, userId); const ins = recapInsights(r, RULES.bankLimit); const b = r.before; const card = room.recapCard;
+  const sold = r.outcome === "sold", title = sold ? uz.recap.titleSold : uz.recap.title, gone: { name: string; price: number; income?: number }[] = r.sold ?? b.assets.map((a) => ({ name: a.name || a.kind, price: a.price, income: a.income }));
   const lines = (r.recent ?? []).slice().reverse().map((l) => humanize(room, l));
   return (
-    <View style={s.layer} role="dialog" aria-modal={true} aria-label={uz.recap.title} testID="recap">
+    <View style={s.layer} role="dialog" aria-modal={true} aria-label={title} testID="recap">
       <View style={s.backdrop} />
       <View style={s.center}>
         <View style={[s.card, compact ? [s.cardRow, { height: height - 24 }] : { maxHeight: Math.max(360, height - 32) }]}>
-          <ScrollView style={compact ? { flex: 1 } : undefined} contentContainerStyle={{ gap: space.md }} showsVerticalScrollIndicator {...({ tabIndex: 0 } as any)} aria-label={uz.recap.title}>
-            <View style={s.head}><Pill label={uz.recap.title} kind="bad" /><Text style={s.sub}>{uz.recap.sub}</Text></View>
-            <View style={s.kasb} role="group" aria-label={`${uz.recap.from}: ${b.kasb}, ${uz.recap.to}: ${r.newKasb}`}>
-              <View style={{ flex: 1 }}><Text style={s.kL}>{uz.recap.from}</Text><Text style={s.kV}>{b.kasb || "—"}</Text></View><Text style={s.arrow} aria-hidden>→</Text>
-              <View style={{ flex: 1 }}><Text style={s.kL}>{uz.recap.to}</Text><Text style={[s.kV, { color: tone.good }]}>{r.newKasb || "—"}</Text></View>
-            </View>
+          <ScrollView style={compact ? { flex: 1 } : undefined} contentContainerStyle={{ gap: space.md }} showsVerticalScrollIndicator {...({ tabIndex: 0 } as any)} aria-label={title}>
+            <View style={s.head}><Pill label={title} kind="bad" /><Text style={s.sub}>{sold ? uz.recap.subSold : uz.recap.sub}</Text></View>
+            {sold ? <View style={s.kasb}><View style={{ flex: 1 }}><Text style={s.kL}>{uz.recap.same}</Text><Text style={s.kV}>{b.kasb || "—"}</Text></View></View> : (
+              <View style={s.kasb} role="group" aria-label={`${uz.recap.from}: ${b.kasb}, ${uz.recap.to}: ${r.newKasb}`}>
+                <View style={{ flex: 1 }}><Text style={s.kL}>{uz.recap.from}</Text><Text style={s.kV}>{b.kasb || "—"}</Text></View><Text style={s.arrow} aria-hidden>→</Text>
+                <View style={{ flex: 1 }}><Text style={s.kL}>{uz.recap.to}</Text><Text style={[s.kV, { color: tone.good }]}>{r.newKasb || "—"}</Text></View>
+              </View>)}
             <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.recap.what}</Text>
             <View style={{ gap: space.xs }} role="list" aria-label={uz.recap.what}>
               {ins.map((i, k) => <View key={k} role="listitem" style={[s.ins, i.tone === "bad" && s.insBad, i.tone === "warn" && s.insWarn]}><Text style={s.insT}>{insightText(i)}</Text></View>)}
@@ -53,22 +55,22 @@ export function RecapLayer({ room, userId, onAck, onBreak, onLeave }: { room: Ro
               {([[uz.recap.cash, money(b.cash)], [uz.recap.debt, money(debtOf(r))], [uz.recap.flow, `${b.cashflow > 0 ? "+" : ""}${money(b.cashflow)}`], [uz.recap.salary, money(b.salary)], [uz.recap.passive, money(b.passive)], [uz.recap.expenses, money(b.expenses)]] as [string, string][]).map(([l, v]) => (
                 <View key={l} style={s.kpi}><Text style={s.kL}>{l}</Text><Text style={s.kpiV}>{v}</Text></View>))}
             </View>
-            {b.assets.length > 0 && (<>
-              <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.recap.lost} · {b.assets.length}</Text>
+            {gone.length > 0 && (<>
+              <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.recap.lost} · {gone.length}</Text>
               <View style={{ gap: 2 }} role="list" aria-label={uz.recap.lost}>
-                {b.assets.slice(0, 6).map((a, i) => <View key={i} role="listitem" style={s.asset}><Text style={[s.insT, { flex: 1 }]} numberOfLines={2}>{a.name || a.kind}</Text><Text style={s.assetV}>{money(a.price)}{a.income ? ` · +${money(a.income)} ${uz.recap.income}` : ""}</Text></View>)}
-                {b.assets.length > 6 && <Text style={s.more}>{uz.recap.more.replace("{n}", String(b.assets.length - 6))} · {money(lostIncome(r))} {uz.recap.income}</Text>}
+                {gone.slice(0, 6).map((a, i) => <View key={i} role="listitem" style={s.asset}><Text style={[s.insT, { flex: 1 }]} numberOfLines={2}>{a.name}</Text><Text style={s.assetV}>{money(a.price)}{a.income ? ` · +${money(a.income)} ${uz.recap.income}` : ""}</Text></View>)}
+                {gone.length > 6 && <Text style={s.more}>{uz.recap.more.replace("{n}", String(gone.length - 6))}</Text>}
               </View></>)}
             {lines.length > 0 && (<><Text style={s.h} aria-level={2} accessibilityRole="header">{uz.recap.recent}</Text>{lines.slice(0, 4).map((l, i) => <Text key={i} style={s.log}>• {l}</Text>)}</>)}
             <View style={s.fresh}>
-              <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.recap.fresh}</Text>
-              <Text style={s.freshT}>{uz.recap.freshHint}</Text>
-              {mine && <Text style={s.freshN}>{r.newKasb} · {uz.recap.cash} {money(mine.cash)} · {uz.recap.salary} {money(mine.salary ?? 0)}</Text>}
+              <Text style={s.h} aria-level={2} accessibilityRole="header">{sold ? uz.recap.stayTitle : uz.recap.fresh}</Text>
+              <Text style={s.freshT}>{sold ? uz.recap.stayHint : uz.recap.freshHint}</Text>
+              {mine && <Text style={s.freshN}>{sold ? b.kasb : r.newKasb} · {uz.recap.cash} {money(mine.cash)} · {uz.recap.salary} {money(mine.salary ?? 0)}</Text>}
             </View>
           </ScrollView>
           <View style={[s.actions, compact && s.actionsSide]}>
             {left !== null && <Text style={s.auto} role="timer">{uz.recap.autoIn.replace("{n}", String(left))}</Text>}
-            <Button label={uz.recap.cont} onPress={() => onAck(r.id)} />
+            <Button label={sold ? uz.recap.contSold : uz.recap.cont} onPress={() => onAck(r.id)} />
             <Button label={uz.recap.pause} kind="ghost" onPress={onBreak} /><Text style={s.hint}>{uz.recap.pauseHint}</Text>
             {!askLeave ? <Button label={uz.recap.leave} kind="ghost" onPress={() => setAskLeave(true)} /> : (
               <View style={s.ask} role="group"><Text style={s.insT}>{uz.leave.warn}</Text><Button label={uz.leave.confirm} onPress={onLeave} /><Button label={uz.leave.cancel} kind="ghost" onPress={() => setAskLeave(false)} /></View>)}

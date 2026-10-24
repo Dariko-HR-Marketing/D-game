@@ -51,3 +51,42 @@ describe("bankrot tanaffusi (recapPause)", () => {
     const s = bankrupt(cellCtx, { recapPause: true }); expect(reduce(s, cellCtx, { type: "expire", playerId: "server", proposalId: 1 }).ok).toBe(true);
   });
 });
+
+describe("kasb almashtirish: avval aktivlar sotiladi, hayot holati saqlanadi (buyurtmachi qoidasi, OPEN_QUESTIONS 161)", () => {
+  const cellCtx = withRules({ small: { K: { kind: "restart" } } });
+  const payCtx = withRules({ small: { K: { kind: "loseIncomeShare", share: 1 } } });
+  const mod = { id: 1, months: null, t: "expense" as const, pct: 10 };
+  const life = (g: GameState) => Object.assign(g.players[0], { children: 2, mods: [mod], modSeq: 2, noSalary: 3 });
+
+  it("«boshidan» katagi: bolalar, faol ta'sirlar saqlanadi; aktivlar sotilib qarzga ketadi, qoldiq qarz o'tadi", () => {
+    const s = bankrupt(cellCtx, { recapPause: true }, (g) => { life(g); Object.assign(g.players[0], { assets: [asset as any], cash: 777, owe: 3000 }); });
+    const p = s.players[0], r = s.recaps![0];
+    expect(r.outcome).toBe("job"); expect(r.sold).toHaveLength(1); expect(r.soldTotal).toBe(1500);
+    expect(p.assets).toHaveLength(0); expect(p.children).toBe(2); expect(p.mods).toEqual([mod]); expect(p.noSalary).toBe(3); expect(p.restarts).toBe(1);
+    expect(r.after).toEqual({ debt: p.owe ?? 0, children: 2 }); expect(p.owe ?? 0).toBeLessThan(3000 - 1500); // sotuv tushumi qarzdan ayrildi (yangi kasbning boshlang'ich naqdi qolganini yopishi mumkin)
+  });
+  it("qarz chegaradan oshdi, aktivlar yetadi: aktivlar sotiladi, kasb O'ZGARMAYDI", () => {
+    const big = { ...asset, price: 40000 };
+    const s = bankrupt(payCtx, { recapPause: true }, (g) => { life(g); Object.assign(g.players[0], { cash: 0, owe: RULES.bankLimit - 1, assets: [big as any] }); });
+    const p = s.players[0], r = s.recaps![0];
+    expect(r.outcome).toBe("sold"); expect(r.cause.kind).toBe("pay"); expect(r.newKasb).toBe(""); expect(r.soldTotal).toBe(40000);
+    expect(p.restarts).toBe(0); expect(p.profession).toBe(base.kasb[p.profession].n); expect(p.assets).toHaveLength(0); expect(p.children).toBe(2);
+    expect(p.owe ?? 0).toBe(0); expect(p.cash).toBeGreaterThan(0); // sotuv tushumi qarzni to'ladi, qolgani naqd
+  });
+  it("sotuvdan keyin ham qarz chegaradan oshsa: kasb almashadi, bolalar va ta'sirlar qoladi, qoldiq qarz o'tadi", () => {
+    const small = { ...asset, price: 100 };
+    const s = bankrupt(payCtx, { recapPause: true }, (g) => { life(g); Object.assign(g.players[0], { cash: 0, owe: RULES.bankLimit - 1, assets: [small as any] }); });
+    const p = s.players[0], r = s.recaps![0];
+    expect(r.outcome).toBe("job"); expect(p.restarts).toBe(1); expect(p.assets).toHaveLength(0); expect(p.children).toBe(2); expect(p.mods).toEqual([mod]);
+    expect(p.owe).toBeGreaterThan(0); expect(r.after!.debt).toBe(p.owe); expect(r.sold![0].price).toBe(100);
+  });
+  it("aktiv yo'q: to'g'ridan-to'g'ri kasb almashadi; bolalar saqlanadi", () => {
+    const s = bankrupt(payCtx, { recapPause: true }, (g) => { life(g); Object.assign(g.players[0], { cash: 0, owe: RULES.bankLimit - 1 }); });
+    expect(s.recaps![0].outcome).toBe("job"); expect(s.recaps![0].sold).toEqual([]); expect(s.players[0].children).toBe(2);
+  });
+  it("garovdagi va sheriklikdagi aktiv sotilmaydi", () => {
+    const pledged = { ...asset, price: 40000, pledged: "lombard" as const }, partner = { ...asset, price: 40000, partnerId: "p1" };
+    const s = bankrupt(payCtx, { recapPause: true }, (g) => { Object.assign(g.players[0], { cash: 0, owe: RULES.bankLimit - 1, assets: [pledged as any, partner as any] }); });
+    expect(s.recaps![0].soldTotal).toBe(0); expect(s.recaps![0].outcome).toBe("job");
+  });
+});

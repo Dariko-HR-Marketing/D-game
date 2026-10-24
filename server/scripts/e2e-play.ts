@@ -25,7 +25,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
     const roll = p.getByRole("button", { name: /^Kubik(ni|larni) tashlash/ }), accept = p.getByRole("button", { name: /sh\.b\. olish$|^Qabul qilaman/ }), no = p.getByRole("button", { name: "O'tkazaman" });
     const deck = p.getByRole("button", { name: /^Kichik sarmoyalar, / }), rentA = p.getByRole("button", { name: /^A · Oylik daromadni/ });
     const pay = p.getByRole("button", { name: /^To'layman|^Pul to'layman/ });
-    const again = p.getByRole("button", { name: "Yangi kasb bilan davom etish" }); // bankrotlik: o'yin to'xtab, tahlil oynasi — odam davom etishni tanlaydi
+    const again = p.getByTestId("recap").getByRole("button", { name: /davom etish$/i }); // kasb almashtirish / majburiy sotuv: o'yin to'xtab, tahlil oynasi — odam davom etishni tanlaydi
     if (await again.count()) { if (await tryClick(again)) { recaps++; idle = 0; } }
     else if (await deck.count()) { if (await tryClick(deck)) idle = 0; }
     else if (await rentA.count()) { if (await tryClick(rentA)) idle = 0; }
@@ -40,7 +40,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   // ikkilamchi bo'limlar xatosiz ochilsin
   const fin = p.getByRole("button", { name: /Moliya amallari/ }); if (await fin.count()) { await fin.click(); await p.waitForTimeout(200); }
   const rules = p.getByRole("button", { name: "Qoidalar" }); if (await rules.count()) { await rules.first().click(); await p.waitForSelector("text=O'yin qoidalari"); await p.getByRole("button", { name: "Orqaga" }).click(); }
-  console.log(`${tag}: kubik=${rolls} qabul=${accepted} o'tkazildi=${skipped} bankrotlik=${recaps} xatolar=${errors.length}`);
+  console.log(`${tag}: kubik=${rolls} qabul=${accepted} o'tkazildi=${skipped} tahlil=${recaps} xatolar=${errors.length}`);
   for (const e of errors.slice(0, 5)) fail(`${tag}: ${e}`);
   if (rolls < 10) fail(`${tag}: kam navbat (${rolls})`);
   await c.close();
