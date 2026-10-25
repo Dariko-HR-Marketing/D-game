@@ -16,11 +16,17 @@ let failed = 0; const fail = (m: string) => { failed++; console.log("✗", m); }
 for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [string, number, number][]) {
   const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, "e2e-" + tag);
   const p = await c.newPage(); const errors: string[] = [];
+  if (process.env.PERF) { // o'lchov rejimi: CPU 4× sekinlashtirilgan (o'rta telefon), uzoq vazifalar (>50 ms) yig'iladi
+    await (await c.newCDPSession(p)).send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.PERF) || 4 });
+    await p.addInitScript(() => { (window as any).__lt = []; try { new PerformanceObserver((l) => { for (const e of l.getEntries()) (window as any).__lt.push(e.duration); }).observe({ type: "longtask", buffered: true }); } catch {} });
+  }
   p.on("pageerror", (e) => errors.push("pageerror: " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
   await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd");
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   let rolls = 0, accepted = 0, skipped = 0, idle = 0, recaps = 0;
+  const prof = process.env.PROFILE && tag === "telefon" ? await c.newCDPSession(p) : null; // protsessor profili: eng og'ir funksiyalar (PROFILE=fayl.json)
+  if (prof) { await prof.send("Profiler.enable"); await prof.send("Profiler.setSamplingInterval", { interval: 500 }); await prof.send("Profiler.start"); }
   for (let i = 0; i < 400 && rolls < 60; i++) {
     const roll = p.getByRole("button", { name: /^Kubik(ni|larni) tashlash/ }), accept = p.getByRole("button", { name: /sh\.b\. olish$|^Qabul qilaman/ }), no = p.getByRole("button", { name: "O'tkazaman" });
     const deck = p.getByRole("button", { name: /^Kichik sarmoyalar, / }), rentA = p.getByRole("button", { name: /^A · Oylik daromadni/ });
@@ -38,11 +44,13 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
     if (await p.getByText("O'yin natijasi").count()) break;
   }
   // ikkilamchi bo'limlar xatosiz ochilsin
+  if (prof) { const { profile } = await prof.send("Profiler.stop") as any; (await import("node:fs")).writeFileSync(process.env.PROFILE!, JSON.stringify(profile)); }
   // Oxirgi navbatda kasb almashtirish/sotuv tahlili chiqishi mumkin (mijozga holat sekin keladi): oyna to'sib qo'ymasin — yopamiz, holat tinchigach bosamiz
   const clearRecap = async () => { for (let k = 0, quiet = 0; k < 40 && quiet < 3; k++) { const rc = p.getByTestId("recap").getByRole("button", { name: /davom etish$/i }); if (await rc.count()) { quiet = 0; if (await tryClick(rc)) recaps++; } else quiet++; await p.waitForTimeout(250); } };
   const press = async (l: any) => { for (let k = 0; k < 5; k++) { await clearRecap(); try { await l.first().click({ timeout: 5000 }); return; } catch (e) { if (k === 4) throw e; } } };
   const fin = p.getByRole("button", { name: /Moliya amallari/ }); if (await fin.count()) { await press(fin); await p.waitForTimeout(200); }
   const rules = p.getByRole("button", { name: "Qoidalar" }); if (await rules.count()) { await press(rules); await p.waitForSelector("text=O'yin qoidalari"); await press(p.getByRole("button", { name: "Orqaga" })); }
+  if (process.env.PERF) { const m = await p.evaluate(() => { const lt: number[] = (window as any).__lt ?? []; const nav = performance.getEntriesByType("navigation")[0] as any; const mem = (performance as any).memory?.usedJSHeapSize; return { n: lt.length, total: Math.round(lt.reduce((a, b) => a + b, 0)), max: Math.round(Math.max(0, ...lt)), dcl: Math.round(nav.domContentLoadedEventEnd), load: Math.round(nav.loadEventEnd), heapMB: mem ? Math.round(mem / 1e6) : null, dom: document.getElementsByTagName("*").length }; }); console.log(`PERF ${tag}:`, JSON.stringify(m)); }
   console.log(`${tag}: kubik=${rolls} qabul=${accepted} o'tkazildi=${skipped} tahlil=${recaps} xatolar=${errors.length}`);
   for (const e of errors.slice(0, 5)) fail(`${tag}: ${e}`);
   if (rolls < 10) fail(`${tag}: kam navbat (${rolls})`);

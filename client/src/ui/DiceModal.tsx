@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-na
 import { Dice } from "./Dice";
 import { diceBusyFlag } from "./tourStore";
 import { Button } from "./Button";
-import { TimerRing } from "./TimerRing";
+import { DeadlineRing } from "../useCountdown";
 import { useReducedMotion } from "../motion";
 import { DICE_MS } from "../motionConfig";
 import { diceOf } from "../dice";
@@ -14,7 +14,7 @@ import type { RoomView } from "../net/connection";
 
 /** Kubik tashlandi: kubik(lar) oynaning ENG OLDIDA, markazda — 3D aylanib to'xtaydi, so'ng yig'indi (ikki kubik bo'lsa «4 + 5 = 9»).
  *  Tashlagan o'yinchida modal (orqa fon xiralashadi, bosilsa yoki Esc bilan yopiladi); boshqalarda — to'sib qo'ymaydigan ko'rsatma. Sahifa ochilganda eski tashlash ko'rsatilmaydi. */
-export interface RollPrompt { circle: string; twoDice?: number; left: number; total: number; waiting: boolean; onRoll: () => void; onLater: () => void; onDisable: () => void }
+export interface RollPrompt { circle: string; twoDice?: number; deadline: number | null; total: number; waiting: boolean; onRoll: () => void; onLater: () => void; onDisable: () => void }
 
 export function DiceModal({ room, userId, prompt }: { room: RoomView; userId: string; prompt?: RollPrompt | null }) {
   const reduced = useReducedMotion(); const { width, height } = useWindowDimensions();
@@ -68,7 +68,7 @@ export function DiceModal({ room, userId, prompt }: { room: RoomView; userId: st
 function RollPromptView({ prompt, width, height }: { prompt: RollPrompt; width: number; height: number }) {
   const two = prompt.circle === "big" || (prompt.twoDice ?? 0) > 0, compact = height < 520 && width > height, size = Math.round(Math.max(56, Math.min(120, width * 0.24, compact ? height * 0.21 : 999)));
   const label = prompt.waiting ? uz.dice.sending : two ? uz.hud.rollBig : uz.hud.rollSmall;
-  const head = (<View style={s.promptHead}><Text style={s.title}>{uz.dice.yourTurn}</Text>{prompt.left > 0 && <TimerRing left={prompt.left} total={prompt.total} size={compact ? 38 : 44} label={`${prompt.left} ${uz.game.seconds}`} />}</View>);
+  const head = (<View style={s.promptHead}><Text style={s.title}>{uz.dice.yourTurn}</Text><DeadlineRing deadline={prompt.deadline} total={prompt.total} size={compact ? 38 : 44} /></View>);
   const dice = (<><View style={s.row} testID="roll-dice">{Array.from({ length: two ? 2 : 1 }, (_, i) => <Dice key={i} value={null} size={size} />)}</View>{!compact && <Text style={s.hint}>{two ? uz.dice.twoDice : uz.dice.oneDie}</Text>}</>);
   const actions = (<>
     <View style={{ alignSelf: "stretch" }} testID="dice-roll"><Button label={label} disabled={prompt.waiting} onPress={prompt.onRoll} /></View>
