@@ -141,7 +141,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     if (!lim.allow(ipKey(req.ip))) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
   });
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string", bodyLimit: 8 * 1024 }, (_req, body, done) => done(null, Object.fromEntries(new URLSearchParams(body as string)))); // ota-ona sahifasi formasi
-  app.register(websocket, { options: { maxPayload: 16 * 1024 } });
+  app.register(websocket, { options: { maxPayload: 16 * 1024, perMessageDeflate: { threshold: 1024, zlibDeflateOptions: { level: 3 }, serverNoContextTakeover: true, clientNoContextTakeover: true, concurrencyLimit: 8 } } }); // holat xabarlari 5–13 KB JSON: siqilsa mobil trafik ~4× kam (kontekst saqlanmaydi — xotira cheklangan)
   app.get("/health", async () => ({ ok: true }));
   const iceServers = iceServersFrom(process.env.ICE_SERVERS);
   app.get("/voice/config", async (req, reply) => { // STUN/TURN sozlamasi: faqat kirgan foydalanuvchiga

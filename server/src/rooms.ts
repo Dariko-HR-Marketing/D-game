@@ -85,6 +85,15 @@ export class RoomManager {
 
   on(f: (code: string, ev: RoomEvent) => void) { this.listeners.add(f); return () => this.listeners.delete(f); }
   private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); }
+  /** Orzular ro'yxati: faqat tanlash bosqichida to'liq (40 ta, ~7 KB); keyin har bir holat yangilanishida emas — faqat tanlanganlar (indeks bo'yicha, qolgani null). */
+  private dreamsView(r: Room) {
+    const pick = (d: { name: string; price: number; text?: string; sector?: string; horizon?: string }) => ({ name: d.name, price: d.price, text: d.text, sector: d.sector, horizon: d.horizon });
+    if (r.state!.phase === "dreams") return r.ctx.dreams.map(pick);
+    const out: (ReturnType<typeof pick> | null)[] = r.ctx.dreams.map(() => null);
+    for (const p of r.state!.players) if (p.dreamIdx !== null && p.dreamIdx !== undefined && r.ctx.dreams[p.dreamIdx]) out[p.dreamIdx] = pick(r.ctx.dreams[p.dreamIdx]);
+    return out as any;
+  }
+
   view(r: Room): RoomView {
     const pc = r.state?.pending ? effectOf(r.ctx, r.state.pending.cardId, r.state.pending) : null;
     const names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }> = {};
@@ -97,7 +106,7 @@ export class RoomManager {
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: publicEffect(ce.effect), mode: ce.mode, file: ce.file, deck: ce.deck, title: ce.title }; })() : null,
       professionExp: r.state ? Object.fromEntries(r.state.players.flatMap((p) => { const e = r.ctx.kasb[p.profession]?.exp; return e ? [[p.id, e]] : []; })) : undefined, // kasb kartasidagi 9 ta xarajat satri (hisob varag'i)
       professions: r.state ? Object.fromEntries(r.state.players.map((p) => [p.id, r.ctx.kasb[p.profession]?.name ?? ""])) : undefined,
-      dreams: r.state ? r.ctx.dreams.map((d) => ({ name: d.name, price: d.price, text: d.text, sector: d.sector, horizon: d.horizon })) : undefined,
+      dreams: r.state ? this.dreamsView(r) : undefined,
       chatRestricted: this.hooks.chatRestricted ? this.hooks.chatRestricted(r.members.filter((m) => !m.bot).map((m) => m.userId)) : [],
       recapCard: (() => { const id = r.state?.recaps?.[0]?.cause.cardId; const ce = id ? r.ctx.effects[id] : undefined; return ce ? { text: ce.text ?? "", title: ce.title } : null; })(),
       pendingCard: pc ? { id: pc.id, text: pc.text ?? "", mode: pc.mode, effect: publicEffect(pc.effect), file: pc.file, deck: pc.deck, title: pc.title } : null };

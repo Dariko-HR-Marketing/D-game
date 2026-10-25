@@ -86,7 +86,8 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/mods-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/recap-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/time-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/perf-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/chat-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/voice-check.ts
-      - name: Moslashuvchanlik (tik telefon, yotiq telefon, tik planshet)
-        run: STRICT=1 ONLY=390x844,844x390,768x1024 pnpm --filter @poyga/server exec tsx scripts/responsive-check.ts
+      - name: Moslashuvchanlik (katlanuvchi, tik telefon, yotiq telefon, tik planshet, 125 % kompyuter)
+        run: STRICT=1 ONLY=280x653,390x844,844x390,768x1024,1536x730 pnpm --filter @poyga/server exec tsx scripts/responsive-check.ts

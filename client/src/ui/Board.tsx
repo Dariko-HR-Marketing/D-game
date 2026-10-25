@@ -32,10 +32,14 @@ const BIG_LOOK: Record<string, Look> = {
   X: { bg: "#4A5B6C", border: "#4A5B6C", fg: "#FFFFFF", icon: "alert", label: "" },
 };
 const X_ICON: Record<string, IconName> = { Bankrot: "alert", Ajrashish: "heart", "Audit tekshiruvi": "search", Start: "flag" };
+const LOOKS = new Map<string, Look>(); // bir xil ob'ekt qaytadi: katak komponenti (memo) behuda qayta chizilmasin
 const lookOf = (circle: "small" | "big", i: number): Look => {
   if (circle === "small") return SMALL_LOOK[SMALL_BOARD[i]];
   const c = BIG_CELLS[i], l = BIG_LOOK[c.t];
-  return c.t === "X" ? { ...l, icon: X_ICON[c.name] ?? "lock", label: c.name.startsWith("Siz nohalol") ? "NOHALOL" : c.name.toUpperCase() } : l;
+  if (c.t !== "X") return l;
+  const key = `big:${i}`; let x = LOOKS.get(key);
+  if (!x) { x = { ...l, icon: X_ICON[c.name] ?? "lock", label: c.name.startsWith("Siz nohalol") ? "NOHALOL" : c.name.toUpperCase() }; LOOKS.set(key, x); }
+  return x;
 };
 export const cellLabel = (circle: "small" | "big", i: number) => (circle === "small" ? SMALL_LOOK[SMALL_BOARD[i]].label : BIG_CELLS[i].t === "O" ? `ORZU: ${BIG_CELLS[i].name}` : lookOf("big", i).label);
 
@@ -57,6 +61,16 @@ export function boardGeometry(width: number, wide: boolean, n: number, tight = f
   return { cols, c, W: width, H: Math.round(2 * c + rows * 0 + Math.ceil(side / 2) * sideH) };
 }
 
+/** Bitta katak: faqat o'z xossalari o'zgarganda qayta chiziladi (har holat yangilanishida 48–53 katak qayta chizilmasin). */
+const Tile = React.memo(function Tile({ x, y, w, h, corner, L, here, dream, small, wide }: { x: number; y: number; w: number; h: number; corner: boolean; L: Look; here: boolean; dream: boolean; small: boolean; wide: boolean }) {
+  const ls = labelSize(L.label, w);
+  return (
+    <View aria-hidden style={[s.tile, { left: x + 1, top: y + 1, width: w - 2, height: h - 2, backgroundColor: L.bg, borderColor: here ? color.navy : L.border, borderWidth: here ? 3 : 1, zIndex: here ? 2 : 0 }, dream && { borderStyle: "dashed", borderColor: "#A82F3E", borderWidth: 2 }]}>
+      <Icon name={L.icon} size={small ? 12 : corner ? 22 : 18} color={L.fg} />
+      {!small && (wide || corner === false) && w > 44 && ls >= 8 && <Text style={[s.tileT, { color: L.fg, fontSize: ls }]} numberOfLines={2}>{L.label}</Text>}
+    </View>);
+});
+
 /** Taxta: kvadrat halqa (soat yo'nalishida), ikonkali kataklar, o'yinchi fishkalari; markazda — kubik/navbat paneli (`children`). */
 export function Board({ room, width, wide, currentId, tight, compact, roomy, viewCircle, movement, children }: { /** viewCircle: ko'ruvchining O'Z aylanasi — taxta shu aylananiki; boshqa aylana o'yinchilari ichki halqada. */ viewCircle?: "small" | "big"; room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; compact?: boolean; roomy?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
   const players: any[] = room.state.players;
@@ -66,7 +80,7 @@ export function Board({ room, width, wide, currentId, tight, compact, roomy, vie
   const n = circle === "small" ? 48 : 53;
   const g = boardGeometry(width, wide, n, tight, compact, roomy), { W, H, c } = g;
   const offset = circle === "small" ? (wide ? 4 : 12) : 24;
-  const tiles = squareRing(n, g.cols, W, H, c);
+  const tiles = React.useMemo(() => squareRing(n, g.cols, W, H, c), [n, g.cols, W, H, c]);
   const mixed = players.some((p) => p.circle === other);
   // Aralash o'yin: boshqa aylana o'yinchilari uchun ichki halqa (kichik nuqtalar); asosiy taxta — ko'ruvchining o'z aylanasi
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
@@ -91,11 +105,7 @@ export function Board({ room, width, wide, currentId, tight, compact, roomy, vie
             const dream = circle === "big" && BIG_CELLS[i].t === "O" && players.some((p) => p.dreamIdx !== null && p.id === currentId); // istalgan «O» katagi orzu katagi (OPEN_QUESTIONS 156)
             const side = !t.corner && (pi >= g.cols && pi < g.cols + Math.ceil((n - 2 * g.cols) / 2) || pi >= 2 * g.cols + Math.ceil((n - 2 * g.cols) / 2));
             const small = side && !wide; // telefonda yon kataklar nozik: faqat ikonka
-            return (
-              <View key={pi} aria-hidden style={[s.tile, { left: t.x + 1, top: t.y + 1, width: t.w - 2, height: t.h - 2, backgroundColor: L.bg, borderColor: here ? color.navy : L.border, borderWidth: here ? 3 : 1, zIndex: here ? 2 : 0 }, dream && { borderStyle: "dashed", borderColor: "#A82F3E", borderWidth: 2 }]}>
-                <Icon name={L.icon} size={small ? 12 : t.corner ? 22 : 18} color={L.fg} />
-                {!small && (wide || t.corner === false) && t.w > 44 && labelSize(L.label, t.w) >= 8 && <Text style={[s.tileT, { color: L.fg, fontSize: labelSize(L.label, t.w) }]} numberOfLines={2}>{L.label}</Text>}
-              </View>);
+            return <Tile key={pi} x={t.x} y={t.y} w={t.w} h={t.h} corner={!!t.corner} L={L} here={here} dream={dream} small={small} wide={wide} />;
           })}
           {mixed && innerTiles.map((t, pi) => <View key={`b${pi}`} aria-hidden style={{ position: "absolute", left: inset + t.x + 1, top: inset + t.y + 1, width: t.w - 2, height: t.h - 2, borderRadius: 3, backgroundColor: color.line }} />)}
           {players.map((p, k) => {
@@ -135,7 +145,7 @@ const s = StyleSheet.create({
 
 /** Fishka: yangi katakka silliq siljiydi (harakatni kamaytirish yoqilgan bo'lsa — darhol). */
 /** O'yinchi belgisi: odam ikonkasi (rang + raqam nishoni — rangga tayanmaydi) va katak tomonga qaragan kichik strelka. Har bir katakka o'tishda sakraydi. */
-function Pawn({ x, y, size, hue, label, isCur, testID, inward }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean; testID?: string; inward: number | null }) {
+const Pawn = React.memo(function Pawn({ x, y, size, hue, label, isCur, testID, inward }: { x: number; y: number; size: number; hue: string; label: number; isCur: boolean; testID?: string; inward: number | null }) {
   const reduced = useReducedMotion(); const pos = useRef(new Animated.ValueXY({ x, y })).current; const hop = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const d = stepMs(reduced);
@@ -157,4 +167,4 @@ function Pawn({ x, y, size, hue, label, isCur, testID, inward }: { x: number; y:
       </View>
     </Animated.View>
   );
-}
+});

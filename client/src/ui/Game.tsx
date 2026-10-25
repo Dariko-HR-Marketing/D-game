@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
-import { RecapLayer } from "./RecapLayer";
-import { ChatSheet, chatText } from "./ChatSheet";
+import { chatText } from "../chatText";
+import { lazyNamed, LaterOverlay } from "../lazy";
+const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
 import { getMuted } from "../chatMute";
 import { VoicePanel, useVoice } from "./VoicePanel";
 import type { VoiceEngine } from "../voice/engine";
@@ -18,8 +19,6 @@ import { PlayerList } from "./PlayerList";
 import { FxLayer } from "./FxLayer";
 import { CountText } from "./CountText";
 import { PortfolioCard, PortfolioDetail } from "./Portfolio";
-import { HistoryDetail } from "./History";
-import { SheetDetail } from "./Sheet";
 import { MomentLayer } from "./MomentLayer";
 import { useMoments } from "../useMoments";
 import type { Http } from "../net/http";
@@ -155,7 +154,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const lastIn = chatNew[chatNew.length - 1];
   const chatNode = onChat ? (<>
     <View role="status" accessibilityLiveRegion="polite" style={s.srOnly}><Text>{lastIn && !chatOpen ? `${nameOf(room, lastIn.from)}: ${chatText(lastIn)}` : ""}</Text></View>
-    {chatOpen && <ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} voice={voice ? <VoicePanel engine={voice} room={room} userId={userId} /> : undefined} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} />}
+    {chatOpen && <LaterOverlay><ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} voice={voice ? <VoicePanel engine={voice} room={room} userId={userId} /> : undefined} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} /></LaterOverlay>}
   </>) : null;
   const lcMine = state.lastCard && (state.lastCard as any).playerId === userId ? room.lastCard?.text ?? null : null;
   const fx = useFx(mine, lcMine, settled);
@@ -261,11 +260,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} />{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
-      {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
-      {historyOpen && http && <HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} />}
+      {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
+      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine && !deckPick ? (
@@ -301,11 +300,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} />{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
-      {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
-      {historyOpen && http && <HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} />}
+      {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
+      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetOpen && { paddingBottom: 420 }]}>
         {banners}

@@ -9,7 +9,7 @@ import { currentPlayer } from "@poyga/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/resp";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
-const SIZES: [number, number][] = [[320, 568], [360, 640], [375, 667], [390, 844], [412, 915], [430, 932], [568, 320], [667, 375], [844, 390], [932, 430], [600, 960], [768, 1024], [820, 1180], [1024, 1366], [1024, 768], [1180, 820], [1366, 1024], [1280, 720], [1440, 900], [1920, 1080], [2560, 1440]];
+const SIZES: [number, number][] = [[320, 568], [360, 640], [375, 667], [390, 844], [412, 915], [430, 932], [568, 320], [667, 375], [844, 390], [932, 430], [600, 960], [768, 1024], [820, 1180], [1024, 1366], [1024, 768], [1180, 820], [1366, 1024], [1280, 720], [1440, 900], [1920, 1080], [2560, 1440], [280, 653], [540, 720], [720, 540], [960, 540], [1024, 600], [1200, 700], [1536, 730], [1707, 830], [3440, 1440], [3840, 2160]];
 const only = process.env.ONLY?.split(",");
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
