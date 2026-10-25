@@ -24,7 +24,7 @@ function BadgeDot({ b }: { b: NavBadge }) {
 
 /** Pastki navigatsiya (telefon): faol bo'lim qalin va to'q, qolganlari kulrang; faol bo'lim `aria-current`. Kutayotgan narsasi bor bo'lim belgi oladi (badges.ts). */
 export function BottomNav<K extends string>({ items, active, onChange, label, testID }: { items: NavItem<K>[]; active: K; onChange: (k: K) => void; label: string; testID?: string }) {
-  const tiny = useWindowDimensions().width < 320; // katlanuvchi telefon (280 px): yozuv kichrayadi, tugmalar ekrandan chiqmaydi
+  const tiny = useWindowDimensions().width < 320; // katlanuvchi telefon (280 px): yozuv ikki qatorga o'raladi (12 px saqlanadi), tugmalar ekrandan chiqmaydi
   return (
     <View role="navigation" aria-label={label} style={s.nav} testID={testID}>
       {items.map((it) => { const on = it.key === active; const b = on ? null : it.badge; return (
@@ -33,7 +33,7 @@ export function BottomNav<K extends string>({ items, active, onChange, label, te
             <Icon name={it.icon} size={22} stroke={on ? 2.2 : 1.8} color={on ? color.navy : "#6B7C8C"} />
             {b && <BadgeDot b={b} />}
           </View>
-          <Text numberOfLines={1} style={[s.t, tiny && { fontSize: 11 }, on && { color: color.navy, fontWeight: "800" }]}>{it.label}</Text>
+          <Text numberOfLines={tiny ? 2 : 1} style={[s.t, tiny && { textAlign: "center", lineHeight: 14 }, on && { color: color.navy, fontWeight: "800" }]}>{it.label}</Text>
         </Pressable>); })}
     </View>
   );

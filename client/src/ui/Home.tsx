@@ -33,13 +33,13 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
-  const online = status === "online", ready = code.length === 6; const { height } = useWindowDimensions(); const compact = height < 700; // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
-        <View style={s.brand}><Logo size={30} /><Text style={s.logoT}>{uz.app.name}</Text></View>
+        <View style={[s.brand, { flexShrink: 1, minWidth: 0 }]}><Logo size={30} /><Text style={s.logoT} numberOfLines={1}>{uz.app.name}</Text></View>
         <View style={{ flex: 1 }} />
-        <View style={{ alignSelf: "center" }}><Pill label={online ? uz.home.online : status === "offline" ? uz.home.offline : uz.home.connecting} kind={online ? "good" : status === "offline" ? "bad" : "warn"} /></View>
+        {(!tiny || !online) && <View style={{ alignSelf: "center" }}><Pill label={online ? uz.home.online : status === "offline" ? uz.home.offline : uz.home.connecting} kind={online ? "good" : status === "offline" ? "bad" : "warn"} /></View>}
         <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.avatarBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={uz.profile.title} onPress={onProfile} style={s.avatarBtn}><Avatar name={me?.name ?? "?"} colorIdx={me?.color ?? 0} level={me?.level} gender={me?.gender} size={34} /></Pressable>
       </View>
