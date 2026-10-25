@@ -26,6 +26,7 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
 export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: GameMode) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
   const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<GameMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false);
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
+  const effTurn: TurnSeconds = turn === 0 && mode !== "standard" ? 30 : turn; // vaqtsiz xona faqat standart rejimda; boshqasida avvalgi tezlik
   const pickMode = (m: GameMode) => { setMode(m); setModePref(m); setSeats((n) => clampSeats(m, n)); };
   const [me, setMe] = useState<{ name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0, games: r.stats?.games ?? 1, gender: r.profile.gender }); }).catch(() => {}); return () => { off = true; }; }, [http]);
@@ -49,11 +50,11 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
             {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
-            {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn, calc, 3, "tutorial")} disabled={!online} />}
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(turn, calc, seats, mode)} disabled={!online} />
+            {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn === 0 ? 30 : turn, calc, 3, "tutorial")} disabled={!online} />}
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, mode)} disabled={!online} />
             {compact && (
-              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${mode === "tutorial" ? "" : uz.home.seatsOpt.replace("{n}", String(seats)) + ","} ${turnLabel(turn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
-                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {mode === "tutorial" ? "" : `${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(turn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
+              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${mode === "tutorial" ? "" : uz.home.seatsOpt.replace("{n}", String(seats)) + ","} ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
+                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {mode === "tutorial" ? "" : `${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
             {(!compact || optsOpen) && (<>
             <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
@@ -73,11 +74,12 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
             </View>}
             <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
               <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
-              {([30, 60] as const).map((v) => (
-                <Pressable key={v} role="radio" aria-checked={turn === v} accessibilityLabel={v === 60 ? uz.home.turn60 : uz.home.turn30} onPress={() => pickTurn(v)} style={[s.seg, turn === v && s.segOn]}>
-                  <Text style={[s.segT, turn === v && { color: color.white }]} aria-hidden>{v === 60 ? uz.home.turn60 : uz.home.turn30}</Text>
-                </Pressable>))}
+              {(mode === "standard" ? ([30, 60, 0] as const) : ([30, 60] as const)).map((v) => { const name = v === 0 ? uz.home.turn0 : v === 60 ? uz.home.turn60 : uz.home.turn30;
+                return (<Pressable key={v} role="radio" aria-checked={effTurn === v} accessibilityLabel={v === 0 ? uz.home.turn0Full : name} onPress={() => pickTurn(v)} style={[s.seg, effTurn === v && s.segOn]} testID={`turn-${v}`}>
+                  <Text style={[s.segT, effTurn === v && { color: color.white }]} aria-hidden>{name}</Text>
+                </Pressable>); })}
             </View>
+            {effTurn === 0 && <Text style={s.turnL} testID="turn0-hint">{uz.home.turn0Hint}</Text>}
             {calcUiEnabled() && <View style={s.turnRow} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
               <Text style={s.turnL} aria-hidden>{uz.ledger.modeLabel}</Text>
               {(["manual", "auto"] as const).map((v) => (

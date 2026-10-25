@@ -1,12 +1,13 @@
 import { tourKV } from "./ui/tourStore";
+import { uz } from "./i18n/uz";
 import { GAME_MODES, MODES, type GameMode } from "@poyga/rules";
-/** Xona ochganda tanlanadigan tezlik (30 — odatiy, 60 — sekin ×2); oxirgi tanlov qurilmada eslab qolinadi. */
-export type TurnSeconds = 30 | 60;
+/** Xona ochganda tanlanadigan tezlik (30 — odatiy, 60 — sekin ×2, 0 — vaqtsiz «Mehrojiddin»); oxirgi tanlov qurilmada eslab qolinadi. */
+export type TurnSeconds = 0 | 30 | 60;
 const KEY = "poyga-turn-seconds";
-export const getTurnPref = (): TurnSeconds => (tourKV.get(KEY) === "60" ? 60 : 30);
+export const getTurnPref = (): TurnSeconds => (tourKV.get(KEY) === "60" ? 60 : tourKV.get(KEY) === "0" ? 0 : 30);
 export const setTurnPref = (v: TurnSeconds) => tourKV.set(KEY, String(v));
 /** Xona tezligi: «Odatiy» — kubik 10, karta 30 soniya; «Sekin» — hammasi ×2 (taymer jadvali: rules RULES). */
-export const turnLabel = (s: number) => (s === 60 ? "Sekin (×2)" : "Odatiy");
+export const turnLabel = (s: number) => (s === 0 ? uz.home.turn0Full : s === 60 ? "Sekin (×2)" : "Odatiy");
 
 /** Hisob rejimi: «Avtomatik» (standart) yoki «O'zim hisoblayman» (o'quv rejimi). Buyurtmachi qarori (2026-10-21): qo'lda hisoblash oddiy o'yinchiga foyda bermadi — standart avtomatik, tanlov tugmasi ko'rinmaydi.
  *  O'quv rejimi (sinf/trener) uchun imkoniyat saqlangan: qurilmada `poyga-calc-ui=1` bo'lsa tanlov ko'rinadi. */

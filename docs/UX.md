@@ -99,3 +99,7 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - **HTML qobig'i** (`scripts/patch-html.mjs`): `lang="uz"` + `translate="no"` (brauzer «tarjima qilinsinmi?» deb so'ramasin), mavzu rangi, tavsif, PWA manifest va ikonkalar (telefon bosh ekraniga qo'shish), yuklanguncha oq chaqnash o'rniga fon rangi.
 - Telefon pastki menyusi 280 px da ekrandan chiqib ketardi — tuzatildi.
 
+## «Mehrojiddin» — vaqtsiz xona (2026-10-25, buyurtmachi talabi)
+- Xona sozlamalarida «Odatiy · Sekin (×2) · **Mehrojiddin**» (faqat standart rejimda); tanlanganda izoh: «navbat va qarorlarga vaqt cheklovi yo'q». Lobbida «Tezlik: Mehrojiddin (vaqtsiz)».
+- O'yinda taymer halqasi, «N soniyada…» va «N soniya ichida tasdiqlang» yozuvlari chiqmaydi; navbat sizda bo'lsa «Kubikni tashlang. Bu xonada vaqt cheklovi yo'q.». Brauzer tekshiruvi: `untimed-check` (CI da).
+

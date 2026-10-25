@@ -30,7 +30,7 @@ function DeckChoice({ e, onAct, turnSeconds = 30 }: { turnSeconds?: number; e: a
       <View style={{ flexDirection: "row", gap: space.md }}>
         <Tile deck="kichik" label={uz.hud.deckSmall} n={e.kichik} bg="#1E9E4A" fg="#fff" /><Tile deck="katta" label={uz.hud.deckBig} n={e.katta} bg="#E8892B" fg="#2B1500" />
       </View>
-      <View style={s.note}><Icon name="clock" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceNote.replace("{s}", String(turnSeconds))}</Text></View>
+      {turnSeconds > 0 && <View style={s.note}><Icon name="clock" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceNote.replace("{s}", String(turnSeconds))}</Text></View>}
       <View style={s.note}><Icon name="info" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceWhy}</Text></View>
     </View>
   );
@@ -103,7 +103,7 @@ export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, dea
       {lack === 0 && cost && !manual ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
       {needLedger && <View style={s.ledger} testID="decision-ledger" role="group" aria-label={uz.ledger.decideTitle}><Text style={s.ledgerT} aria-level={3} accessibilityRole="header">{uz.ledger.decideTitle}</Text>{ledger.body}</View>}
-      <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>
+      {turnSeconds > 0 && <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>}
     </>
   );
   const submitLedger = () => { if (ledger.ready && !(cantFund || noSlot || (shares && (qty < e.min || qty > e.max)))) act({ ...ledgerBase, calc: ledger.values() }); }; ledger.bindSubmit(submitLedger);
