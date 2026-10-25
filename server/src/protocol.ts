@@ -32,7 +32,7 @@ export const ActionIn = z.discriminatedUnion("type", [
 const Sdp = z.object({ type: z.enum(["offer", "answer"]), sdp: z.string().min(1).max(30_000) }).strict();
 const Cand = z.object({ candidate: z.string().max(2000), sdpMid: z.string().max(64).nullable().optional(), sdpMLineIndex: z.number().int().min(0).max(64).nullable().optional(), usernameFragment: z.string().max(64).nullable().optional() }).strict();
 export const Message = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(8).optional(), mode: z.enum(["standard", "quick", "rated", "tutorial"]).optional() }).strict(), // players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
+  z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60), z.literal(0)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(8).optional(), mode: z.enum(["standard", "quick", "rated", "tutorial"]).optional() }).strict(), // players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
   z.object({ type: z.literal("leave") }).strict(),

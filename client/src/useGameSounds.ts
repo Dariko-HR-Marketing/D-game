@@ -14,7 +14,7 @@ export function useSoundPrefs() {
  * O'yin holatlari → tovushlar: kubik (shitirlash + to'xtash), navbat, karta, pul (yutuq/to'lov), taymer oxirgi 5 soniya, g'alaba.
  * Fishka qadamlari `useMovement` da. Harakat tugagach (`settled`) chalinadi; sahifa ochilganda mavjud holat uchun chalinmaydi.
  */
-export function useGameSounds({ room, userId, settled, mineTurn, left }: { room: RoomView; userId: string; settled: boolean; mineTurn: boolean; left: number }) {
+export function useGameSounds({ room, userId, settled, mineTurn, deadline }: { room: RoomView; userId: string; settled: boolean; mineTurn: boolean; deadline: number | null }) {
   const st = room.state; const reduced = useReducedMotion();
   const lr = st.lastRoll as { n: number } | null | undefined, lc = st.lastCard as { n: number } | null | undefined;
   const mine = st.players.find((p: any) => p.id === userId);
@@ -37,6 +37,9 @@ export function useGameSounds({ room, userId, settled, mineTurn, left }: { room:
     const name: Sfx = mine.cash > prev ? "gain" : "pay"; timers.current.push(setTimeout(() => sfx.play(name), 380)); // bekor qilinmaydi: ketma-ket o'zgarishlarda ham har biri chalinadi
   }, [mine?.cash, settled]);
   useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
-  useEffect(() => { if (mineTurn && !st.winner && left > 0 && left <= 5) sfx.play("tick"); }, [left, mineTurn, st.winner]);
+  useEffect(() => { // oxirgi 5 soniya: har soniyada tik (holat yangilamaydi — butun o'yin oynasi qayta chizilmasin)
+    if (!mineTurn || st.winner || !deadline) return; let last = -1;
+    const h = setInterval(() => { const l = Math.ceil((deadline - Date.now()) / 1000); if (l !== last) { last = l; if (l > 0 && l <= 5) sfx.play("tick"); } }, 250); return () => clearInterval(h);
+  }, [deadline, mineTurn, st.winner]);
   useEffect(() => { if (!st.winner || ended.current) return; ended.current = true; sfx.play(st.winner === userId ? "win" : "lose"); }, [st.winner, userId]);
 }

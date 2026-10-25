@@ -12,7 +12,8 @@ export const CHAT_MAX = 200; // server bilan bir xil (server/src/chat.ts)
 const hhmm = (at: number) => { const d = new Date(at); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
 /** Matn: yuboruvchi, vaqt, matn yoki tayyor ibora. */
-export const chatText = (m: ChatMsg) => (m.text ?? (m.phrase !== undefined ? uz.chat.phrases[m.phrase] ?? "" : ""));
+export { chatText } from "../chatText";
+import { chatText } from "../chatText";
 
 /**
  * O'yin chati: yon panel (kompyuter) yoki pastki varaq (telefon). Erkin yozish 16 yoshgacha va ota-ona o'chirgan bolalar uchun yopiq (faqat tayyor iboralar).

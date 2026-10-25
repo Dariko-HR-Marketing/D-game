@@ -5,7 +5,7 @@ import { Banner, Card, Pill, Row } from "./kit";
 import { Dice } from "./Dice";
 import { useLedger, type CalcFeedback } from "./Ledger";
 import { Icon, type IconName } from "./Icon";
-import { TimerRing } from "./TimerRing";
+import { DeadlineRing } from "../useCountdown";
 import { CardFace } from "./CardFace";
 import { CardPaper } from "./CardPaper";
 import { headOf, deckKey } from "./cardLook";
@@ -18,7 +18,7 @@ import { color, font, radius, space, tone } from "../theme";
 
 const deckOf = (id: string, deck?: string) => uz.deck[deckKey(id, deck)] ?? uz.deck.other;
 /** Dekani tanlash (naqd 25 000 dan ko'p, maket N12): ikkita katta tanlov. Vaqt tugasa «Kichik sarmoyalar». */
-function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number; e: any; onAct: (a: Record<string, unknown>) => void; left?: number }) {
+function DeckChoice({ e, onAct, turnSeconds = 30 }: { turnSeconds?: number; e: any; onAct: (a: Record<string, unknown>) => void }) {
   const Tile = ({ deck, label, n, bg, fg }: { deck: "kichik" | "katta"; label: string; n: number; bg: string; fg: string }) => (
     <Pressable accessibilityRole="button" accessibilityLabel={`${label}, ${n} ${uz.hud.deckCards}`} onPress={() => onAct({ type: "decide", accept: false, deck })} style={({ pressed }) => [s.deckTile, pressed && { opacity: 0.85 }]}>
       <View style={[s.deckArt, { backgroundColor: bg }]} aria-hidden><Text style={[s.deckArtT, { color: fg }]}>{label.toUpperCase()}</Text></View>
@@ -30,7 +30,7 @@ function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number
       <View style={{ flexDirection: "row", gap: space.md }}>
         <Tile deck="kichik" label={uz.hud.deckSmall} n={e.kichik} bg="#1E9E4A" fg="#fff" /><Tile deck="katta" label={uz.hud.deckBig} n={e.katta} bg="#E8892B" fg="#2B1500" />
       </View>
-      <View style={s.note}><Icon name="clock" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceNote.replace("{s}", String(turnSeconds))}</Text></View>
+      {turnSeconds > 0 && <View style={s.note}><Icon name="clock" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceNote.replace("{s}", String(turnSeconds))}</Text></View>}
       <View style={s.note}><Icon name="info" size={18} color={tone.muted} /><Text style={s.noteT}>{uz.hud.deckChoiceWhy}</Text></View>
     </View>
   );
@@ -38,7 +38,7 @@ function DeckChoice({ e, onAct, left, turnSeconds = 30 }: { turnSeconds?: number
 
 /** Qaror kartasi (maket N13): rangli sarlavha (kubik, karta turi, taymer), rasm/matn, «O'zgarishlar» (oldin → keyin), muddat haqida ogohlantirish va asosiy tugma. */
 /** `layout` (kompyuter): matn va tugmalarni alohida joylashtirish — uzun karta aylansa ham asosiy tugmalar pastda qotib turadi. */
-export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, left, die, layout, turnSeconds = 30, calcMode, calcFb }: { horizontal?: boolean; calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
+export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, deadline, die, layout, turnSeconds = 30, calcMode, calcFb }: { horizontal?: boolean; calcMode?: boolean; calcFb?: CalcFeedback | null; turnSeconds?: number; card: any; me: any; bankRoom: number; deadline?: number | null; onAct: (a: Record<string, unknown>) => void; sheet?: boolean; left?: number; die?: number | null; layout?: (body: React.ReactNode, actions: React.ReactNode) => React.ReactNode }) {
   const e0 = card.effect; const f = cardFacts(e0, me, bankRoom); const lastDecide = React.useRef<Record<string, unknown> | null>(null);
   const e = e0 ? crisisAdjusted(e0, me) : e0; // inqirozda aksiya narxi ham yarim (server shunday hisoblaydi)
   const [q, setQ] = useState(String(e?.min ?? 1)); const [artOk, setArtOk] = useState(false); const { height: vh } = useWindowDimensions();
@@ -65,7 +65,7 @@ export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, lef
   const snap = { cash: me.cash, passive: exitProgress(me).passive, flow: exitProgress(me).cashflow };
   const ledger = useLedger(snap, calcFb);
   const ledgerBase = lastDecide.current && calcFb?.error === "calc_required" ? lastDecide.current : { type: "decide", accept: true, useBank: !cashOnly, ...(shares ? { qty } : {}) };
-  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} left={left} turnSeconds={turnSeconds} /> : null;
+  const inner = e?.kind === "deckChoice" ? <DeckChoice e={e} onAct={onAct} turnSeconds={turnSeconds} /> : null;
   const faceBlock = (<>
       <CardFace key={card.id} file={card.file} label={card.text} maxH={artH} onState={setArtOk} />
       {artOk ? <Text style={s.sr} aria-hidden>{card.text}</Text> : <CardPaper look={H} text={card.text} />}
@@ -88,7 +88,7 @@ export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, lef
           <Text style={[s.headEyebrow, { color: H.fg }]}>{typeof die === "number" ? `${uz.gamble.die} ${die} · ` : ""}{deckOf(card.id, card.deck)}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name={H.icon} size={20} color={H.fg} /><Text style={[s.headTitle, { color: H.fg }]} aria-level={2} accessibilityRole="header">{H.title}</Text></View>
         </View>
-        {left ? <TimerRing left={left} total={turnSeconds} size={46} label={`${left} ${uz.game.seconds}`} /> : null}
+        <DeadlineRing deadline={deadline} total={turnSeconds} size={46} />
       </View>
       <View style={s.badges}><Pill label={mandatory ? uz.hud.majburiy : uz.hud.ixtiyoriy} kind={mandatory ? "bad" : "plain"} />{f.rows.some((r) => r.label === uz.facts.income) && <Pill label={uz.facts.income} kind="good" />}</View>
       {numbersFirst ? <>{numbers}{faceBlock}</> : <>{faceBlock}{numbers}</>}
@@ -103,7 +103,7 @@ export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, lef
       {lack === 0 && cost && !manual ? <Banner kind="good">{uz.facts.enough}</Banner> : null}
       {f.notes.map((n) => <Text key={n} style={s.noteT}>{n}</Text>)}
       {needLedger && <View style={s.ledger} testID="decision-ledger" role="group" aria-label={uz.ledger.decideTitle}><Text style={s.ledgerT} aria-level={3} accessibilityRole="header">{uz.ledger.decideTitle}</Text>{ledger.body}</View>}
-      <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>
+      {turnSeconds > 0 && <View style={s.warn}><Icon name="clock" size={18} color={tone.warn} /><Text style={s.warnT}>{uz.hud.timeNote.replace("{s}", String(turnSeconds))}</Text></View>}
     </>
   );
   const submitLedger = () => { if (ledger.ready && !(cantFund || noSlot || (shares && (qty < e.min || qty > e.max)))) act({ ...ledgerBase, calc: ledger.values() }); }; ledger.bindSubmit(submitLedger);

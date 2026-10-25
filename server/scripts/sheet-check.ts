@@ -32,7 +32,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(t.includes("POYGA | KICHIK AYLANA") && t.includes("DAROMADLAR") && t.includes("AKSIYALAR") && t.includes("XARAJATLAR"), `${tag} kichik aylana varag'i bo'limlari`);
   check(t.includes("O'yinchi nomi:") && t.includes("Sizning orzuyingiz:") && !/Sizning orzuyingiz: —/.test(t), `${tag} orzu o'yin davomida ko'rinadi`);
   check(["TAPOiCh", "KCH", "ZA", "UTK", "GZ"].every((k) => t.includes(k)), `${tag} aksiya kodlari`);
-  check((await a.getByTestId("sheet-months").innerText()) === "9", `${tag} bosib o'tilgan oylar: 9`);
+  check((await a.getByTestId("sheet-months").innerText()) === "9 oy" && t.includes("Har bir katak — 1 yil"), `${tag} bosib o'tilgan vaqt: 9 oy, kataklar yillar`);
   check(t.includes("Ikkinchi aylanaga o'tish uchun 1 000 000 sh.b. naqd pul yig'ish va har oylik pul oqimi 25 000 sh.b.ga ega bo'lish kerak."), `${tag} o'tish sharti matni blankdagidek`);
   await a.screenshot({ path: `${OUT}/${tag}-1-kichik.png` });
   await a.getByTestId("sheet-tab-big").click(); await a.waitForTimeout(300); const t2 = await det.innerText();

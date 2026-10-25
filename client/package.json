@@ -6,7 +6,7 @@
  "scripts": {
   "start": "expo start",
   "web": "expo start --web",
-  "export:web": "expo export --platform web --clear",
+  "export:web": "expo export --platform web --clear && node scripts/patch-html.mjs",
   "test": "vitest run",
   "typecheck": "tsc --noEmit"
  },

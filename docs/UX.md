@@ -90,3 +90,16 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - Aks-sado: naushnik tavsiya etiladi (hint), brauzer echo/noise suppression yoqilgan. Qo'shilgach chiqib ketsa/uzilsa, ovozdan avtomatik chiqadi; uzilishdan keyin qaytsa qayta qo'shiladi.
 - Cheklov: hozir faqat **veb** (telefon brauzeri ham). Native ilovada ovoz — keyingi bosqich (react-native-webrtc, dev client). TURN sozlamasi: `docs/DEPLOY.md`. Tekshiruv: `server/scripts/voice-check.ts` (soxta mikrofon bilan haqiqiy P2P, uch o'yinchi, jim qilish, ruxsatsiz tinglovchi, bola yopiq).
 
+## Moslashuvchanlik va unumdorlik (2026-10-25, buyurtmachi talabi: barcha qurilmalarda moslashadigan va tez)
+- **Qurilmalar matritsasi** (`responsive-check`): 31 o'lcham — katlanuvchi 280 px, telefon tik/yotiq, planshet, 1024×600, kompyuter 125 % va 150 % kattalashtirishda (1536×730, 1707×830), 2560, ultra-keng 3440 va 4K. Avtomatik: gorizontal aylanish yo'q, boshqaruvlar ekran ichida, bosish maydoni, shrift ≥ 12 px. CI da 5 ta xarakterli o'lcham.
+- **Taymer qayta chizishi** (asosiy topilma): `Game` har soniyada butun daraxtni (taxta, o'yinchilar, panellar) qayta chizar edi. Endi hisoblagich faqat halqa va matnli joylarda (`useCountdown`, `DeadlineRing`, `Countdown`); bo'sh turishda sahifa yuki o'rta telefon (CPU 4× sekin) taqlidida **87 → 19 ms/soniya**, kompyuterda **138 → 18**. `perf-check` CI da qaytib ketishdan saqlaydi.
+- **Taxta**: har bir katak `React.memo` (48–53 ta katak har holat yangilanishida qayta chizilmaydi), fishka ham, katak geometriyasi keshlanadi.
+- **Birinchi yuklash**: kam ochiladigan ekranlar (profil, qoidalar, reyting, do'kon/sinf/turnir, natija hisoboti, blank, tarix, chat, bankrot tahlili) alohida bo'laklarda (`lazy`) — asosiy bundle 1 068 → 954 KB (−11 %); ochilayotganda kichik «Yuklanmoqda» belgisi.
+- **Tarmoq**: holat xabarida 40 ta orzu matni (~7 KB) endi faqat orzu tanlash bosqichida; keyin faqat tanlanganlar. WebSocket `permessage-deflate` (1 KB dan katta xabarlar) — mobil trafik ~3–4× kam. Caddy: bo'lakli fayllar `immutable`, ikonkalar/manifest 1 kun.
+- **HTML qobig'i** (`scripts/patch-html.mjs`): `lang="uz"` + `translate="no"` (brauzer «tarjima qilinsinmi?» deb so'ramasin), mavzu rangi, tavsif, PWA manifest va ikonkalar (telefon bosh ekraniga qo'shish), yuklanguncha oq chaqnash o'rniga fon rangi.
+- Telefon pastki menyusi 280 px da ekrandan chiqib ketardi — tuzatildi.
+
+## «Mehrojiddin» — vaqtsiz xona (2026-10-25, buyurtmachi talabi)
+- Xona sozlamalarida «Odatiy · Sekin (×2) · **Mehrojiddin**» (faqat standart rejimda); tanlanganda izoh: «navbat va qarorlarga vaqt cheklovi yo'q». Lobbida «Tezlik: Mehrojiddin (vaqtsiz)».
+- O'yinda taymer halqasi, «N soniyada…» va «N soniya ichida tasdiqlang» yozuvlari chiqmaydi; navbat sizda bo'lsa «Kubikni tashlang. Bu xonada vaqt cheklovi yo'q.». Brauzer tekshiruvi: `untimed-check` (CI da).
+

@@ -9,14 +9,14 @@ import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
 import { DreamPick } from "./src/ui/DreamPick";
 import { Game } from "./src/ui/Game";
-import { ProfileScreen } from "./src/ui/ProfileScreen";
+const ProfileScreen = lazyNamed(() => import("./src/ui/ProfileScreen"), "ProfileScreen");
 import { NameGate } from "./src/ui/NameGate";
-import { Result } from "./src/ui/Result";
-import { RulesScreen } from "./src/ui/RulesScreen";
+const Result = lazyNamed(() => import("./src/ui/Result"), "Result");
+const RulesScreen = lazyNamed(() => import("./src/ui/RulesScreen"), "RulesScreen");
 import { Screen } from "./src/ui/Screen";
 import { Banner } from "./src/ui/kit";
-import { Leaderboard } from "./src/ui/Leaderboard";
-import { ShopScreen, ClassScreen, TournamentScreen } from "./src/ui/Biz";
+const Leaderboard = lazyNamed(() => import("./src/ui/Leaderboard"), "Leaderboard");
+const ShopScreen = lazyNamed(() => import("./src/ui/Biz"), "ShopScreen"), ClassScreen = lazyNamed(() => import("./src/ui/Biz"), "ClassScreen"), TournamentScreen = lazyNamed(() => import("./src/ui/Biz"), "TournamentScreen");
 import { httpBase, makeHttp, makeAuth } from "./src/net/http";
 import { setAvatarBase } from "./src/net/avatarBase";
 import { ConnBanner } from "./src/ui/ConnBanner";
@@ -30,6 +30,7 @@ import { errText, uz } from "./src/i18n/uz";
 import { Button } from "./src/ui/Button";
 import { ClaimSeat } from "./src/ui/ClaimSeat";
 import { installTypography } from "./src/typography";
+import { lazyNamed, Later } from "./src/lazy";
 
 installTypography();
 
@@ -115,14 +116,14 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
       <ConnBanner st={st} />
-      <View role="main" style={{ flex: 1 }}>
+      <View role="main" style={{ flex: 1 }}><Later>
       {hasProfile === null && !room ? null : gated ? <NameGate http={http} onDone={() => setHasProfile(true)} />
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
         : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
-        : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
-        : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c) => conn.join(c)} />
+        : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
+        : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n, m) => conn.create(t, c, n, m)} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
@@ -130,7 +131,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
         : <Game http={http} room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} onResume={() => conn.resumePlay()} onBreak={() => conn.breakPlay()} chat={st.chat} onChat={(m) => conn.sendChat(m)} voice={voice} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} calcFb={st.calcFb} />}
-      </View>
+      </Later></View>
       <Tour id={tourId} defer={(!!room?.state && (tourId === "game-small" || tourId === "game-big") && isMyTurn(room, userId))} onRules={() => setRulesOpen(true)} />
     </SafeAreaView>
   );

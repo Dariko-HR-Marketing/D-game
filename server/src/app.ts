@@ -141,7 +141,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     if (!lim.allow(ipKey(req.ip))) { cLimited({ scope: "http" }); return reply.code(429).send({ error: "rate_limited" }); }
   });
   app.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "string", bodyLimit: 8 * 1024 }, (_req, body, done) => done(null, Object.fromEntries(new URLSearchParams(body as string)))); // ota-ona sahifasi formasi
-  app.register(websocket, { options: { maxPayload: 16 * 1024 } });
+  app.register(websocket, { options: { maxPayload: 16 * 1024, perMessageDeflate: { threshold: 1024, zlibDeflateOptions: { level: 3 }, serverNoContextTakeover: true, clientNoContextTakeover: true, concurrencyLimit: 8 } } }); // holat xabarlari 5–13 KB JSON: siqilsa mobil trafik ~4× kam (kontekst saqlanmaydi — xotira cheklangan)
   app.get("/health", async () => ({ ok: true }));
   const iceServers = iceServersFrom(process.env.ICE_SERVERS);
   app.get("/voice/config", async (req, reply) => { // STUN/TURN sozlamasi: faqat kirgan foydalanuvchiga
@@ -201,7 +201,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players, (m as { mode?: "standard" | "quick" | "rated" | "tutorial" }).mode); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : m.turnSeconds === 0 ? 0 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players, (m as { mode?: "standard" | "quick" | "rated" | "tutorial" }).mode); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); reply({ type: "chat_log", msgs: rooms.chatLog(c) }); return reply({ type: "voice_state", members: rooms.voiceMembers(c) }); }

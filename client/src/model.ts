@@ -24,6 +24,8 @@ export const bankRoom = (p: any) => maxBankLoan({ salary: 0, ...p, assets: p.ass
 /** Ixtiyoriy sotish mumkin bo'lgan aktivlar (ko'chmas mulk, kichik va katta biznes): indeks, narx va qo'lga tushadigan summa (kredit ayirilgan). */
 /** Joriy taymerning davomiyligi (soniya): kubik/karta/biznes/to'lov bosqichiga qarab server beradi. */
 export const phaseSeconds = (room: any): number => room?.timerTotal ?? room?.turnSeconds ?? 30;
+/** Vaqtsiz xona («Mehrojiddin»): navbat va qarorlarga taymer yo'q — «N soniya ichida» yozuvlari ko'rsatilmaydi. */
+export const untimed = (room: any): boolean => room?.turnSeconds === 0;
 export const sellableAssets = (p: any): { idx: number; a: any; price: number; proceeds: number }[] =>
   (p.assets as any[]).map((a, idx) => ({ idx, a, price: voluntarySalePrice(p, a), proceeds: voluntarySalePrice(p, a) - a.credit })).filter((x) => voluntarySellable(x.a));
 export const pledgeableAssets = (p: any): { idx: number; a: any }[] => (p.assets as any[]).map((a, idx) => ({ idx, a })).filter((x) => pledgeable(x.a));

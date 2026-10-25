@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
-import { RecapLayer } from "./RecapLayer";
-import { ChatSheet, chatText } from "./ChatSheet";
+import { chatText } from "../chatText";
+import { lazyNamed, LaterOverlay } from "../lazy";
+const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
 import { getMuted } from "../chatMute";
 import { VoicePanel, useVoice } from "./VoicePanel";
 import type { VoiceEngine } from "../voice/engine";
@@ -18,8 +19,6 @@ import { PlayerList } from "./PlayerList";
 import { FxLayer } from "./FxLayer";
 import { CountText } from "./CountText";
 import { PortfolioCard, PortfolioDetail } from "./Portfolio";
-import { HistoryDetail } from "./History";
-import { SheetDetail } from "./Sheet";
 import { MomentLayer } from "./MomentLayer";
 import { useMoments } from "../useMoments";
 import type { Http } from "../net/http";
@@ -35,13 +34,14 @@ import { DecisionCard } from "./DecisionCard";
 import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
 import { TimePanel } from "./TimeBar";
+import { Countdown, DeadlineRing } from "../useCountdown";
 import { TutorialCoach } from "./TutorialCoach";
 import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { color, font, HEADER_H, radius, space, tone } from "../theme";
-import { bankRoom, phaseSeconds, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
+import { bankRoom, phaseSeconds, untimed, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type ChatMsg, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@poyga/rules";
 import { useMovement } from "../useMovement";
@@ -52,16 +52,6 @@ function CardEnter({ children, id, from = 12, style }: { children: React.ReactNo
   const reduced = useReducedMotion(); const v = React.useRef(new Animated.Value(0)).current;
   useEffect(() => { v.setValue(0); Animated.timing(v, { toValue: 1, duration: animationMs(reduced), useNativeDriver: true }).start(); }, [id, reduced, v]);
   return <Animated.View style={[style, { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [from, 0] }) }] }]}>{children}</Animated.View>;
-}
-
-function useCountdown(deadline: number | null) {
-  const [left, setLeft] = useState(0);
-  useEffect(() => {
-    if (!deadline) return setLeft(0);
-    const tick = () => setLeft(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
-    tick(); const id = setInterval(tick, 500); return () => clearInterval(id);
-  }, [deadline]);
-  return left;
 }
 
 /** Yig'iladigan bo'lim; kutayotgan takliflar bo'lsa o'zi ochiladi va belgi (soni) ko'rinadi. */
@@ -81,6 +71,19 @@ function Collapsible({ title, badge, defaultOpen, children }: { title: string; b
 /** Kompyuter ko'rinishida taxta atrofidagi qatorlar balandligi (taxta shunga qarab kichrayadi). */
 const TABLET_RESERVE = 670; // tik planshet: taxtadan tashqari qatorlar balandligi (sarlavha, vaqt, statistika, o'yinchilar, navbat, tugma, menyu)
 const WIDE_LANE_H = 74, WIDE_LEGEND_H = 52, WIDE_NOTE_H = 36, WIDE_STRIP_H = 100, WIDE_STRIP_SHORT_H = 52; // past ekranda (< 820 px) pastki qator bir qator
+/** Sarlavha tugmalari: keng ekranda guruhlarga (hujjatlar · aloqa · yordam) yig'ilgan, telefonda tekis qator. */
+type HUi = { flat: boolean; labels: boolean; ib: number; tiny: boolean };
+function HBtn({ ui, icon, label, text, onPress, tid, active, children, role, checked }: { ui: HUi; icon: any; label: string; text?: string; onPress: () => void; tid?: string; active?: string; children?: React.ReactNode; role?: "switch"; checked?: boolean }) {
+  return (
+    <Pressable accessibilityRole={role ? undefined : "button"} role={role} aria-checked={role ? checked : undefined} accessibilityLabel={label} aria-label={label} {...({ title: label } as any)} onPress={onPress} testID={tid}
+      style={[s.hBtn, ui.flat && s.hBtnP, ui.tiny && { minWidth: 32 }, !ui.flat && s.hBtnSeg, active ? { backgroundColor: active } : null]}>
+      <Icon name={icon} size={ui.ib} color={color.navy} />{ui.labels && text ? <Text style={s.hBtnT}>{text}</Text> : null}{children}
+    </Pressable>);
+}
+function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; label: string }) {
+  return ui.flat ? <>{children}</> : <View style={s.seg} role="group" aria-label={label}>{children}</View>;
+}
+
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
@@ -89,10 +92,9 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const chatNew = chatList.filter((m) => m.id > seenChat && m.from !== userId && !getMuted().has(m.from)); const chatUnread = chatOpen ? 0 : chatNew.length;
   const vs = useVoice(voice);
   const chatErr = error && ["bad_chat", "chat_restricted", "duplicate", "rate_limited"].includes(error) ? error : null;
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions(); const [hdrW, setHdrW] = useState(0);
   const lay = layoutOf(width, height), compact = lay.compact, tablet = lay.tablet;
   const wide = lay.wide; // yotiq planshet/kompyuter/yotiq telefon: chapda moliyaviy panel, markazda taxta; butun ekran bitta ko'rinishga sig'adi (sahifa aylanmaydi)
-  const left = useCountdown(room.deadline);
   const mine = me(room, userId), mineTurn = isMyTurn(room, userId), cardRaw = room.pendingCard;
   const mv = useMovement(room), settled = mv.settled; // fishka kataklar ustidan yurib bo'lguncha karta/qaror ko'rsatilmaydi
   const card = settled ? cardRaw : null;
@@ -131,7 +133,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   useEffect(() => { if (!waitRoll) return; const t = setTimeout(() => setWaitRoll(false), 4000); return () => clearTimeout(t); }, [waitRoll]);
   const [tourOpen, setTourOpenNow] = useState(isTourOpen); useEffect(() => subscribeTourOpen(setTourOpenNow), []);
   const promptOpen = rollModalOn && !tourOpen && (canRoll || waitRoll) && laterAt !== oppN && !state.winner; // yo'riqnoma ochiq bo'lsa kubik oynasi uning ustiga chiqmaydi
-  const rollPrompt = promptOpen ? { circle: curP?.circle ?? "small", twoDice: curP?.twoDice, left, total: phaseSeconds(room), waiting: waitRoll,
+  const rollPrompt = promptOpen ? { circle: curP?.circle ?? "small", twoDice: curP?.twoDice, deadline: room.deadline, total: phaseSeconds(room), waiting: waitRoll,
     onRoll: () => { setWaitRoll(true); onAct({ type: "roll" }); }, onLater: () => setLaterAt(oppN), onDisable: () => { setRollModalPref(false); setRollModalOn(false); } } : null;
   // Pastki menyu belgilari (telefon): ko'rilgan narsalar bo'lim ochilganda yangilanadi
   const [seen, setSeen] = useState<Seen>(() => ({ logN: state.logN ?? 0, reactions: reactions.map((r) => r.id), notices: (state.notices ?? []).map((n: any) => n.id) }));
@@ -152,22 +154,22 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const lastIn = chatNew[chatNew.length - 1];
   const chatNode = onChat ? (<>
     <View role="status" accessibilityLiveRegion="polite" style={s.srOnly}><Text>{lastIn && !chatOpen ? `${nameOf(room, lastIn.from)}: ${chatText(lastIn)}` : ""}</Text></View>
-    {chatOpen && <ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} voice={voice ? <VoicePanel engine={voice} room={room} userId={userId} /> : undefined} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} />}
+    {chatOpen && <LaterOverlay><ChatSheet room={room} userId={userId} chat={chatList} error={chatErr} onSend={onChat} voice={voice ? <VoicePanel engine={voice} room={room} userId={userId} /> : undefined} onClose={() => setChatOpen(false)} onReport={http ? async (m) => { try { await http.complain(m.from, room.code, `Chat: «${chatText(m)}»`); return true; } catch { return false; } } : undefined} /></LaterOverlay>}
   </>) : null;
   const lcMine = state.lastCard && (state.lastCard as any).playerId === userId ? room.lastCard?.text ?? null : null;
   const fx = useFx(mine, lcMine, settled);
-  useGameSounds({ room, userId, settled, mineTurn, left });
+  useGameSounds({ room, userId, settled, mineTurn, deadline: room.deadline });
   const mom = useMoments(room, userId, settled); const [momH, setMomH] = useState(0); // lahzalar: ovoz + animatsiya + tushuntirish (moments.ts)
   const snd = useSoundPrefs();
   const big = mine?.circle === "big"; const e = mine ? exitProgress(mine, state.mode) : null;
   const ledgerNow = room.calc?.ledger?.[userId] ?? (mine && e ? { cash: mine.cash, passive: e.passive, flow: e.cashflow } : { cash: 0, passive: 0, flow: 0 });
   const gate = due && mineTurn && !cardRaw && settled && !state.winner ? <LedgerPad testID="ledger-gate" title={uz.ledger.gateTitle} hint={uz.ledger.gateHint} current={ledgerNow} feedback={calcFb} submitLabel={uz.ledger.gateSubmit} onSubmit={(c) => onAct({ type: "confirm_calc", calc: c })} /> : null;
-  const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled || promptOpen} left={left} onRoll={() => onAct({ type: "roll" })} wide={wide} compact={compact} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
+  const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled || promptOpen} onRoll={() => onAct({ type: "roll" })} wide={wide} compact={compact} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
   // Kompyuter (3 ustun): taxta ostidagi bo'sh joy — «Mening kartalarim» va dekani tanlash shu yerda (chap ustun qisiq va aylantirishni talab qilardi)
   const deckPick = tri && !!card && mineTurn && !!mine && (card as any).effect?.kind === "deckChoice";
   const timeInSide = wide && !tri && (compact || boardWidth < 760); // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
-  const hint = mineTurn ? uz.hud.mineHint.replace("{s}", String(phaseSeconds(room))).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
+  const hintOf = (left: number) => mineTurn ? (untimed(room) ? uz.hud.mineHintFree : uz.hud.mineHint).replace("{s}", String(phaseSeconds(room))).replace("{name}", nextName) : left > 0 ? uz.hud.otherHint.replace("{name}", nameOf(room, cur!)).replace("{s}", String(left)) : uz.hud.otherNoTimer.replace("{name}", nameOf(room, cur!));
 
   const stats = mine && e && (
     <View style={s.stats} role="group" aria-label={uz.game.finance}>
@@ -227,39 +229,48 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = viewCircle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const tiny = width < 360; // 320 px telefon: oltita tugma va sarlavha sig'sin
+  const roomy = wide && !compact; // keng ekran: tugmalar guruhlarga yig'iladi; juda keng bo'lsa yozuvlar ham chiqadi, aks holda faqat belgi (sarlavha hech qachon qirqilmasin)
+  const labels = roomy && hdrW >= 1180, ib = tiny ? 20 : 22, flat = !roomy;
+  const ui: HUi = { flat, labels, ib, tiny };
   const header = (
-    <View style={[s.header, (!wide || compact) && { gap: 2, paddingHorizontal: space.md }]}>
+    <View style={[s.header, flat && { gap: 2, paddingHorizontal: space.md }]} onLayout={(e) => setHdrW(e.nativeEvent.layout.width)}>
       <View style={[s.dotC, { backgroundColor: viewCircle === "big" ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
-      <View style={wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
+      <View style={[wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }, { flexShrink: 1, minWidth: 0 }]}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
         <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
         <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
       </View>
-      <View style={{ flex: 1 }} />
-      {wide && !compact && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="portfolio-open"><Icon name="file" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.portfolio.title}</Text>}</Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.sheet.title} onPress={() => setSheetView(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sheet-open"><Icon name="chart" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.sheet.open}</Text>}</Pressable>
-      {http && <Pressable accessibilityRole="button" accessibilityLabel={uz.history.title} onPress={() => setHistoryOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="history-open"><Icon name="clock" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.history.open}</Text>}</Pressable>}
-      {onChat && <Pressable accessibilityRole="button" accessibilityLabel={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} onPress={() => setChatOpen(true)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="chat-open"><Icon name="chat" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.chat.title}</Text>}{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</Pressable>}
-      {voice && vs && vs.status === "on" && vs.hasMic && <Pressable role="switch" aria-checked={!vs.muted} aria-label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} onPress={() => voice.setMuted(!vs.muted)} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }, !vs.muted && vs.speaking && { backgroundColor: "#E3F5EA", borderRadius: 10 }]} testID="voice-header-mic"><Icon name={vs.muted ? "micOff" : "mic"} size={tiny ? 20 : 22} color={vs.muted ? color.red : color.green} /></Pressable>}
-      <Pressable role="switch" aria-checked={!snd.muted} aria-label={uz.sound.label} onPress={snd.toggle} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="sound-toggle"><Icon name={snd.muted ? "mute" : "volume"} size={tiny ? 20 : 22} color={snd.muted ? tone.muted : color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]} testID="tour-help"><Icon name="help" size={tiny ? 20 : 22} color={color.navy} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={uz.rules.open} onPress={onRules} style={[s.hBtn, (!wide || compact) && s.hBtnP, tiny && { minWidth: 32 }]}><Icon name="book" size={tiny ? 20 : 22} color={color.navy} />{wide && !compact && <Text style={s.hBtnT}>{uz.hud.tabs.rules}</Text>}</Pressable>
+      {roomy && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
+      <View style={{ flex: 1, minWidth: 0 }} />
+      <Seg ui={ui} label={uz.hud.group.docs}>
+        <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
+        <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
+        {http && <HBtn ui={ui} icon="clock" label={uz.history.title} text={uz.history.open} onPress={() => setHistoryOpen(true)} tid="history-open" />}
+      </Seg>
+      <Seg ui={ui} label={uz.hud.group.talk}>
+        {onChat && <HBtn ui={ui} icon="chat" label={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} text={uz.chat.title} onPress={() => setChatOpen(true)} tid="chat-open">{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</HBtn>}
+        {voice && vs && vs.status === "on" && vs.hasMic && <HBtn ui={ui} icon={vs.muted ? "micOff" : "mic"} label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} role="switch" checked={!vs.muted} onPress={() => voice.setMuted(!vs.muted)} tid="voice-header-mic" active={!vs.muted && vs.speaking ? "#E3F5EA" : undefined} />}
+        <HBtn ui={ui} icon={snd.muted ? "mute" : "volume"} label={uz.sound.label} role="switch" checked={!snd.muted} onPress={snd.toggle} tid="sound-toggle" />
+      </Seg>
+      <Seg ui={ui} label={uz.hud.group.help}>
+        <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />
+        <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />
+      </Seg>
     </View>
   );
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} />{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
-      {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
-      {historyOpen && http && <HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} />}
+      {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
+      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine && !deckPick ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
-              <DecisionCard horizontal={compact} card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie}
+              <DecisionCard horizontal={compact} card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} deadline={room.deadline} die={myDie}
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
@@ -273,7 +284,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
               {deckPick && card ? (
                 <CardEnter id={card.id}>
-                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} left={left} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
+                  <DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} deadline={room.deadline} die={myDie} layout={(body) => <Card accent="gold">{body}</Card>} />
                 </CardEnter>) : null}
               <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} cols={3} />
             </View>)}
@@ -289,11 +300,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} /><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} />{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
-      {sheetView && <SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} />}
-      {historyOpen && http && <HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} />}
+      {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
+      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
@@ -303,8 +314,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
           <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} roomy={tablet} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
-            {left > 0 && <TimerRing left={left} total={phaseSeconds(room)} size={52} label={`${left} ${uz.game.seconds}`} />}
-            <Text style={s.turnHint} accessibilityLiveRegion="polite"><Text style={{ fontWeight: "800", color: mineTurn ? tone.good : color.navy }}>{mineTurn ? uz.hud.yourTurn : ""}</Text>{mineTurn ? " " : ""}{hint}</Text>
+            <DeadlineRing deadline={room.deadline} total={phaseSeconds(room)} size={52} />
+            <Text style={s.turnHint} accessibilityLiveRegion="polite"><Text style={{ fontWeight: "800", color: mineTurn ? tone.good : color.navy }}>{mineTurn ? uz.hud.yourTurn : ""}</Text>{mineTurn ? " " : ""}<Countdown deadline={room.deadline}>{(left) => hintOf(left)}</Countdown></Text>
           </View>
         </>)}
         {tab === "blank" && (<View style={{ gap: space.md }}>{stats}{side}</View>)}
@@ -316,7 +327,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {sheetOpen && mine && (
         <View style={s.sheet} accessibilityViewIsModal>
           <View style={s.grab} aria-hidden />
-          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet left={left} die={myDie}
+          <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet deadline={room.deadline} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
@@ -334,7 +345,7 @@ const s = StyleSheet.create({
   chatBadge: { position: "absolute", top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: color.red, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }, chatBadgeT: { color: color.white, fontSize: 10, fontWeight: "800" },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },
   dotC: { width: 10, height: 10, borderRadius: 5 }, hTitle: { fontSize: font.lg, fontWeight: "800", color: color.navy }, hSub: { fontSize: font.sm, color: tone.muted },
-  hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
+  hBtnP: { minWidth: 36, paddingHorizontal: 1 }, hBtnSeg: { minHeight: 40, borderRadius: 10, paddingHorizontal: 10 }, seg: { flexDirection: "row", alignItems: "center", gap: 2, backgroundColor: "#F1F5F7", borderRadius: 12, padding: 2, flexShrink: 0 }, hBtn: { minHeight: 44, minWidth: 40, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 6 }, hBtnT: { color: color.navy, fontWeight: "700", fontSize: font.md },
   codePill: { backgroundColor: "#F4F7F8", borderRadius: radius.sm, paddingHorizontal: 10, paddingVertical: 4 }, codeT: { fontWeight: "800", letterSpacing: 2, color: color.navy },
   stats: { flexDirection: "row", gap: space.md, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, stat: { flex: 1, gap: 2 },
   statL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, statV: { color: color.navy, fontSize: font.xl, fontWeight: "800", fontVariant: ["tabular-nums"] }, statS: { color: tone.muted, fontSize: 11, fontVariant: ["tabular-nums"] },
