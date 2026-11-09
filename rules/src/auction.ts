@@ -76,21 +76,21 @@ function settle(s: GameState, how: { buyer: string; price: number } | { buyer: n
   const ids = lotIdx(o, a.kind, a.loanIdx);
   const lot = ids.map((i) => o.assets[i]);
   const loans = a.kind === "lombard" ? (o.lombards ?? []) : o.bankLoans;
-  const loan = loans[a.loanIdx];
+  const loan = loans[a.loanIdx]; const collateral = a.kind === "bank" ? o.bankLoans[a.loanIdx]?.collateral : undefined;
   const rest = (xs: Asset[]) => xs.filter((_, i) => !ids.includes(i));
   const dropLoan = () => {
     if (a.kind === "lombard") o.lombards = (o.lombards ?? []).filter((_, n) => n !== a.loanIdx);
     else { o.bankLoans = o.bankLoans.filter((_, n) => n !== a.loanIdx); o.bankDebt = o.bankLoans.reduce((t, l) => t + bankPrincipalDue(l.amount, l.left), 0); o.missed = 0; }
   };
   if ("buyback" in how) { // egasi qarzni to'laydi, aktivlar o'zida qoladi (aktivning o'z krediti davom etadi)
-    o.cash -= a.due; if (loan) { dropLoan(); if (a.kind === "bank" && loan.collateral) o.assets = unpledge(o.assets, loan.collateral, "bank"); else o.assets = unpledge(o.assets, [loan as { code: string; price: number }], "lombard"); }
+    o.cash -= a.due; if (loan) { dropLoan(); if (a.kind === "bank") { if (collateral) o.assets = unpledge(o.assets, collateral, "bank"); } else o.assets = unpledge(o.assets, [loan as { code: string; price: number }], "lombard"); }
     s.players[oi] = o; logf(s, `${a.owner}: garovdagi qarzni to'lab, mulkini saqlab qoldi (${a.due})`); s.auction = null; return;
   }
   const lotValue = lot.reduce((t, x) => t + x.price, 0);
   const proceeds = how.buyer ? how.price : lotValue; // g'olib bo'lmasa — bank garovni aktivning narxida oladi
   const surplus = proceeds - a.reserve;
   o.assets = rest(o.assets);
-  if (loan) { dropLoan(); if (a.kind === "bank" && loan.collateral) o.assets = unpledge(o.assets, loan.collateral, "bank"); }
+  if (loan) { dropLoan(); if (collateral) o.assets = unpledge(o.assets, collateral, "bank"); }
   if (surplus >= 0) o.cash += surplus; else o.owe = (o.owe ?? 0) - surplus; // yetmagan qismi qarz bo'lib qoladi (qo'shimcha foiz yo'q)
   s.players[oi] = o;
   if (how.buyer) {

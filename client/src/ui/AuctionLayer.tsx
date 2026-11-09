@@ -35,7 +35,7 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
           <Text style={s.kicker} aria-level={2} accessibilityRole="header">{uz.auction.title}</Text>
           <Text style={s.h}>{title.replace("{name}", nameOf(room, a.owner))}</Text>
           <View style={s.lot} testID="auction-lot">
-            {a.lot.map((x, i) => (<View key={i} style={s.row}><Text style={s.rowL}>{room.assetCards?.[x.cardId ?? x.code]?.text?.split(/[.!?\n]/)[0] || x.code}</Text><Text style={s.rowV} numberOfLines={1}>{money(x.price)}</Text></View>))}
+            {a.lot.map((x, i) => (<View key={i} style={s.row}><Text style={s.rowL}>{(room as any).assetCards?.[x.cardId ?? x.code]?.text?.split(/[.!?\n]/)[0] || x.code}</Text><Text style={s.rowV} numberOfLines={1}>{money(x.price)}</Text></View>))}
           </View>
           <View style={s.rows}>
             <View style={s.row}><Text style={s.rowL}>{uz.auction.due}</Text><Text style={s.rowV} testID="auction-due">{money(a.due)}</Text></View>
