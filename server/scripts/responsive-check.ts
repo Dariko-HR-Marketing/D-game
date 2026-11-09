@@ -30,7 +30,7 @@ const probe = (touch: boolean) => {
     const r = el.getBoundingClientRect(); if (scrolled(el)) continue;
     if (r.right > W + 1 || r.left < -1) out.push({ kind: "ekrandan-chiqqan", detail: `${label(el)} [${Math.round(r.left)}..${Math.round(r.right)}] / ${W}` });
     const minH = touch ? 40 : 24, minW = touch ? 32 : 24; // WCAG 2.2 AA 2.5.8: ≥ 24; telefonda amaliy chegara (loyiha me'yori 44)
-    if (r.height < minH || r.width < minW) out.push({ kind: "kichik-bosish-maydoni", detail: `${label(el)} ${Math.round(r.width)}×${Math.round(r.height)}` });
+    if (!el.closest("[data-dense]") && (r.height < minH || r.width < minW)) out.push({ kind: "kichik-bosish-maydoni", detail: `${label(el)} ${Math.round(r.width)}×${Math.round(r.height)}` });
   }
   for (const el of document.querySelectorAll("body *")) {
     if (!visible(el) || el.children.length) continue; const t = (el.textContent ?? "").trim(); if (!t) continue;

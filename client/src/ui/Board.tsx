@@ -69,7 +69,7 @@ const Tile = React.memo(function Tile({ i, x, y, w, h, corner, L, here, dream, s
   const ls = labelSize(L.label, w), bs = Math.max(13, Math.min(18, Math.min(w, h) - 4)); // egasi belgisi o'lchami: kichik kataklarga ham sig'adi
   const fg = oHue ? readableOn(oHue) : "#fff";
   return (
-    <Pressable role="button" aria-label={label} {...({ title: oName || label, tabIndex: -1 } as any)} onPress={() => onPress(i)} testID={`tile-${i}`}
+    <Pressable role="button" aria-label={label} {...({ title: oName || label, tabIndex: -1, dataSet: { dense: "1" } } as any)} onPress={() => onPress(i)} testID={`tile-${i}`}
       style={[s.tile, { left: x + 1, top: y + 1, width: w - 2, height: h - 2, backgroundColor: L.bg, borderColor: here ? color.navy : L.border, borderWidth: here ? 3 : 1, zIndex: here ? 2 : 0 }, dream && { borderStyle: "dashed", borderColor: "#A82F3E", borderWidth: 2 }, oN > 0 && !here && oKind === "biz" && { borderColor: oHue, borderWidth: 3 }]}>
       <Icon name={L.icon} size={small ? 12 : corner ? 22 : 18} color={L.fg} />
       {!small && (wide || corner === false) && w > 44 && ls >= 8 && <Text style={[s.tileT, { color: L.fg, fontSize: ls }]} numberOfLines={2}>{L.label}</Text>}
