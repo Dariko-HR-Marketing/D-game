@@ -1,7 +1,7 @@
 // O'yin holati va tranzitsiyalar (sof, deterministik). Tasodifiylik `Rng` orqali tashqaridan beriladi (SPEC §6.6).
 import type { Effect } from "@poyga/content/effects";
 import { matches, type Selector, type AssetDesc } from "@poyga/content/groups";
-import { RULES, bankLoanMonthly, bankLoanPayoff, bankPrincipalDue, feeRemaining, lombardMonthly, lombardPayoff, newBankLoanMonthly, oneTimeFee } from "./index";
+import { RULES, bankLoanDebt, bankLoanMonthly, bankLoanPayoff, bankPrincipalDue, feeRemaining, lombardMonthly, lombardPayoff, newBankLoanMonthly, oneTimeFee } from "./index";
 
 export type Rng = () => number; // [0,1)
 
@@ -78,7 +78,7 @@ export type Mod = ModBase & (
 /** Depozit: `principal` joylangan; har aylana (4 oy) oxirida +`perLap` (muddatli — hisoblanadi, muddat oxirida to'lanadi; talab bo'yicha — darhol naqdga). `lapsLeft: null` — talab bo'yicha. */
 export interface Deposit { id: number; label: string; principal: number; perLap: number; lapsLeft: number | null; accrued: number; months: number }
 /** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
-export interface BankLoan { amount: number; left: number; fee?: number; since?: number; collateral?: { code: string; price: number }[] }
+export interface BankLoan { amount: number; left: number; fee?: number; since?: number; arrears?: number; overdue?: boolean; collateral?: { code: string; price: number }[] }
 /** Lombard (qo'llanma §08): garov qiymatining 50 % i; foiz oyiga 10 % (xarajatga qo'shiladi), asosiy qarz 12 oydan keyin birdaniga. */
 export interface Lombard { code: string; price: number; amount: number; left: number; fee?: number; since?: number; overdue?: boolean }
 export interface Player {
@@ -88,7 +88,6 @@ export interface Player {
   // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
   qar: boolean; insuredCar: boolean; handLoans: number;
   halalFin?: boolean; // yangi o'yinlar: foizsiz (bir martalik haqli) kredit/lombard; yo'q bo'lsa eski hisob
-  missed?: number; // halol hisob: bank kreditida ketma-ket to'lanmagan oylar (naqd manfiy bo'lib qolgan)
   lombards?: Lombard[]; owe?: number; // owe: kichik aylanadagi qarz (naqd yetmaganda yoziladi, naqd paydo bo'lishi bilan yopiladi; chegara 10 000)
   mods?: Mod[]; modSeq?: number;      // faol ta'sirlar (katalog kartalari): ish haqi, oylik, daromad, narx, sug'urta polislari; `modSeq` — keyingi ID
   deposits?: Deposit[];               // muddatli depozitlar/obligatsiyalar (katalog)
@@ -159,9 +158,21 @@ export const unpledge = (assets: Asset[], codes: { code: string; price: number }
 export function tickLoans<T extends Player>(p: T): T {
   let q: T = p;
   if (q.bankLoans.length > 0) {
-    const all = q.bankLoans.map((l) => ({ ...l, left: l.left - 1 })); const loans = all.filter((l) => l.left > 0);
-    let assets = q.assets; for (const l of all.filter((x) => x.left <= 0)) if (l.collateral) assets = unpledge(assets, l.collateral, "bank");
-    q = { ...q, assets, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + bankPrincipalDue(l.amount, l.left), 0) };
+    let cash = q.cash, assets = q.assets; const keep: BankLoan[] = [];
+    let cur = q.bankLoans;
+    if (q.halalFin && cash < 0) { // halol hisob: oylik to'lovga pul yetmadi — yetmagan qismi shu kreditning qarziga yoziladi (kam-kam to'lab borish mumkin; naqd paydo bo'lishi bilan yopiladi)
+      let short = -cash; cur = cur.map((l) => { if (l.fee === undefined || l.overdue || short <= 0) return l; const x = Math.min(short, bankLoanMonthly(l)); short -= x; cash += x; return { ...l, arrears: (l.arrears ?? 0) + x }; });
+    }
+    for (const l of cur) {
+      if (l.overdue) { keep.push(l); continue; } // muddati o'tgan, auksion kutilmoqda
+      const x = { ...l, left: l.left - 1 };
+      if (x.left > 0) { keep.push(x); continue; }
+      const owed = x.fee !== undefined ? (x.arrears ?? 0) : 0; // 36-oy: to'lanmagan qoldiq talab qilinadi
+      if (owed > 0 && cash < owed) { keep.push({ ...x, left: 0, overdue: true }); continue; } // to'lanmasa — garov auksionga qo'yiladi
+      if (owed > 0) cash -= owed;
+      if (x.collateral) assets = unpledge(assets, x.collateral, "bank");
+    }
+    q = { ...q, cash, assets, bankLoans: keep, bankDebt: keep.reduce((t, l) => t + bankLoanDebt(l), 0) };
   }
   if ((q.lombards ?? []).length > 0) {
     let cash = q.cash, assets = q.assets; const keep: Lombard[] = [];
@@ -198,7 +209,7 @@ export function repayBankLoan(p: Player, idx: number): { player: Player; ok: boo
   const cost = bankLoanPayoff(l);
   if (RULES.bankTermMonths - l.left < RULES.bankEarlyCloseMonths || p.cash < cost) return { player: p, ok: false, cost };
   const loans = p.bankLoans.filter((_, n) => n !== idx);
-  return { ok: true, cost, player: { ...p, cash: p.cash - cost, bankLoans: loans, bankDebt: loans.reduce((t, x) => t + bankPrincipalDue(x.amount, x.left), 0), assets: l.collateral ? unpledge(p.assets, l.collateral, "bank") : p.assets } };
+  return { ok: true, cost, player: { ...p, cash: p.cash - cost, bankLoans: loans, bankDebt: loans.reduce((t, x) => t + bankLoanDebt(x), 0), assets: l.collateral ? unpledge(p.assets, l.collateral, "bank") : p.assets } };
 }
 /** Lombardni muddatidan oldin yopish: asosiy qarz to'lanadi, garovdagi aktiv bo'shaydi (oylik foiz shu paytgacha xarajatda edi). Naqd yetmasa — rad. */
 export function repayLombard<T extends Player>(p: T, idx: number): { player: T; ok: boolean; cost: number } {
@@ -215,7 +226,20 @@ export function takeLombard(p: Player, assetIdx: number): { player: Player; ok: 
     lombards: [...(p.lombards ?? []), { code: a.code, price: a.price, amount, left: RULES.lombardTermMonths, since: monthsOf(p), ...(p.halalFin ? { fee: oneTimeFee(amount, RULES.lombardFeePct, p.children) } : {}) }] } };
 }
 /** Qarz (owe) naqd paydo bo'lishi bilan darhol yopiladi (qo'llanma §09). */
-export const settleOwe = <T extends Player>(p: T): T => ((p.owe ?? 0) > 0 && p.cash > 0 ? { ...p, cash: p.cash - Math.min(p.cash, p.owe!), owe: p.owe! - Math.min(p.cash, p.owe!) } : p);
+export const settleOwe = <T extends Player>(p: T): T => {
+  let q: T = (p.owe ?? 0) > 0 && p.cash > 0 ? { ...p, cash: p.cash - Math.min(p.cash, p.owe!), owe: p.owe! - Math.min(p.cash, p.owe!) } : p;
+  if (q.cash > 0 && (q.bankLoans ?? []).some((l) => (l.arrears ?? 0) > 0)) { // halol hisob: kredit qarzi (to'lanmagan oylar) ham naqd paydo bo'lishi bilan yopiladi
+    let cash = q.cash, assets = q.assets; const loans: BankLoan[] = [];
+    for (const l of q.bankLoans) {
+      const a = l.arrears ?? 0; if (a <= 0 || cash <= 0) { loans.push(l); continue; }
+      const x = Math.min(a, cash); cash -= x; const n = { ...l, arrears: a - x };
+      if (n.overdue && n.arrears === 0) { if (n.collateral) assets = unpledge(assets, n.collateral, "bank"); continue; } // muddati o'tgan kredit to'liq yopildi
+      loans.push(n);
+    }
+    q = { ...q, cash, assets, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + bankLoanDebt(l), 0) };
+  }
+  return q;
+};
 
 export type Result = { ok: true; player: Player } | { ok: false; reason: "insufficient_cash"; shortfall: number } | { ok: false; reason: "not_applicable" };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
-import { RULES, canBid, nextMinBid, type Auction } from "@poyga/rules";
+import { canBid, nextMinBid, type Auction } from "@poyga/rules";
 import { Button } from "./Button";
 import { money } from "../format";
 import { nameOf } from "../model";
@@ -44,7 +44,7 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
             {a.phase === "open" && <View style={s.row}><Text style={s.rowL}>{uz.auction.best}</Text><Text style={[s.rowV, { color: tone.good }]} testID="auction-best">{a.best ? `${money(a.best.amount)} · ${nameOf(room, a.best.playerId)}` : uz.auction.noBids}</Text></View>}
           </View>
           <Text style={s.note}>{uz.auction.surplus}</Text>
-          {left !== null ? <Text style={s.timer} role="timer" testID="auction-timer">{uz.auction.timeLeft.replace("{n}", String(left))}{a.phase === "open" ? ` · ${uz.auction.extend.replace("{n}", String(RULES.auctionExtendSeconds))}` : ""}</Text> : <Text style={s.timer} testID="auction-timer">{uz.auction.untimed}</Text>}
+          {left !== null ? <Text style={s.timer} role="timer" testID="auction-timer">{uz.auction.timeLeft.replace("{n}", String(left))}</Text> : <Text style={s.timer} testID="auction-timer">{uz.auction.untimed}</Text>}
 
           {a.phase === "owner" && owner && (
             <View style={s.actions}>

@@ -324,7 +324,7 @@ export const uz = {
     title: "Garov auksioni", titleLombard: "{name}ning lombard (rahn) qarzi to'lanmadi: garovdagi mulk sotiladi", titleBank: "{name}ning bank krediti (murobaha) to'lanmadi: garovdagi mulk sotiladi",
     due: "Bankka qarz va qo'shimcha haq", credits: "Mulkning o'z krediti (sotuvdan yopiladi)", start: "Boshlang'ich narx", best: "Eng yuqori taklif", noBids: "Hali taklif yo'q",
     surplus: "Bank faqat o'z haqini oladi. Sotuv narxi shundan ko'p bo'lsa, ortiqcha summa mulk egasiga qaytariladi.",
-    timeLeft: "Qolgan vaqt: {n} soniya", extend: "har bir yangi taklif vaqtni kamida {n} soniyaga uzaytiradi", untimed: "Vaqt cheklanmagan: hamma o'tkazganda auksion yopiladi",
+    timeLeft: "Qolgan vaqt: {n} soniya", untimed: "Vaqt cheklanmagan: hamma o'tkazganda auksion yopiladi",
     ownerHint: "Qarzni to'lasangiz, mulkingiz o'zingizda qoladi. To'lamasangiz, mulk auksionga qo'yiladi.", buyback: "Qarzni to'lab, mulkni saqlab qolish ({v})", decline: "To'lamayman, auksionga qo'yilsin",
     waitOwner: "{name} qarzni to'lab, mulkini saqlab qolishi mumkin. Kuting.", ownerWait: "Mulkingiz auksionda. Sotuv narxi qarzdan oshsa, ortiqcha summa sizga qaytariladi.",
     leader: "Siz eng yuqori taklif egasisiz", noCash: "Taklif qilish uchun naqdingiz yetmaydi", notEligible: "Siz bu auksionda taklif qila olmaysiz",

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
-import { newGame, reduce, startAuction, nextDefault, botAuctionAction, RULES, type GameState, type GamePlayer, type Asset } from "./index";
-import { takeLombard, takeBankLoan, tickLoans } from "./engine";
+import { newGame, reduce, startAuction, nextDefault, botAuctionAction, bankLoanMonthly, bankLoanPayoff, RULES, type GameState, type GamePlayer, type Asset } from "./index";
+import { takeLombard, takeBankLoan, tickLoans, settleOwe } from "./engine";
 
 const biz = (price: number, n = 0, extra: Partial<Asset> = {}): Asset => ({ kind: "small_business", code: `B${n}`, price, monthlyIncome: 500, creditPayment: 0, credit: 0, ...extra });
 const P = (s: GameState, id: string) => s.players.find((p) => p.id === id)!;
@@ -79,10 +79,10 @@ describe("garov auksioni: takliflar", () => {
     expect(err(s, { type: "auction_bid", playerId: "b", amount: 10_000 })).toBe("not_eligible");
     expect(err(s, { type: "auction_bid", playerId: "c", amount: 10_000 })).toBe("not_eligible");
   });
-  it("hamma o'tkazsa va taklif bo'lmasa — bank garovni aktiv narxida oladi, ortiqchasi egasiga qaytadi", () => {
+  it("hamma o'tkazsa va taklif bo'lmasa — mulk egasida qoladi (garovdan bo'shaydi), qarz yana uning bo'yniga qaytadi", () => {
     let s = open(); s = act(s, { type: "auction_pass", playerId: "b" }); s = act(s, { type: "auction_pass", playerId: "c" });
-    expect(s.auction).toBeNull(); expect(P(s, "a").assets).toHaveLength(1); expect(P(s, "a").lombards).toHaveLength(0);
-    expect(P(s, "a").cash).toBe(100 + (20_000 - 10_000));
+    expect(s.auction).toBeFalsy(); expect(P(s, "a").assets).toHaveLength(2); expect(P(s, "a").assets.every((x) => !x.pledged)).toBe(true);
+    expect(P(s, "a").lombards).toHaveLength(0); expect(P(s, "a").owe).toBe(10_000); expect(P(s, "a").cash).toBe(100);
   });
   it("vaqt tugasa (server): yetakchi sotib oladi; bank o'z haqini olib, ORTIQCHASINI egasiga qaytaradi", () => {
     let s = open(); s = act(s, { type: "auction_bid", playerId: "b", amount: 10_000 }); s = act(s, { type: "auction_bid", playerId: "c", amount: 16_000 });
@@ -116,24 +116,51 @@ function lombardCaseWithCredit() {
   a.cash = 100; P(s, "b").cash = 100_000; startAuction(s); return s;
 }
 
-describe("garov auksioni: bank krediti", () => {
-  it("ketma-ket to'lanmagan oylardan keyin kredit garovi auksionga qo'yiladi; lot — kredit garovidagi hamma aktivlar", () => {
-    const s = newGame(ctx, ["a", "b"], 1, [], [], { halalFin: true });
-    for (const p of s.players) { p.circle = "small"; p.assets = []; p.bankLoans = []; p.lombards = []; p.owe = 0; p.cash = 0; }
+describe("garov auksioni: bank krediti (36 oydan keyin to'lanmagan qoldiq)", () => {
+  const caseBank = (cashAtEnd: number) => {
+    const s = newGame(ctx, ["a", "b", "c"], 1, [], [], { halalFin: true });
+    for (const p of s.players) { p.circle = "small"; p.assets = []; p.bankLoans = []; p.lombards = []; p.owe = 0; p.cash = 0; p.children = 0; }
     const a = P(s, "a"); a.assets = [biz(8_000, 0), biz(8_000, 1)]; a.salary = 100_000; a.cash = 0;
-    Object.assign(a, takeBankLoan(a as any, 5_000).player); a.cash = 0; a.salary = 100;
-    P(s, "b").cash = 100_000;
-    a.missed = RULES.missedMonthsToSale - 1; startAuction(s); expect(s.auction).toBeFalsy();
-    a.missed = RULES.missedMonthsToSale; startAuction(s);
-    expect(s.auction!.kind).toBe("bank"); expect(s.auction!.lot.length).toBeGreaterThan(0);
-    expect(s.auction!.due).toBe(5_000 + 2_500); // asosiy qarz + haq (hali to'lanmagan)
+    Object.assign(a, takeBankLoan(a as any, 5_000).player); a.cash = 0;
+    for (let i = 0; i < RULES.bankTermMonths; i++) { a.cash = -1000; Object.assign(a, tickLoans(a as any)); } // har oy pul yetmadi: to'lov kreditning qarziga yoziladi
+    a.cash = cashAtEnd; P(s, "b").cash = 100_000; P(s, "c").cash = 100_000;
+    return { s, a };
+  };
+  it("to'lanmagan oylar kreditning qarziga yoziladi; 36-oyda pul bo'lmasa kredit «muddati o'tgan» bo'ladi va garov auksionga qo'yiladi", () => {
+    const { s, a } = caseBank(0);
+    expect(a.bankLoans).toHaveLength(1); const l = a.bankLoans[0]; expect(l.overdue).toBe(true); expect(l.left).toBe(0);
+    expect(l.arrears).toBe(5_004 + 2_500); // 36 × 139 asosiy qism + haq (to'liq)
+    expect(a.bankDebt).toBe(l.arrears); expect(a.assets.some((x) => x.pledged === "bank")).toBe(true);
+    startAuction(s); expect(s.auction!.kind).toBe("bank"); expect(s.auction!.due).toBe(7_504); expect(s.auction!.lot.length).toBeGreaterThan(0);
+  });
+  it("36-oyda pul yetsa qoldiq avtomatik to'lanadi, garov bo'shaydi, auksion yo'q", () => {
+    const s = newGame(ctx, ["a", "b"], 1, [], [], { halalFin: true }); const a = P(s, "a"); Object.assign(a, { circle: "small", assets: [biz(8_000, 0), biz(8_000, 1)], bankLoans: [], lombards: [], owe: 0, salary: 100_000 });
+    Object.assign(a, takeBankLoan(a as any, 5_000).player);
+    for (let i = 0; i < RULES.bankTermMonths - 1; i++) { a.cash = -1000; Object.assign(a, tickLoans(a as any)); }
+    a.cash = 50_000; Object.assign(a, tickLoans(a as any)); // oxirgi oy: pul bor
+    expect(a.bankLoans).toHaveLength(0); expect(a.assets.every((x) => !x.pledged)).toBe(true); startAuction(s); expect(s.auction).toBeFalsy();
+  });
+  it("kam-kam to'lab borish: naqd paydo bo'lishi bilan qarz yopiladi (muddati o'tgan kredit to'liq yopilsa garov bo'shaydi)", () => {
+    const { a } = caseBank(0); const paid = settleOwe({ ...a, cash: 3_000 } as any) as any;
+    expect(paid.bankLoans[0].arrears).toBe(7_504 - 3_000); expect(paid.cash).toBe(0); expect(paid.bankDebt).toBe(4_504);
+    const all = settleOwe({ ...a, cash: 20_000 } as any) as any; expect(all.bankLoans).toHaveLength(0); expect(all.cash).toBe(20_000 - 7_504); expect(all.assets.every((x: any) => !x.pledged)).toBe(true);
+  });
+  it("muddati o'tgan kreditda oylik to'lov yo'q; erta yopish narxi = to'lanmagan qoldiq", () => {
+    const { a } = caseBank(0); expect(bankLoanMonthly(a.bankLoans[0])).toBe(0); expect(bankLoanPayoff(a.bankLoans[0])).toBe(7_504);
+  });
+  it("auksionda egasi qoldiqni to'lab garovni saqlab qoladi; kimdir sotib olsa ortiqchasi egasiga qaytadi", () => {
+    let { s } = caseBank(20_000); // egasida pul bor, lekin avtomatik to'lov 36-oydan keyin bo'lmadi (cash o'sha paytda 0 edi)
+    startAuction(s); expect(s.auction!.phase).toBe("owner");
+    const s2 = act(s, { type: "auction_buyback", playerId: "a" }); expect(P(s2, "a").bankLoans).toHaveLength(0); expect(P(s2, "a").cash).toBe(20_000 - 7_504); expect(P(s2, "a").assets.every((x) => !x.pledged)).toBe(true);
+    let s3 = act(s, { type: "auction_decline", playerId: "a" }); s3 = act(s3, { type: "auction_bid", playerId: "b", amount: 7_600 + 2_000 }); s3 = act(s3, { type: "auction_pass", playerId: "c" });
+    expect(s3.auction).toBeFalsy(); expect(P(s3, "a").bankLoans).toHaveLength(0); expect(P(s3, "a").cash).toBe(20_000 + (9_600 - 7_504)); expect(P(s3, "b").assets.length).toBeGreaterThan(0);
   });
   it("bir nechta majburiyatdan eng erta olingani birinchi", () => {
     const s = newGame(ctx, ["a", "b"], 1, [], [], { halalFin: true });
     const a = P(s, "a"); a.circle = "small"; a.assets = []; a.owe = 0;
     a.lombards = [{ code: "X", price: 10_000, amount: 5_000, left: 0, fee: 0, since: 20, overdue: true }, { code: "Y", price: 10_000, amount: 5_000, left: 0, fee: 0, since: 8, overdue: true }];
     expect(nextDefault(s)).toEqual({ pid: "a", kind: "lombard", loanIdx: 1 });
-    a.bankLoans = [{ amount: 2000, left: 30, fee: 1000, since: 3 }]; a.missed = RULES.missedMonthsToSale;
+    a.bankLoans = [{ amount: 2000, left: 0, fee: 1000, since: 3, arrears: 500, overdue: true }];
     expect(nextDefault(s)).toEqual({ pid: "a", kind: "bank", loanIdx: 0 });
   });
 });
