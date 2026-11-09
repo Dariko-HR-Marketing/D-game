@@ -234,7 +234,7 @@ describe("kvadrat halqa (maket N11/N25/D1)", () => {
 import { BIG_CELLS } from "./bigBoard";
 import bigJson from "../../content/data/board_big.json";
 describe("katta aylana kataklari mijozda kontent bilan bir xil", () => {
-  it("tur va nom", () => { expect(BIG_CELLS).toEqual((bigJson as any[]).map((c) => ({ t: c.t, name: c.name }))); });
+  it("tur, nom, narx, daromad, yutuqli qirralar", () => { expect(BIG_CELLS).toEqual((bigJson as any[]).map((c) => ({ t: c.t, name: c.name, ...Object.fromEntries(["price", "income", "faces", "lump"].filter((k) => c[k] !== null && c[k] !== undefined).map((k) => [k, c[k]])) }))); });
 });
 
 describe("aloqa uzildi / tiklandi", () => {
