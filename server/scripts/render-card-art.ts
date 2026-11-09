@@ -31,18 +31,19 @@ function bozor(o: { head: string; chip: string; title: string; text: string; foo
   return { fit: [{ sel: ".t", max: 38, min: 22 }], html: wrap(`
   <div style="position:absolute;left:24px;top:14px;width:912px;height:580px;background:#fff;border:2px solid #BFE0F5;border-radius:36px;overflow:hidden">
     <div style="height:108px;background:#0B58A8;display:flex;align-items:center;justify-content:space-between;padding:0 36px"><div style="color:#fff;font-weight:800;font-size:30px;letter-spacing:.5px">${esc(up(o.head))}</div><div style="background:#06305F;color:#fff;font-weight:800;font-size:30px;padding:14px 26px;border-radius:16px">${esc(up(o.chip))}</div></div>
-    <div style="padding:26px 38px 0"><div style="color:#06305F;font-weight:800;font-size:38px;letter-spacing:.5px;height:50px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(up(o.title))}</div>
+    <div style="padding:26px 38px 0"><div style="color:#06305F;font-weight:800;font-size:${tsz(up(o.title), 38, 884)}px;letter-spacing:.5px;height:50px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(up(o.title))}</div>
     <div style="display:flex;gap:22px;margin-top:14px"><div style="width:9px;border-radius:5px;background:#0B8AD6;flex:none"></div><div class="t fit" style="height:${o.foot ? 238 : 330}px;color:#0F3B66;font-size:36px;line-height:1.3">${esc(o.text)}</div></div></div>
     ${o.foot ? `<div style="position:absolute;left:38px;right:38px;bottom:24px;background:#E9F4FD;border:2px solid #BFE0F5;border-radius:18px;padding:16px 24px;color:#0B58A8;font-weight:800;font-size:28px">${esc(o.foot)}</div>` : ""}
   </div>`, "#F2F8FF") };
 }
 // ── xarajat / katta aylana xarajati / sug'urta ──
+const tsz = (s: string, base: number, width: number) => Math.max(22, Math.min(base, Math.floor(width / (Math.max(1, s.length) * 0.84)))); // sarlavha uzun bo'lsa shrift kichrayadi (qirqilmasin)
 function xar(o: { head: string; chip: string; title: string; text: string; amountLabel: string; amount?: number; theme: "red" | "terra" | "blue" }): Pick<Job, "html" | "fit"> {
   const c = { red: ["#C62B3A", "#861624", "#0E2F55", "#D3243A", "#FDEDEC"], terra: ["#A94738", "#7E2E24", "#4A1F18", "#C9503B", "#FDEFEA"], blue: ["#0B58A8", "#06305F", "#06305F", "#0B8AD6", "#E9F4FD"] }[o.theme];
   return { fit: [{ sel: ".t", max: 36, min: 22 }], html: wrap(`
   <div style="position:absolute;left:24px;top:18px;width:912px;height:580px;background:#fff;border:2px solid #F0C9C4;border-radius:36px;overflow:hidden">
     <div style="height:102px;background:${c[0]};display:flex;align-items:center;justify-content:space-between;padding:0 40px"><div style="color:#fff;font-weight:800;font-size:30px">${esc(up(o.head))}</div><div style="background:${c[1]};color:#fff;font-weight:800;font-size:26px;padding:14px 24px;border-radius:16px">${esc(up(o.chip))}</div></div>
-    <div style="padding:26px 40px 0"><div style="color:${c[2]};font-weight:800;font-size:40px;height:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(up(o.title))}</div>
+    <div style="padding:26px 40px 0"><div style="color:${c[2]};font-weight:800;font-size:${tsz(up(o.title), 40, 880)}px;height:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(up(o.title))}</div>
     <div style="display:flex;gap:24px;margin-top:16px"><div style="width:9px;border-radius:5px;background:${c[3]};flex:none"></div><div class="t fit" style="height:${o.amount !== undefined ? 200 : 300}px;color:${c[2]};font-size:34px;line-height:1.35">${esc(o.text)}</div></div></div>
     ${o.amount !== undefined ? `<div style="position:absolute;left:40px;right:40px;bottom:28px;height:92px;background:${c[4]};border:2px solid ${c[3]};border-radius:20px;display:flex;align-items:center;justify-content:space-between;padding:0 34px"><div style="color:${c[1]};font-weight:800;font-size:24px">${esc(up(o.amountLabel))}</div><div style="color:${c[3]};font-weight:800;font-size:46px">${fmt(o.amount)} sh.b.</div></div>` : ""}
   </div>`, "#F4F7FA") };
@@ -67,7 +68,7 @@ function kichik(o: { title: string; text: string; boxes: [string, string][]; cod
     <div class="h fit" style="position:absolute;left:50px;right:50px;top:26px;height:112px;text-align:center;color:#0A4A28;font-weight:800;font-size:44px;line-height:1.25;display:flex;align-items:center;justify-content:center">${esc(o.title)}</div>
     <div class="t fit" style="position:absolute;left:60px;right:60px;top:146px;height:${o.boxes.length ? 150 : 270}px;text-align:center;color:#111;font-size:34px;line-height:1.3">${esc(o.text)}</div>
     ${o.boxes.length ? `<div style="position:absolute;left:50px;right:50px;top:318px;height:118px;display:flex;border:5px solid #00B957;background:#E7FDEC">${o.boxes.map(([l, v], i) => `<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 22px;${i ? "border-left:5px solid #00B957" : ""}"><div style="font-weight:800;font-size:25px;color:#111;width:150px;line-height:1.15">${esc(l)}</div><div style="font-weight:800;font-size:${v.length <= 3 ? 60 : v.length <= 5 ? 52 : 42}px;color:#E1112B;white-space:nowrap">${esc(v)}</div></div>`).join("")}</div>` : ""}
-    <div style="position:absolute;left:50px;right:50px;bottom:34px;height:108px;display:flex;gap:16px"><div style="width:206px;background:#009A4C;border-radius:8px;color:#fff;font-weight:900;font-size:${o.code.length > 3 ? 48 : 66}px;display:flex;align-items:center;justify-content:center">${esc(o.code)}</div><div style="flex:1;background:#E4FCE8;border-radius:8px;padding:12px 18px;font-size:25px;line-height:1.2;color:#111;display:flex;align-items:center">${esc(o.note)}</div></div>
+    <div style="position:absolute;left:50px;right:50px;bottom:34px;height:108px;display:flex;gap:16px"><div style="width:206px;background:#009A4C;border-radius:8px;color:#fff;font-weight:900;font-size:${o.code.length > 6 ? 34 : o.code.length > 3 ? 44 : 66}px;display:flex;align-items:center;justify-content:center">${esc(o.code)}</div><div style="flex:1;background:#E4FCE8;border-radius:8px;padding:12px 18px;font-size:25px;line-height:1.2;color:#111;display:flex;align-items:center">${esc(o.note)}</div></div>
   </div>`, "#F8FAFB") };
 }
 // ── katta sarmoya (to'q sariq) ──
@@ -89,7 +90,7 @@ function kasbExt(o: { label: string; title: string; text: string; foot: string }
   return { fit: [{ sel: ".t", max: 36, min: 22 }], html: wrap(`
   <div style="position:absolute;left:14px;top:12px;width:932px;height:593px;background:#fff;border:7px solid #0A9A5C;border-radius:44px;overflow:hidden">
     <div style="margin:34px 44px 0;height:78px;background:#0A9A5C;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:34px;letter-spacing:1px">${esc(up(o.label))}</div>
-    <div style="padding:28px 54px 0"><div style="color:#0B2545;font-weight:800;font-size:44px;height:60px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(o.title)}</div><div class="t fit" style="margin-top:12px;height:170px;color:#183153;font-size:36px;line-height:1.3">${esc(o.text)}</div></div>
+    <div style="padding:28px 54px 0"><div style="color:#0B2545;font-weight:800;font-size:${tsz(o.title, 44, 852)}px;height:60px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(o.title)}</div><div class="t fit" style="margin-top:12px;height:170px;color:#183153;font-size:36px;line-height:1.3">${esc(o.text)}</div></div>
     <div style="position:absolute;left:44px;right:44px;bottom:30px;height:92px;background:#E3F7EC;border:3px solid #0A9A5C;border-radius:18px;display:flex;align-items:center;padding:0 28px;color:#0A5A36;font-weight:800;font-size:28px;overflow:hidden;white-space:nowrap">${esc(o.foot)}</div>
   </div>`, "#F4F8F6") };
 }
@@ -124,7 +125,7 @@ function fromCatalog(c: any): Pick<Job, "html" | "fit"> | null {
       return katta({ pill: "Katta sarmoyalar", code: "KS", label: c.cardType ?? "Biznes", title, text, boxes: [["Boshlang‘ich sarmoya", fmt(amount ?? 0), "a"], ["Doimiy daromad / oy", fmt(c.income ?? 0), "g"]], note: "O‘yin qoidasi: biznesni sotib olish uchun boshlang‘ich sarmoyani bankka to‘lang. Doimiy daromadni oylik daromadingizga qo‘shing." }); }
     case "Xarajat": return xar({ head: `XARAJATLAR  /  ${c.cardType ?? ""}`, chip: c.kind === "INSURANCE" ? "SUG‘URTA" : "XARAJAT", title: title || "XARAJAT KARTASI", text, amountLabel: c.kind === "INSURANCE" ? "Sug‘urta narxi" : "Xarajat", amount, theme: c.kind === "INSURANCE" ? "blue" : "red" });
     case "Katta aylana xarajati": return xar({ head: "KATTA AYLANA  /  XARAJATLAR", chip: "TO‘LA", title: title || "XARAJAT XABARI", text, amountLabel: "Xarajat", amount, theme: "terra" });
-    case "Kutilmagan hodisa": return c.kind === "QUIZ" ? hod({ sub: "Moliyaviy savod viktorinasi", text: `${title ? title + ". " : ""}${text}`, options: [c.optionA, c.optionB, c.optionV].filter(Boolean), foot: foot || "Viktorina · to‘g‘ri javobga XP" }) : hod({ sub: c.cardType ?? "Hodisa", text, amount, foot });
+    case "Kutilmagan hodisa": return c.kind === "QUIZ" ? hod({ sub: "Moliyaviy savod viktorinasi", text: `${title && !text.toLowerCase().startsWith(title.toLowerCase()) ? title + ". " : ""}${text}`, options: [c.optionA, c.optionB, c.optionV].filter(Boolean), foot: foot || "Viktorina · to‘g‘ri javobga XP" }) : hod({ sub: c.cardType ?? "Hodisa", text, amount, foot });
     case "Kasb": return kasbExt({ label: c.kind === "GOAL" ? "MISSIYA" : "KARYERA", title, text, foot: foot || c.goal || "" });
   }
   return null;
