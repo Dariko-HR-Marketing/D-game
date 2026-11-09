@@ -3,7 +3,7 @@
 import type { CardEffect, Effect, Op } from "@poyga/content/effects";
 import { matches, type Selector } from "@poyga/content/groups";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
-import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankPrincipalDue, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
+import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankLoanPayoff, bankPrincipalDue, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, policyFor, tickDeposits, withdrawDeposit, type Mod,
@@ -94,6 +94,8 @@ export interface GameState {
   decks: Record<DeckName, DeckState>;
   /** `recapPause`: bankrot (yangi kasb) bo'lganda o'yin to'xtaydi va o'yinchiga tahlil ko'rsatiladi; jurnaldan qayta o'ynash uchun yoziladi. `recaps`: tasdiqlanmaganlar. */
   recapPause?: boolean; recaps?: RestartRecap[]; nextRecap?: number;
+  /** Halol moliya (2026-11-09): yangi o'yinlarda kredit/lombard foizsiz, bir martalik haq bilan; eski jurnallar eski hisob bilan o'ynaladi. */
+  halalFin?: boolean;
   mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
@@ -108,9 +110,9 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode; recapPause?: boolean } = {}): GameState {
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode; recapPause?: boolean; halalFin?: boolean } = {}): GameState {
   const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
-    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [], ...(opts.recapPause ? { recapPause: true, recaps: [], nextRecap: 1 } : {}) } as GameState;
+    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [], ...(opts.recapPause ? { recapPause: true, recaps: [], nextRecap: 1 } : {}), ...(opts.halalFin ? { halalFin: true } : {}) } as GameState;
   withRng(s, (r) => {
     // Reytingli o'yinda faqat asosiy havza (ranked_pool=BASE): EXTENDED kartalar sozlama (RULES.rankedPools) bilan yoqilmaguncha kirmaydi (Tajriba24 TZ §6.7)
     const closed = new Set(modeOf(opts.mode) === "rated" && !RANKED_ALLOWED_POOLS.includes("EXTENDED") ? ctx.extended ?? [] : []);
@@ -119,7 +121,7 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: strin
   s.players = playerIds.map((id) => {
     const kid = drawFrom(s, "kasb");
     const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
-    return { ...newPlayer(id, k), skipTurns: 0, handDebts: [], dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false };
+    return { ...newPlayer(id, k), skipTurns: 0, handDebts: [], dreamIdx: null, lockedFlow: 0, points: 0, restarts: 0, won: false, ...(opts.halalFin ? { halalFin: true } : {}) };
   });
   if (opts.openingDice) { // qo'llanma: kim birinchi yuradi — kubik bo'yicha (eng kattasi; teng bo'lsa tenglar qayta tashlaydi)
     s.openingDice = true; s.opening = []; let cand = s.players.map((_, i) => i);
@@ -188,7 +190,7 @@ function settleDebts(s: GameState, p: GamePlayer): GamePlayer {
     if (d.amount - (g ? pay : 0) > 0) left.push({ ...d, amount: d.amount - (g ? pay : 0) });
   }
   q = { ...q, handDebts: left };
-  const loans = q.bankLoans.filter((l) => { const due = bankPrincipalDue(l.amount, l.left); if (q.cash < due) return true; q = { ...q, cash: q.cash - due }; return false; });
+  const loans = q.bankLoans.filter((l) => { const due = bankLoanPayoff(l); if (q.cash < due) return true; q = { ...q, cash: q.cash - due }; return false; });
   return { ...q, bankLoans: loans, bankDebt: loans.reduce((t, l) => t + bankPrincipalDue(l.amount, l.left), 0) };
 }
 
@@ -210,9 +212,9 @@ function restart(s: GameState, ctx: Ctx, p: GamePlayer, cause: RestartRecap["cau
   const kid = drawFrom(s, "kasb");
   const k = ctx.kasb[Number(kid.replace("kasb-", ""))];
   logf(s, `${p.id}: yangi kasb #${k.n} bilan boshidan`);
-  if (!s.recapPause) return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
+  if (!s.recapPause) return { ...newPlayer(p.id, k), skipTurns: 0, handDebts: [], dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed, ...(p.halalFin ? { halalFin: true } : {}) }; // jahon inqirozi yangi kasbga ham tegishli; o'tgan oylar yo'qolmaydi (vaqt davom etadi)
   const L = post ?? (() => { const l = liquidate(ctx, p); return { player: settleDebts(s, l.player), sold: l.sold, total: l.total }; })(), q = L.player;
-  const next: GamePlayer = settleOwe({ ...newPlayer(p.id, k), skipTurns: 0, handDebts: q.handDebts, dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed,
+  const next: GamePlayer = settleOwe({ ...newPlayer(p.id, k), skipTurns: 0, handDebts: q.handDebts, dreamIdx: p.dreamIdx, lockedFlow: 0, points: p.points, restarts: p.restarts + 1, won: false, crisisMonths: p.crisisMonths, autos: p.autos, shady: p.shady, monthsPlayed: p.monthsPlayed, ...(p.halalFin ? { halalFin: true } : {}),
     children: q.children, mods: q.mods, modSeq: q.modSeq, qar: q.qar, insuredCar: q.insuredCar, handLoans: q.handLoans, twoDice: q.twoDice, noSalary: q.noSalary, depSeq: q.depSeq,
     bankDebt: q.bankDebt, bankLoans: q.bankLoans, owe: q.owe, lombards: q.lombards, xp: p.xp }); // yangi kasbning boshlang'ich naqdi qoldiq kichik qarzni darhol yopadi (§09)
   recordRecap(s, ctx, p, cause, { outcome: "job", sold: L.sold.slice(0, 24), soldTotal: L.total, after: { debt: debtTotal(next), children: next.children }, newKasb: k.name ?? "" });
@@ -446,7 +448,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
     const base = playerCashflow(p) - held;
     const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
     p = tickDeposits(tickMods(tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary })));
-    if (p.cash < 0 && (p.lombards ?? []).length) { // lombard foizi to'lanmadi: garov yo'qoladi (qo'llanma §08)
+    if (p.cash < 0 && (p.lombards ?? []).length && !p.halalFin) { // ESKI hisob: lombard foizi to'lanmadi — garov yo'qoladi (qo'llanma §08). Halol hisobda garov musodara qilinmaydi: yetmagan summa qarz (owe) bo'ladi, garov faqat muddat oxirida sotiladi
       logf(s, `${p.id}: lombard foizi kechikdi — garov yo'qoldi`);
       p = { ...p, assets: p.assets.filter((x) => x.pledged !== "lombard"), lombards: [] };
     }

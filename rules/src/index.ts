@@ -9,7 +9,11 @@ export const RULES = {
   bankEarlyCloseMonths: 0,        // muddatidan oldin yopish: 0 — istalgan paytda (buyurtmachi qarori 2026-11-09: kichik aylanada olingan kredit to'lanib, katta aylanaga chiqish yo'li ochiq bo'lsin). Qo'llanma bo'yicha avval 12 oy (3 aylana) edi; 0 dan katta qiymat qaytarsa — `too_early` ishlaydi
   lombardShare: 0.5, lombardMonthlyRate: 0.1, lombardTermMonths: 12, // qo'llanma §08: garov qiymatining 50 %, oyiga 10 %, asosiy qarz 1 yil oxirida
   bankTermMonths: 36,
-  bankAnnualRate: 0.2,
+  bankAnnualRate: 0.2,            // ESKI hisob (yillik foiz): faqat `halalFin` bo'lmagan eski o'yinlarni qayta o'ynash uchun saqlanadi
+  // Halol moliya (buyurtmachi qarori 2026-11-09): foiz yo'q, kredit berilganda BIR MARTALIK haq belgilanadi (murobaha ustamasi) va keyin o'zgarmaydi.
+  bankFeePct: 50,                 // 36 oylik kredit uchun summaning 50 % i; oylarga teng bo'linadi; muddatidan oldin yopilsa ham to'liq to'lanadi
+  childFeeDiscountPct: 10,        // har bir farzand uchun bir martalik haqdan 10 % (haqning o'zidan) chegirma: 1 farzand 450, 2 farzand 400 (500 dan)
+  lombardFeePct: 0,               // BO'SH: lombard uchun bir martalik haq foizi buyurtmachi tomonidan belgilanmagan (OPEN_QUESTIONS 167)
   exitCash: 1_000_000, // §5.4
   exitPassiveFlow: 25_000,
   winCashflow: 100_000, // §5.5
@@ -38,6 +42,34 @@ export const RULES = {
 export function bankMonthlyPayment(amount: number): number {
   return Math.ceil(amount / RULES.bankTermMonths) + Math.ceil((amount * RULES.bankAnnualRate) / 12);
 }
+/** Bir martalik haq (halol moliya): summa × foiz, farzandlar soniga qarab har biri uchun haqdan `childFeeDiscountPct` % kamayadi (0 dan past bo'lmaydi). Kredit berilgan paytda bir marta hisoblanadi. */
+export function oneTimeFee(amount: number, feePct: number, children: number): number {
+  return Math.round((amount * feePct * Math.max(0, 100 - RULES.childFeeDiscountPct * children)) / 10_000);
+}
+/** Kredit/lombard yozuvi: `fee` — bir martalik haq (halol hisob); yo'q bo'lsa eski (foizli) hisob. */
+export interface FeeLoan { amount: number; left: number; fee?: number }
+const feeInstallment = (fee: number, term: number) => Math.ceil(fee / term);
+/** Haqdan hali to'lanmagan qismi (to'langan oylar × oylik ulush ayriladi). */
+export function feeRemaining(l: FeeLoan, term: number): number {
+  return l.fee === undefined ? 0 : Math.max(0, l.fee - (term - l.left) * feeInstallment(l.fee, term));
+}
+/** Bank kreditining shu oydagi to'lovi: asosiy qism + (halol hisobda) haqning teng ulushi; eski kreditda — yillik foiz. */
+export function bankLoanMonthly(l: FeeLoan): number {
+  if (l.fee === undefined) return bankMonthlyPayment(l.amount);
+  return Math.ceil(l.amount / RULES.bankTermMonths) + Math.min(feeInstallment(l.fee, RULES.bankTermMonths), feeRemaining(l, RULES.bankTermMonths));
+}
+/** Muddatidan oldin yopish narxi: qolgan asosiy qarz + haqning to'lanmagan qismi (bir martalik haq to'liq kuchda qoladi). */
+export function bankLoanPayoff(l: FeeLoan): number { return bankPrincipalDue(l.amount, l.left) + feeRemaining(l, RULES.bankTermMonths); }
+/** Yangi kredit uchun taxminiy oylik to'lov (halol hisobda): berilishdan oldin to'lov daromaddan oshmasligini tekshirish uchun. */
+export const newBankLoanMonthly = (amount: number, children: number, halal: boolean) =>
+  bankLoanMonthly({ amount, left: RULES.bankTermMonths, fee: halal ? oneTimeFee(amount, RULES.bankFeePct, children) : undefined });
+/** Lombardning shu oydagi to'lovi: halol hisobda — haqning teng ulushi (12 oy), eskisida — oyiga 10 %. */
+export function lombardMonthly(l: FeeLoan): number {
+  if (l.fee === undefined) return l.amount * RULES.lombardMonthlyRate;
+  return Math.min(feeInstallment(l.fee, RULES.lombardTermMonths), feeRemaining(l, RULES.lombardTermMonths));
+}
+export const lombardPayoff = (l: FeeLoan): number => l.amount + feeRemaining(l, RULES.lombardTermMonths);
+
 /** Qolgan asosiy qarz: summa − o'tgan oylar × ceil(summa / 36) (qo'llanma: 5 000 uchun 1 yildan keyin 3 332). */
 export function bankPrincipalDue(amount: number, left: number): number {
   return Math.max(0, amount - (RULES.bankTermMonths - left) * Math.ceil(amount / RULES.bankTermMonths));

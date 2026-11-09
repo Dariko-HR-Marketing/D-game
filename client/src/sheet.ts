@@ -1,5 +1,5 @@
 // «Hisob varag'i» (stol o'yinidagi «POYGA | KICHIK AYLANA» va «KATTA AYLANA» blanklari): hamma qiymat server holatidan olinadi, yangi hisob yo'q. React'siz — testlanadi.
-import { RULES, SLOT_LIMITS, allDebt, bankMonthlyPayment, monthlyExpenses, monthlyBonus, passiveIncome, playerCashflow, salaryOf } from "@poyga/rules";
+import { RULES, SLOT_LIMITS, allDebt, bankLoanMonthly, lombardMonthly, monthlyExpenses, monthlyBonus, passiveIncome, playerCashflow, salaryOf } from "@poyga/rules";
 import { portfolioOf, type AssetRow } from "./portfolio";
 import { nameOf } from "./model";
 
@@ -49,13 +49,13 @@ export function sheetOf(room: any, userId: string): Sheet | null {
   const other = small.filter((a) => !grouped.has(a) && withInc(a)).map(line);
   const passive = passiveIncome(p), expenses = monthlyExpenses(p), cashflow = playerCashflow(p);
   const shares = SHARE_CODES.map((code) => { const rows = small.filter((a) => a.kind === "shares" && a.code.toLowerCase() === code.toLowerCase()); const count = rows.reduce((s, a) => s + (a.shares ?? 0), 0), cost = rows.reduce((s, a) => s + a.price, 0); return { code, count, price: count ? Math.round(cost / count) : 0 }; });
-  const credits = small.reduce((s, a) => s + a.payment, 0), bankPay = (p.bankLoans ?? []).reduce((s: number, l: any) => s + bankMonthlyPayment(l.amount), 0), lombPay = (p.lombards ?? []).reduce((s: number, l: any) => s + l.amount * RULES.lombardMonthlyRate, 0);
+  const credits = small.reduce((s, a) => s + a.payment, 0), bankPay = (p.bankLoans ?? []).reduce((s: number, l: any) => s + bankLoanMonthly(l), 0), lombPay = (p.lombards ?? []).reduce((s: number, l: any) => s + lombardMonthly(l), 0);
   const debt = allDebt(p) + (p.handDebts ?? []).reduce((s: number, d: any) => s + d.amount, 0);
   const sm: SheetSmall = {
     name, profession, dream, salary: salaryOf(p), realty, small: smallBiz, big: bigBiz, other,
     totals: { active: salaryOf(p) + monthlyBonus(p), passive, income: salaryOf(p) + monthlyBonus(p) + passive, expenses, cashflow }, shares, debt,
     expenses: { lines: EXP_ROWS.map((r) => ({ key: r.key, value: r.exp === null ? null : room.professionExp?.[userId]?.[r.exp] ?? null })), base: p.baseExpenses, children: p.children, childCost: p.childCost, childTotal: p.children * p.childCost, credits, bank: bankPay, lombard: lombPay, qar: p.qar ? RULES.qarMonthly : 0, extra: Math.round(expenses - (p.baseExpenses + p.children * p.childCost + credits + bankPay + lombPay + (p.qar ? RULES.qarMonthly : 0))) }, // extra: faol bozor ta'sirlari (xarajat ±%, oylik, kredit ±%)
-    lombards: (p.lombards ?? []).map((l: any) => ({ amount: l.amount, payment: l.amount * RULES.lombardMonthlyRate })), banks: (p.bankLoans ?? []).map((l: any) => ({ amount: l.amount, payment: bankMonthlyPayment(l.amount) })),
+    lombards: (p.lombards ?? []).map((l: any) => ({ amount: l.amount, payment: lombardMonthly(l) })), banks: (p.bankLoans ?? []).map((l: any) => ({ amount: l.amount, payment: bankLoanMonthly(l) })),
     collateral: small.filter((a) => a.pledged === "lombard").map((a) => a.title), months: p.monthsPlayed ?? 0,
     exit: { cash: p.cash, cashGoal: 1_000_000, flow: passive, flowGoal: 25_000, debt },
   };
