@@ -6,7 +6,7 @@ export const RULES = {
   bankLimit: 10_000, // §5.3 (qo'llanma §09: kichik aylanadagi qarz chegarasi; bank kreditlari yig'indisi ham shundan oshmaydi)
   bankMin: 2_000, bankMax: 5_000, // qo'llanma §08: mini-kredit 2 000–5 000
   bankCollateralShare: 1.2,       // garov = kredit summasining 120 %
-  bankEarlyCloseMonths: 12,       // muddatidan oldin yopish: kamida 3 aylanadan (3 × 4 oy) keyin
+  bankEarlyCloseMonths: 0,        // muddatidan oldin yopish: 0 — istalgan paytda (buyurtmachi qarori 2026-11-09: kichik aylanada olingan kredit to'lanib, katta aylanaga chiqish yo'li ochiq bo'lsin). Qo'llanma bo'yicha avval 12 oy (3 aylana) edi; 0 dan katta qiymat qaytarsa — `too_early` ishlaydi
   lombardShare: 0.5, lombardMonthlyRate: 0.1, lombardTermMonths: 12, // qo'llanma §08: garov qiymatining 50 %, oyiga 10 %, asosiy qarz 1 yil oxirida
   bankTermMonths: 36,
   bankAnnualRate: 0.2,
