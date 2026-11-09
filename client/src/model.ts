@@ -54,7 +54,7 @@ export function canOfferPartner(room: any, userId: string): boolean {
 }
 export const partnerCandidates = (room: any, userId: string): string[] => {
   const p = me(room, userId), st = room.state;
-  return st.players.filter((x: any) => x.id !== userId && x.circle === p.circle && !st.bots.includes(x.id)).map((x: any) => x.id);
+  return p.circle !== "small" ? [] : st.players.filter((x: any) => x.id !== userId && !st.bots.includes(x.id)).map((x: any) => x.id); // sheriklikni kichik aylana taklif qiladi; sherik — istalgan aylanadan (2026-11-09)
 };
 
 /** Suyunchi miqdorlari: 10 dan 500 gacha, qadam 10, naqddan oshmaydi. */
@@ -70,7 +70,7 @@ export function loanBounds(room: any, userId: string, giverId: string) {
   return { max: Math.max(0, Math.min(Math.floor(g.cash * RULES.mutualGiverCashShare), mutualLoanLimit(me_.salary, passive) - used)), humans, enough: humans >= RULES.mutualMinPlayers };
 }
 export const loanGivers = (room: any, userId: string): string[] =>
-  room.state.players.filter((x: any) => x.id !== userId && x.circle === "small" && !room.state.bots.includes(x.id)).map((x: any) => x.id);
+  me(room, userId)?.circle !== "small" ? [] : room.state.players.filter((x: any) => x.id !== userId && !room.state.bots.includes(x.id)).map((x: any) => x.id); // qarz oladigan — kichik aylana; beruvchi — istalgan aylanadan (2026-11-09)
 
 /** Mening ochiq sheriklik aktivlarim (sotib olish uchun). */
 export const myPartneredAssets = (p: any): any[] => p.assets.filter((a: any) => a.partnerId);

@@ -17,7 +17,7 @@ To'liq spetsifikatsiya: `docs/SPEC.md` (A–D ilovalar ham shu yerda). Quyida §
 4. Faqat bu faylda va ilovalarda berilgan raqamlar ishlatiladi. Narxlar yo'q: ular sozlamada (konfiguratsiyada) bo'sh turadi va keyin to'ldiriladi.
 5. Kartalar asl rasmi bilan chiqadi; ilova kartani qayta chizmaydi, faqat ta'sirini hisoblaydi. (2026-11-09, buyurtmachi ruxsati: rasmi yo'q kartalar uchun generator yaratgan yuzlar `content/art/generated` ishlatiladi; dizayner rasmi kelsa shu nomda almashtiriladi — docs/CARDS_IMPORT.md.)
 6. Karta nomi: «KUTILMAGAN HODISA!».
-7. Kichik va katta aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi yo'q.
+7. Kichik va katta aylana o'yinchilari o'rtasida (qaror 2026-11-09, buyurtmachi): **qarz** — kichik aylana o'yinchisi katta aylanadan ham qarz so'ray oladi, katta aylana o'yinchisi qarz ola olmaydi; **sheriklik** — uni faqat kichik aylana o'yinchisi taklif qiladi (sherik katta aylanadan bo'lishi mumkin), katta aylana o'yinchisi taklif qila olmaydi; **suyunchi** — faqat kichik aylana o'yinchilari o'rtasida, katta aylanada yo'q.
 8. 16 yoshgacha (yurist xulosasigacha): to'lov ota-ona tasdig'i bilan, o'zaro qarz/sheriklik va erkin chat yopiq, reklama yo'q.
 9. Ilovada faqat do'kon to'lovi (App Store / Google Play); Payme, Click, Uzcard/Humo faqat veb-versiyada.
 

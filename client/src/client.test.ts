@@ -47,7 +47,7 @@ describe("ulanish", () => {
   });
 });
 
-import { suyunchiAmounts, myProposals, canOfferPartner, loanBounds, bankRoom, partnerCandidates } from "./model";
+import { suyunchiAmounts, myProposals, canOfferPartner, loanBounds, bankRoom, partnerCandidates, loanGivers } from "./model";
 const room = (over: any = {}) => ({
   pendingCard: null,
   state: { turn: 0, bots: [] as string[], proposals: [] as any[], players: [
@@ -78,7 +78,9 @@ describe("hamkorlik yordamchilari", () => {
     expect(b.max).toBe(1000); expect(b.enough).toBe(false); // min(20 % × 5000, (1000)×0.5×36=18 000)
     expect(bankRoom({ bankDebt: 0, salary: 5000, assets: [{ kind: "apartment", code: "K", price: 9000, monthlyIncome: 0, creditPayment: 0, credit: 0 }] })).toBe(5000); // garov 120 %: 9 000 / 1,2 = 7 500 → chegara 5 000
     expect(bankRoom({ bankDebt: 3600 })).toBe(0); // garov yo'q
-    expect(partnerCandidates(r, "a")).toEqual(["b"]);
+    expect(partnerCandidates(r, "a")).toEqual(["b", "c"]); // kichik aylana: sherik istalgan aylanadan (2026-11-09)
+    expect(loanGivers(r, "a")).toEqual(["b", "c"]);        // qarz beruvchi ham
+    expect(partnerCandidates(r, "c")).toEqual([]); expect(loanGivers(r, "c")).toEqual([]); // katta aylana o'yinchisi taklif/so'rov qila olmaydi
   });
 });
 
