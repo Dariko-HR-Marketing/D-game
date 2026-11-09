@@ -14,11 +14,9 @@ export const RULES = {
   bankFeePct: 50,                 // 36 oylik kredit uchun summaning 50 % i; oylarga teng bo'linadi; muddatidan oldin yopilsa ham to'liq to'lanadi
   childFeeDiscountPct: 10,        // har bir farzand uchun bir martalik haqdan 10 % (haqning o'zidan) chegirma: 1 farzand 450, 2 farzand 400 (500 dan)
   lombardFeePct: 50,              // 12 oylik lombard uchun olingan summaning 50 % i (buyurtmachi 2026-11-09), farzand chegirmasi bilan; muddatidan oldin yopilsa ham to'liq
-  // Garov auksioni (to'lanmagan majburiyat): narx qadami, muddatlar va botlar — OPEN_QUESTIONS 168
-  timerAuctionSeconds: 30,        // egasi qaror qiladi / ochiq auksion davomiyligi (xona «sekin» bo'lsa ×2); vaqtsiz xonada taymer yo'q
-  auctionExtendSeconds: 5,        // har bir yangi taklifdan keyin auksion kamida shuncha soniya ochiq turadi (oxirgi soniyada olib qo'yishning oldini oladi)
-  auctionBidStep: 100,            // eng kam ko'tarish qadami
-  missedMonthsToSale: 4,          // bank kreditida ketma-ket shuncha oy to'lov yetmasa (naqd manfiy) — garov auksionga qo'yiladi (4 oy = 1 aylana)
+  // Garov auksioni (to'lanmagan majburiyat; buyurtmachi 2026-11-09): ochiq auksion odatdagi bir o'yinchi vaqtining 5 baravari davom etadi (30 s → 150 s, 60 s → 300 s), keyin navbat taymeri odatdagidek qayta boshlanadi
+  auctionTimeFactor: 5,
+  auctionBidStep: 100,            // eng kam ko'tarish qadami (OPEN_QUESTIONS 168)
   exitCash: 1_000_000, // §5.4
   exitPassiveFlow: 25_000,
   winCashflow: 100_000, // §5.5
@@ -52,7 +50,7 @@ export function oneTimeFee(amount: number, feePct: number, children: number): nu
   return Math.round((amount * feePct * Math.max(0, 100 - RULES.childFeeDiscountPct * children)) / 10_000);
 }
 /** Kredit/lombard yozuvi: `fee` — bir martalik haq (halol hisob); yo'q bo'lsa eski (foizli) hisob. */
-export interface FeeLoan { amount: number; left: number; fee?: number }
+export interface FeeLoan { amount: number; left: number; fee?: number; arrears?: number; overdue?: boolean }
 const feeInstallment = (fee: number, term: number) => Math.ceil(fee / term);
 /** Haqdan hali to'lanmagan qismi (to'langan oylar × oylik ulush ayriladi). */
 export function feeRemaining(l: FeeLoan, term: number): number {
@@ -60,11 +58,14 @@ export function feeRemaining(l: FeeLoan, term: number): number {
 }
 /** Bank kreditining shu oydagi to'lovi: asosiy qism + (halol hisobda) haqning teng ulushi; eski kreditda — yillik foiz. */
 export function bankLoanMonthly(l: FeeLoan): number {
+  if (l.overdue) return 0; // muddati o'tgan: oylik to'lov yo'q, faqat to'lanmagan qoldiq (auksion)
   if (l.fee === undefined) return bankMonthlyPayment(l.amount);
   return Math.ceil(l.amount / RULES.bankTermMonths) + Math.min(feeInstallment(l.fee, RULES.bankTermMonths), feeRemaining(l, RULES.bankTermMonths));
 }
 /** Muddatidan oldin yopish narxi: qolgan asosiy qarz + haqning to'lanmagan qismi (bir martalik haq to'liq kuchda qoladi). */
-export function bankLoanPayoff(l: FeeLoan): number { return bankPrincipalDue(l.amount, l.left) + feeRemaining(l, RULES.bankTermMonths); }
+export function bankLoanPayoff(l: FeeLoan): number { return bankPrincipalDue(l.amount, l.left) + feeRemaining(l, RULES.bankTermMonths) + (l.arrears ?? 0); }
+/** Kreditning qolgan asosiy qarzi: jadval bo'yicha qolgan qism + to'lanmagan oylar (halol hisob). */
+export const bankLoanDebt = (l: FeeLoan): number => bankPrincipalDue(l.amount, l.left) + (l.arrears ?? 0);
 /** Yangi kredit uchun taxminiy oylik to'lov (halol hisobda): berilishdan oldin to'lov daromaddan oshmasligini tekshirish uchun. */
 export const newBankLoanMonthly = (amount: number, children: number, halal: boolean) =>
   bankLoanMonthly({ amount, left: RULES.bankTermMonths, fee: halal ? oneTimeFee(amount, RULES.bankFeePct, children) : undefined });
