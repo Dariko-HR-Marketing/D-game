@@ -79,6 +79,7 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/modes-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/progress-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/catalog-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/art-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/dice-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/circles-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/owners-check.ts

@@ -41,6 +41,8 @@ export const Cards = z.object({
   catalog: z.array(CatalogCard).default([]),
   /** Eski kartalar uchun jadvaldagi qo'shimcha ma'lumot (reyting havzasi, yosh, soha, olib tashlash). Kalit: `fileKey(file)`; kasb/yangi kasb — `kasb-N`. */
   meta: z.record(z.string(), CardMeta).default({}),
+  /** Rasmi yaratilgan katalog kartalari (karta kodlari): rasm fayli `<kod>.webp` (generator: server/scripts/render-card-art.ts, fayllar content/art/generated). Import jadvaliga tegmaydi, shuning uchun qayta import rasmni yo'qotmaydi. */
+  art: z.array(z.string()).default([]),
 });
 export type Cards = z.infer<typeof Cards>;
 
