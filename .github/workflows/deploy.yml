@@ -21,20 +21,30 @@ jobs:
       READY_URL: ${{ secrets.DEPLOY_READY_URL }}
     steps:
       - name: Sirlar to'ldirilganini tekshirish
-        env: { KEY: "${{ secrets.DEPLOY_SSH_KEY }}", KH: "${{ secrets.DEPLOY_KNOWN_HOSTS }}" }
+        id: gate
+        env: { KEY: "${{ secrets.DEPLOY_SSH_KEY }}", KH: "${{ secrets.DEPLOY_KNOWN_HOSTS }}", EVENT: "${{ github.event_name }}" }
         run: |
-          for v in HOST DEPLOY_USER KEY KH; do [ -n "${!v}" ] || { echo "::error::$v sirri yo'q"; exit 1; }; done
+          missing=""; for v in HOST DEPLOY_USER KEY KH; do [ -n "${!v}" ] || missing="$missing $v"; done
+          if [ -z "$missing" ]; then echo "configured=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+          # Avtomatik ishga tushganda sirlar hali qo'shilmagan bo'lsa — qizil xato emas, ko'rinadigan ogohlantirish (deploy qo'lda qilinadi, docs/DEPLOY.md);
+          # qo'lda (workflow_dispatch) ishga tushirilganda esa — xato.
+          if [ "$EVENT" = workflow_dispatch ]; then echo "::error::sirlar yo'q:$missing"; exit 1; fi
+          echo "::warning::Avtomatik deploy o'tkazib yuborildi: sirlar yo'q:$missing (GitHub → Settings → Secrets and variables → Actions). Serverni qo'lda yangilang: docs/DEPLOY.md"
       - name: SSH sozlash
+        if: steps.gate.outputs.configured == 'true'
         env: { KEY: "${{ secrets.DEPLOY_SSH_KEY }}", KH: "${{ secrets.DEPLOY_KNOWN_HOSTS }}" }
         run: |
           install -m 700 -d ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KH" > ~/.ssh/known_hosts
       - name: Serverni yangilash
+        if: steps.gate.outputs.configured == 'true'
         run: |
           ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$DEPLOY_USER@$HOST" \
             "set -e; cd ${DEPLOY_PATH:-~/D-game} && git pull --ff-only origin main && cd deploy/vps && docker compose up -d --build && docker compose ps"
       - name: Tayyorlikni tekshirish
+        if: steps.gate.outputs.configured == 'true'
         run: |
           [ -n "$READY_URL" ] || { echo "DEPLOY_READY_URL berilmagan, tekshiruv o'tkazib yuborildi"; exit 0; }
           for i in $(seq 1 24); do curl -fsS -m 10 "$READY_URL" && exit 0; sleep 5; done

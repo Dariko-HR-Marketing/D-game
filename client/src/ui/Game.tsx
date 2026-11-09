@@ -252,7 +252,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         <HBtn ui={ui} icon={snd.muted ? "mute" : "volume"} label={uz.sound.label} role="switch" checked={!snd.muted} onPress={snd.toggle} tid="sound-toggle" />
       </Seg>
       <Seg ui={ui} label={uz.hud.group.help}>
-        <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />
+        {wide && <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />}{/* tik telefon/planshetda «Qoidalar» pastki menyuda bor: sarlavhada takrorlanmaydi (sarlavha qirqilmasin) */}
         <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />
       </Seg>
     </View>
@@ -279,7 +279,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
           <Board room={room} width={boardWidth} wide tight={tight} compact={compact} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board>
-          {!compact && <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>}
+          {!compact && state.players.some((q: any) => q.circle !== state.players[0].circle) && <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>}
           {tri && mine && (
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
               {deckPick && card ? (

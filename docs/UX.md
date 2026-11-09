@@ -103,3 +103,9 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - Xona sozlamalarida «Odatiy · Sekin (×2) · **Mehrojiddin**» (faqat standart rejimda); tanlanganda izoh: «navbat va qarorlarga vaqt cheklovi yo'q». Lobbida «Tezlik: Mehrojiddin (vaqtsiz)».
 - O'yinda taymer halqasi, «N soniyada…» va «N soniya ichida tasdiqlang» yozuvlari chiqmaydi; navbat sizda bo'lsa «Kubikni tashlang. Bu xonada vaqt cheklovi yo'q.». Brauzer tekshiruvi: `untimed-check` (CI da).
 
+## Sayqal: sarlavha, vaqt paneli, o'yinchi kartalari (2026-11-09)
+- Tik telefon/planshetda sarlavhadagi «Qoidalar» tugmasi olib tashlandi (pastki menyuda bor edi): «Kichik aylana» sarlavhasi endi «Kichik ayl…» bo'lib qirqilmaydi.
+- «O'yin vaqti» telefonda zichroq: oylar va 12 nuqta bir qatorda, «jami N oy» faqat bir yildan oshganda ko'rinadi (avval «0 yil 0 oy · jami: 0 oy» takrorlanardi).
+- O'yinchi kartalarida «Kichik aylana» chipi va «Siz faqat o'z aylanangizni ko'rasiz…» izohi faqat aralash o'yinda (kimdir boshqa aylanada) ko'rinadi: hamma bir aylanada bo'lsa ism uchun joy ko'proq, ekranda takror yozuv yo'q.
+- CI: avtomatik deploy `DEPLOY_*` sirlari yo'q bo'lsa qizil xato emas, ko'rinadigan ogohlantirish bilan o'tkazib yuboriladi (qo'lda ishga tushirilsa — xato).
+

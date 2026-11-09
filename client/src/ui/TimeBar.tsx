@@ -47,13 +47,14 @@ export function TimeBar({ room, userId, settled }: { room: RoomView; userId: str
   const big = (n: number, unit: string) => <View style={s.num}><Text style={s.big}>{n}</Text><Text style={s.unit}>{unit}</Text></View>;
   return (
     <View style={[s.bar, narrow && s.barNarrow]} onLayout={(e) => setNarrow(e.nativeEvent.layout.width < 360)} testID="timebar" role="group" accessible aria-label={`${uz.time.label}: ${text}${all >= MONTHS_PER_YEAR ? `, ${uz.time.total} ${all} ${uz.time.month}` : ""}${delta ? `, ${delta.who === userId ? uz.time.you : nameOf(room, delta.who)}: +${delta.m} ${uz.time.month}` : ""}`}>
-      <View style={s.head} aria-hidden><Icon name="clock" size={18} color={color.navy} /><Text style={s.l} numberOfLines={1}>{uz.time.label}</Text>{narrow && pill}</View>
+      <View style={s.head} aria-hidden><Icon name="clock" size={18} color={color.navy} /><Text style={s.l} numberOfLines={1}>{uz.time.label}</Text>{narrow && pill}{narrow && all >= MONTHS_PER_YEAR && <Text style={[s.tot, !delta && { marginLeft: "auto" as any }]} numberOfLines={1}>{uz.time.total}: {all} {uz.time.month}</Text>}</View>
       <View style={s.row} aria-hidden>
         {big(years, uz.time.year)}{big(inYear, uz.time.month)}
         {!narrow && pill}
-        <Text style={s.tot} numberOfLines={1}>{uz.time.total}: {all} {uz.time.month}</Text>
+        {!narrow && all >= MONTHS_PER_YEAR && <Text style={s.tot} numberOfLines={1}>{uz.time.total}: {all} {uz.time.month}</Text>}
+        {narrow && <View style={{ marginLeft: "auto" as any, alignSelf: "center" }}>{dots}</View>}
       </View>
-      {dots}
+      {!narrow && dots}
     </View>
   );
 }
