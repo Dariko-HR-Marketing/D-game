@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { bankPrincipalDue, RULES } from "@poyga/rules";
+import { bankLoanPayoff, lombardPayoff, oneTimeFee, RULES } from "@poyga/rules";
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
@@ -59,8 +59,9 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
           <Text style={s.note}>{uz.coop.bankRoom}: {money(bankRoom(p))}</Text>
           <Text style={s.note}>{buyCardOpen ? uz.coop.bankRules : uz.coop.bankPurpose}</Text>
           <Num label={uz.coop.bankHint} value={bank} onChange={setBank} />
+          {p.halalFin && Number(bank) >= RULES.bankMin && <Text style={s.note}>{uz.coop.bankFee.replace("{v}", money(oneTimeFee(Number(bank), RULES.bankFeePct, p.children))).replace("{p}", String(RULES.childFeeDiscountPct))}</Text>}
           <Button label={uz.coop.take} kind="ghost" disabled={!buyCardOpen || !bank || Number(bank) % 100 !== 0 || Number(bank) < 2000 || Number(bank) > bankRoom(p)} onPress={() => { onAct({ type: "bank_loan", amount: Number(bank) }); setBank(""); }} />
-          {(p.bankLoans ?? []).map((l: any, i: number) => { const elapsed = 36 - l.left, cost = bankPrincipalDue(l.amount, l.left);
+          {(p.bankLoans ?? []).map((l: any, i: number) => { const elapsed = 36 - l.left, cost = bankLoanPayoff(l);
             return (<Button key={i} kind="ghost" label={`${uz.coop.repayEarly}: ${money(l.amount)} · ${money(cost)}`} disabled={elapsed < RULES.bankEarlyCloseMonths || p.cash < cost} onPress={() => onAct({ type: "bank_repay", loanIdx: i })} />); })}
         </Box>)}
       {mineTurn && pledgeableAssets(p).length > 0 && (
@@ -80,7 +81,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
             <Button key={idx} kind="ghost" label={`${uz.slots.sell}: ${a.code} → +${money(proceeds)}`} onPress={() => setSellIdx(idx)} />))}
         </Box>)}
       {(p.lombards ?? []).length > 0 && (<Text style={s.note}>{uz.coop.lombardActive}: {(p.lombards as any[]).map((l) => `${l.code} ${money(l.amount)} · ${l.left} ${uz.coop.months.toLowerCase()}`).join("; ")}</Text>)}
-      {mineTurn && (p.lombards ?? []).map((l: any, i: number) => (<Button key={`lr${i}`} kind="ghost" label={`${uz.coop.lombardRepay}: ${l.code} · ${money(l.amount)}`} disabled={p.cash < l.amount} onPress={() => onAct({ type: "lombard_repay", lombardIdx: i })} />))}
+      {mineTurn && (p.lombards ?? []).map((l: any, i: number) => (<Button key={`lr${i}`} kind="ghost" label={`${uz.coop.lombardRepay}: ${l.code} · ${money(lombardPayoff(l))}`} disabled={p.cash < lombardPayoff(l)} onPress={() => onAct({ type: "lombard_repay", lombardIdx: i })} />))}
 
       {buy && (
         <Box title={uz.coop.partner}>

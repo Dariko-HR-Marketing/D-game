@@ -83,6 +83,7 @@ jobs:
       - run: pnpm --filter @poyga/server exec tsx scripts/dice-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/circles-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/owners-check.ts
+      - run: pnpm --filter @poyga/server exec tsx scripts/auction-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/report-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/dreams-check.ts
       - run: pnpm --filter @poyga/server exec tsx scripts/mods-check.ts

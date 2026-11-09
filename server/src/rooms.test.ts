@@ -69,7 +69,7 @@ describe("harakatlar (§6.2)", () => {
     await rm.start(r.code, "a", 99, { dreams: false });
     await clock.advance(DECISION_MS * 40);
     const room = rm.rooms.get(r.code)!;
-    let s = newGame(ctx, ["a", "b"], 99); s.players.forEach((p, i) => (s = chooseDream(s, p.id, i)));
+    let s = newGame(ctx, ["a", "b"], 99, [], [], { halalFin: true }); s.players.forEach((p, i) => (s = chooseDream(s, p.id, i)));
     for (const e of await store.journal(r.code)) {
       const a = "action" in e.action ? e.action.action : e.action;
       const o = reduce(s, ctx, a); if (!o.ok) throw new Error(o.error); s = o.state;

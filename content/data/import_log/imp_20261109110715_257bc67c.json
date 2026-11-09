@@ -1,0 +1,3038 @@
+{
+ "importId": "imp_20261109110715_257bc67c",
+ "at": "2026-11-09T11:07:15.652Z",
+ "source": "tajriba24_cards_import.csv",
+ "sha256": "257bc67c",
+ "entries": [
+  {
+   "id": "Y161",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y161",
+   "old": {
+    "id": "Y161",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Muddatli depozit (3 aylana)",
+    "text": "Pulingizni bankka muddatli joylashtirdingiz.",
+    "price": 3000,
+    "duration": "3 aylana",
+    "goal": "Muddat va foiz",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "30",
+      "duration": "3 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +30; muddatidan oldin yechsangiz foiz yo‘qoladi · Past xavf",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y161",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Muddatli depozit (mudoraba, 3 aylana)",
+    "text": "Pulingizni bankka muddatli joylashtirdingiz.",
+    "price": 3000,
+    "duration": "3 aylana",
+    "goal": "Muddat va foiz",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "30",
+      "duration": "3 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +30; muddatidan oldin yechsangiz foyda yo‘qoladi · Past xavf",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y162",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y162",
+   "old": {
+    "id": "Y162",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Muddatli depozit (6 aylana)",
+    "text": "Uzoq muddatga joylashtirdingiz.",
+    "price": 3000,
+    "duration": "6 aylana",
+    "goal": "Muddat uzaysa foiz oshadi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "35",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +35; muddatidan oldin yechsangiz foiz yo‘qoladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y162",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Muddatli depozit (mudoraba, 6 aylana)",
+    "text": "Uzoq muddatga joylashtirdingiz.",
+    "price": 3000,
+    "duration": "6 aylana",
+    "goal": "Muddat uzaysa foiz oshadi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "35",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +35; muddatidan oldin yechsangiz foyda yo‘qoladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y163",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y163",
+   "old": {
+    "id": "Y163",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Talab bo‘yicha depozit",
+    "text": "Istalgan vaqtda yechiladigan hisob.",
+    "price": 2000,
+    "duration": "Istalgan vaqt",
+    "goal": "Likvidlik va foiz kompromissi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "10",
+      "duration": "Istalgan vaqt",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +10",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y163",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Talab bo‘yicha depozit (mudoraba)",
+    "text": "Istalgan vaqtda yechiladigan hisob.",
+    "price": 2000,
+    "duration": "Istalgan vaqt",
+    "goal": "Likvidlik va foiz kompromissi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "10",
+      "duration": "Istalgan vaqt",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +10",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y164",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y164",
+   "old": {
+    "id": "Y164",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Davlat obligatsiyasi",
+    "text": "Davlatga qarz berdingiz: aniq foiz, past xavf.",
+    "price": 5000,
+    "duration": "6 aylana",
+    "goal": "Barqaror daromad",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "60",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +60",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y164",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Davlat obligatsiyasi (sukuk)",
+    "text": "Davlat aktiviga asoslangan sertifikat (sukuk) sotib oldingiz: kelishilgan foyda, past xavf.",
+    "price": 5000,
+    "duration": "6 aylana",
+    "goal": "Barqaror daromad",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "60",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +60",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y165",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y165",
+   "old": {
+    "id": "Y165",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Korporativ obligatsiya",
+    "text": "Kompaniyaga qarz berdingiz: foiz yuqori, lekin xavf bor.",
+    "price": 5000,
+    "duration": "6 aylana",
+    "goal": "Foiz va xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "90",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +90; zar 1 chiqsa kompaniya to‘lamaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y165",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Korporativ obligatsiya (sukuk)",
+    "text": "Kompaniya aktiviga asoslangan sertifikat (sukuk) sotib oldingiz: foyda yuqori, lekin xavf bor.",
+    "price": 5000,
+    "duration": "6 aylana",
+    "goal": "Foiz va xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "90",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +90; zar 1 chiqsa kompaniya to‘lamaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y172",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y172",
+   "old": {
+    "id": "Y172",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Kooperativ jamg‘arma",
+    "text": "Kichik guruhda pul yig‘ish.",
+    "price": 1000,
+    "duration": "4 aylana",
+    "goal": "Birgalikda jamg‘arish",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "20",
+      "duration": "4 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +20; chiqish cheklangan · Hamkorlik qoidasiga tegmaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y172",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Kooperativ jamg‘arma (mushoraka)",
+    "text": "Kichik guruhda pul yig‘ish.",
+    "price": 1000,
+    "duration": "4 aylana",
+    "goal": "Birgalikda jamg‘arish",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "20",
+      "duration": "4 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +20; chiqish cheklangan · Hamkorlik qoidasiga tegmaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y173",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y173",
+   "old": {
+    "id": "Y173",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Bank sertifikati",
+    "text": "Bank sertifikatini sotib oldingiz.",
+    "price": 4000,
+    "duration": "4 aylana",
+    "goal": "Kafolatlangan daromad",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "50",
+      "duration": "4 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +50",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y173",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Bank sertifikati (sukuk)",
+    "text": "Bank sertifikatini sotib oldingiz.",
+    "price": 4000,
+    "duration": "4 aylana",
+    "goal": "Kafolatlangan daromad",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "50",
+      "duration": "4 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +50",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y175",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y175",
+   "old": {
+    "id": "Y175",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Ipoteka uchun jamg‘arma",
+    "text": "Uy-joy avansini yig‘ing.",
+    "price": 1000,
+    "duration": "Uzoq muddat",
+    "goal": "Boshlang‘ich to‘lov",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "100",
+      "duration": "Uzoq muddat",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +100 qo‘shiladi; avansga ishlatiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y175",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Ipoteka uchun jamg‘arma (murobaha)",
+    "text": "Uy-joy avansini yig‘ing.",
+    "price": 1000,
+    "duration": "Uzoq muddat",
+    "goal": "Boshlang‘ich to‘lov",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "100",
+      "duration": "Uzoq muddat",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +100 qo‘shiladi; avansga ishlatiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y177",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y177",
+   "old": {
+    "id": "Y177",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Inflyatsiyadan himoyalangan obligatsiya",
+    "text": "Foizi narx o‘sishiga bog‘langan obligatsiya.",
+    "price": 4000,
+    "duration": "6 aylana",
+    "goal": "Inflyatsiya himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [],
+    "display": "Inflyatsiya oshsa daromad ham oshadi",
+    "needsMapping": true,
+    "draw": false,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y177",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Inflyatsiyadan himoyalangan obligatsiya (sukuk)",
+    "text": "Foydasi narx o‘sishiga bog‘langan obligatsiya (sukuk).",
+    "price": 4000,
+    "duration": "6 aylana",
+    "goal": "Inflyatsiya himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [],
+    "display": "Inflyatsiya oshsa daromad ham oshadi",
+    "needsMapping": true,
+    "draw": false,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y178",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y178",
+   "old": {
+    "id": "Y178",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Yig‘ma sug‘urta",
+    "text": "Sug‘urta va jamg‘arma birgalikda.",
+    "price": 1000,
+    "duration": "6 aylana",
+    "goal": "Aralash mahsulot",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "30",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +30; sug‘urta himoyasi bor",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y178",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Jamg‘arma va depozit",
+    "direction": "Qarz va moliya",
+    "kind": "DEPOSIT",
+    "title": "Yig‘ma sug‘urta (takaful)",
+    "text": "Sug‘urta va jamg‘arma birgalikda.",
+    "price": 1000,
+    "duration": "6 aylana",
+    "goal": "Aralash mahsulot",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DEPOZIT_FOIZ",
+      "target": "O‘yinchi",
+      "value": "30",
+      "duration": "6 aylana",
+      "condition": "Muddatidan oldin yechilsa foiz yo‘qoladi"
+     }
+    ],
+    "display": "Har aylanada +30; sug‘urta himoyasi bor",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y304",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y304",
+   "old": {
+    "id": "Y304",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Ustoz",
+    "direction": "Rivojlanish",
+    "kind": "DEVELOPMENT",
+    "title": "Ustoz: sug‘urta",
+    "text": "Ustoz sug‘urtaning ahamiyatini tushuntirdi.",
+    "duration": "Bir marta",
+    "goal": "Himoya",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "NARX_FOIZ",
+      "target": "Bir marta: sug‘urta kartasi",
+      "value": "-30",
+      "duration": "Bir marta"
+     }
+    ],
+    "display": "Bir marta: sug‘urta kartasi narxi −30 %",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y304",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Ustoz",
+    "direction": "Rivojlanish",
+    "kind": "DEVELOPMENT",
+    "title": "Ustoz: sug‘urta (takaful)",
+    "text": "Ustoz sug‘urtaning ahamiyatini tushuntirdi.",
+    "duration": "Bir marta",
+    "goal": "Himoya",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "NARX_FOIZ",
+      "target": "Bir marta: sug‘urta kartasi",
+      "value": "-30",
+      "duration": "Bir marta"
+     }
+    ],
+    "display": "Bir marta: sug‘urta kartasi narxi −30 %",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y309",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y309",
+   "old": {
+    "id": "Y309",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Ustoz",
+    "direction": "Rivojlanish",
+    "kind": "DEVELOPMENT",
+    "title": "Ustoz: kredit",
+    "text": "Ustoz kreditni to‘g‘ri tanlashni o‘rgatdi.",
+    "duration": "2 aylana",
+    "goal": "Kredit tanlash",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [],
+    "display": "Kredit foizi −5 %",
+    "needsMapping": true,
+    "draw": false,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y309",
+    "deck": 2,
+    "deckName": "Kichik sarmoya",
+    "cardType": "Ustoz",
+    "direction": "Rivojlanish",
+    "kind": "DEVELOPMENT",
+    "title": "Ustoz: kredit",
+    "text": "Ustoz kreditni to‘g‘ri tanlashni o‘rgatdi.",
+    "duration": "2 aylana",
+    "goal": "Kredit tanlash",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [],
+    "display": "Kredit xizmat haqi (ustama) −5 %",
+    "needsMapping": true,
+    "draw": false,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y121",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y121",
+   "old": {
+    "id": "Y121",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Makroiqtisodiy hodisa",
+    "direction": "Hodisa",
+    "kind": "MARKET_EVENT",
+    "title": "Foiz stavkasi oshdi",
+    "text": "Markaziy bank foiz stavkasini oshirdi. Barcha kreditlar qimmatlashdi.",
+    "duration": "2 aylana",
+    "goal": "Kredit narxi stavkaga bog‘liq",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "KREDIT_TOLOV_FOIZ",
+      "target": "Barcha o‘yinchilar",
+      "value": "10",
+      "duration": "2 aylana"
+     }
+    ],
+    "display": "Barcha kredit to‘lovlari +10 % · Barcha o‘yinchiga ta’sir qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y121",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Makroiqtisodiy hodisa",
+    "direction": "Hodisa",
+    "kind": "MARKET_EVENT",
+    "title": "Foyda stavkasi oshdi (xizmat haqi)",
+    "text": "Markaziy bank asosiy foyda stavkasini oshirdi. Barcha kreditlar (murobaha) qimmatlashdi.",
+    "duration": "2 aylana",
+    "goal": "Kredit narxi stavkaga bog‘liq",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "KREDIT_TOLOV_FOIZ",
+      "target": "Barcha o‘yinchilar",
+      "value": "10",
+      "duration": "2 aylana"
+     }
+    ],
+    "display": "Barcha kredit to‘lovlari +10 % · Barcha o‘yinchiga ta’sir qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y122",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y122",
+   "old": {
+    "id": "Y122",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Makroiqtisodiy hodisa",
+    "direction": "Hodisa",
+    "kind": "MARKET_EVENT",
+    "title": "Foiz stavkasi tushdi",
+    "text": "Foiz stavkasi tushdi: kredit olish arzonlashdi.",
+    "duration": "2 aylana",
+    "goal": "Arzon kredit — imkoniyat va xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "KREDIT_TOLOV_FOIZ",
+      "target": "Barcha o‘yinchilar",
+      "value": "-10",
+      "duration": "2 aylana"
+     }
+    ],
+    "display": "Barcha kredit to‘lovlari −10 %",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y122",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Makroiqtisodiy hodisa",
+    "direction": "Hodisa",
+    "kind": "MARKET_EVENT",
+    "title": "Foyda stavkasi tushdi (xizmat haqi)",
+    "text": "Foyda stavkasi tushdi: kredit (murobaha) olish arzonlashdi.",
+    "duration": "2 aylana",
+    "goal": "Arzon kredit — imkoniyat va xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "KREDIT_TOLOV_FOIZ",
+      "target": "Barcha o‘yinchilar",
+      "value": "-10",
+      "duration": "2 aylana"
+     }
+    ],
+    "display": "Barcha kredit to‘lovlari −10 %",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "BZ071",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "BZ071",
+   "old": {
+    "id": "BZ071",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Bozor · Moliyaviy instrumentlar",
+    "direction": "Aktiv sotish",
+    "kind": "ASSET_SELL_OFFER",
+    "title": "Obligatsiya narxi oshdi",
+    "text": "Foiz stavkalari tushdi: mavjud obligatsiyalar qimmatlashdi. Obligatsiya egalari 5 % qimmatga sotishi mumkin. Aktivni kamida 1 aylana ushlab turgan o‘yinchilarga tegishli.",
+    "duration": "Bir marta",
+    "goal": "Stavka va obligatsiya narxi bog‘liq",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "SOTISH_FOIZ",
+      "target": "Moliyaviy: Obligatsiya",
+      "value": "5",
+      "duration": "Bir marta",
+      "condition": "Aktiv >= 1 aylana ushlab turilgan"
+     }
+    ],
+    "display": "Obligatsiya narxi +5 % · Mos aktivi bor barcha o‘yinchilarga tegishli",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V3_BOZOR_JUFT",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Bozor natijasi: kichik va katta sarmoya aktivlariga javob kartasi"
+   },
+   "new": {
+    "id": "BZ071",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Bozor · Moliyaviy instrumentlar",
+    "direction": "Aktiv sotish",
+    "kind": "ASSET_SELL_OFFER",
+    "title": "Obligatsiya narxi oshdi",
+    "text": "Foyda stavkalari tushdi: mavjud obligatsiyalar qimmatlashdi. Obligatsiya egalari 5 % qimmatga sotishi mumkin. Aktivni kamida 1 aylana ushlab turgan o‘yinchilarga tegishli.",
+    "duration": "Bir marta",
+    "goal": "Stavka va obligatsiya narxi bog‘liq",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "SOTISH_FOIZ",
+      "target": "Moliyaviy: Obligatsiya",
+      "value": "5",
+      "duration": "Bir marta",
+      "condition": "Aktiv >= 1 aylana ushlab turilgan"
+     }
+    ],
+    "display": "Obligatsiya narxi +5 % · Mos aktivi bor barcha o‘yinchilarga tegishli",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V3_BOZOR_JUFT",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Bozor natijasi: kichik va katta sarmoya aktivlariga javob kartasi"
+   }
+  },
+  {
+   "id": "BZ072",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "BZ072",
+   "old": {
+    "id": "BZ072",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Bozor · Moliyaviy instrumentlar",
+    "direction": "Daromad o‘zgarishi",
+    "kind": "INCOME_CHANGE",
+    "title": "Emitent to‘lovni kechiktirdi",
+    "text": "Korporativ obligatsiya chiqargan kompaniya to‘lovni kechiktirdi. Bu aylana korporativ obligatsiya foizi to‘lanmaydi.",
+    "duration": "1 aylana",
+    "goal": "Kredit xavfi: yuqori foiz — yuqori xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DAROMAD_NOL",
+      "target": "Korporativ obligatsiya",
+      "value": "0",
+      "duration": "1 aylana",
+      "condition": "Mos aktivi bor"
+     }
+    ],
+    "display": "Korporativ obligatsiya: 1 aylana foiz yo‘q · Mos aktivi bor barcha o‘yinchilarga tegishli",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V3_BOZOR_JUFT",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Bozor natijasi: kichik va katta sarmoya aktivlariga javob kartasi"
+   },
+   "new": {
+    "id": "BZ072",
+    "deck": 4,
+    "deckName": "Bozor",
+    "cardType": "Bozor · Moliyaviy instrumentlar",
+    "direction": "Daromad o‘zgarishi",
+    "kind": "INCOME_CHANGE",
+    "title": "Emitent to‘lovni kechiktirdi",
+    "text": "Korporativ obligatsiya chiqargan kompaniya to‘lovni kechiktirdi. Bu aylana korporativ obligatsiya foizi to‘lanmaydi.",
+    "duration": "1 aylana",
+    "goal": "Kredit xavfi: yuqori foiz — yuqori xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "sector": "Moliyaviy instrumentlar",
+    "effects": [
+     {
+      "type": "DAROMAD_NOL",
+      "target": "Korporativ obligatsiya",
+      "value": "0",
+      "duration": "1 aylana",
+      "condition": "Mos aktivi bor"
+     }
+    ],
+    "display": "Korporativ obligatsiya: 1 aylana foyda yo‘q · Mos aktivi bor barcha o‘yinchilarga tegishli",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V3_BOZOR_JUFT",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Bozor natijasi: kichik va katta sarmoya aktivlariga javob kartasi"
+   }
+  },
+  {
+   "id": "Y048",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y048",
+   "old": {
+    "id": "Y048",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Telefon sug‘urtasi",
+    "text": "Smartfoningizni sug‘urta qildingiz. Karta sizda qoladi va telefon buzilsa xarajatdan ozod qiladi.",
+    "price": 200,
+    "goal": "Sug‘urta qanday ishlaydi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Bir martalik −200; himoya kartasi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Bir martalik −200; himoya kartasi · Mavjud “SUG” kartasi turiga mos",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_MAVJUD_KOLODA",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y048",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Telefon sug‘urtasi (takaful)",
+    "text": "Smartfoningizni sug‘urta qildingiz. Karta sizda qoladi va telefon buzilsa xarajatdan ozod qiladi.",
+    "price": 200,
+    "goal": "Sug‘urta qanday ishlaydi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Bir martalik −200; himoya kartasi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Bir martalik −200; himoya kartasi · Mavjud “SUG” kartasi turiga mos",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_MAVJUD_KOLODA",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y141",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y141",
+   "old": {
+    "id": "Y141",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Avtomobil sug‘urtasi (kasko)",
+    "text": "Avtomobilingizni to‘liq sug‘urta qildingiz.",
+    "price": 300,
+    "duration": "5 aylana",
+    "goal": "Sug‘urta qanday ishlaydi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-300",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "YTH va ta’mir xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "YTH va ta’mir xarajatidan ozod qiladi · “SUG” kartasining kengaytmasi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y141",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Avtomobil sug‘urtasi (kasko, takaful)",
+    "text": "Avtomobilingizni to‘liq sug‘urta qildingiz.",
+    "price": 300,
+    "duration": "5 aylana",
+    "goal": "Sug‘urta qanday ishlaydi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-300",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "YTH va ta’mir xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "YTH va ta’mir xarajatidan ozod qiladi · “SUG” kartasining kengaytmasi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y142",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y142",
+   "old": {
+    "id": "Y142",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Fuqarolik javobgarligi",
+    "text": "Boshqa shaxsga yetkazilgan zarar uchun javobgarlik sug‘urtasi.",
+    "price": 100,
+    "duration": "5 aylana",
+    "goal": "Majburiy sug‘urta",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-100",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Uchinchi shaxs zarari to‘lovidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Uchinchi shaxs zarari to‘lovidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y142",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Fuqarolik javobgarligi (takaful)",
+    "text": "Boshqa shaxsga yetkazilgan zarar uchun javobgarlik sug‘urtasi.",
+    "price": 100,
+    "duration": "5 aylana",
+    "goal": "Majburiy sug‘urta",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-100",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Uchinchi shaxs zarari to‘lovidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Uchinchi shaxs zarari to‘lovidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y143",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y143",
+   "old": {
+    "id": "Y143",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Uy-joy sug‘urtasi (yong‘in)",
+    "text": "Uyingizni yong‘indan sug‘urta qildingiz.",
+    "price": 400,
+    "duration": "5 aylana",
+    "goal": "Mulk himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-400",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Yong‘in xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Yong‘in xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y143",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Uy-joy sug‘urtasi (yong‘in, takaful)",
+    "text": "Uyingizni yong‘indan sug‘urta qildingiz.",
+    "price": 400,
+    "duration": "5 aylana",
+    "goal": "Mulk himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-400",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Yong‘in xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Yong‘in xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y144",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y144",
+   "old": {
+    "id": "Y144",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Uy-joy: suv toshqini va zilzila",
+    "text": "Tabiiy ofatlardan sug‘urta.",
+    "price": 500,
+    "duration": "5 aylana",
+    "goal": "Past ehtimol, katta zarar",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Tabiiy ofat xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Tabiiy ofat xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y144",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Uy-joy: suv toshqini va zilzila (takaful)",
+    "text": "Tabiiy ofatlardan sug‘urta.",
+    "price": 500,
+    "duration": "5 aylana",
+    "goal": "Past ehtimol, katta zarar",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Tabiiy ofat xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Tabiiy ofat xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y145",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y145",
+   "old": {
+    "id": "Y145",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Salomatlik sug‘urtasi",
+    "text": "Individual tibbiy sug‘urta.",
+    "price": 600,
+    "duration": "5 aylana",
+    "goal": "Salomatlik xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-600",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Tibbiy xarajatlardan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Tibbiy xarajatlardan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y145",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Salomatlik sug‘urtasi (takaful)",
+    "text": "Individual tibbiy sug‘urta.",
+    "price": 600,
+    "duration": "5 aylana",
+    "goal": "Salomatlik xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-600",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Tibbiy xarajatlardan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Tibbiy xarajatlardan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y146",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y146",
+   "old": {
+    "id": "Y146",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Oilaviy sog‘liq sug‘urtasi",
+    "text": "Butun oila uchun tibbiy sug‘urta.",
+    "price": 1500,
+    "duration": "5 aylana",
+    "goal": "Oila xavfsizligi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-1500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Oila a’zolari tibbiy xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Oila a’zolari tibbiy xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y146",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Oilaviy sog‘liq sug‘urtasi (takaful)",
+    "text": "Butun oila uchun tibbiy sug‘urta.",
+    "price": 1500,
+    "duration": "5 aylana",
+    "goal": "Oila xavfsizligi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-1500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Oila a’zolari tibbiy xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Oila a’zolari tibbiy xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y147",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y147",
+   "old": {
+    "id": "Y147",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Hayot sug‘urtasi",
+    "text": "Oilangiz uchun hayot sug‘urtasi.",
+    "price": 800,
+    "duration": "Doimiy",
+    "goal": "Yaqinlarni himoya qilish",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-800",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Og‘ir holatda oilaga kompensatsiya",
+      "value": "100",
+      "duration": "Doimiy",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Og‘ir holatda oilaga kompensatsiya",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y147",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Hayot sug‘urtasi (takaful)",
+    "text": "Oilangiz uchun hayot sug‘urtasi.",
+    "price": 800,
+    "duration": "Doimiy",
+    "goal": "Yaqinlarni himoya qilish",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-800",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Og‘ir holatda oilaga kompensatsiya",
+      "value": "100",
+      "duration": "Doimiy",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Og‘ir holatda oilaga kompensatsiya",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y148",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y148",
+   "old": {
+    "id": "Y148",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Biznes uzilishi sug‘urtasi",
+    "text": "Biznes vaqtincha to‘xtasa, daromad kompensatsiyasi.",
+    "price": 1200,
+    "duration": "5 aylana",
+    "goal": "Biznes xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-1200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Biznes to‘xtash xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Biznes to‘xtash xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y148",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Biznes uzilishi sug‘urtasi (takaful)",
+    "text": "Biznes vaqtincha to‘xtasa, daromad kompensatsiyasi.",
+    "price": 1200,
+    "duration": "5 aylana",
+    "goal": "Biznes xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-1200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Biznes to‘xtash xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Biznes to‘xtash xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y149",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y149",
+   "old": {
+    "id": "Y149",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "O‘g‘irlikdan sug‘urta",
+    "text": "Mulkni o‘g‘irlikdan sug‘urta qilish.",
+    "price": 250,
+    "duration": "5 aylana",
+    "goal": "Mulk himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-250",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "O‘g‘irlik xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "O‘g‘irlik xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y149",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "O‘g‘irlikdan sug‘urta (takaful)",
+    "text": "Mulkni o‘g‘irlikdan sug‘urta qilish.",
+    "price": 250,
+    "duration": "5 aylana",
+    "goal": "Mulk himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-250",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "O‘g‘irlik xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "O‘g‘irlik xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y150",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y150",
+   "old": {
+    "id": "Y150",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Telefon va gadjet sug‘urtasi",
+    "text": "Qurilmalaringizni sug‘urta qildingiz.",
+    "price": 200,
+    "duration": "5 aylana",
+    "goal": "Kichik xavflar",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Qurilma buzilishi xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Qurilma buzilishi xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y150",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Telefon va gadjet sug‘urtasi (takaful)",
+    "text": "Qurilmalaringizni sug‘urta qildingiz.",
+    "price": 200,
+    "duration": "5 aylana",
+    "goal": "Kichik xavflar",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Qurilma buzilishi xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Qurilma buzilishi xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y151",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y151",
+   "old": {
+    "id": "Y151",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Sayohat sug‘urtasi",
+    "text": "Chet elga safar uchun sug‘urta.",
+    "price": 100,
+    "duration": "1 safar",
+    "goal": "Safarda xavfsizlik",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-100",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Safar vaqtidagi tibbiy xarajatdan ozod qiladi",
+      "value": "100",
+      "duration": "1 safar",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Safar vaqtidagi tibbiy xarajatdan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y151",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Sayohat sug‘urtasi (takaful)",
+    "text": "Chet elga safar uchun sug‘urta.",
+    "price": 100,
+    "duration": "1 safar",
+    "goal": "Safarda xavfsizlik",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-100",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Safar vaqtidagi tibbiy xarajatdan ozod qiladi",
+      "value": "100",
+      "duration": "1 safar",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Safar vaqtidagi tibbiy xarajatdan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y152",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y152",
+   "old": {
+    "id": "Y152",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Ta’lim sug‘urtasi",
+    "text": "Farzandingiz o‘qishi uchun sug‘urta.",
+    "price": 700,
+    "duration": "Doimiy",
+    "goal": "Uzoq muddatli rejalash",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-700",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Daromad yo‘qolsa ham ta’lim to‘lovi davom etadi",
+      "value": "100",
+      "duration": "Doimiy",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Daromad yo‘qolsa ham ta’lim to‘lovi davom etadi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y152",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Ta’lim sug‘urtasi (takaful)",
+    "text": "Farzandingiz o‘qishi uchun sug‘urta.",
+    "price": 700,
+    "duration": "Doimiy",
+    "goal": "Uzoq muddatli rejalash",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-700",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Daromad yo‘qolsa ham ta’lim to‘lovi davom etadi",
+      "value": "100",
+      "duration": "Doimiy",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Daromad yo‘qolsa ham ta’lim to‘lovi davom etadi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y153",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y153",
+   "old": {
+    "id": "Y153",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Kredit sug‘urtasi",
+    "text": "Kredit to‘lovini sug‘urta qildingiz.",
+    "price": 400,
+    "duration": "5 aylana",
+    "goal": "Kredit xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-400",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ishdan bo‘shasangiz kredit to‘lovi qoplanadi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ishdan bo‘shasangiz kredit to‘lovi qoplanadi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y153",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Kredit sug‘urtasi (takaful)",
+    "text": "Kredit to‘lovini sug‘urta qildingiz.",
+    "price": 400,
+    "duration": "5 aylana",
+    "goal": "Kredit xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-400",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ishdan bo‘shasangiz kredit to‘lovi qoplanadi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ishdan bo‘shasangiz kredit to‘lovi qoplanadi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y154",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y154",
+   "old": {
+    "id": "Y154",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Hosil sug‘urtasi",
+    "text": "Hosilni ob-havo xavfidan sug‘urta qildingiz.",
+    "price": 500,
+    "duration": "5 aylana",
+    "goal": "Agro xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Qurg‘oqchilik va dovul zararidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Qurg‘oqchilik va dovul zararidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y154",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Hosil sug‘urtasi (takaful)",
+    "text": "Hosilni ob-havo xavfidan sug‘urta qildingiz.",
+    "price": 500,
+    "duration": "5 aylana",
+    "goal": "Agro xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Qurg‘oqchilik va dovul zararidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Qurg‘oqchilik va dovul zararidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y155",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y155",
+   "old": {
+    "id": "Y155",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Kiberxavf sug‘urtasi",
+    "text": "Raqamli biznesni kiberhujumdan sug‘urta qilish.",
+    "price": 350,
+    "duration": "5 aylana",
+    "goal": "Raqamli xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-350",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Kiberhujum xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Kiberhujum xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y155",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Kiberxavf sug‘urtasi (takaful)",
+    "text": "Raqamli biznesni kiberhujumdan sug‘urta qilish.",
+    "price": 350,
+    "duration": "5 aylana",
+    "goal": "Raqamli xavf",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-350",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Kiberhujum xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Kiberhujum xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y156",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y156",
+   "old": {
+    "id": "Y156",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Ish o‘rnini yo‘qotish sug‘urtasi",
+    "text": "Ishdan bo‘shash xavfidan sug‘urta.",
+    "price": 600,
+    "duration": "5 aylana",
+    "goal": "Daromad yo‘qolishidan himoya",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-600",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ishdan bo‘shaganda 2 aylana ish haqi qoplanadi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ishdan bo‘shaganda 2 aylana ish haqi qoplanadi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y156",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Ish o‘rnini yo‘qotish sug‘urtasi (takaful)",
+    "text": "Ishdan bo‘shash xavfidan sug‘urta.",
+    "price": 600,
+    "duration": "5 aylana",
+    "goal": "Daromad yo‘qolishidan himoya",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-600",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ishdan bo‘shaganda 2 aylana ish haqi qoplanadi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ishdan bo‘shaganda 2 aylana ish haqi qoplanadi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y157",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y157",
+   "old": {
+    "id": "Y157",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Nogironlik sug‘urtasi",
+    "text": "Mehnatga layoqatni yo‘qotishdan sug‘urta.",
+    "price": 500,
+    "duration": "Doimiy",
+    "goal": "Daromadni himoya qilish",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ish haqi yo‘qolsa kompensatsiya",
+      "value": "100",
+      "duration": "Doimiy",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ish haqi yo‘qolsa kompensatsiya",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y157",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Nogironlik sug‘urtasi (takaful)",
+    "text": "Mehnatga layoqatni yo‘qotishdan sug‘urta.",
+    "price": 500,
+    "duration": "Doimiy",
+    "goal": "Daromadni himoya qilish",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-500",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ish haqi yo‘qolsa kompensatsiya",
+      "value": "100",
+      "duration": "Doimiy",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ish haqi yo‘qolsa kompensatsiya",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y158",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y158",
+   "old": {
+    "id": "Y158",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Chorva sug‘urtasi",
+    "text": "Chorva mollari kasallik va yo‘qotishdan sug‘urtalandi.",
+    "price": 200,
+    "duration": "5 aylana",
+    "goal": "Qishloq xo‘jaligi xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Chorva yo‘qotish xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Chorva yo‘qotish xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y158",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Chorva sug‘urtasi (takaful)",
+    "text": "Chorva mollari kasallik va yo‘qotishdan sug‘urtalandi.",
+    "price": 200,
+    "duration": "5 aylana",
+    "goal": "Qishloq xo‘jaligi xavfi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-200",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Chorva yo‘qotish xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Chorva yo‘qotish xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y159",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y159",
+   "old": {
+    "id": "Y159",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Ijarachi sug‘urtasi",
+    "text": "Ijara uyidagi mol-mulkingiz sug‘urtalandi.",
+    "price": 150,
+    "duration": "5 aylana",
+    "goal": "Ijarachi himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-150",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ijara uyida zarar xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ijara uyida zarar xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y159",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "Ijarachi sug‘urtasi (takaful)",
+    "text": "Ijara uyidagi mol-mulkingiz sug‘urtalandi.",
+    "price": 150,
+    "duration": "5 aylana",
+    "goal": "Ijarachi himoyasi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-150",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Ijara uyida zarar xarajatidan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Ijara uyida zarar xarajatidan ozod qiladi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y160",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y160",
+   "old": {
+    "id": "Y160",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "To‘liq xavflar paketi",
+    "text": "Barcha asosiy xavflardan bitta paketda sug‘urta.",
+    "price": 1800,
+    "duration": "5 aylana",
+    "goal": "Paket va alohida sug‘urta narxi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-1800",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Tabiiy ofat, o‘g‘irlik, YTH va tibbiy xarajatdan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Tabiiy ofat, o‘g‘irlik, YTH va tibbiy xarajatdan ozod qiladi · Eng qimmat; ustuvorlik past",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y160",
+    "deck": 5,
+    "deckName": "Xarajat",
+    "cardType": "Sug‘urta",
+    "direction": "Himoya",
+    "kind": "INSURANCE",
+    "title": "To‘liq xavflar paketi (takaful)",
+    "text": "Barcha asosiy xavflardan bitta paketda sug‘urta.",
+    "price": 1800,
+    "duration": "5 aylana",
+    "goal": "Paket va alohida sug‘urta narxi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "SUGURTA_PREMIYA",
+      "target": "O‘yinchi",
+      "value": "-1800",
+      "duration": "Bir marta"
+     },
+     {
+      "type": "SUGURTA_QOPLASH",
+      "target": "Tabiiy ofat, o‘g‘irlik, YTH va tibbiy xarajatdan ozod qiladi",
+      "value": "100",
+      "duration": "5 aylana",
+      "condition": "Polis kartasi o‘yinchida qoladi"
+     }
+    ],
+    "display": "Tabiiy ofat, o‘g‘irlik, YTH va tibbiy xarajatdan ozod qiladi · Eng qimmat; ustuvorlik past",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y054",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y054",
+   "old": {
+    "id": "Y054",
+    "deck": 6,
+    "deckName": "Katta aylana xarajati",
+    "cardType": "Katta aylana xarajati",
+    "direction": "Majburiy xarajat",
+    "kind": "EXPENSE",
+    "title": "Oilaviy sug‘urta",
+    "text": "Butun oila uchun keng qamrovli sog‘liq sug‘urtasi.",
+    "price": 6000,
+    "goal": "Risk boshqaruvi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "NAQD_XARAJAT",
+      "target": "O‘yinchi",
+      "value": "-6000",
+      "duration": "Bir marta"
+     }
+    ],
+    "display": "Bir martalik −6 000 · Sug‘urta madaniyati",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_MAVJUD_KOLODA",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y054",
+    "deck": 6,
+    "deckName": "Katta aylana xarajati",
+    "cardType": "Katta aylana xarajati",
+    "direction": "Majburiy xarajat",
+    "kind": "EXPENSE",
+    "title": "Oilaviy sug‘urta (takaful)",
+    "text": "Butun oila uchun keng qamrovli sog‘liq sug‘urtasi.",
+    "price": 6000,
+    "goal": "Risk boshqaruvi",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "NAQD_XARAJAT",
+      "target": "O‘yinchi",
+      "value": "-6000",
+      "duration": "Bir marta"
+     }
+    ],
+    "display": "Bir martalik −6 000 · Sug‘urta madaniyati",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_MAVJUD_KOLODA",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  },
+  {
+   "id": "Y250",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y250",
+   "old": {
+    "id": "Y250",
+    "deck": 7,
+    "deckName": "Kutilmagan hodisa",
+    "cardType": "Moliyaviy savod viktorinasi",
+    "direction": "Ta’lim",
+    "kind": "QUIZ",
+    "title": "Sug‘urta",
+    "text": "Sug‘urta nima uchun kerak?",
+    "optionA": "Boyish uchun",
+    "optionB": "Katta zarardan himoya uchun",
+    "optionV": "Soliqni kamaytirish uchun",
+    "duration": "30 soniya",
+    "goal": "Kichik to‘lov evaziga katta xavfdan himoya olasiz.",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "VIKTORINA_JAVOB",
+      "target": "O‘yinchi",
+      "value": "B",
+      "duration": "30 soniya"
+     }
+    ],
+    "display": "To‘g‘ri javob: B · To‘g‘ri javob XP beradi; pulga ta’sir qilmaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y250",
+    "deck": 7,
+    "deckName": "Kutilmagan hodisa",
+    "cardType": "Moliyaviy savod viktorinasi",
+    "direction": "Ta’lim",
+    "kind": "QUIZ",
+    "title": "Sug‘urta (takaful)",
+    "text": "Sug‘urta nima uchun kerak?",
+    "optionA": "Boyish uchun",
+    "optionB": "Katta zarardan himoya uchun",
+    "optionV": "Soliqni kamaytirish uchun",
+    "duration": "30 soniya",
+    "goal": "Kichik to‘lov evaziga katta xavfdan himoya olasiz.",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "VIKTORINA_JAVOB",
+      "target": "O‘yinchi",
+      "value": "B",
+      "duration": "30 soniya"
+     }
+    ],
+    "display": "To‘g‘ri javob: B · To‘g‘ri javob XP beradi; pulga ta’sir qilmaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  }
+ ]
+}

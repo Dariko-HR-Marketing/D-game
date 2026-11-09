@@ -1,0 +1,82 @@
+{
+ "importId": "imp_20261109120726_af648a3f",
+ "at": "2026-11-09T12:07:26.822Z",
+ "source": "tajriba24_cards_import.csv",
+ "sha256": "af648a3f",
+ "entries": [
+  {
+   "id": "Y243",
+   "op": "INSERT",
+   "where": "catalog",
+   "key": "Y243",
+   "old": {
+    "id": "Y243",
+    "deck": 7,
+    "deckName": "Kutilmagan hodisa",
+    "cardType": "Moliyaviy savod viktorinasi",
+    "direction": "Ta’lim",
+    "kind": "QUIZ",
+    "title": "Foydani qayta sarmoyalash",
+    "text": "Foydani qayta sarmoyalash nima?",
+    "optionA": "Faqat boshlang‘ich summadan foyda olish",
+    "optionB": "Foydasiz qarz (qarzi hasan)",
+    "optionV": "Olingan foydani qayta sarmoyaga qo‘shib, foydadan ham foyda olish",
+    "duration": "30 soniya",
+    "goal": "Foiz ustiga foiz — vaqt o‘tgan sari o‘sish tezlashadi.",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "VIKTORINA_JAVOB",
+      "target": "O‘yinchi",
+      "value": "V",
+      "duration": "30 soniya"
+     }
+    ],
+    "display": "To‘g‘ri javob: V · To‘g‘ri javob XP beradi; pulga ta’sir qilmaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   },
+   "new": {
+    "id": "Y243",
+    "deck": 7,
+    "deckName": "Kutilmagan hodisa",
+    "cardType": "Moliyaviy savod viktorinasi",
+    "direction": "Ta’lim",
+    "kind": "QUIZ",
+    "title": "Foydani qayta sarmoyalash",
+    "text": "Foydani qayta sarmoyalash nima?",
+    "optionA": "Faqat boshlang‘ich summadan foyda olish",
+    "optionB": "Foydasiz qarz (qarzi hasan)",
+    "optionV": "Foydani qayta sarmoyalab, foydadan foyda olish",
+    "duration": "30 soniya",
+    "goal": "Foiz ustiga foiz — vaqt o‘tgan sari o‘sish tezlashadi.",
+    "age": "12+",
+    "pool": "DECK",
+    "ranked": "EXTENDED",
+    "effects": [
+     {
+      "type": "VIKTORINA_JAVOB",
+      "target": "O‘yinchi",
+      "value": "V",
+      "duration": "30 soniya"
+     }
+    ],
+    "display": "To‘g‘ri javob: V · To‘g‘ri javob XP beradi; pulga ta’sir qilmaydi",
+    "needsMapping": false,
+    "draw": true,
+    "publish": true,
+    "batch": "V2_YANGI_TUR",
+    "review": "OK",
+    "image": "NEW_ART",
+    "reason": "Yangi karta (20 talik to‘plam)"
+   }
+  }
+ ]
+}

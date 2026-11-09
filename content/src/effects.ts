@@ -105,7 +105,7 @@ export function deriveEffects(c: Cards): CardEffect[] {
       case "QAR": return push("kichik", id, f, "optional", { kind: "qarOffer", monthlyExpense: k.amount! });
       case "E": return push("kichik", id, f, "optional", { kind: "buy", asset: "land", code: k.code, price: k.full!, down: k.down, credit: k.credit, creditPayment: k.interest, monthlyIncome: k.rent, marketValue: real(k.real) });
       case "Q":
-        if (/qarzga/.test(k.text)) return push("kichik", id, f, "optional", { kind: "lendRequest", amount: k.amount!, returnAmount: 600 });
+        if (/qarzga|sarmoya so.rayapti/.test(k.text)) return push("kichik", id, f, "optional", { kind: "lendRequest", amount: k.amount!, returnAmount: 600 });
         return push("kichik", id, f, "optional", { kind: "buy", asset: "collectible", code: k.code, price: k.amount! });
       default:
         if (k.share !== undefined) return push("kichik", id, f, "optional", { kind: "buyShares", code: k.code, pricePerShare: k.share, min: k.min!, max: k.max! });
