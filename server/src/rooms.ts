@@ -27,7 +27,7 @@ export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   voice?: Set<string>; chat?: ChatMsg[]; chatSeq?: number; lastChat?: Record<string, { text: string; at: number }>; // so'nggi xabarlar (xotirada) va takroriy xabarni to'xtatish
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
-  auctionPhase?: string; auctionBids?: number; auctionEnd?: number | null; // garov auksioni: bosqich, ko'rilgan takliflar soni, tugash vaqti
+  auctionPhase?: string; auctionEnd?: number | null; // garov auksioni: bosqich va tugash vaqti
   timerSeconds?: number | null; armKey?: string | null; // joriy taymer davomiyligi (mijoz halqasi uchun) va qaysi bosqich uchun o'rnatilgani (bir xil bosqichda qayta o'rnatilmaydi)
   /** Xona egasi oldindan belgilagan o'yinchilar soni (2–8); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 8 gacha qo'shilish, 2 tagacha bot. */
   seats?: number;
@@ -326,12 +326,11 @@ export class RoomManager {
     r.timer = this.clock.setTimeout(() => { this.autoMove(r).catch((e) => { this.hooks.onError?.("autoMove", e); if (r.state && !r.state.winner && !r.endedAt) this.arm(r); }); }, delay);
   }
 
-  /** Garov auksioni (halol moliya): 30 s (sekin xonada 60 s) — egasi qaror qiladi, so'ng ochiq auksion shuncha davom etadi; har bir yangi taklif muddatni kamida `auctionExtendSeconds` ga uzaytiradi (oxirgi soniyada olib qo'yishning oldini oladi). Vaqtsiz xonada muddat yo'q: hamma o'tkazganda yopiladi. Botlar va avtopilotdagilar darhol harakat qiladi. */
+  /** Garov auksioni (halol moliya): egasi odatdagi bir o'yinchi vaqti (30/60 s) ichida qaror qiladi; ochiq auksion shu vaqtning 5 baravari davom etadi (150/300 s) — buyurtmachi 2026-11-09. Tugagach oddiy navbat taymeri to'liq qayta boshlanadi. Vaqtsiz xonada muddat yo'q: hamma o'tkazganda yopiladi. Botlar va avtopilotdagilar darhol harakat qiladi. */
   private armAuction(r: Room, au: Auction) {
-    const timed = r.turnSeconds !== 0, now = this.clock.now(), secs = Math.round(RULES.timerAuctionSeconds * (r.turnSeconds / 30));
+    const timed = r.turnSeconds !== 0, now = this.clock.now(), secs = au.phase === "open" ? r.turnSeconds * RULES.auctionTimeFactor : r.turnSeconds;
     const phaseKey = `${au.id}|${au.phase}`;
-    if (r.auctionPhase !== phaseKey) { r.auctionPhase = phaseKey; r.auctionBids = au.bids; r.auctionEnd = timed ? now + secs * 1000 : null; }
-    else if (au.bids > (r.auctionBids ?? 0)) { r.auctionBids = au.bids; if (timed) r.auctionEnd = Math.max(r.auctionEnd ?? 0, now + RULES.auctionExtendSeconds * 1000); }
+    if (r.auctionPhase !== phaseKey) { r.auctionPhase = phaseKey; r.auctionEnd = timed ? now + secs * 1000 : null; } // muddat bosqich boshida bir marta belgilanadi (takliflar uni o'zgartirmaydi)
     const sig = `A${phaseKey}|${au.bids}|${au.passed.length}|${r.auctionEnd}`;
     if (r.timer && r.armKey === sig) return;
     if (r.timer) this.clock.clearTimeout(r.timer);

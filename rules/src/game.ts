@@ -456,7 +456,6 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
     const base = playerCashflow(p) - held;
     const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
     p = tickDeposits(tickMods(tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary })));
-    if (p.halalFin && p.bankLoans.length) p = { ...p, missed: p.cash < 0 ? (p.missed ?? 0) + 1 : 0 }; // halol hisob: bank kreditini to'lashga pul yetmagan oylar ketma-ketligi
     if (p.cash < 0 && (p.lombards ?? []).length && !p.halalFin) { // ESKI hisob: lombard foizi to'lanmadi — garov yo'qoladi (qo'llanma §08). Halol hisobda garov musodara qilinmaydi: yetmagan summa qarz (owe) bo'ladi, garov faqat muddat oxirida sotiladi
       logf(s, `${p.id}: lombard foizi kechikdi — garov yo'qoldi`);
       p = { ...p, assets: p.assets.filter((x) => x.pledged !== "lombard"), lombards: [] };

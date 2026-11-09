@@ -2,7 +2,7 @@
 // avval egasiga taklif qilinadi, u olmasa boshqa o'yinchilar o'rtasida auksionga qo'yiladi.
 // Boshlang'ich narx = bankning qarzi + qo'shimcha haq (+ aktivning o'z krediti). Eng ko'p bergan oladi; bank o'z haqini olib,
 // ORTIQCHASINI EGASIGA QAYTARADI. Hamma taymerlar serverda (holatda faqat bosqich va takliflar), shuning uchun jurnaldan qayta o'ynash deterministik.
-import { RULES, bankLoanPayoff, bankPrincipalDue, lombardPayoff } from "./index";
+import { RULES, bankLoanDebt, bankLoanPayoff, lombardPayoff } from "./index";
 import { slotFull, unpledge, type Asset } from "./engine";
 import type { GameState, GamePlayer, Action } from "./game";
 
@@ -42,10 +42,7 @@ export function nextDefault(s: GameState): { pid: string; kind: "lombard" | "ban
   for (const p of s.players) {
     const c: { kind: "lombard" | "bank"; loanIdx: number; since: number }[] = [];
     (p.lombards ?? []).forEach((l, i) => { if (l.overdue) c.push({ kind: "lombard", loanIdx: i, since: l.since ?? 0 }); });
-    if ((p.missed ?? 0) >= RULES.missedMonthsToSale && p.bankLoans.length > 0) {
-      let b = 0; p.bankLoans.forEach((l, i) => { if ((l.since ?? 0) < (p.bankLoans[b].since ?? 0)) b = i; });
-      c.push({ kind: "bank", loanIdx: b, since: p.bankLoans[b].since ?? 0 });
-    }
+    p.bankLoans.forEach((l, i) => { if (l.overdue) c.push({ kind: "bank", loanIdx: i, since: l.since ?? 0 }); }); // 36 oy tugagach to'lanmagan qoldiq
     if (c.length === 0) continue;
     c.sort((x, y) => x.since - y.since || (x.kind === "bank" ? -1 : 1));
     return { pid: p.id, kind: c[0].kind, loanIdx: c[0].loanIdx };
@@ -65,7 +62,8 @@ export function canBid(s: GameState, a: Auction, p: GamePlayer, amount: number):
   }
   return true;
 }
-export const nextMinBid = (a: Auction) => (a.best ? a.best.amount + RULES.auctionBidStep : a.reserve);
+/** Eng kam taklif: birinchisi — boshlang'ich narxdan kichik bo'lmagan eng yaqin qadamga karrali summa; keyingilari — yetakchi + qadam. */
+export const nextMinBid = (a: Auction) => (a.best ? a.best.amount + RULES.auctionBidStep : Math.ceil(a.reserve / RULES.auctionBidStep) * RULES.auctionBidStep);
 /** Hozir harakat qila oladigan (hali o'tkazmagan, yetakchi emas) takliflovchilar. */
 export const activeBidders = (s: GameState, a: Auction): GamePlayer[] =>
   s.players.filter((p) => !a.passed.includes(p.id) && a.best?.playerId !== p.id && canBid(s, a, p, nextMinBid(a)));
@@ -80,26 +78,28 @@ function settle(s: GameState, how: { buyer: string; price: number } | { buyer: n
   const rest = (xs: Asset[]) => xs.filter((_, i) => !ids.includes(i));
   const dropLoan = () => {
     if (a.kind === "lombard") o.lombards = (o.lombards ?? []).filter((_, n) => n !== a.loanIdx);
-    else { o.bankLoans = o.bankLoans.filter((_, n) => n !== a.loanIdx); o.bankDebt = o.bankLoans.reduce((t, l) => t + bankPrincipalDue(l.amount, l.left), 0); o.missed = 0; }
+    else { o.bankLoans = o.bankLoans.filter((_, n) => n !== a.loanIdx); o.bankDebt = o.bankLoans.reduce((t, l) => t + bankLoanDebt(l), 0); }
   };
   if ("buyback" in how) { // egasi qarzni to'laydi, aktivlar o'zida qoladi (aktivning o'z krediti davom etadi)
     o.cash -= a.due; if (loan) { dropLoan(); if (a.kind === "bank") { if (collateral) o.assets = unpledge(o.assets, collateral, "bank"); } else o.assets = unpledge(o.assets, [loan as { code: string; price: number }], "lombard"); }
     s.players[oi] = o; logf(s, `${a.owner}: garovdagi qarzni to'lab, mulkini saqlab qoldi (${a.due})`); s.auction = null; return;
   }
+  if (!how.buyer) { // hech kim olmadi: mulk egasida qoladi (garovdan bo'shaydi), qarz esa yana uning bo'yniga qaytadi (qo'shimcha foizsiz)
+    if (loan) { dropLoan(); if (a.kind === "bank") { if (collateral) o.assets = unpledge(o.assets, collateral, "bank"); } else o.assets = unpledge(o.assets, [loan as { code: string; price: number }], "lombard"); }
+    o.owe = (o.owe ?? 0) + a.due; s.players[oi] = o;
+    logf(s, `Garov auksionida taklif bo'lmadi: ${a.owner} ning ${a.due} lik qarzi o'ziga qaytdi, mulki o'zida qoldi`); s.auction = null; return;
+  }
   const lotValue = lot.reduce((t, x) => t + x.price, 0);
-  const proceeds = how.buyer ? how.price : lotValue; // g'olib bo'lmasa — bank garovni aktivning narxida oladi
-  const surplus = proceeds - a.reserve;
+  const surplus = how.price - a.reserve; // g'olib bo'lsa: bank o'z haqini oladi, ortiqchasi egasiga
   o.assets = rest(o.assets);
   if (loan) { dropLoan(); if (collateral) o.assets = unpledge(o.assets, collateral, "bank"); }
-  if (surplus >= 0) o.cash += surplus; else o.owe = (o.owe ?? 0) - surplus; // yetmagan qismi qarz bo'lib qoladi (qo'shimcha foiz yo'q)
+  o.cash += Math.max(0, surplus);
   s.players[oi] = o;
-  if (how.buyer) {
-    const bi = idx(s, how.buyer); const w = { ...s.players[bi] }; w.cash -= how.price;
-    let left = how.price;
-    lot.forEach((x, k) => { const share = k === lot.length - 1 ? left : Math.round((how.price * x.price) / (lotValue || 1)); left -= share; w.assets = [...w.assets, { ...x, pledged: undefined, credit: 0, creditPayment: 0, price: share }]; });
-    s.players[bi] = w;
-    logf(s, `${how.buyer}: garov auksionida ${how.price} ga sotib oldi; ${a.owner} ga ortiqcha ${Math.max(0, surplus)} qaytarildi`);
-  } else logf(s, `Garov auksionida taklif bo'lmadi: bank mulkni ${lotValue} ga oldi, ${a.owner} ga ortiqcha ${Math.max(0, surplus)} qaytarildi`);
+  const bi = idx(s, how.buyer); const w = { ...s.players[bi] }; w.cash -= how.price;
+  let left = how.price;
+  lot.forEach((x, k) => { const share = k === lot.length - 1 ? left : Math.round((how.price * x.price) / (lotValue || 1)); left -= share; w.assets = [...w.assets, { ...x, pledged: undefined, credit: 0, creditPayment: 0, price: share }]; });
+  s.players[bi] = w;
+  logf(s, `${how.buyer}: garov auksionida ${how.price} ga sotib oldi; ${a.owner} ga ortiqcha ${Math.max(0, surplus)} qaytarildi`);
   s.auction = null;
 }
 
@@ -124,7 +124,7 @@ export function startAuction(s: GameState) {
     logf(s, `${d.pid}: to'lanmagan ${d.kind === "bank" ? "bank krediti" : "lombard"} garovi auksionga qo'yildi (boshlang'ich narx ${a.reserve})`);
     if (lot.length === 0) { // garov topilmadi (kutilmagan): majburiyat egasining qarziga o'tadi
       s.auction = null; const oo = { ...o }; const pay = Math.min(Math.max(0, oo.cash), due); oo.cash -= pay; oo.owe = (oo.owe ?? 0) + (due - pay);
-      if (d.kind === "lombard") oo.lombards = (oo.lombards ?? []).filter((_, n) => n !== d.loanIdx); else { oo.bankLoans = oo.bankLoans.filter((_, n) => n !== d.loanIdx); oo.missed = 0; oo.bankDebt = oo.bankLoans.reduce((t, x) => t + bankPrincipalDue(x.amount, x.left), 0); }
+      if (d.kind === "lombard") oo.lombards = (oo.lombards ?? []).filter((_, n) => n !== d.loanIdx); else { oo.bankLoans = oo.bankLoans.filter((_, n) => n !== d.loanIdx); oo.bankDebt = oo.bankLoans.reduce((t, x) => t + bankLoanDebt(x), 0); }
       s.players[idx(s, d.pid)] = oo; continue;
     }
     advance(s);
@@ -183,6 +183,6 @@ export function botAuctionAction(s: GameState, botId: string): Action | null {
   // Har bir botning o'z narx chegarasi bor (aktiv narxining 60–90 %, bot ID siga qarab); taklif qadami — boshlang'ich narxning 5 % i (urush uzoq cho'zilmasin)
   const value = au.lot.reduce((t, x) => t + x.price, 0), pct = 60 + ([...botId].reduce((h, c) => h + c.charCodeAt(0), 0) % 4) * 10;
   const max = Math.floor((value * pct) / 10_000) * 100, jump = Math.max(RULES.auctionBidStep, Math.ceil((au.reserve * 0.05) / 100) * 100);
-  const next = au.best ? au.best.amount + jump : au.reserve;
+  const next = au.best ? au.best.amount + jump : nextMinBid(au);
   return next <= max && me.cash >= next && canBid(s, au, me, next) ? { type: "auction_bid", playerId: botId, amount: next } : { type: "auction_pass", playerId: botId };
 }

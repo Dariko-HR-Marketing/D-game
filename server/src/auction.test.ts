@@ -28,34 +28,33 @@ function inject(rm: any, room: any, ownerCash: number) {
 }
 
 describe("auksion: taymer", () => {
-  it("odam xonasida: muddat = 30 s; yangi taklif muddatni kamida 5 s ga uzaytiradi; muddat tugasa yetakchi sotib oladi", async () => {
+  it("ochiq auksion odatdagi vaqtning 5 baravari (30 s → 150 s); takliflar muddatni o'zgartirmaydi; muddat tugasa yetakchi sotib oladi", async () => {
     const { rm, code, room, clock } = await setup(30); inject(rm, room, 100);
     expect(room.state!.auction!.phase).toBe("open"); const t0 = clock.t;
-    expect(room.deadline).toBe(t0 + RULES.timerAuctionSeconds * 1000);
-    clock.t = t0 + 28_000; // oxirgi soniyalar
+    expect(room.deadline).toBe(t0 + 30_000 * RULES.auctionTimeFactor); expect(room.deadline).toBe(t0 + 150_000);
+    clock.t = t0 + 100_000;
     expect((await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 10_000 }, room.seq)).ok).toBe(true);
-    expect(room.deadline).toBeGreaterThanOrEqual(t0 + 30_000); expect(room.deadline).toBe(Math.max(t0 + 30_000, clock.t + RULES.auctionExtendSeconds * 1000));
-    clock.t = t0 + 31_900; expect((await rm.act(code, "c", { type: "auction_bid", playerId: "c", amount: 10_100 + 400 }, room.seq)).ok).toBe(true);
-    expect(room.deadline).toBe(clock.t + RULES.auctionExtendSeconds * 1000); // 30 s dan keyin ham, taklif bo'lsa uzayadi
-    await clock.fireNext();
+    expect(room.deadline).toBe(t0 + 150_000); // taklif muddatni uzaytirmaydi ham, qisqartirmaydi ham
+    expect((await rm.act(code, "c", { type: "auction_bid", playerId: "c", amount: 10_500 }, room.seq)).ok).toBe(true);
+    await clock.fireNext(); expect(clock.t).toBe(t0 + 150_000);
     expect(room.state!.auction).toBeFalsy();
     const c = room.state!.players.find((p: any) => p.id === "c")!; expect(c.assets).toHaveLength(1); expect(c.cash).toBe(100_000 - 10_500);
     expect(room.state!.players.find((p: any) => p.id === "a")!.cash).toBe(100 + 500);
     const log = await (rm as any).store.journal(code); expect(log.some((e: any) => (e.action.action ?? e.action).type === "auction_close")).toBe(true);
   });
-  it("sekin xonada (60 s) muddat ikki baravar", async () => {
-    const { rm, room } = await setup(60); inject(rm, room, 100); expect(room.deadline).toBe(rm["clock"].now() + RULES.timerAuctionSeconds * 2000);
+  it("sekin xonada (60 s) ochiq auksion 300 s", async () => {
+    const { rm, room } = await setup(60); inject(rm, room, 100); expect(room.deadline).toBe(rm["clock"].now() + 300_000);
   });
-  it("egasida pul bo'lsa avval unga 30 s; muddat tugasa auksion hammaga ochiladi (avtomatik rad)", async () => {
+  it("egasida pul bo'lsa avval unga odatdagi vaqt (30 s); tugasa auksion hammaga ochiladi (avtomatik rad) va 150 s davom etadi", async () => {
     const { rm, room, clock } = await setup(30); inject(rm, room, 50_000);
     expect(room.state!.auction!.phase).toBe("owner"); expect(room.deadline).toBe(clock.t + 30_000);
-    await clock.fireNext(); expect(room.state!.auction!.phase).toBe("open"); expect(room.deadline).toBe(clock.t + 30_000);
+    await clock.fireNext(); expect(room.state!.auction!.phase).toBe("open"); expect(room.deadline).toBe(clock.t + 150_000);
   });
-  it("auksion paytida oddiy navbat taymeri qo'yilmaydi; tugagach qayta boshlanadi", async () => {
+  it("auksion paytida oddiy navbat taymeri qo'yilmaydi; tugagach qayta boshlanadi (auksion vaqti hisobga kirmaydi)", async () => {
     const { rm, code, room, clock } = await setup(30); inject(rm, room, 100);
     const turn = room.state!.turn; clock.t += 120_000; expect(room.state!.turn).toBe(turn); expect(room.state!.auction).toBeTruthy();
     for (const u of ["b", "c"]) await rm.act(code, u, { type: "auction_pass", playerId: u }, room.seq);
-    expect(room.state!.auction).toBeFalsy(); expect(room.timer).toBeTruthy(); expect(room.deadline).toBe(clock.t + RULES.timerDiceSeconds * 1000); // kubik taymeri to'liq qayta boshlandi (auksion vaqti hisobga kirmadi)
+    expect(room.state!.auction).toBeFalsy(); expect(room.timer).toBeTruthy(); expect(room.deadline).toBe(clock.t + RULES.timerDiceSeconds * 1000);
   });
 });
 
