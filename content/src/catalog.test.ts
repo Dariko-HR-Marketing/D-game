@@ -1,6 +1,7 @@
 // Tajriba24 import: qabul mezonlari (TZ §9): tekshiruv, hisob, idempotentlik, qaytarish, xatoda hech narsa yozilmasligi, havzalar.
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { isSafeCardFile } from "./cardfile";
 import { loadContent, parseCatalogCsv, validateRows, applyImport, rollbackImport, parseKasbSupplement, deriveEffects, buildPools, catalogSummary, isLive, type LogEntry } from "./index";
 
 const dir = new URL("../imports/tajriba24/", import.meta.url);
@@ -106,4 +107,22 @@ describe("orzular (V5_ORZULAR)", () => {
     const { dreamsFromRows } = await import("./catalog"); const disk = JSON.parse(readFileSync(new URL("../data/dreams.json", import.meta.url), "utf-8"));
     expect(disk).toEqual(dreamsFromRows(rows)); expect(disk).toHaveLength(40); expect(disk.filter((d: any) => d.horizon === "Istiqbol")).toHaveLength(20);
   });
+});
+
+describe("yaratilgan karta rasmlari (content/art/generated)", () => {
+  const ART = new URL("../art/generated/", import.meta.url);
+  it("`art` ro'yxatidagi har bir karta katalogda bor, rasm fayli mavjud va kartaning `file` maydoni shu rasmga ishora qiladi", () => {
+    const ids = new Set(current.catalog.map((c) => c.id)); const fx = deriveEffects(current);
+    expect(current.art.length).toBeGreaterThan(0);
+    for (const id of current.art) {
+      expect(ids.has(id), `${id}: katalogda yo'q`).toBe(true);
+      expect(existsSync(new URL(`${id}.webp`, ART)), `${id}.webp fayli yo'q`).toBe(true);
+      expect(fx.find((e) => e.id === `cat-${id}`)!.file).toBe(`${id}.webp`);
+    }
+  });
+  it("jadvalda rasmi kerak (NEW_ART) har bir karta uchun rasm bor; qayta chizilgan (REDRAW) eski kartalarning rasmi ham bor", () => {
+    const need = current.catalog.filter((c) => c.image === "NEW_ART").map((c) => c.id); expect(need.filter((id) => !current.art.includes(id))).toEqual([]);
+    for (const r of rows.filter((x) => x.image_status === "REDRAW")) expect(existsSync(new URL(r.legacy_file.replace(/\.png$/i, ".webp").replace(/'/g, ""), ART)) || existsSync(new URL(r.legacy_file.replace(/\.png$/i, ".webp"), ART)), `${r.legacy_file}: yaratilgan rasm yo'q`).toBe(true);
+  });
+  it("yaratilgan fayl nomlari xavfsiz shaklga mos (§2.5)", () => { for (const f of readdirSync(ART).filter((x) => x.endsWith(".webp"))) expect(isSafeCardFile(f), f).toBe(true); });
 });

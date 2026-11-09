@@ -108,3 +108,6 @@ Kuzatuv, ogohlantirish qoidalari va nosozliklarni bartaraf etish: `docs/ops/RUNB
 
 ## Ommaga ochishdan oldin (hali bajarilmagan)
 Haqiqiy kirish (SMS/Google/Apple) — hozir har kim istalgan ID bilan kira oladi; mustaqil xavfsizlik sinovi; yuridik masalalar; ochiq qoidalar va ekranlar (`docs/OPEN_QUESTIONS.md`). Shu vaqtgacha havolani faqat sinovchilarga bering.
+
+**Yaratilgan karta rasmlari (2026-11-09):** rasmi yo'q 610 yangi va 108 qayta chizilishi kerak karta uchun rasmlar repoda (`content/art/generated/`). Serverda `deploy/vps/install-art.sh` ularni `deploy/vps/cards/` ga ko'chiradi (avtomatik deploy shuni chaqiradi; qo'lda: `cd deploy/vps && ./install-art.sh`). Qayta chizilgan kartalar eski fayl nomi ustiga yoziladi.
+

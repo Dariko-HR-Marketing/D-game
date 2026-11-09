@@ -158,9 +158,10 @@ export function deriveEffects(c: Cards): CardEffect[] {
   const universe: AssetDesc[] = [];
   for (const ce of out) if (!ce.info?.catalog && (ce.effect.kind === "buy" || ce.effect.kind === "buyShares")) { const ef = ce.effect as any; universe.push({ kind: ef.kind === "buyShares" ? "shares" : ef.asset, sector: ef.sector, name: ef.name, tags: ef.tags }); }
   for (const k of c.catalog) { const b = k.kind === "ASSET_BUY" && k.pool === "DECK" && k.draw && k.publish ? buyOf(k) : null; if (b && b.effect.kind === "buy") universe.push({ kind: b.effect.asset, sector: b.effect.sector, name: b.effect.name, tags: b.effect.tags }); }
+  const artIds = new Set(c.art ?? []);
   for (const k of c.catalog) {
     const d = catalogEffect(k, universe);
-    out.push({ deck: CAT_DECK[k.deck], id: `cat-${k.id}`, file: k.file ?? "", mode: d.mode, effect: d.effect, text: catalogText(k), title: k.title,
+    out.push({ deck: CAT_DECK[k.deck], id: `cat-${k.id}`, file: k.file ?? (artIds.has(k.id) ? `${k.id}.webp` : ""), mode: d.mode, effect: d.effect, text: catalogText(k), title: k.title,
       info: { ranked: k.ranked, age: k.age, sector: k.sector, kind: k.kind, image: k.image, goal: k.goal, ...(d.held ? { held: d.held } : {}), ...(k.retired ? { retired: k.retired } : {}), catalog: true } });
   }
   // Karta matni (UI uchun): har kolodada tartib manba massivi bilan bir xil.
