@@ -21,7 +21,7 @@ Bu bitta fayl Claude Code'ga POYGA stol o'yinining onlayn versiyasini profession
 4. Faqat bu faylda va ilovalarda berilgan raqamlar ishlatiladi. Narxlar yo'q: ular sozlamada (konfiguratsiyada) bo'sh turadi va keyin to'ldiriladi.
 5. Kartalar asl rasmi bilan chiqadi; ilova kartani qayta chizmaydi, faqat ta'sirini hisoblaydi.
 6. Karta nomi: «KUTILMAGAN HODISA!».
-7. Kichik va katta aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi yo'q.
+7. Kichik va katta aylana o'yinchilari o'rtasida (qaror 2026-11-09, buyurtmachi): **qarz** — kichik aylana o'yinchisi katta aylanadan ham qarz so'ray oladi, katta aylana o'yinchisi qarz ola olmaydi; **sheriklik** — uni faqat kichik aylana o'yinchisi taklif qiladi (sherik katta aylanadan bo'lishi mumkin), katta aylana o'yinchisi taklif qila olmaydi; **suyunchi** — faqat kichik aylana o'yinchilari o'rtasida, katta aylanada yo'q.
 8. 16 yoshgacha: to'lov ota-ona tasdig'i bilan, o'zaro qarz/sheriklik va erkin chat yopiq, reklama yo'q.
 9. Ilovada faqat do'kon to'lovi (App Store / Google Play); Payme, Click, Uzcard/Humo faqat veb-versiyada.
 
@@ -60,8 +60,8 @@ Bu bitta fayl Claude Code'ga POYGA stol o'yinining onlayn versiyasini profession
 | Qoida | Shart |
 |---|---|
 | Suyunchi | Farzand tug'ilsa bank 500 sh.b. beradi; har o'yinchi ixtiyoriy 10–500 sh.b. (10 qadam) beradi, naqdidan oshmaydi, 30 soniya, navbatni to'xtatmaydi; har tug'ilishda alohida; faqat kichik aylanada |
-| O'zaro qarz | Kamida 5 o'yinchi (oluvchi, beruvchi, 3 guvoh); beruvchi naqdining ≤ 20 %; oluvchi limiti (maosh + passiv) × 50 % × 36 oy; foizsiz; ≤ 36 oy; to'lov ixtiyoriy, blankda «Hamkorlik qarzlari», beruvchi eslatma yuboradi; botlar qatnashmaydi |
-| Sheriklik | Faqat kichik/katta sarmoya bizneslari; naqd va bank limiti tugagach; narx va foyda 50/50; sherik faqat naqd to'laydi; ulush qaytgach 24 oy dividend, so'ng biznes egasiga bepul yoki to'liq narx + 1 oylik foyda naqd bilan sotib olinadi; taklif 30 soniya; yopilmaguncha katta aylanaga chiqib bo'lmaydi |
+| O'zaro qarz | **Oluvchi faqat kichik aylana o'yinchisi; beruvchi kichik yoki katta aylanadan** (2026-11-09); katta aylana o'yinchisi qarz ola olmaydi. Kamida 5 o'yinchi (oluvchi, beruvchi, 3 guvoh); beruvchi naqdining ≤ 20 %; oluvchi limiti (maosh + passiv) × 50 % × 36 oy; foizsiz; ≤ 36 oy; to'lov ixtiyoriy, blankda «Hamkorlik qarzlari», beruvchi eslatma yuboradi; botlar qatnashmaydi |
+| Sheriklik | **Taklif qiluvchi faqat kichik aylana o'yinchisi; sherik kichik yoki katta aylanadan** (2026-11-09); katta aylana o'yinchisi sheriklik taklif qila olmaydi. Faqat kichik/katta sarmoya bizneslari; naqd va bank limiti tugagach; narx va foyda 50/50; sherik faqat naqd to'laydi; ulush qaytgach 24 oy dividend, so'ng biznes egasiga bepul yoki to'liq narx + 1 oylik foyda naqd bilan sotib olinadi; taklif 30 soniya; yopilmaguncha katta aylanaga chiqib bo'lmaydi |
 | Qarz bilan chiqish | −50 ball va «Ishonchsiz» belgisi *(tasdiq kutilmoqda)* |
 | Vaqt rejimi | Tugaganda ochiq hamkorlik qarzlari passiv sifatida hisoblanadi *(tasdiq kutilmoqda)* |
 | 5 dan kam o'yinchi | O'zaro qarz yopiq, sheriklik ochiq *(tasdiq kutilmoqda)* |

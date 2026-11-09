@@ -942,7 +942,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const rec = P(a.playerId), giver = s.players.find((p) => p.id === a.giverId);
       if (!giver || giver.id === rec.id) return err("bad_giver");
       if (s.bots.includes(rec.id) || s.bots.includes(giver.id)) return err("bot"); // §6.5
-      if (rec.circle !== "small" || giver.circle !== "small") return err("small_circle_only"); // §2.7
+      if (rec.circle !== "small") return err("big_cannot_borrow"); // §2.7 (2026-11-09): qarz oladigan faqat kichik aylana; beruvchi kichik yoki katta aylanadan bo'lishi mumkin
       const existing = rec.handDebts.reduce((x, d) => x + d.amount, 0);
       const chk = checkMutualLoan({ players: humans(s).length, amount: a.amount, months: a.months, giverCash: giver.cash,
         receiverSalary: salaryOf(rec), receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: existing });
@@ -956,6 +956,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (pr.giver !== a.playerId) return err("not_giver");
       if (s.restricted.includes(pr.giver) || s.restricted.includes(pr.receiver)) return err("restricted_age");
       const giver = P(pr.giver), rec = P(pr.receiver);
+      if (rec.circle !== "small") return err("big_cannot_borrow"); // oluvchi taklifdan keyin katta aylanaga chiqib ketgan bo'lishi mumkin
       const chk = checkMutualLoan({ players: humans(s).length, amount: pr.amount, months: pr.months, giverCash: giver.cash,
         receiverSalary: salaryOf(rec), receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: rec.handDebts.reduce((x, d) => x + d.amount, 0) });
       if (!chk.ok) return err(chk.reason); // holat o'zgargan bo'lishi mumkin
@@ -990,7 +991,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (e.kind !== "buy" || !["small_business", "business"].includes(e.asset) || s.pending.cardId.startsWith("big-")) return err("business_only"); // §5.6
       const partner = s.players.find((p) => p.id === a.partnerId);
       if (!partner || partner.id === owner.id) return err("bad_partner");
-      if (owner.circle !== partner.circle) return err("circle_mismatch"); // §2.7
+      if (owner.circle !== "small") return err("big_cannot_offer_partner"); // §2.7 (2026-11-09): sheriklikni faqat kichik aylana taklif qiladi; sherik kichik yoki katta aylanadan bo'lishi mumkin
       if (slotFull(owner, e.asset)) return err("slot_full");
       const room = maxBankLoan(owner);
       if (owner.cash >= e.price || e.price - owner.cash <= room) return err("not_needed"); // naqd va bank limiti tugagach

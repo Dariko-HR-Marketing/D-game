@@ -52,7 +52,7 @@ export function ruleItems(r: R): RuleItem[] {
     { id: "under16", title: "16 yoshgacha", source: "SPEC §2.8",
       text: "O'zaro qarz va sheriklik yopiq, erkin chat yo'q, reklama yo'q; to'lov ota-ona tasdig'i bilan." },
     { id: "circles", title: "Aylanalar o'rtasida", source: "SPEC §2.7",
-      text: "Kichik va katta aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi bo'lmaydi." },
+      text: "Qarz: katta aylana o'yinchisi kichik aylana o'yinchisiga qarz bera oladi; kichik aylana o'yinchisi katta aylanadan qarz so'ray oladi. Katta aylana o'yinchisi qarz ola olmaydi. Sheriklik: kichik aylana o'yinchisi biznes boshlash uchun katta aylana o'yinchisini sherikka taklif qila oladi; katta aylana o'yinchisi sheriklik taklif qila olmaydi. Suyunchi: faqat kichik aylana o'yinchilari o'rtasida; katta aylanada suyunchi yo'q." },
     { id: "fair", title: "Halollik", source: "SPEC §1, §6.6",
       text: "Natija faqat serverda hisoblanadi, kubik va deka aralashtirish serverda tekshiriladigan manbadan; o'yin jurnali nizo uchun saqlanadi. Pulli qo'shimchalar o'yin natijasiga ta'sir qilmaydi." },
   ];
