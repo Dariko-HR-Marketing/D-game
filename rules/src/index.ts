@@ -16,6 +16,9 @@ export const RULES = {
   lombardFeePct: 50,              // 12 oylik lombard uchun olingan summaning 50 % i (buyurtmachi 2026-11-09), farzand chegirmasi bilan; muddatidan oldin yopilsa ham to'liq
   // Garov auksioni (to'lanmagan majburiyat; buyurtmachi 2026-11-09): ochiq auksion odatdagi bir o'yinchi vaqtining 5 baravari davom etadi (30 s → 150 s, 60 s → 300 s), keyin navbat taymeri odatdagidek qayta boshlanadi
   auctionTimeFactor: 5,
+  auctionMinBidders: 2,           // auksion ochilishi uchun sotuvchidan tashqari boshlang'ich narxni naqd to'lay oladigan kamida shuncha o'yinchi (bot ham)
+  voluntaryMinPct: 50,            // ixtiyoriy auksion: boshlang'ich narx mulk narxining kamida shuncha foizi (50–100 %, qadam 10)
+  relistLaps: 4,                  // sotilmagan ixtiyoriy auksiondan keyin shu mulkni qayta qo'yish uchun o'tishi kerak bo'lgan aylana (tur)
   auctionBidStep: 100,            // eng kam ko'tarish qadami (OPEN_QUESTIONS 168)
   exitCash: 1_000_000, // §5.4
   exitPassiveFlow: 25_000,

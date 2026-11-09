@@ -22,6 +22,7 @@ const Num = ({ value, onChange, label }: { value: string; onChange: (v: string) 
 export function Actions({ room, userId, onAct }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void }) {
   const p = me(room, userId); const st = room.state;
   const [bank, setBank] = useState(""); const [giver, setGiver] = useState(""); const [loanAmt, setLoanAmt] = useState(""); const [months, setMonths] = useState("12");
+  const [listPct, setListPct] = useState(50);
   const [partner, setPartner] = useState(""); const [sAmt, setSAmt] = useState("100"); const [sellIdx, setSellIdx] = useState<number | null>(null);
   if (!p || st.winner) return null;
   const mineTurn = st.players[st.turn % st.players.length].id === userId;
@@ -63,6 +64,12 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
           <Button label={uz.coop.take} kind="ghost" disabled={!buyCardOpen || !bank || Number(bank) % 100 !== 0 || Number(bank) < 2000 || Number(bank) > bankRoom(p)} onPress={() => { onAct({ type: "bank_loan", amount: Number(bank) }); setBank(""); }} />
           {(p.bankLoans ?? []).map((l: any, i: number) => { const elapsed = 36 - l.left, cost = bankLoanPayoff(l);
             return (<Button key={i} kind="ghost" label={`${uz.coop.repayEarly}: ${money(l.amount)} · ${money(cost)}`} disabled={elapsed < RULES.bankEarlyCloseMonths || p.cash < cost} onPress={() => onAct({ type: "bank_repay", loanIdx: i })} />); })}
+        </Box>)}
+      {mineTurn && p.halalFin && p.circle === "small" && !room.state?.auction && pledgeableAssets(p).length > 0 && (
+        <Box title={uz.auction.listTitle}>
+          <Text style={s.note}>{uz.auction.listHint}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{[50, 60, 70, 80, 90, 100].map((v) => (<Button key={v} kind={listPct === v ? "primary" : "ghost"} label={uz.auction.listPct.replace("{p}", String(v))} onPress={() => setListPct(v)} />))}</View>
+          {pledgeableAssets(p).map(({ idx, a }) => (<Button key={`al${idx}`} kind="ghost" label={`${uz.auction.listBtn}: ${a.code} · ${money(Math.ceil((a.price * listPct) / 100 / 100) * 100)}`} onPress={() => onAct({ type: "auction_list", assetIdx: idx, pct: listPct })} />))}
         </Box>)}
       {mineTurn && pledgeableAssets(p).length > 0 && (
         <Box title={uz.coop.lombard}>

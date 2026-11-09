@@ -3,7 +3,7 @@
 import type { CardEffect, Effect, Op } from "@poyga/content/effects";
 import { matches, type Selector } from "@poyga/content/groups";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
-import { startAuction, auctionAct, isAuctionAction, type Auction, type AuctionAction } from "./auction";
+import { startAuction, auctionAct, isAuctionAction, cannotBuyAnyWay, startMarketAuction, type Auction, type AuctionAction } from "./auction";
 import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankLoanPayoff, bankPrincipalDue, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
@@ -100,7 +100,7 @@ export interface GameState {
   /** Halol moliya (2026-11-09): yangi o'yinlarda kredit/lombard foizsiz, bir martalik haq bilan; eski jurnallar eski hisob bilan o'ynaladi. */
   halalFin?: boolean;
   /** Garov auksioni (halol moliya): ochiq bo'lsa boshqa harakatlar to'xtaydi. `nextAuction`: ID hisoblagichi. */
-  auction?: Auction | null; nextAuction?: number;
+  auction?: Auction | null; nextAuction?: number; relist?: Record<string, number>;
   mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
@@ -547,7 +547,13 @@ function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
   if (ce.effect.kind === "marketSale") { applyMarketCard(s, ctx, id, ce.effect, ce.text); return; } // navbatni to'xtatmaydi
   if (ce.effect.kind === "sellOffer") { applySellOffer(s, id, ce.effect, ce.text); return; }
   if (ce.mode === "mandatory") { s.pending = { type: "card", playerId: p.id, cardId: id, deck }; autoMandatory(s, ctx, p, ce); }
-  else s.pending = { type: "card", playerId: p.id, cardId: id, deck };
+  else {
+    s.pending = { type: "card", playerId: p.id, cardId: id, deck };
+    // Bozor auksioni (halol moliya): sotib olish kartasi chiqdi, lekin hech bir yo'li yo'q (naqd, bank, lombard, sheriklik, qarz) — karta bozor auksioniga chiqadi
+    const e = crisisAdjusted(ce.effect, p) as { kind: string; code?: string; asset?: string; price?: number; down?: number; monthlyIncome?: number; marketValue?: number | null };
+    if (s.halalFin && p.circle === "small" && e.kind === "buy" && e.code && e.asset && e.price && cannotBuyAnyWay(s, p, e)
+      && startMarketAuction(s, p, id, { code: e.code, asset: e.asset, price: e.price, monthlyIncome: e.monthlyIncome, marketValue: e.marketValue })) s.pending = null;
+  }
 }
 
 /** Majburiy karta darhol qo'llanadi (§5.2). */
