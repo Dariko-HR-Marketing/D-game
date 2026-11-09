@@ -47,6 +47,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   await c.getByTestId("auction-input").fill("22000"); await c.getByRole("button", { name: /^Taklif qilish/ }).click();
   if (d) { // uchinchi o'yinchi bor: raqib turganda auksion ochiq qoladi
     await a.waitForFunction(() => (document.querySelector("[data-testid=auction-best]")?.textContent ?? "").replace(/\s/g, "").includes("22000"), null, { timeout: 8000 });
+    await c.getByTestId("auction-leader").waitFor({ timeout: 8000 });
+    await d.waitForFunction(() => (document.querySelector("[data-testid=auction-input]") as HTMLInputElement | null)?.value === "22100", null, { timeout: 8000 }).catch(() => {});
     check((await c.getByTestId("auction-leader").count()) === 1, `${tag}: takliflovchiga «siz eng yuqori taklif egasisiz»`);
     check((await d.getByTestId("auction-input").inputValue()) === "22100", `${tag}: raqibga eng kam taklif = yetakchi + qadam (22 100)`);
     await d.screenshot({ path: `${OUT}/${tag}-raqib.png` });
