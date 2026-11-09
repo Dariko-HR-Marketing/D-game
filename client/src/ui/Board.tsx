@@ -9,6 +9,7 @@ import { pathIndex, squareRing, type Tile } from "../boardLayout";
 import { BIG_CELLS } from "../bigBoard";
 import { Icon, type IconName } from "./Icon";
 import { nameOf } from "../model";
+import { bigOwners } from "../bigOwners";
 import { uz } from "../i18n/uz";
 import type { RoomView } from "../net/connection";
 
@@ -62,12 +63,13 @@ export function boardGeometry(width: number, wide: boolean, n: number, tight = f
 }
 
 /** Bitta katak: faqat o'z xossalari o'zgarganda qayta chiziladi (har holat yangilanishida 48–53 katak qayta chizilmasin). */
-const Tile = React.memo(function Tile({ x, y, w, h, corner, L, here, dream, small, wide }: { x: number; y: number; w: number; h: number; corner: boolean; L: Look; here: boolean; dream: boolean; small: boolean; wide: boolean }) {
-  const ls = labelSize(L.label, w);
+const Tile = React.memo(function Tile({ x, y, w, h, corner, L, here, dream, small, wide, oN, oHue, oDream, oName }: { x: number; y: number; w: number; h: number; corner: boolean; L: Look; here: boolean; dream: boolean; small: boolean; wide: boolean; oN: number; oHue: string; oDream: boolean; oName: string }) {
+  const ls = labelSize(L.label, w), bs = Math.max(13, Math.min(18, Math.min(w, h) - 4)); // egasi belgisi o'lchami: kichik kataklarga ham sig'adi
   return (
-    <View aria-hidden style={[s.tile, { left: x + 1, top: y + 1, width: w - 2, height: h - 2, backgroundColor: L.bg, borderColor: here ? color.navy : L.border, borderWidth: here ? 3 : 1, zIndex: here ? 2 : 0 }, dream && { borderStyle: "dashed", borderColor: "#A82F3E", borderWidth: 2 }]}>
+    <View aria-hidden style={[s.tile, { left: x + 1, top: y + 1, width: w - 2, height: h - 2, backgroundColor: L.bg, borderColor: here ? color.navy : L.border, borderWidth: here ? 3 : 1, zIndex: here ? 2 : 0 }, dream && { borderStyle: "dashed", borderColor: "#A82F3E", borderWidth: 2 }, oN > 0 && !here && { borderColor: oHue, borderWidth: 3 }]} {...(oN > 0 ? ({ title: oName } as any) : {})}>
       <Icon name={L.icon} size={small ? 12 : corner ? 22 : 18} color={L.fg} />
       {!small && (wide || corner === false) && w > 44 && ls >= 8 && <Text style={[s.tileT, { color: L.fg, fontSize: ls }]} numberOfLines={2}>{L.label}</Text>}
+      {oN > 0 && <View style={[s.owner, { backgroundColor: oHue, width: bs, height: bs, borderRadius: bs / 2 }]} testID={`owner-${oDream ? "dream" : "biz"}`}>{oDream ? <Icon name="star" size={Math.round(bs * 0.7)} color={readableOn(oHue)} fill={readableOn(oHue)} /> : <Text style={[s.ownerT, { color: readableOn(oHue), fontSize: Math.round(bs * 0.66) }]}>{oN}</Text>}</View>}
     </View>);
 });
 
@@ -81,6 +83,7 @@ export function Board({ room, width, wide, currentId, tight, compact, roomy, vie
   const g = boardGeometry(width, wide, n, tight, compact, roomy), { W, H, c } = g;
   const offset = circle === "small" ? (wide ? 4 : 12) : 24;
   const tiles = React.useMemo(() => squareRing(n, g.cols, W, H, c), [n, g.cols, W, H, c]);
+  const owners = circle === "big" ? bigOwners(players) : null; // katta aylana: kim qaysi biznesni (va orzuni) sotib olgan
   const mixed = players.some((p) => p.circle === other);
   // Aralash o'yin: boshqa aylana o'yinchilari uchun ichki halqa (kichik nuqtalar); asosiy taxta — ko'ruvchining o'z aylanasi
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
@@ -99,13 +102,15 @@ export function Board({ room, width, wide, currentId, tight, compact, roomy, vie
   return (
     <View testID="board" {...({ dataSet: { circle } } as any)} style={{ padding: PAD }}>
       <View style={{ width: W, height: H }}>
-        <View style={StyleSheet.absoluteFill} role="img" aria-label={`Taxta. ${players.map((p) => `${nameOf(room, p.id)}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}`}>
+        <View style={StyleSheet.absoluteFill} role="img" aria-label={`Taxta. ${players.map((p) => `${nameOf(room, p.id)}: ${p.pos}-katak${p.circle === "big" ? " (katta aylana)" : ""}`).join("; ")}${owners && owners.size ? `. ${uz.board.owners}: ${[...owners].sort((a, b) => a[0] - b[0]).map(([cell, o]) => `${cell}-katak — ${nameOf(room, o.id)}${o.dream ? ` (${uz.board.ownerDream.toLowerCase()})` : ""}`).join("; ")}` : ""}`}>
           {tiles.map((t, pi) => {
             const i = (((pi - offset) % n) + n) % n; const L = lookOf(circle, i); const cq = curP ? at(curP) : null, here = !!cq && cq.circle === circle && cq.pos === i;
             const dream = circle === "big" && BIG_CELLS[i].t === "O" && players.some((p) => p.dreamIdx !== null && p.id === currentId); // istalgan «O» katagi orzu katagi (OPEN_QUESTIONS 156)
             const side = !t.corner && (pi >= g.cols && pi < g.cols + Math.ceil((n - 2 * g.cols) / 2) || pi >= 2 * g.cols + Math.ceil((n - 2 * g.cols) / 2));
             const small = side && !wide; // telefonda yon kataklar nozik: faqat ikonka
-            return <Tile key={pi} x={t.x} y={t.y} w={t.w} h={t.h} corner={!!t.corner} L={L} here={here} dream={dream} small={small} wide={wide} />;
+            const ow = owners?.get(i), op = ow ? players.findIndex((q) => q.id === ow.id) : -1;
+            return <Tile key={pi} x={t.x} y={t.y} w={t.w} h={t.h} corner={!!t.corner} L={L} here={here} dream={dream} small={small} wide={wide}
+              oN={ow ? ow.n : 0} oHue={ow ? hue(players[op], op) : ""} oDream={!!ow?.dream} oName={ow ? `${ow.dream ? uz.board.ownerDream : uz.board.ownerBiz}: ${nameOf(room, ow.id)}` : ""} />;
           })}
           {mixed && innerTiles.map((t, pi) => <View key={`b${pi}`} aria-hidden style={{ position: "absolute", left: inset + t.x + 1, top: inset + t.y + 1, width: t.w - 2, height: t.h - 2, borderRadius: 3, backgroundColor: color.line }} />)}
           {players.map((p, k) => {
@@ -131,12 +136,13 @@ function Legend({ circle }: { circle: "small" | "big" }) {
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={s.toggle}><Text style={s.toggleT}>{open ? "▾" : "▸"} {uz.legend.title}</Text></Pressable>
       {open && (<View style={s.grid}>{keys.map((k) => { const L = circle === "small" ? SMALL_LOOK[k] : BIG_LOOK[k];
         return (<View key={k} style={s.item}><View style={[s.sw, { backgroundColor: L.bg, borderColor: L.border }]} aria-hidden><Icon name={L.icon} size={14} color={L.fg} /></View>
-          <Text style={s.itemT}>{circle === "small" ? uz.legend.cells[k] : uz.legend.big[k]}</Text></View>); })}</View>)}
+          <Text style={s.itemT}>{circle === "small" ? uz.legend.cells[k] : uz.legend.big[k]}</Text></View>); })}{circle === "big" && (<View style={s.item}><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]} aria-hidden><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.itemT}>{uz.board.ownerLegend}</Text></View>)}</View>)}
     </View>
   );
 }
 const s = StyleSheet.create({
   tile: { position: "absolute", borderRadius: 6, alignItems: "center", justifyContent: "center", gap: 1, overflow: "hidden" },
+  owner: { position: "absolute", top: 1, right: 1, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#fff" }, ownerT: { fontWeight: "900", lineHeight: 14 },
   tileT: { fontWeight: "800", textAlign: "center", letterSpacing: 0.2, lineHeight: 10 },
   toggle: { minHeight: 44, justifyContent: "center", paddingHorizontal: space.sm, alignSelf: "flex-start", borderRadius: radius.sm }, toggleT: { color: color.navy, fontWeight: "700", fontSize: font.sm },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingHorizontal: space.sm },

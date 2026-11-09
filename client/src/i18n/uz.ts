@@ -221,6 +221,7 @@ export const uz = {
     errors: { bad_chat: "Xabar bo'sh yoki juda uzun", chat_restricted: "Erkin yozish sizga yopiq", duplicate: "Bu xabarni yaqinda yuborgansiz", rate_limited: "Juda tez yozyapsiz, biroz kuting" } as Record<string, string>,
     phrases: ["Salom!", "Omad tilayman!", "Yaxshi yurish!", "Rahmat!", "Kechirasiz", "Bir daqiqa kuting", "Iltimos, tezroq", "Qiziq o'yin!", "Yana o'ynaymizmi?", "Hozir qaytaman", "Ajoyib qaror!", "Xayr, ko'rishguncha!"] as string[],
   },
+  board: { owners: "Egalari", ownerBiz: "Biznes egasi", ownerDream: "Orzu amalga oshdi", ownerLegend: "Rangli belgi — biznes egasi (o'yinchi raqami)" },
   recap: {
     title: "Kasbingiz almashtirildi", titleSold: "Qarz uchun aktivlar sotildi", sub: "O'yin to'xtatildi. Nima bo'lganini ko'rib chiqing, so'ng davom eting.", subSold: "Qarzni yopish uchun aktivlaringiz sotildi. Kasbingiz o'zgarmadi.", from: "Avvalgi kasb", to: "Yangi kasb", same: "Kasbingiz",
     what: "Nima bo'ldi?", lost: "Sotilgan aktivlar", more: "yana {n} ta", income: "oyiga", state: "Oldingi holat", cash: "Naqd", debt: "Qarz", flow: "Pul oqimi", salary: "Ish haqi", expenses: "Oylik xarajat", passive: "Passiv daromad",

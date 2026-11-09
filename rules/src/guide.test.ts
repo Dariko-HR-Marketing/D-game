@@ -188,6 +188,7 @@ describe("Orzu katagi (istalgan «O» katagi, OPEN_QUESTIONS 156 — qaror A)", 
     for (const cell of Os) {
       const s = land("big", cell, (g) => { Object.assign(g.players[0], { dreamIdx: 5, lockedFlow: 100_000, cash: ctx.dreams[5].price + 1234 }); });
       expect(s.winner, `katak ${cell}`).toBe("p0"); expect(s.players[0].won).toBe(true);
+      expect(s.players[0].dreamAt, `katak ${cell}: taxtada egasi belgisi uchun`).toBe(cell);
     }
   });
 });
