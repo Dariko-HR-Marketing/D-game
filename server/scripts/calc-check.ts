@@ -48,7 +48,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(room.calcStats[me]?.retried === 1, `${tag} aniqlik statistikasi: 1 ta qayta urinish bilan to'g'ri`);
   // 2) Karta qarori: ixtiyoriy sotib olish — hisobni kiritmasdan qabul qilib bo'lmaydi
   let got = false;
-  for (let i = 0; i < 2500 && !got; i++) { // tasodifiy karta: chegara yuqori (CI da kam uchraydigan holat)
+  for (let i = 0; i < 600 && !got; i++) { // tasodifiy karta: chegara yuqori (CI da kam uchraydigan holat)
+    const au = (room.state as any).auction; if (au) { await (x.rooms as any).apply(room, au.phase === "owner" ? { type: "auction_decline", playerId: au.owner } : { type: "auction_close", playerId: "server" }, "test"); continue; } // botga karta chiqib bozor auksioni ochilsa — yopamiz (o'yinda server taymeri yopadi)
     const cur = currentPlayer(room.state!).id;
     if (cur === me && room.state!.pending) { const e = room.ctx.effects[room.state!.pending.cardId]?.effect as any; if (e?.kind === "buy" && P().cash >= (e.down ?? e.price) && (e.monthlyIncome ?? 0) > 0) { got = true; break; } await x.rooms.act(code, me, { type: "decide", accept: false, playerId: me } as any, room.seq); continue; }
     if (room.state!.pending) { await x.rooms.act(code, cur, { type: "decide", accept: false, playerId: cur } as any, room.seq).catch(() => {}); continue; }
