@@ -192,6 +192,12 @@ export function repayBankLoan(p: Player, idx: number): { player: Player; ok: boo
   const loans = p.bankLoans.filter((_, n) => n !== idx);
   return { ok: true, cost, player: { ...p, cash: p.cash - cost, bankLoans: loans, bankDebt: loans.reduce((t, x) => t + bankPrincipalDue(x.amount, x.left), 0), assets: l.collateral ? unpledge(p.assets, l.collateral, "bank") : p.assets } };
 }
+/** Lombardni muddatidan oldin yopish: asosiy qarz to'lanadi, garovdagi aktiv bo'shaydi (oylik foiz shu paytgacha xarajatda edi). Naqd yetmasa — rad. */
+export function repayLombard<T extends Player>(p: T, idx: number): { player: T; ok: boolean; cost: number } {
+  const l = (p.lombards ?? [])[idx]; if (!l) return { player: p, ok: false, cost: 0 };
+  if (p.cash < l.amount) return { player: p, ok: false, cost: l.amount };
+  return { ok: true, cost: l.amount, player: { ...p, cash: p.cash - l.amount, lombards: (p.lombards ?? []).filter((_, n) => n !== idx), assets: unpledge(p.assets, [l], "lombard") } };
+}
 /** Lombard: aktivni garovga qo'yib qiymatining 50 % ini naqd olish. */
 export function takeLombard(p: Player, assetIdx: number): { player: Player; ok: boolean } {
   const a = p.assets[assetIdx]; if (!a || !pledgeable(a)) return { player: p, ok: false };
