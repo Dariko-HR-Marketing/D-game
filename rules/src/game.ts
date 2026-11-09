@@ -7,7 +7,7 @@ import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankPrincipa
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, policyFor, tickDeposits, withdrawDeposit, type Mod,
-  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
+  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, repayLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
 export const CONFIG = {
@@ -46,6 +46,8 @@ export interface GamePlayer extends Player {
   bigDebt?: number; bigDebtY?: number; // katta aylana qarzi va «Yana pullar» nechta o'tgan (§11)
   xp?: number;        // o'yin davomida topilgan XP (homiy kartalari, viktorina): o'yin tugagach profilga qo'shiladi (botlarga emas)
   depSeq?: number;    // depozitlar uchun keyingi ID
+  dreamAt?: number;   // orzusini amalga oshirgan katta aylana katagi (g'alaba paytida yoziladi): taxtada egasi belgisi ko'rsatiladi
+  dreamVisits?: number[]; // orzu katagiga tushgan, lekin shart bajarilmagan (pul oqimi yoki naqd yetmagan) katak raqamlari: taxtada «yetib keldi» belgisi
 }
 export type Pending =
   | null
@@ -266,6 +268,7 @@ export type Action =
   | { type: "bank_loan"; playerId: string; amount: number }
   | { type: "bank_repay"; playerId: string; loanIdx: number }
   | { type: "lombard"; playerId: string; assetIdx: number }
+  | { type: "lombard_repay"; playerId: string; lombardIdx: number }
   | { type: "sell_asset"; playerId: string; assetIdx: number }
   | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
@@ -620,8 +623,9 @@ function bigLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
   if (cell.t === "O" && p.dreamIdx !== null) { // orzu katagi — istalgan «O» katagi (OPEN_QUESTIONS 156, qaror A): g'alaba — pul oqimi, naqd ≥ tanlangan orzu narxi
     const dream = ctx.dreams[p.dreamIdx];
     if (hasWonBigCircle({ cashflow: Math.max(playerCashflow(p), p.lockedFlow), onDreamCell: true, cash: p.cash, dreamPrice: dream.price })) {
-      setP(s, { ...p, won: true, cash: p.cash - dream.price }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
+      setP(s, { ...p, won: true, cash: p.cash - dream.price, dreamAt: cell.i }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
     }
+    if (!(p.dreamVisits ?? []).includes(cell.i)) setP(s, { ...p, dreamVisits: [...(p.dreamVisits ?? []), cell.i] }); // orzu katagiga yetdi, mablag' yetmadi: belgi qoladi (qoida o'zgarmaydi — kxar kartasi olinadi)
   }
   // Birovning biznesi (qo'llanma §13): o'ziniki — e'tibor bermang; boshqaniki — A (oylik daromadni to'lash) yoki B (2× / 3× narxda sotib olish)
   if ((cell.t === "T" || cell.t === "V") && cell.price !== null) {
@@ -853,6 +857,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
       const r = repayBankLoan(P(a.playerId), a.loanIdx); if (!r.ok) return err(P(a.playerId).bankLoans[a.loanIdx] ? (P(a.playerId).cash < r.cost ? "insufficient_cash" : "too_early") : "no_loan");
       setP(s, r.player as GamePlayer); return ok();
+    }
+    case "lombard_repay": { // lombardni muddatidan oldin yopish (qarzsiz kichik aylanadan chiqish uchun ham kerak)
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const p0 = P(a.playerId), r = repayLombard(p0, a.lombardIdx); if (!r.ok) return err((p0.lombards ?? [])[a.lombardIdx] ? "insufficient_cash" : "no_lombard");
+      setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: lombard yopildi (${r.cost})`); return ok();
     }
     case "deposit_withdraw": { // muddatidan oldin yechish: asosiy summa qaytadi, foiz yo'qoladi (faqat o'z navbatida)
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");

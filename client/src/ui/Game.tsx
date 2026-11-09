@@ -278,7 +278,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
-          <Board room={room} width={boardWidth} wide tight={tight} compact={compact} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board>
+          <Board room={room} userId={userId} width={boardWidth} wide tight={tight} compact={compact} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board>
           {!compact && <Text style={s.caption}>{uz.hud.ownCircleNote}</Text>}
           {tri && mine && (
             <View style={{ width: boardWidth, gap: space.md }} testID="dock">
@@ -311,7 +311,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         {tab === "field" && (<>
           <TimePanel room={room} userId={userId} settled={settled} />
           {stats}
-          <View style={{ alignItems: "center" }}><Board room={room} width={boardWidth} wide={false} roomy={tablet} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board></View>
+          <View style={{ alignItems: "center" }}><Board room={room} userId={userId} width={boardWidth} wide={false} roomy={tablet} viewCircle={viewCircle} movement={mv.shown} currentId={cur}>{centre}</Board></View>
           <PlayersLane room={room} userId={userId} />
           <View style={s.turnRow}>
             <DeadlineRing deadline={room.deadline} total={phaseSeconds(room)} size={52} />
