@@ -26,24 +26,25 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
   const owner = a.owner === userId, leader = a.best?.playerId === userId, passed = a.passed.includes(userId);
   const can = !owner && a.phase === "open" && !leader && canBid(st, a, mine, 0);
   const amount = Number(val.replace(/\s/g, "")); const valid = Number.isInteger(amount) && amount % 100 === 0 && amount >= min && mine.cash >= amount;
-  const title = a.kind === "bank" ? uz.auction.titleBank : uz.auction.titleLombard;
+  const title = a.format === "bozor" ? uz.auction.titleMarket.replace("{name}", nameOf(room, a.owner)) : a.format === "ixtiyoriy" ? uz.auction.titleVoluntary.replace("{name}", nameOf(room, a.owner)) : (a.kind === "bank" ? uz.auction.titleBank : uz.auction.titleLombard).replace("{name}", nameOf(room, a.owner));
+  const kicker = uz.auction.formats[a.format]; const spectator = !owner && (mine.circle !== a.circle || (st.restricted ?? []).includes(userId));
   return (
     <View style={s.layer} role="dialog" aria-modal={true} aria-label={uz.auction.title} testID="auction">
       <View style={s.backdrop} />
       <View style={s.center}>
         <ScrollView style={{ maxHeight: Math.max(320, height - 32), width: "100%", maxWidth: 520 }} contentContainerStyle={s.card}>
-          <Text style={s.kicker} aria-level={2} accessibilityRole="header">{uz.auction.title}</Text>
-          <Text style={s.h}>{title.replace("{name}", nameOf(room, a.owner))}</Text>
+          <Text style={s.kicker} aria-level={2} accessibilityRole="header">{kicker}</Text>
+          <Text style={s.h}>{title}</Text>
           <View style={s.lot} testID="auction-lot">
             {a.lot.map((x, i) => (<View key={i} style={s.row}><Text style={s.rowL}>{(room as any).assetCards?.[x.cardId ?? x.code]?.text?.split(/[.!?\n]/)[0] || x.code}</Text><Text style={s.rowV} numberOfLines={1}>{money(x.price)}</Text></View>))}
           </View>
           <View style={s.rows}>
-            <View style={s.row}><Text style={s.rowL}>{uz.auction.due}</Text><Text style={s.rowV} testID="auction-due">{money(a.due)}</Text></View>
-            {a.reserve > a.due && <View style={s.row}><Text style={s.rowL}>{uz.auction.credits}</Text><Text style={s.rowV}>{money(a.reserve - a.due)}</Text></View>}
-            <View style={s.row}><Text style={[s.rowL, { fontWeight: "800", color: color.navy }]}>{uz.auction.start}</Text><Text style={[s.rowV, { fontWeight: "800" }]} testID="auction-start">{money(a.reserve)}</Text></View>
+            {a.due > 0 && <View style={s.row}><Text style={s.rowL}>{uz.auction.due}</Text><Text style={s.rowV} testID="auction-due">{money(a.due)}</Text></View>}
+            {a.credits > 0 && <View style={s.row}><Text style={s.rowL}>{uz.auction.credits}</Text><Text style={s.rowV}>{money(a.credits)}</Text></View>}
+            <View style={s.row}><Text style={[s.rowL, { fontWeight: "800", color: color.navy }]}>{uz.auction.start}</Text><Text style={[s.rowV, { fontWeight: "800" }]} testID="auction-start">{money(a.start)}</Text></View>
             {a.phase === "open" && <View style={s.row}><Text style={s.rowL}>{uz.auction.best}</Text><Text style={[s.rowV, { color: tone.good }]} testID="auction-best">{a.best ? `${money(a.best.amount)} · ${nameOf(room, a.best.playerId)}` : uz.auction.noBids}</Text></View>}
           </View>
-          <Text style={s.note}>{uz.auction.surplus}</Text>
+          <Text style={s.note}>{uz.auction.notes[a.format]}</Text>
           {left !== null ? <Text style={s.timer} role="timer" testID="auction-timer">{uz.auction.timeLeft.replace("{n}", String(left))}</Text> : <Text style={s.timer} testID="auction-timer">{uz.auction.untimed}</Text>}
 
           {a.phase === "owner" && owner && (
@@ -53,9 +54,9 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
               <Button label={uz.auction.decline} kind="ghost" onPress={() => onAct({ type: "auction_decline" })} />
             </View>)}
           {a.phase === "owner" && !owner && <Text style={s.hint} testID="auction-wait">{uz.auction.waitOwner.replace("{name}", nameOf(room, a.owner))}</Text>}
-          {a.phase === "open" && owner && <Text style={s.hint} testID="auction-owner-wait">{uz.auction.ownerWait}</Text>}
+          {a.phase === "open" && owner && <Text style={s.hint} testID="auction-owner-wait">{a.format === "bozor" ? uz.auction.drawerWait : uz.auction.ownerWait}</Text>}
           {a.phase === "open" && !owner && leader && <Text style={[s.hint, { color: tone.good, fontWeight: "800" }]} testID="auction-leader">{uz.auction.leader}</Text>}
-          {a.phase === "open" && !owner && !leader && !can && <Text style={s.hint} testID="auction-cannot">{mine.cash < min ? uz.auction.noCash : uz.auction.notEligible}</Text>}
+          {a.phase === "open" && !owner && !leader && !can && <Text style={s.hint} testID="auction-cannot">{spectator ? uz.auction.spectator : mine.cash < min ? uz.auction.noCash : uz.auction.notEligible}</Text>}
           {can && (
             <View style={s.actions}>
               <Text style={s.hint}>{uz.auction.bidHint.replace("{v}", money(min))}</Text>

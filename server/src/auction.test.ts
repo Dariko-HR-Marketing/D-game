@@ -33,13 +33,13 @@ describe("auksion: taymer", () => {
     expect(room.state!.auction!.phase).toBe("open"); const t0 = clock.t;
     expect(room.deadline).toBe(t0 + 30_000 * RULES.auctionTimeFactor); expect(room.deadline).toBe(t0 + 150_000);
     clock.t = t0 + 100_000;
-    expect((await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 10_000 }, room.seq)).ok).toBe(true);
+    expect((await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 20_000 }, room.seq)).ok).toBe(true);
     expect(room.deadline).toBe(t0 + 150_000); // taklif muddatni uzaytirmaydi ham, qisqartirmaydi ham
-    expect((await rm.act(code, "c", { type: "auction_bid", playerId: "c", amount: 10_500 }, room.seq)).ok).toBe(true);
+    expect((await rm.act(code, "c", { type: "auction_bid", playerId: "c", amount: 20_500 }, room.seq)).ok).toBe(true);
     await clock.fireNext(); expect(clock.t).toBe(t0 + 150_000);
     expect(room.state!.auction).toBeFalsy();
-    const c = room.state!.players.find((p: any) => p.id === "c")!; expect(c.assets).toHaveLength(1); expect(c.cash).toBe(100_000 - 10_500);
-    expect(room.state!.players.find((p: any) => p.id === "a")!.cash).toBe(100 + 500);
+    const c = room.state!.players.find((p: any) => p.id === "c")!; expect(c.assets).toHaveLength(1); expect(c.cash).toBe(100_000 - 20_500);
+    expect(room.state!.players.find((p: any) => p.id === "a")!.cash).toBe(100 + 10_500);
     const log = await (rm as any).store.journal(code); expect(log.some((e: any) => (e.action.action ?? e.action).type === "auction_close")).toBe(true);
   });
   it("sekin xonada (60 s) ochiq auksion 300 s", async () => {
@@ -62,7 +62,7 @@ describe("auksion: vaqtsiz xona (Mehrojiddin)", () => {
   it("taymer yo'q; hamma o'tkazganda yopiladi; bir taklif bo'lsa va boshqa raqib bo'lmasa — darhol sotiladi", async () => {
     const { rm, code, room, clock } = await setup(0); inject(rm, room, 100);
     expect(room.deadline).toBeNull(); clock.t += 3600_000; expect(room.state!.auction).toBeTruthy();
-    await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 10_000 }, room.seq);
+    await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 20_000 }, room.seq);
     expect(room.state!.auction).toBeTruthy(); // c hali o'tkazmadi
     await rm.act(code, "c", { type: "auction_pass", playerId: "c" }, room.seq);
     expect(room.state!.auction).toBeFalsy(); expect(room.state!.players.find((p: any) => p.id === "b")!.assets).toHaveLength(1);
@@ -81,7 +81,7 @@ describe("auksion: xavfsizlik", () => {
 describe("auksion: qayta o'ynash", () => {
   it("jurnal + urug'dan holat qayta tiklanadi (auksion harakatlari bilan)", async () => {
     const { rm, code, room, clock } = await setup(30); const before = (await (rm as any).store.journal(code)).length;
-    inject(rm, room, 100); await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 10_000 }, room.seq); await clock.fireNext();
+    inject(rm, room, 100); await rm.act(code, "b", { type: "auction_bid", playerId: "b", amount: 20_000 }, room.seq); await clock.fireNext();
     expect(room.state!.auction).toBeFalsy(); expect((await (rm as any).store.journal(code)).length).toBeGreaterThan(before);
     void newGame;
   });

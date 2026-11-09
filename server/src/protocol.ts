@@ -18,6 +18,7 @@ export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("auction_buyback") }).strict(),
   z.object({ type: z.literal("auction_decline") }).strict(),
   z.object({ type: z.literal("auction_pass") }).strict(),
+  z.object({ type: z.literal("auction_list"), assetIdx: z.number().int().min(0).max(200), pct: z.number().int().min(50).max(100) }).strict(),
   z.object({ type: z.literal("auction_bid"), amount: z.number().int().min(100).max(100_000_000) }).strict(),
   z.object({ type: z.literal("lombard_repay"), lombardIdx: z.number().int().min(0).max(50) }).strict(),
   z.object({ type: z.literal("lombard"), assetIdx: z.number().int().min(0).max(200) }).strict(),

@@ -15,7 +15,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 390]] as [string, number, number][]) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
-  const ida = "aa" + tag, idb = "ab" + tag, idc = "ac" + tag, three = tag === "kmp"; const a = await mk(ida), c = await mk(idb), d = three ? await mk(idc) : null;
+  const ida = "aa" + tag, idb = "ab" + tag, idc = "ac" + tag, three = true; /* majburiy auksion uchun kamida 2 ta taklif qiluvchi kerak */ const a = await mk(ida), c = await mk(idb), d = three ? await mk(idc) : null;
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   if (three) x.rooms.rooms.get(code)!.seats = 3; // uchinchi o'yinchi uchun joy
@@ -35,20 +35,20 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   // 1) egasi bosqichi
   check((await a.getByRole("button", { name: /Qarzni to'lab, mulkni saqlab qolish/ }).count()) === 1, `${tag}: egasiga «qarzni to'lab saqlab qolish» tugmasi chiqdi`);
   check((await c.getByTestId("auction-wait").count()) === 1, `${tag}: boshqalarga «egasi to'lashi mumkin, kuting» yozuvi chiqdi`);
-  check((await a.getByTestId("auction-start").innerText()).replace(/\s/g, "").includes("10000"), `${tag}: boshlang'ich narx = bank qarzi (10 000)`);
+  check((await a.getByTestId("auction-start").innerText()).replace(/\s/g, "").includes("20000"), `${tag}: boshlang'ich narx = mulkning o'z narxi (20 000)`);
   check(/\d+ soniya/.test(await a.getByTestId("auction-timer").innerText()), `${tag}: muddat soati ko'rinadi`);
   await a.screenshot({ path: `${OUT}/${tag}-egasi.png` });
   // 2) egasi rad etadi → ochiq auksion
   await a.getByRole("button", { name: /To'lamayman, auksionga qo'yilsin/ }).click(); await c.getByTestId("auction-input").waitFor({ timeout: 8000 });
-  check((await c.getByTestId("auction-input").inputValue()) === "10000", `${tag}: taklif maydoni eng kam taklif bilan to'ldirilgan`);
+  check((await c.getByTestId("auction-input").inputValue()) === "20000", `${tag}: taklif maydoni eng kam taklif bilan to'ldirilgan`);
   check((await a.getByTestId("auction-owner-wait").count()) === 1, `${tag}: egasiga «mulkingiz auksionda» yozuvi`);
   check(room.state!.turn === s.turn, `${tag}: auksion paytida navbat o'tmadi`);
   // 3) taklif
-  await c.getByTestId("auction-input").fill("12000"); await c.getByRole("button", { name: /^Taklif qilish/ }).click();
+  await c.getByTestId("auction-input").fill("22000"); await c.getByRole("button", { name: /^Taklif qilish/ }).click();
   if (d) { // uchinchi o'yinchi bor: raqib turganda auksion ochiq qoladi
-    await a.waitForFunction(() => (document.querySelector("[data-testid=auction-best]")?.textContent ?? "").replace(/\s/g, "").includes("12000"), null, { timeout: 8000 });
+    await a.waitForFunction(() => (document.querySelector("[data-testid=auction-best]")?.textContent ?? "").replace(/\s/g, "").includes("22000"), null, { timeout: 8000 });
     check((await c.getByTestId("auction-leader").count()) === 1, `${tag}: takliflovchiga «siz eng yuqori taklif egasisiz»`);
-    check((await d.getByTestId("auction-input").inputValue()) === "12100", `${tag}: raqibga eng kam taklif = yetakchi + qadam (12 100)`);
+    check((await d.getByTestId("auction-input").inputValue()) === "22100", `${tag}: raqibga eng kam taklif = yetakchi + qadam (22 100)`);
     await d.screenshot({ path: `${OUT}/${tag}-raqib.png` });
     for (const [n, pg] of [["a", a], ["b", c], ["c", d]] as const) { const ov = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}/${n}: gorizontal aylanish yo'q (${ov})`); }
     await d.getByRole("button", { name: /^O'tkazaman/ }).click(); // raqib o'tkazdi → auksion yopiladi
@@ -57,8 +57,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const before = pa.cash;
   await a.waitForFunction(() => !document.querySelector("[data-testid=auction]"), null, { timeout: 8000 }); await c.waitForFunction(() => !document.querySelector("[data-testid=auction]"), null, { timeout: 8000 });
   const fa: any = room.state!.players.find((p: any) => p.id === ida), fb: any = room.state!.players.find((p: any) => p.id === idb);
-  check(fb.assets.length === 1 && fb.cash === 100_000 - 12_000, `${tag}: g'olib mulkni oldi va 12 000 to'ladi`);
-  check(fa.assets.length === 0 && fa.lombards.length === 0 && fa.cash === before + 2_000, `${tag}: ortiqcha 2 000 egasiga qaytdi, lombard yopildi`);
+  check(fb.assets.length === 1 && fb.cash === 100_000 - 22_000, `${tag}: g'olib mulkni oldi va 22 000 to'ladi`);
+  check(fa.assets.length === 0 && fa.lombards.length === 0 && fa.cash === before + 12_000, `${tag}: ortiqcha 12 000 (22 000 − qarz 10 000) egasiga qaytdi, lombard yopildi`);
   await a.screenshot({ path: `${OUT}/${tag}-tugadi.png` });
   void pb; await a.context().close(); await c.context().close(); if (d) await d.context().close();
 }
