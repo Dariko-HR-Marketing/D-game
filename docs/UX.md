@@ -103,3 +103,6 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - Xona sozlamalarida «Odatiy · Sekin (×2) · **Mehrojiddin**» (faqat standart rejimda); tanlanganda izoh: «navbat va qarorlarga vaqt cheklovi yo'q». Lobbida «Tezlik: Mehrojiddin (vaqtsiz)».
 - O'yinda taymer halqasi, «N soniyada…» va «N soniya ichida tasdiqlang» yozuvlari chiqmaydi; navbat sizda bo'lsa «Kubikni tashlang. Bu xonada vaqt cheklovi yo'q.». Brauzer tekshiruvi: `untimed-check` (CI da).
 
+## Katta aylana: egalik belgilari va katak tushuntirishi (2026-11-09, buyurtmachi talabi)
+- Sotib olingan biznes katagida egasining fishka rangida dumaloq belgi (o'yinchi raqami) va rangli chegara. Orzu katagida: yulduz — orzu amalga oshgan, bo'sh yulduz — katakka yetib kelgan, shart bajarilmagan.
+- **Har bir katak bosiladi**: pastdan (telefon) yoki markazdan chiqadigan oyna — tur, nom, narx/daromad, qoida, egasi. Kichik aylanada ham (hamma ikonka bir xil ko'rinib qolmasin). Esc, fon yoki «Yopish» bilan yopiladi. Tekshiruv: `owners-check` (kompyuter, tik va yotiq telefon).

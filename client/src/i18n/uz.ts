@@ -221,6 +221,18 @@ export const uz = {
     errors: { bad_chat: "Xabar bo'sh yoki juda uzun", chat_restricted: "Erkin yozish sizga yopiq", duplicate: "Bu xabarni yaqinda yuborgansiz", rate_limited: "Juda tez yozyapsiz, biroz kuting" } as Record<string, string>,
     phrases: ["Salom!", "Omad tilayman!", "Yaxshi yurish!", "Rahmat!", "Kechirasiz", "Bir daqiqa kuting", "Iltimos, tezroq", "Qiziq o'yin!", "Yana o'ynaymizmi?", "Hozir qaytaman", "Ajoyib qaror!", "Xayr, ko'rishguncha!"] as string[],
   },
+  board: { owners: "Egalari", ownerBiz: "Biznes egasi", ownerDream: "Orzu amalga oshdi", ownerVisit: "Orzu katagiga yetdi (shart bajarilmadi)", ownerLegend: "Rangli belgi — biznes egasi (o'yinchi raqami); yulduz — orzu amalga oshgan; bo'sh yulduz — orzu katagiga yetgan, shart bajarilmagan", tapHint: "Katakni bosing — tushuntirish chiqadi" },
+  cell: {
+    close: "Yopish", cellWord: "katak", price: "Narxi", income: "Oylik daromad", faces: "Yutuqli kubik", lump: "Yutsangiz (bir marta)", owner: "Egasi", free: "Hozircha egasi yo'q", yourFlow: "Sizning pul oqimingiz", yourCash: "Sizning naqdingiz", owners: "Egalik",
+    small: { S: "Start", I: "Imkoniyat", H: "Xarajat", B: "Bozor", D: "Daromad", O: "Farzand", K: "Boshidan boshlang", Q: "Ishdan bo'shash" } as Record<string, string>,
+    big: { T: "Turg'un biznes", V: "Tavakkal biznes", O: "Orzu katagi", Y: "Yana pullar", X: "Maxsus katak" } as Record<string, string>,
+    turnT: "Faqat naqd to'lanadi, oylik daromad olasiz. Egasi bor bo'lsa — egasiga oylik daromadni to'laysiz yoki 2× narxda sotib olasiz (keyingisida 3×).",
+    turnV: "Narx to'liq naqd to'lanadi, so'ng bitta kubik tashlanadi: yutuqli qirra tushsa — yutuq (bir martalik yoki oylik daromad).",
+    dream: "Orzu katagi: unga tushganda pul oqimi ≥ {flow} bo'lsa va naqd tanlangan orzu narxidan kam bo'lmasa — g'alaba; aks holda katta xarajat kartasi olinadi.", dreamMine: "Sizning orzuingiz: {name} — {price}",
+    dreamVisit: "Orzu katagiga yetdi, shart bajarilmadi", yana: "Yana pullar: o'tganda ham, tushganda ham bir oy o'tadi — pul oqimi qo'shiladi, qarz bo'lsa darhol yopiladi.",
+    bankrupt: "Bankrot: eng kam daromadli biznesingiz yo'qoladi; biznes bo'lmasa naqd va kichik aylana mulki bilan kichik aylanaga qaytasiz.", cashShare: "Har safar naqdingizning {pct} % i to'lanadi.",
+    shady: "Nohalol biznes: 1-marta {first}; 2-marta naqdning {pct} %; 3-marta ta'sirsiz.", noEffect: "Maxsus katak: ta'sirsiz.", noSalary: "{n} oy maosh yo'q (xarajat to'lanadi, passiv daromad davom etadi).", restartNote: "Xona egasi «Kutilmagan hodisa» kartalarini yoqqan bo'lsa — hodisa kartasi ochiladi, aks holda oddiy katak.",
+  },
   recap: {
     title: "Kasbingiz almashtirildi", titleSold: "Qarz uchun aktivlar sotildi", sub: "O'yin to'xtatildi. Nima bo'lganini ko'rib chiqing, so'ng davom eting.", subSold: "Qarzni yopish uchun aktivlaringiz sotildi. Kasbingiz o'zgarmadi.", from: "Avvalgi kasb", to: "Yangi kasb", same: "Kasbingiz",
     what: "Nima bo'ldi?", lost: "Sotilgan aktivlar", more: "yana {n} ta", income: "oyiga", state: "Oldingi holat", cash: "Naqd", debt: "Qarz", flow: "Pul oqimi", salary: "Ish haqi", expenses: "Oylik xarajat", passive: "Passiv daromad",
