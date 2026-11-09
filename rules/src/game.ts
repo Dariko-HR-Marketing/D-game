@@ -7,7 +7,7 @@ import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankPrincipa
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
   salaryOf, addMod, tickMods, startLap, offerPrice, saleBase, descOf, priceFactor, policyFor, tickDeposits, withdrawDeposit, type Mod,
-  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
+  passiveIncome, playerCashflow, tickLoans, sellAsset, smallCell, takeBankLoan, repayBankLoan, takeLombard, repayLombard, maxBankLoan, settleOwe, allDebt, totalDebt, shuffle, rollDie, seededRng,
 } from "./engine";
 
 export const CONFIG = {
@@ -268,6 +268,7 @@ export type Action =
   | { type: "bank_loan"; playerId: string; amount: number }
   | { type: "bank_repay"; playerId: string; loanIdx: number }
   | { type: "lombard"; playerId: string; assetIdx: number }
+  | { type: "lombard_repay"; playerId: string; lombardIdx: number }
   | { type: "sell_asset"; playerId: string; assetIdx: number }
   | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
@@ -856,6 +857,11 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
       const r = repayBankLoan(P(a.playerId), a.loanIdx); if (!r.ok) return err(P(a.playerId).bankLoans[a.loanIdx] ? (P(a.playerId).cash < r.cost ? "insufficient_cash" : "too_early") : "no_loan");
       setP(s, r.player as GamePlayer); return ok();
+    }
+    case "lombard_repay": { // lombardni muddatidan oldin yopish (qarzsiz kichik aylanadan chiqish uchun ham kerak)
+      if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");
+      const p0 = P(a.playerId), r = repayLombard(p0, a.lombardIdx); if (!r.ok) return err((p0.lombards ?? [])[a.lombardIdx] ? "insufficient_cash" : "no_lombard");
+      setP(s, r.player as GamePlayer); logf(s, `${a.playerId}: lombard yopildi (${r.cost})`); return ok();
     }
     case "deposit_withdraw": { // muddatidan oldin yechish: asosiy summa qaytadi, foiz yo'qoladi (faqat o'z navbatida)
       if (currentPlayer(s).id !== a.playerId) return err("not_your_turn");

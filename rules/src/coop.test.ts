@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
 import { tickLoans } from "./engine";
-import { newGame, reduce, GameState, GamePlayer, openPartnerships } from "./index";
+import { newGame, reduce, GameState, GamePlayer, openPartnerships, RULES } from "./index";
 
 const mk = (n = 5, bots: string[] = []) => {
   const ids = Array.from({ length: n }, (_, i) => `p${i}`);
@@ -125,12 +125,22 @@ describe("bank krediti (qo'llanma §08)", () => {
     expect(run(withCollateral(mk(2)), { type: "bank_loan", playerId: "p0", amount: 2000 })).toEqual({ ok: false, error: "bank_purpose" });
   });
   it("garovsiz kredit yo'q", () => { expect(run(withBuyCard(mk(2)), { type: "bank_loan", playerId: "p0", amount: 2000 })).toEqual({ ok: false, error: "bank_limit" }); });
-  it("garovdagi aktivni sotib bo'lmaydi; muddatidan oldin yopish 12 oydan keyin", () => {
+  it("garovdagi aktiv sotilmaydi; kredit istalgan paytda to'lanadi (buyurtmachi qarori: kichik aylanada olingan kreditni yopib, chiqish yo'li ochiq)", () => {
     let s = withCollateral(withBuyCard(mk(2))); s = must(run(s, { type: "bank_loan", playerId: "p0", amount: 2000 }));
-    expect(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })).toEqual({ ok: false, error: "too_early" });
+    expect(RULES.bankEarlyCloseMonths).toBe(0); P(s, "p0").cash = 5000;
+    // krediti hali bir oy ham to'lanmagan: asosiy qarz to'liq (2000) to'lanadi, garov bo'shaydi
+    const now = must(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })); expect(P(now, "p0").bankDebt).toBe(0); expect(P(now, "p0").cash).toBe(3000); expect(P(now, "p0").assets.every((a) => !a.pledged)).toBe(true);
+    // naqd yetmasa — rad etiladi
+    P(s, "p0").cash = 1999; expect(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })).toEqual({ ok: false, error: "insufficient_cash" });
+    // 16 oy to'langan: qolgan asosiy qarz kamayadi
     P(s, "p0").bankLoans[0].left = 20; P(s, "p0").cash = 5000;
     const r = must(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })); expect(P(r, "p0").bankDebt).toBe(0); expect(P(r, "p0").assets.every((a) => !a.pledged)).toBe(true);
     expect(P(r, "p0").cash).toBe(5000 - (2000 - 16 * Math.ceil(2000 / 36))); // qo'llanma kalkulyatori: asosiy qarz − o'tgan oylar × ceil(summa/36)
+  });
+  it("qiymat 0 dan katta qaytarilsa «too_early» yana ishlaydi (sozlama)", () => {
+    const old = RULES.bankEarlyCloseMonths; (RULES as any).bankEarlyCloseMonths = 12;
+    try { let s = withCollateral(withBuyCard(mk(2))); s = must(run(s, { type: "bank_loan", playerId: "p0", amount: 2000 })); P(s, "p0").cash = 5000; expect(run(s, { type: "bank_repay", playerId: "p0", loanIdx: 0 })).toEqual({ ok: false, error: "too_early" }); }
+    finally { (RULES as any).bankEarlyCloseMonths = old; }
   });
 });
 
@@ -143,6 +153,14 @@ describe("lombard (qo'llanma §08)", () => {
     expect(P(s, "p0").cash).toBe(c0 + 10_000); expect(P(s, "p0").assets[0].pledged).toBe("lombard"); expect(P(s, "p0").lombards![0]).toMatchObject({ amount: 10_000, left: 12 });
     expect(run(s, { type: "lombard", playerId: "p0", assetIdx: 0 })).toEqual({ ok: false, error: "not_pledgeable" }); // allaqachon garovda
     expect(P(s, "p0").baseExpenses).toBe(e0);
+  });
+  it("lombardni muddatidan oldin yopish: asosiy qarz to'lanadi, garov bo'shaydi; naqd yetmasa rad (buyurtmachi: «kreditni to'lay olsin»)", () => {
+    let s = withAsset(mk(2)); s = must(run(s, { type: "lombard", playerId: "p0", assetIdx: 0 })); const c1 = P(s, "p0").cash;
+    P(s, "p0").cash = 9_999; expect(run(s, { type: "lombard_repay", playerId: "p0", lombardIdx: 0 })).toEqual({ ok: false, error: "insufficient_cash" });
+    expect(run(s, { type: "lombard_repay", playerId: "p0", lombardIdx: 3 })).toEqual({ ok: false, error: "no_lombard" });
+    P(s, "p0").cash = c1; const r = must(run(s, { type: "lombard_repay", playerId: "p0", lombardIdx: 0 }));
+    expect(P(r, "p0").cash).toBe(c1 - 10_000); expect(P(r, "p0").lombards).toHaveLength(0); expect(P(r, "p0").assets.find((x: any) => x.code === "KV1")?.pledged).toBeUndefined();
+    expect(P(r, "p0").lombards ?? []).toEqual([]); // oylik foiz xarajatdan chiqdi
   });
   it("12 oydan keyin asosiy qarz naqddan to'lanadi; naqd yetmasa garov yo'qoladi", () => {
     const mkp = (cash: number) => { const s = withAsset(mk(2)); const q = must(run(s, { type: "lombard", playerId: "p0", assetIdx: 0 })).players[0]; return { ...q, cash }; };
