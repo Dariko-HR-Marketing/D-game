@@ -47,6 +47,7 @@ export interface GamePlayer extends Player {
   xp?: number;        // o'yin davomida topilgan XP (homiy kartalari, viktorina): o'yin tugagach profilga qo'shiladi (botlarga emas)
   depSeq?: number;    // depozitlar uchun keyingi ID
   dreamAt?: number;   // orzusini amalga oshirgan katta aylana katagi (g'alaba paytida yoziladi): taxtada egasi belgisi ko'rsatiladi
+  dreamVisits?: number[]; // orzu katagiga tushgan, lekin shart bajarilmagan (pul oqimi yoki naqd yetmagan) katak raqamlari: taxtada «yetib keldi» belgisi
 }
 export type Pending =
   | null
@@ -623,6 +624,7 @@ function bigLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
     if (hasWonBigCircle({ cashflow: Math.max(playerCashflow(p), p.lockedFlow), onDreamCell: true, cash: p.cash, dreamPrice: dream.price })) {
       setP(s, { ...p, won: true, cash: p.cash - dream.price, dreamAt: cell.i }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
     }
+    if (!(p.dreamVisits ?? []).includes(cell.i)) setP(s, { ...p, dreamVisits: [...(p.dreamVisits ?? []), cell.i] }); // orzu katagiga yetdi, mablag' yetmadi: belgi qoladi (qoida o'zgarmaydi — kxar kartasi olinadi)
   }
   // Birovning biznesi (qo'llanma §13): o'ziniki — e'tibor bermang; boshqaniki — A (oylik daromadni to'lash) yoki B (2× / 3× narxda sotib olish)
   if ((cell.t === "T" || cell.t === "V") && cell.price !== null) {

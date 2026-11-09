@@ -24,13 +24,21 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const big = (x.rooms as any).ctxOf?.(room)?.bigBoard ?? room.ctx.bigBoard; const T = big.filter((c: any) => c.t === "T").map((c: any) => c.i), V = big.filter((c: any) => c.t === "V").map((c: any) => c.i), O = big.find((c: any) => c.t === "O").i;
   const pa: any = room.state!.players.find((p: any) => p.id === ida), pb: any = room.state!.players.find((p: any) => p.id === idb);
   Object.assign(pa, { circle: "big", pos: 3, cash: 500000, assets: [asset(`big-${T[0]}`), asset(`big-${V[0]}`), asset("KB")] });
-  Object.assign(pb, { circle: "big", pos: 9, cash: 500000, assets: [asset(`big-${T[1]}`)], dreamAt: O });
+  const O2 = big.filter((c: any) => c.t === "O")[1].i;
+  Object.assign(pb, { circle: "big", pos: 9, cash: 500000, assets: [asset(`big-${T[1]}`)], dreamAt: O }); Object.assign(pa, { dreamVisits: [O2] });
   (x.rooms as any).emit(room); await a.waitForTimeout(1200);
   const biz = await a.getByTestId("owner-biz").count(), dream = await a.getByTestId("owner-dream").count();
   check(biz === 3, `${tag}: 3 ta biznes belgisi (turg'un 2 + tavakkal 1; kichik aylana aktivi «KB» belgilanmaydi) — ${biz}`);
   check(dream === 1, `${tag}: orzusi amalga oshgan katakda yulduzli belgi — ${dream}`);
-  const label = (await a.locator("[role=img][aria-label^='Taxta']").first().getAttribute("aria-label")) ?? "";
-  check(label.includes("Egalari") && label.includes(`${T[0]}-katak`) && label.includes("Orzu amalga oshdi".toLowerCase()), `${tag}: taxta tavsifida egalari yozilgan (ekran o'qish dasturi uchun)`);
+  const visit = await a.getByTestId("owner-visit").count(); check(visit === 1, `${tag}: orzu katagiga yetgan (shart bajarilmagan) o'yinchida bo'sh yulduz — ${visit}`);
+  // katakni bosganda tushuntirish
+  await a.getByTestId(`tile-${T[0]}`).dispatchEvent("click"); const sheet = a.getByTestId("cell-sheet"); await sheet.waitFor({ timeout: 4000 }); const st = await sheet.innerText();
+  check(st.includes(big[T[0]].name) && st.includes("Narxi") && st.includes("Oylik daromad") && st.includes("Egasi"), `${tag}: turg'un biznes katagi bosilsa nom, narx, daromad va egasi chiqadi`);
+  await a.screenshot({ path: `${OUT}/${tag}-katak.png` }); await a.keyboard.press("Escape"); await a.waitForTimeout(300); check(await sheet.count() === 0, `${tag}: Esc bilan yopiladi`);
+  await a.getByTestId(`tile-${O2}`).dispatchEvent("click"); const st2 = await a.getByTestId("cell-sheet").innerText(); check(st2.includes("Orzu katagi") && st2.includes("100 000") && st2.includes("shart bajarilmadi"), `${tag}: orzu katagi — g'alaba sharti va «yetib keldi» yozuvi`);
+  await a.getByTestId("cell-close").click(); await a.waitForTimeout(200);
+  const label = (await a.locator("[role=group][aria-label^='Taxta']").first().getAttribute("aria-label")) ?? "";
+  check(label.includes("Egalari") && label.includes(`${T[0]}-katak`) && label.includes("orzu amalga oshdi") && label.includes("orzu katagiga yetdi"), `${tag}: taxta tavsifida egalari yozilgan (ekran o'qish dasturi uchun)`);
   const ov = await a.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}: gorizontal aylanish yo'q (${ov})`);
   await a.screenshot({ path: `${OUT}/${tag}-egalar.png` });
   await a.context().close(); await c.context().close();

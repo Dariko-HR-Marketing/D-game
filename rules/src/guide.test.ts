@@ -184,6 +184,13 @@ describe("Orzu katagi (istalgan «O» katagi, OPEN_QUESTIONS 156 — qaror A)", 
     const s = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: 0, lockedFlow: 100_000, cash: ctx.dreams[0].price - 1 }); });
     expect(s.winner).toBeNull();
   });
+  it("shart bajarilmasa ham orzu katagiga yetib kelgani yoziladi (taxtada belgi); g'alabada esa dreamAt yoziladi, dreamVisits emas", () => {
+    const miss = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: 0, lockedFlow: 5000, cash: 50_000_000 }); });
+    expect(miss.winner).toBeNull(); expect(miss.players[0].dreamVisits).toEqual([O]); expect(miss.players[0].dreamAt).toBeUndefined();
+    const win = land("big", O, (g) => { Object.assign(g.players[0], { dreamIdx: 0, lockedFlow: 100_000, cash: ctx.dreams[0].price + 1 }); });
+    expect(win.winner).toBe("p0"); expect(win.players[0].dreamAt).toBe(O); expect(win.players[0].dreamVisits).toBeUndefined();
+    const none = land("big", O, (g) => { g.players[0].dreamIdx = null; }); expect(none.players[0].dreamVisits).toBeUndefined(); // orzusi tanlanmagan — belgi yo'q
+  });
   it("100 000 pul oqimi va yetarli naqd bilan istalgan «O» katagida g'alaba", () => {
     for (const cell of Os) {
       const s = land("big", cell, (g) => { Object.assign(g.players[0], { dreamIdx: 5, lockedFlow: 100_000, cash: ctx.dreams[5].price + 1234 }); });
