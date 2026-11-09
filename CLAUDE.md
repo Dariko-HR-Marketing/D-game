@@ -15,7 +15,7 @@ To'liq spetsifikatsiya: `docs/SPEC.md` (A–D ilovalar ham shu yerda). Quyida §
 2. Hamma matn o'zbek lotin alifbosida; matnlar kodda emas, alohida tarjima jadvalida.
 3. Katta summalar doim to'liq yoziladi: `1 020 000` (qisqartirish yo'q).
 4. Faqat bu faylda va ilovalarda berilgan raqamlar ishlatiladi. Narxlar yo'q: ular sozlamada (konfiguratsiyada) bo'sh turadi va keyin to'ldiriladi.
-5. Kartalar asl rasmi bilan chiqadi; ilova kartani qayta chizmaydi, faqat ta'sirini hisoblaydi.
+5. Kartalar asl rasmi bilan chiqadi; ilova kartani qayta chizmaydi, faqat ta'sirini hisoblaydi. (2026-11-09, buyurtmachi ruxsati: rasmi yo'q kartalar uchun generator yaratgan yuzlar `content/art/generated` ishlatiladi; dizayner rasmi kelsa shu nomda almashtiriladi — docs/CARDS_IMPORT.md.)
 6. Karta nomi: «KUTILMAGAN HODISA!».
 7. Kichik va katta aylana o'yinchilari o'rtasida qarz, sheriklik va suyunchi yo'q.
 8. 16 yoshgacha (yurist xulosasigacha): to'lov ota-ona tasdig'i bilan, o'zaro qarz/sheriklik va erkin chat yopiq, reklama yo'q.
