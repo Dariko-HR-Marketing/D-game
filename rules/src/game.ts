@@ -3,6 +3,7 @@
 import type { CardEffect, Effect, Op } from "@poyga/content/effects";
 import { matches, type Selector } from "@poyga/content/groups";
 import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
+import { startAuction, auctionAct, isAuctionAction, type Auction, type AuctionAction } from "./auction";
 import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankLoanPayoff, bankPrincipalDue, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {
   Player, assetMatches, slotKey, slotFull, voluntarySellable, marketPrice, SMALL_BOARD, applyEffect, buyShares, haveChild, monthlyExpenses, move, newPlayer, passMonths,
@@ -98,6 +99,8 @@ export interface GameState {
   recapPause?: boolean; recaps?: RestartRecap[]; nextRecap?: number;
   /** Halol moliya (2026-11-09): yangi o'yinlarda kredit/lombard foizsiz, bir martalik haq bilan; eski jurnallar eski hisob bilan o'ynaladi. */
   halalFin?: boolean;
+  /** Garov auksioni (halol moliya): ochiq bo'lsa boshqa harakatlar to'xtaydi. `nextAuction`: ID hisoblagichi. */
+  auction?: Auction | null; nextAuction?: number;
   mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
 }
 
@@ -266,6 +269,7 @@ export function chooseDream(s: GameState, playerId: string, dreamIdx: number): G
 }
 
 export type Action =
+  | AuctionAction
   | { type: "roll"; playerId: string; auto?: true }
   | { type: "bank_loan"; playerId: string; amount: number }
   | { type: "bank_repay"; playerId: string; loanIdx: number }
@@ -296,12 +300,14 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   // Kirish tekshiruvi (mijozga ishonib bo'lmaydi): ob'ekt, mavjud o'yinchi yoki server.
   if (typeof a !== "object" || a === null || typeof a.playerId !== "string") return { ok: false, error: "bad_action" };
   if (a.playerId !== "server" && !state.players.some((p) => p.id === a.playerId)) return { ok: false, error: "no_player" };
-  if (a.playerId === "server" && a.type !== "expire" && a.type !== "auto_dreams" && a.type !== "time_up") return { ok: false, error: "bad_action" };
+  if (a.playerId === "server" && a.type !== "expire" && a.type !== "auto_dreams" && a.type !== "time_up" && a.type !== "auction_close") return { ok: false, error: "bad_action" };
  const s = clone(state);
   // Orzu bosqichi: faqat orzu tanlash (yoki serverning avtomatik tanlovi/taklif muddati)
   if (s.phase === "dreams" && a.type !== "choose_dream" && a.type !== "auto_dreams" && a.type !== "expire") return { ok: false, error: "dreams_phase" };
   if (a.type === "choose_dream" || a.type === "auto_dreams") return cooperate(s, ctx, a);
   if (s.recaps?.length && a.type !== "ack_restart" && a.type !== "time_up" && a.type !== "expire") return { ok: false, error: "recap_open" }; // bankrot tahlili tasdiqlanguncha o'yin to'xtab turadi
+  if (isAuctionAction(a)) { const r = auctionAct(s, a); return r.ok ? { ok: true, state: s } : r; } // garov auksioni (halol moliya)
+  if (s.auction && a.type !== "time_up" && a.type !== "expire") return { ok: false, error: "auction_open" }; // auksion tugaguncha o'yin to'xtab turadi
   const cur = currentPlayer(s);
   if (a.type !== "roll" && a.type !== "decide") return cooperate(s, ctx, a);
   if (a.playerId !== cur.id) return { ok: false, error: "not_your_turn" };
@@ -450,6 +456,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
     const base = playerCashflow(p) - held;
     const flow = p.circle === "big" ? Math.max(base, p.lockedFlow) : base;
     p = tickDeposits(tickMods(tickLoans({ ...p, cash: p.cash + flow, noSalary: held ? p.noSalary! - 1 : p.noSalary })));
+    if (p.halalFin && p.bankLoans.length) p = { ...p, missed: p.cash < 0 ? (p.missed ?? 0) + 1 : 0 }; // halol hisob: bank kreditini to'lashga pul yetmagan oylar ketma-ketligi
     if (p.cash < 0 && (p.lombards ?? []).length && !p.halalFin) { // ESKI hisob: lombard foizi to'lanmadi — garov yo'qoladi (qo'llanma §08). Halol hisobda garov musodara qilinmaydi: yetmagan summa qarz (owe) bo'ladi, garov faqat muddat oxirida sotiladi
       logf(s, `${p.id}: lombard foizi kechikdi — garov yo'qoldi`);
       p = { ...p, assets: p.assets.filter((x) => x.pledged !== "lombard"), lombards: [] };
@@ -461,6 +468,7 @@ function land(s: GameState, ctx: Ctx, pid: string, die: number) {
   if (passedOwnStart(p.circle, oldPos, die)) p = startLap(p); // aylana boshi: kutayotgan ta'sirlar (alomatlar) boshlanadi (TZ §6.3)
   setP(s, p);
   for (let m = 0; m < months; m++) tickStakes(s, pid);
+  startAuction(s); // muddati o'tgan lombard / ketma-ket to'lanmagan bank krediti garovi auksionga qo'yiladi (halol hisob)
   // Katta aylana: START dan har o'tishda (aylana boshi) sozlangan ta'sir (ixtiyoriy; standart qoidada yo'q — kxar «Orzu» katagida olinadi)
   const lap = ctx.cellRules?.big?.onLap;
   if (p.circle === "big" && lap && passedStart(oldPos, die)) runCellAction(s, ctx, s.players[idx(s, pid)], lap);

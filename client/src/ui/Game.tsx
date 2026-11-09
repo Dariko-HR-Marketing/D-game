@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
 import { chatText } from "../chatText";
 import { lazyNamed, LaterOverlay } from "../lazy";
-const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
+const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), AuctionLayer = lazyNamed(() => import("./AuctionLayer"), "AuctionLayer"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
 import { getMuted } from "../chatMute";
 import { VoicePanel, useVoice } from "./VoicePanel";
 import type { VoiceEngine } from "../voice/engine";
@@ -126,7 +126,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
   const recapOpen = (state.recaps?.length ?? 0) > 0; // bankrot tahlili ochiq: o'yin to'xtagan
-  const canRoll = mineTurn && !cardRaw && settled && !state.winner && !due && !recapOpen;
+  const auctionOpen = !!state.auction; // garov auksioni ochiq: o'yin to'xtab turadi
+  const canRoll = mineTurn && !cardRaw && settled && !state.winner && !due && !recapOpen && !auctionOpen;
   // Kubik oynasi: o'z navbatingizda «Kubikni tashlash» oynaning eng oldida (modal); «keyinroq» bosilsa shu tashlash imkoniyati uchun yopiladi, sahifadagi tugma qoladi
   const [rollModalOn, setRollModalOn] = useState(getRollModalPref); const [waitRoll, setWaitRoll] = useState(false); const [laterAt, setLaterAt] = useState<number | null>(null); const oppN = state.lastRoll?.n ?? 0;
   useEffect(() => { setWaitRoll(false); }, [oppN]);
@@ -260,7 +261,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
@@ -300,7 +301,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}

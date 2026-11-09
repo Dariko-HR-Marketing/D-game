@@ -78,9 +78,9 @@ export type Mod = ModBase & (
 /** Depozit: `principal` joylangan; har aylana (4 oy) oxirida +`perLap` (muddatli — hisoblanadi, muddat oxirida to'lanadi; talab bo'yicha — darhol naqdga). `lapsLeft: null` — talab bo'yicha. */
 export interface Deposit { id: number; label: string; principal: number; perLap: number; lapsLeft: number | null; accrued: number; months: number }
 /** Bank krediti: asl summa va qolgan oylar. Oylik to'lov = summa/36 + summa×20 %/12 (§5.3), 36 oy davomida. */
-export interface BankLoan { amount: number; left: number; fee?: number; collateral?: { code: string; price: number }[] }
+export interface BankLoan { amount: number; left: number; fee?: number; since?: number; collateral?: { code: string; price: number }[] }
 /** Lombard (qo'llanma §08): garov qiymatining 50 % i; foiz oyiga 10 % (xarajatga qo'shiladi), asosiy qarz 12 oydan keyin birdaniga. */
-export interface Lombard { code: string; price: number; amount: number; left: number; fee?: number }
+export interface Lombard { code: string; price: number; amount: number; left: number; fee?: number; since?: number; overdue?: boolean }
 export interface Player {
   id: string; pos: number; circle: "small" | "big"; profession: number;
   cash: number; salary: number; baseExpenses: number; childCost: number; children: number;
@@ -88,6 +88,7 @@ export interface Player {
   // Xayriya: keyingi N navbatda 2 ta kubik (§5.10)
   qar: boolean; insuredCar: boolean; handLoans: number;
   halalFin?: boolean; // yangi o'yinlar: foizsiz (bir martalik haqli) kredit/lombard; yo'q bo'lsa eski hisob
+  missed?: number; // halol hisob: bank kreditida ketma-ket to'lanmagan oylar (naqd manfiy bo'lib qolgan)
   lombards?: Lombard[]; owe?: number; // owe: kichik aylanadagi qarz (naqd yetmaganda yoziladi, naqd paydo bo'lishi bilan yopiladi; chegara 10 000)
   mods?: Mod[]; modSeq?: number;      // faol ta'sirlar (katalog kartalari): ish haqi, oylik, daromad, narx, sug'urta polislari; `modSeq` — keyingi ID
   deposits?: Deposit[];               // muddatli depozitlar/obligatsiyalar (katalog)
@@ -149,7 +150,7 @@ function pickCollateral(p: Player, amount: number): Asset[] {
   for (const a of [...p.assets.filter(pledgeable)].sort((x, y) => collateralValue(x) - collateralValue(y))) { if (sum >= need) break; out.push(a); sum += collateralValue(a); }
   return sum >= need ? out : [];
 }
-const unpledge = (assets: Asset[], codes: { code: string; price: number }[], kind: "bank" | "lombard"): Asset[] => {
+export const unpledge = (assets: Asset[], codes: { code: string; price: number }[], kind: "bank" | "lombard"): Asset[] => {
   const left = [...codes]; return assets.map((a) => { const i = a.pledged === kind ? left.findIndex((c) => c.code === a.code && c.price === a.price) : -1; if (i < 0) return a; left.splice(i, 1); return { ...a, pledged: undefined }; });
 };
 
@@ -164,11 +165,13 @@ export function tickLoans<T extends Player>(p: T): T {
   }
   if ((q.lombards ?? []).length > 0) {
     let cash = q.cash, assets = q.assets; const keep: Lombard[] = [];
-    for (const l of q.lombards!.map((x) => ({ ...x, left: x.left - 1 }))) {
-      if (l.left > 0) { keep.push(l); continue; }
-      if (cash >= l.amount) { cash -= l.amount; assets = unpledge(assets, [l], "lombard"); }
-      else { const k = assets.findIndex((a) => a.pledged === "lombard" && a.code === l.code && a.price === l.price); if (k >= 0) assets = assets.filter((_, n) => n !== k);
-        if (k >= 0 && l.fee !== undefined) cash += Math.max(0, l.price - l.amount - feeRemaining(l, RULES.lombardTermMonths)); } // halol hisob: garov sotiladi, qarz yopiladi, ORTIQCHASI egasiga qaytadi (vaqtincha: sotuv narxi = garov narxi; auksion — OPEN_QUESTIONS 168)
+    for (const l of q.lombards!) {
+      if (l.overdue) { keep.push(l); continue; } // muddati o'tgan, auksion kutilmoqda
+      const x = { ...l, left: l.left - 1 };
+      if (x.left > 0) { keep.push(x); continue; }
+      if (cash >= x.amount) { cash -= x.amount; assets = unpledge(assets, [x], "lombard"); }
+      else if (x.fee !== undefined) keep.push({ ...x, left: 0, overdue: true }); // halol hisob: garov musodara qilinmaydi — auksionga qo'yiladi
+      else { const k = assets.findIndex((a) => a.pledged === "lombard" && a.code === x.code && a.price === x.price); if (k >= 0) assets = assets.filter((_, n) => n !== k); }
     }
     q = { ...q, cash, assets, lombards: keep };
   }
@@ -178,13 +181,16 @@ export const passMonths = (p: Player, n: number): Player => {
   let q = p; for (let i = 0; i < n; i++) q = tickLoans({ ...q, cash: q.cash + playerCashflow(q) }); return q;
 };
 
+/** O'yin boshidan o'tgan oylar (kredit/lombard berilgan payt: garov auksionida «qaysi biri birinchi olingan» tartibi uchun). */
+const monthsOf = (p: Player) => (p as { monthsPlayed?: number }).monthsPlayed ?? 0;
+
 /** Bank krediti (qo'llanma §08): faqat biznes/aksiya/aktiv sotib olish uchun (chaqiruvchi tekshiradi). Garov va to'lov sharti bajarilmasa — `ok: false`. */
 export function takeBankLoan(p: Player, amount: number): { player: Player; ok: boolean } {
   if (!Number.isInteger(amount) || amount % 100 !== 0 || amount < RULES.bankMin || amount > maxBankLoan(p)) return { player: p, ok: false };
   const col = pickCollateral(p, amount); if (col.length === 0) return { player: p, ok: false };
   const marks = new Set(col); const pledged = p.assets.map((a) => (marks.has(a) ? { ...a, pledged: "bank" as const } : a));
   return { ok: true, player: { ...p, assets: pledged, bankDebt: p.bankDebt + amount, cash: p.cash + amount,
-    bankLoans: [...p.bankLoans, { amount, left: RULES.bankTermMonths, ...(p.halalFin ? { fee: oneTimeFee(amount, RULES.bankFeePct, p.children) } : {}), collateral: col.map((a) => ({ code: a.code, price: a.price })) }] } };
+    bankLoans: [...p.bankLoans, { amount, left: RULES.bankTermMonths, since: monthsOf(p), ...(p.halalFin ? { fee: oneTimeFee(amount, RULES.bankFeePct, p.children) } : {}), collateral: col.map((a) => ({ code: a.code, price: a.price })) }] } };
 }
 /** Muddatidan oldin yopish: kamida 3 aylana (12 oy) o'tgach; qolgan asosiy qarz naqd to'lanadi, garov bo'shaydi. */
 export function repayBankLoan(p: Player, idx: number): { player: Player; ok: boolean; cost: number } {
@@ -206,7 +212,7 @@ export function takeLombard(p: Player, assetIdx: number): { player: Player; ok: 
   const a = p.assets[assetIdx]; if (!a || !pledgeable(a)) return { player: p, ok: false };
   const amount = Math.floor((a.price * RULES.lombardShare) / 100) * 100; if (amount <= 0) return { player: p, ok: false };
   return { ok: true, player: { ...p, cash: p.cash + amount, assets: p.assets.map((x, n) => (n === assetIdx ? { ...x, pledged: "lombard" as const } : x)),
-    lombards: [...(p.lombards ?? []), { code: a.code, price: a.price, amount, left: RULES.lombardTermMonths, ...(p.halalFin ? { fee: oneTimeFee(amount, RULES.lombardFeePct, p.children) } : {}) }] } };
+    lombards: [...(p.lombards ?? []), { code: a.code, price: a.price, amount, left: RULES.lombardTermMonths, since: monthsOf(p), ...(p.halalFin ? { fee: oneTimeFee(amount, RULES.lombardFeePct, p.children) } : {}) }] } };
 }
 /** Qarz (owe) naqd paydo bo'lishi bilan darhol yopiladi (qo'llanma §09). */
 export const settleOwe = <T extends Player>(p: T): T => ((p.owe ?? 0) > 0 && p.cash > 0 ? { ...p, cash: p.cash - Math.min(p.cash, p.owe!), owe: p.owe! - Math.min(p.cash, p.owe!) } : p);

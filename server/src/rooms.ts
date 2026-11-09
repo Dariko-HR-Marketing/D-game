@@ -1,7 +1,7 @@
 // Xonalar, navbat, server taymerlari, uzilish/qayta ulanish (SPEC §6). Transportdan mustaqil.
 import { cleanText, CHAT_KEEP, PHRASES, type ChatMsg } from "./chat";
 import { MODES, modeOf, type GameMode, passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, slotBlocked, currentPlayer, effectOf, newGame, reduce } from "@poyga/rules";
-import { RULES } from "@poyga/rules";
+import { RULES, botAuctionAction, type Auction } from "@poyga/rules";
 import type { RoomMeta, RoomTag, Store } from "./store";
 import type { ContentRegistry } from "./registry";
 
@@ -27,6 +27,7 @@ export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   voice?: Set<string>; chat?: ChatMsg[]; chatSeq?: number; lastChat?: Record<string, { text: string; at: number }>; // so'nggi xabarlar (xotirada) va takroriy xabarni to'xtatish
   timer: unknown; deadline: number | null; turnSeconds: TurnSeconds;
+  auctionPhase?: string; auctionBids?: number; auctionEnd?: number | null; // garov auksioni: bosqich, ko'rilgan takliflar soni, tugash vaqti
   timerSeconds?: number | null; armKey?: string | null; // joriy taymer davomiyligi (mijoz halqasi uchun) va qaysi bosqich uchun o'rnatilgani (bir xil bosqichda qayta o'rnatilmaydi)
   /** Xona egasi oldindan belgilagan o'yinchilar soni (2–8); boshlanganda bo'sh o'rinlarni botlar egallaydi. `undefined` — eski xonalar: 8 gacha qo'shilish, 2 tagacha bot. */
   seats?: number;
@@ -306,6 +307,7 @@ export class RoomManager {
       r.timer = this.clock.setTimeout(() => { r.timer = null; r.deadline = null; void this.apply(r, { type: "auto_dreams", playerId: "server" }, "dream_timeout").catch((e) => this.hooks.onError?.("autoMove", e)); }, ms);
       return;
     }
+    if (r.state!.auction) return this.armAuction(r, r.state!.auction); // garov auksioni: oddiy navbat taymeri to'xtaydi va auksiondan keyin to'liq qayta boshlanadi
     const rc = r.state!.recaps?.[0]; const key = `${r.state!.turn}|${r.state!.pending ? r.state!.pending.cardId + (r.state!.pending.type ?? "") : "-"}${rc ? `|r${rc.id}` : ""}`;
     if (r.timer && r.armKey === key) return; // shu bosqich uchun taymer allaqachon ishlayapti (boshqalarning harakati uni yangilamaydi)
     if (r.timer) this.clock.clearTimeout(r.timer);
@@ -322,6 +324,29 @@ export class RoomManager {
     r.timerSeconds = quick ? null : secs;
     r.deadline = this.clock.now() + delay;
     r.timer = this.clock.setTimeout(() => { this.autoMove(r).catch((e) => { this.hooks.onError?.("autoMove", e); if (r.state && !r.state.winner && !r.endedAt) this.arm(r); }); }, delay);
+  }
+
+  /** Garov auksioni (halol moliya): 30 s (sekin xonada 60 s) — egasi qaror qiladi, so'ng ochiq auksion shuncha davom etadi; har bir yangi taklif muddatni kamida `auctionExtendSeconds` ga uzaytiradi (oxirgi soniyada olib qo'yishning oldini oladi). Vaqtsiz xonada muddat yo'q: hamma o'tkazganda yopiladi. Botlar va avtopilotdagilar darhol harakat qiladi. */
+  private armAuction(r: Room, au: Auction) {
+    const timed = r.turnSeconds !== 0, now = this.clock.now(), secs = Math.round(RULES.timerAuctionSeconds * (r.turnSeconds / 30));
+    const phaseKey = `${au.id}|${au.phase}`;
+    if (r.auctionPhase !== phaseKey) { r.auctionPhase = phaseKey; r.auctionBids = au.bids; r.auctionEnd = timed ? now + secs * 1000 : null; }
+    else if (au.bids > (r.auctionBids ?? 0)) { r.auctionBids = au.bids; if (timed) r.auctionEnd = Math.max(r.auctionEnd ?? 0, now + RULES.auctionExtendSeconds * 1000); }
+    const sig = `A${phaseKey}|${au.bids}|${au.passed.length}|${r.auctionEnd}`;
+    if (r.timer && r.armKey === sig) return;
+    if (r.timer) this.clock.clearTimeout(r.timer);
+    r.armKey = sig;
+    const fallback = (): Action => au.phase === "owner" ? { type: "auction_decline", playerId: au.owner, auto: true } : { type: "auction_close", playerId: "server" };
+    const run = (action: Action, why: string) => { r.timer = null; r.armKey = null; void this.apply(r, action, why).then((o) => { if (!o.ok && r.state?.auction) void this.apply(r, fallback(), "auction_fallback"); }).catch((e) => { this.hooks.onError?.("auction", e); if (r.state && !r.state.winner && !r.endedAt) this.arm(r); }); };
+    for (const p of r.state!.players) { // bot yoki avtopilotdagi o'yinchining harakati
+      const m = r.members.find((x) => x.userId === p.id); if (!m || !(m.bot || this.isAutopilot(m))) continue;
+      const act = botAuctionAction(r.state!, p.id); if (!act) continue;
+      r.timerSeconds = null; r.deadline = null;
+      r.timer = this.clock.setTimeout(() => run(act, m.bot ? "bot" : "autopilot"), m.bot ? 0 : AUTOPILOT_MS); return;
+    }
+    r.timerSeconds = timed ? secs : null; r.deadline = r.auctionEnd ?? null;
+    if (r.auctionEnd == null) { r.timer = null; return; }
+    r.timer = this.clock.setTimeout(() => run(fallback(), "auction_timeout"), Math.max(0, r.auctionEnd - now));
   }
 
   /** Onlayn odam bormi (botlar va ixtiyoriy chiqqanlar hisobga kirmaydi). */

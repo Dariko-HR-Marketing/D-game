@@ -13,7 +13,12 @@ export const RULES = {
   // Halol moliya (buyurtmachi qarori 2026-11-09): foiz yo'q, kredit berilganda BIR MARTALIK haq belgilanadi (murobaha ustamasi) va keyin o'zgarmaydi.
   bankFeePct: 50,                 // 36 oylik kredit uchun summaning 50 % i; oylarga teng bo'linadi; muddatidan oldin yopilsa ham to'liq to'lanadi
   childFeeDiscountPct: 10,        // har bir farzand uchun bir martalik haqdan 10 % (haqning o'zidan) chegirma: 1 farzand 450, 2 farzand 400 (500 dan)
-  lombardFeePct: 0,               // BO'SH: lombard uchun bir martalik haq foizi buyurtmachi tomonidan belgilanmagan (OPEN_QUESTIONS 167)
+  lombardFeePct: 50,              // 12 oylik lombard uchun olingan summaning 50 % i (buyurtmachi 2026-11-09), farzand chegirmasi bilan; muddatidan oldin yopilsa ham to'liq
+  // Garov auksioni (to'lanmagan majburiyat): narx qadami, muddatlar va botlar — OPEN_QUESTIONS 168
+  timerAuctionSeconds: 30,        // egasi qaror qiladi / ochiq auksion davomiyligi (xona «sekin» bo'lsa ×2); vaqtsiz xonada taymer yo'q
+  auctionExtendSeconds: 5,        // har bir yangi taklifdan keyin auksion kamida shuncha soniya ochiq turadi (oxirgi soniyada olib qo'yishning oldini oladi)
+  auctionBidStep: 100,            // eng kam ko'tarish qadami
+  missedMonthsToSale: 4,          // bank kreditida ketma-ket shuncha oy to'lov yetmasa (naqd manfiy) — garov auksionga qo'yiladi (4 oy = 1 aylana)
   exitCash: 1_000_000, // §5.4
   exitPassiveFlow: 25_000,
   winCashflow: 100_000, // §5.5
@@ -183,5 +188,6 @@ export const levelFromPoints = (points: number) => Math.floor(Math.max(0, points
 
 export * from "./engine";
 export * from "./game";
+export * from "./auction";
 export * from "./analysis";
 export * from "./report";

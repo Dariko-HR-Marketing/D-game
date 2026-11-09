@@ -55,9 +55,11 @@ describe("halol moliya: bir martalik haq (murobaha)", () => {
 
 describe("halol moliya: lombard (rahn)", () => {
   const withFee = <T>(pct: number, f: () => T): T => { const old = RULES.lombardFeePct; (RULES as any).lombardFeePct = pct; try { return f(); } finally { (RULES as any).lombardFeePct = old; } };
-  it("haq foizi bo'sh (0) bo'lsa — haq yo'q, foiz ham yo'q", () => {
-    const r = takeLombard(mk(true), 0); expect(r.ok).toBe(true); expect(r.player.lombards![0].fee).toBe(0);
-    expect(lombardMonthly(r.player.lombards![0])).toBe(0);
+  it("lombard haqi: olingan summaning 50 % i (12 oy), farzand boshiga haqdan 10 % chegirma", () => {
+    const l0 = takeLombard(mk(true), 0).player.lombards![0]; expect(l0.amount).toBe(10_000); expect(l0.fee).toBe(5000);
+    expect(lombardMonthly(l0)).toBe(Math.ceil(5000 / 12));
+    expect(takeLombard(mk(true, 1), 0).player.lombards![0].fee).toBe(4500);
+    expect(takeLombard(mk(true, 2), 0).player.lombards![0].fee).toBe(4000);
   });
   it("sozlangan haq: 12 oyga teng bo'linadi, muddatidan oldin yopilsa to'lanmagan qismi to'lanadi", () => withFee(20, () => {
     let p = takeLombard(mk(true), 0).player; const l = p.lombards![0];
@@ -70,11 +72,12 @@ describe("halol moliya: lombard (rahn)", () => {
     const p = takeLombard(mk(false), 0).player; expect(lombardMonthly(p.lombards![0])).toBe(1000);
     expect(repayLombard({ ...p, cash: 50_000 }, 0).cost).toBe(10_000);
   });
-  it("muddat oxirida to'lanmasa: garov sotiladi, qarz yopiladi, ortiqchasi egasiga qaytadi (halol); eskida garov yo'qoladi", () => {
+  it("muddat oxirida to'lanmasa: halol hisobda garov musodara qilinmaydi — «muddati o'tgan» bo'lib auksion kutadi; eskida garov yo'qoladi", () => {
     const run = (halal: boolean) => { let p = takeLombard(mk(halal), 0).player; p = { ...p, cash: 0 }; for (let i = 0; i < RULES.lombardTermMonths; i++) p = tickLoans(p); return p; };
     const h = run(true), o = run(false);
-    expect(h.assets).toHaveLength(1); expect(h.lombards).toHaveLength(0); expect(h.cash).toBe(20_000 - 10_000);
-    expect(o.assets).toHaveLength(1); expect(o.cash).toBe(0);
+    expect(h.assets).toHaveLength(2); expect(h.lombards).toHaveLength(1); expect(h.lombards![0].overdue).toBe(true); expect(h.lombards![0].left).toBe(0);
+    expect(lombardMonthly(h.lombards![0])).toBe(0); // muddati o'tgan lombard oylik xarajat qo'shmaydi
+    expect(o.assets).toHaveLength(1); expect(o.lombards).toHaveLength(0);
   });
   it("xarajat: halol kredit va lombard oylik xarajatga kiradi", () => {
     const p = takeBankLoan(mk(true), 5000).player;
