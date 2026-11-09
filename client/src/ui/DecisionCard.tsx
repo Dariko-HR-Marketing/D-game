@@ -77,6 +77,12 @@ export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, dea
           <View style={s.change}><Text style={s.chL}>{uz.facts.yourCash.replace("Sizning naqdingiz", "Naqd")}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(me.cash)}</Text> → <Text style={{ color: afterCash < 0 ? tone.bad : tone.good }}>{money(afterCash)}</Text></Text></View>
           {f.flowDelta !== null && f.flowDelta !== 0 && <View style={s.change}><Text style={s.chL}>{uz.game.cashflow}</Text><Text style={s.chV}><Text style={{ color: tone.muted }}>{money(flow)}</Text> → <Text style={{ color: flow + f.flowDelta < 0 ? tone.bad : tone.good }}>{money(flow + f.flowDelta)}</Text></Text></View>}
         </View>)}
+      {e?.kind === "buy" && e.credit > 0 && f.need !== null && (
+        <View style={s.priceBox} testID="price-block" accessibilityLabel={`${uz.facts.totalPrice}: ${money(e.price)}. ${uz.facts.payNow}: ${money(f.need)}`}>
+          <View style={s.priceRow}><Text style={s.priceL}>{uz.facts.totalPrice}</Text><Text style={s.priceTotal}>{money(e.price)}</Text></View>
+          <View style={s.payNow}><Text style={s.payNowL}>{uz.facts.payNow}</Text><Text style={s.payNowV} testID="pay-now">{money(f.need)}</Text></View>
+          <Text style={s.priceNote}>{uz.facts.payNowNote.replace("{credit}", money(e.credit)).replace("{pay}", money(Math.abs(e.creditPayment ?? 0)))}</Text>
+        </View>)}
       {f.rows.length > 0 && (<View style={s.facts} accessibilityLabel={uz.facts.title}>{f.rows.map((r) => <Row key={r.label} l={r.label} v={r.value} kind={r.tone === "bad" ? "bad" : r.tone === "good" ? "good" : "neutral"} />)}</View>)}
   </>);
   const numbersFirst = !!sheet && vh < 700; // past telefonda qaror raqamlari (o'zgarishlar, narx, kredit) hikoya matnidan oldin: aylantirmasdan ko'rinsin
@@ -128,6 +134,8 @@ export function DecisionCard({ horizontal, card, me, bankRoom, onAct, sheet, dea
   return sheet ? full : <Card accent="gold" style={{ gap: space.md }}>{full}</Card>;
 }
 const s = StyleSheet.create({
+  priceBox: { backgroundColor: "#F3F7FA", borderRadius: radius.md, padding: space.md, gap: space.xs }, priceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: space.sm }, priceL: { color: tone.muted, fontSize: font.md, fontWeight: "700" }, priceTotal: { color: color.navy, fontSize: font.xl, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  payNow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: space.sm, backgroundColor: "#FFF6DD", borderRadius: radius.md, paddingVertical: space.sm, paddingHorizontal: space.md, borderWidth: 2, borderColor: color.gold }, payNowL: { color: color.navy, fontSize: font.md, fontWeight: "800", flexShrink: 1 }, payNowV: { color: color.navy, fontSize: 34, lineHeight: 40, fontWeight: "900", fontVariant: ["tabular-nums"] }, priceNote: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   head: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 1 },
   headIcon: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   headEyebrow: { fontSize: 12, fontWeight: "700" }, headTitle: { fontSize: font.xl, fontWeight: "800" },
