@@ -11,7 +11,7 @@ import type { RoomView } from "../net/connection";
 
 /** «O'yinchilar» bo'limi (maket N20): har bir o'yinchining aylanasi, naqdi va pul oqimi. */
 export function PlayerList({ room, userId }: { room: RoomView; userId: string }) {
-  const cur = currentId(room);
+  const cur = currentId(room); const mixed = room.state.players.some((q: any) => q.circle !== room.state.players[0].circle); // hamma bir aylanada bo'lsa chip va izoh ortiqcha: ism uchun joy qoladi
   return (
     <View style={{ gap: space.md }}>
       <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.hud.playersTitle}</Text>
@@ -21,7 +21,7 @@ export function PlayerList({ room, userId }: { room: RoomView; userId: string })
             <View style={s.head} aria-hidden>
               <Avatar name={name} colorIdx={room.names?.[p.id]?.color ?? k} level={levelOf(room, p.id)} online={room.state.bots.includes(p.id) ? undefined : mem?.online !== false} size={44} gender={room.names?.[p.id]?.gender} frame={room.names?.[p.id]?.cos?.frame} photo={room.names?.[p.id]?.photo} bgColor={room.names?.[p.id]?.cos?.avatar} />
               <View style={{ flex: 1 }}><Text style={s.name}>{name}{isMe ? ` (${uz.hud.you})` : ""}</Text><Text style={s.sub}>{room.professions?.[p.id] ?? ""}</Text></View>
-              <View style={{ gap: 4, alignItems: "flex-end" }}><Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />{mem?.autopilot && <Pill label={uz.hud.autopilot.pill} kind="warn" />}</View>
+              <View style={{ gap: 4, alignItems: "flex-end" }}>{mixed && <Pill label={p.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle} kind={p.circle === "big" ? "good" : "info"} />}{mem?.autopilot && <Pill label={uz.hud.autopilot.pill} kind="warn" />}</View>
             </View>
             <View style={s.stats} aria-hidden>
               <View><Text style={s.l}>{uz.hud.cashLabel}</Text><Text style={s.v}>{money(p.cash)}</Text></View>
@@ -30,7 +30,7 @@ export function PlayerList({ room, userId }: { room: RoomView; userId: string })
             </View>
           </Card>);
       })}
-      <Text style={s.note}>{uz.hud.ownCircleNote}</Text>
+      {mixed && <Text style={s.note}>{uz.hud.ownCircleNote}</Text>}
     </View>
   );
 }

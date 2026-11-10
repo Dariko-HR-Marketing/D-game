@@ -106,3 +106,10 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 ## Katta aylana: egalik belgilari va katak tushuntirishi (2026-11-09, buyurtmachi talabi)
 - Sotib olingan biznes katagida egasining fishka rangida dumaloq belgi (o'yinchi raqami) va rangli chegara. Orzu katagida: yulduz — orzu amalga oshgan, bo'sh yulduz — katakka yetib kelgan, shart bajarilmagan.
 - **Har bir katak bosiladi**: pastdan (telefon) yoki markazdan chiqadigan oyna — tur, nom, narx/daromad, qoida, egasi. Kichik aylanada ham (hamma ikonka bir xil ko'rinib qolmasin). Esc, fon yoki «Yopish» bilan yopiladi. Tekshiruv: `owners-check` (kompyuter, tik va yotiq telefon).
+
+## Sayqal: sarlavha, vaqt paneli, o'yinchi kartalari (2026-11-09)
+- Tik telefon/planshetda sarlavhadagi «Qoidalar» tugmasi olib tashlandi (pastki menyuda bor edi): «Kichik aylana» sarlavhasi endi «Kichik ayl…» bo'lib qirqilmaydi.
+- «O'yin vaqti» telefonda zichroq: oylar va 12 nuqta bir qatorda, «jami N oy» faqat bir yildan oshganda ko'rinadi (avval «0 yil 0 oy · jami: 0 oy» takrorlanardi).
+- O'yinchi kartalarida «Kichik aylana» chipi va «Siz faqat o'z aylanangizni ko'rasiz…» izohi faqat aralash o'yinda (kimdir boshqa aylanada) ko'rinadi: hamma bir aylanada bo'lsa ism uchun joy ko'proq, ekranda takror yozuv yo'q.
+- CI: avtomatik deploy `DEPLOY_*` sirlari yo'q bo'lsa qizil xato emas, ko'rinadigan ogohlantirish bilan o'tkazib yuboriladi (qo'lda ishga tushirilsa — xato).
+
