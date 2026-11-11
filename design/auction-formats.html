@@ -1,0 +1,295 @@
+<title>POYGA auksion formatlari</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Maket: bitta ustunli maqola; har bo'limda diagramma yoki ishlaydigan model. Telefon ramkasi — asosiy namuna.
+   Ranglar: chuqur ko'k (o'yinning o'zi), oltin faqat «narx» va g'olib uchun, yashil/qizil — pul oqimi. */
+:root {
+  --bg: #F2F5F8; --surface: #FFFFFF; --surface2: #E8EEF4; --line: #D3DCE6;
+  --fg: #0D2A47; --muted: #51657A; --accent: #0F5FA8; --gold: #B97A00; --goldbg: #FFF1CC;
+  --good: #11835A; --goodbg: #DDF3E9; --bad: #B4343B; --badbg: #FBE4E5; --phone: #0D2A47; --phonebg: #FFFFFF;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif; --body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0A1622; --surface: #112334; --surface2: #17304A; --line: #26405A; --fg: #E5EEF7; --muted: #9FB3C8; --accent: #5AB0F5; --gold: #F2BE45; --goldbg: #3A2D0B;
+  --good: #4FD3A0; --goodbg: #0F3326; --bad: #FF8A90; --badbg: #3C1A1D; --phone: #060E16; --phonebg: #0F2030; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0A1622; --surface: #112334; --surface2: #17304A; --line: #26405A; --fg: #E5EEF7; --muted: #9FB3C8; --accent: #5AB0F5; --gold: #F2BE45; --goldbg: #3A2D0B;
+  --good: #4FD3A0; --goodbg: #0F3326; --bad: #FF8A90; --badbg: #3C1A1D; --phone: #060E16; --phonebg: #0F2030; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.55; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.12; letter-spacing: -.01em; }
+h1 { font-size: clamp(34px, 6vw, 56px); font-weight: 800; } h2 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; } h3 { font-size: 20px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; } .muted { color: var(--muted); } .tiny { font-size: 14px; }
+.kicker { font-size: 13px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+section { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.note { background: var(--goldbg); border: 1px solid var(--gold); border-radius: 10px; padding: 10px 14px; font-size: 15px; max-width: 72ch; }
+.formats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.fcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px; text-align: left; font: inherit; color: inherit; cursor: pointer; min-width: 0; }
+.fcard[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.fcard:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.badge { display: inline-block; align-self: flex-start; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; background: var(--surface2); color: var(--muted); }
+.badge.done { background: var(--goodbg); color: var(--good); } .badge.new { background: var(--goldbg); color: var(--gold); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
+.twocol { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; } @media (max-width: 820px) { .twocol { grid-template-columns: minmax(0, 1fr); } }
+/* qaror zanjiri */
+.chain { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+.step { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; background: var(--surface2); border: 2px solid transparent; border-radius: 10px; padding: 10px 14px; transition: background .25s, border-color .25s; }
+.step b { font-weight: 700; } .step small { display: block; color: var(--muted); font-size: 14px; }
+.step.hit { background: var(--goodbg); border-color: var(--good); } .step.skip { opacity: .55; } .step.auc { background: var(--goldbg); border-color: var(--gold); }
+.step.auc.pulse { animation: pulse 1.4s ease-in-out infinite; }
+.arrow { text-align: center; color: var(--muted); font-size: 18px; line-height: 1.2; height: 22px; }
+.tg { position: relative; width: 52px; height: 30px; border-radius: 99px; background: var(--line); border: 0; cursor: pointer; padding: 0; } .tg::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.tg[aria-checked="true"] { background: var(--good); } .tg[aria-checked="true"]::after { transform: translateX(22px); }
+.verdict { margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-weight: 700; } .verdict.buy { background: var(--goodbg); color: var(--good); } .verdict.auc { background: var(--goldbg); color: var(--gold); }
+/* vaqt chizig'i */
+.tl { display: flex; flex-direction: column; gap: 10px; } .tlrow { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 14px; }
+.bar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; background: var(--surface2); } .bar span { display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; transform-origin: left; animation: grow .9s ease-out both; }
+.b-owner { background: #6B7C93; } .b-auc { background: var(--accent); } .b-turn { background: var(--good); }
+/* telefon */
+.stage { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 28px; align-items: start; } @media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); justify-items: center; } .stage > .side { width: 100%; } }
+.phone { width: 330px; max-width: 100%; background: var(--phone); border-radius: 36px; padding: 10px; box-shadow: 0 18px 40px rgba(5, 20, 40, .28); }
+.screen { background: var(--phonebg); border-radius: 28px; padding: 16px 14px 14px; display: flex; flex-direction: column; gap: 10px; min-height: 560px; position: relative; overflow: hidden; }
+.pk { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); } .ph { font-family: var(--display); font-weight: 800; font-size: 18px; line-height: 1.2; }
+.lot { background: var(--surface2); border-radius: 12px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 14px; } .lot b { font-variant-numeric: tabular-nums; }
+.ring { display: grid; grid-template-columns: 74px 1fr; gap: 12px; align-items: center; } .ring svg { width: 74px; height: 74px; } .ring .t { font-family: var(--display); font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; } .ring .s { font-size: 13px; color: var(--muted); } .mini .ring svg { width: 54px; height: 54px; }
+.best { display: flex; justify-content: space-between; align-items: baseline; background: var(--goldbg); border-radius: 12px; padding: 8px 12px; } .best strong { font-family: var(--display); font-size: 24px; color: var(--gold); font-variant-numeric: tabular-nums; } .best span { font-size: 13px; color: var(--muted); }
+.ladder { display: flex; flex-direction: column; gap: 5px; min-height: 92px; max-height: 118px; overflow: hidden; }
+.bid { display: grid; grid-template-columns: 1fr auto; font-size: 14px; background: var(--surface2); border-radius: 8px; padding: 5px 10px; animation: slide .35s ease-out both; font-variant-numeric: tabular-nums; } .bid.me { background: var(--goodbg); color: var(--good); font-weight: 700; } .bid.top { box-shadow: inset 3px 0 0 var(--gold); }
+.cash { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; } .cashbar { height: 8px; border-radius: 99px; background: var(--surface2); overflow: hidden; flex: 1; } .cashbar i { display: block; height: 100%; background: var(--good); transition: width .4s; }
+.cashonly { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--surface2); padding: 3px 8px; border-radius: 99px; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; } .btn { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 12px; min-height: 44px; cursor: pointer; background: var(--accent); color: #fff; } .btn.ghost { background: var(--surface2); color: var(--fg); } .btn.sm { padding: 8px 10px; min-height: 40px; font-size: 14px; } .btn:disabled { opacity: .45; cursor: not-allowed; }
+.warn { font-size: 13px; color: var(--bad); min-height: 18px; }
+.result { position: absolute; inset: 0; background: var(--phonebg); padding: 18px 16px; display: flex; flex-direction: column; gap: 12px; animation: fade .4s ease-out both; }
+.win { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--gold); animation: pop .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+/* pul oqimi */
+.flow { width: 100%; height: auto; } .flow text { font-family: var(--body); fill: var(--fg); } .flow .n { fill: var(--surface2); stroke: var(--line); } .flow .lab { font-size: 13px; fill: var(--muted); } .flow .amt { font-size: 15px; font-weight: 700; }
+.flow path.f { fill: none; stroke-width: 3; stroke-dasharray: 7 6; animation: dash 1.1s linear infinite; } .flow .pay { stroke: var(--bad); } .flow .get { stroke: var(--good); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 14px; color: var(--muted); } .legend i { display: inline-block; width: 22px; height: 0; border-top: 3px dashed; vertical-align: middle; margin-right: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; } th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; } th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); } .scroll { overflow-x: auto; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; } .mini { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 230px; }
+.toast { background: var(--fg); color: var(--bg); border-radius: 12px; padding: 10px 12px; font-size: 14px; animation: slide .5s ease-out both; }
+ol.q { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; max-width: 74ch; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(185, 122, 0, .45); } 50% { box-shadow: 0 0 0 9px rgba(185, 122, 0, 0); } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } } @keyframes slide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } } @keyframes pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } } @keyframes dash { to { stroke-dashoffset: -26; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="kicker">Dizayn g‘oyasi · kod o‘zgarmagan, merge qilinmagan</div>
+    <h1>Auksion: uch format, bitta mexanizm</h1>
+    <p class="muted">Majburiy auksion allaqachon ishlaydi. Yana ikki format qo‘shiladi: ixtiyoriy auksion (egasi o‘zi sotadi) va bozor auksioni (karta olib bo‘lmaganda yoki bankdan sotuv). Uchalasida ham eng ko‘p bergan oladi, to‘lov faqat naqd.</p>
+    <div class="note"><b>Umumiy qoida:</b> auksionda sotib olishda faqat naqd pul ishlaydi. Bank krediti, lombard, sheriklik va o‘zaro qarz bu yerda ishlamaydi. Auksion tugaganda eng yuqori taklif bergan va naqdi yetgan o‘yinchi oladi. Qatnashadi: faqat shu aylanadagi, 16 yoshdan katta o‘yinchilar. Boshqa aylanadagilar va 16 yoshgacha bolalar taklif qila olmaydi, lekin auksionni ko‘ra oladi. Narx har doim bitta yaxlit summa: boshlang‘ich to‘lov yoki kredit qismi degan narsa yo‘q.</div>
+  </header>
+
+  <section aria-labelledby="h-formats">
+    <div class="kicker">1 · Formatlar</div><h2 id="h-formats">Qaysi auksion qachon ochiladi</h2>
+    <div class="formats" role="group" aria-label="Auksion formatini tanlang">
+      <button class="fcard" data-f="garov" aria-pressed="true"><span class="badge done">Ishlaydi</span><h3>A · Majburiy auksion</h3><p class="tiny muted">Lombard yoki bank krediti to‘lanmagan, egasi o‘zi sotmagan. Davlat faqat garovdagi mulkni o‘z narxidan auksionga chiqaradi. Bank qarzini oladi, ortiqchasi egasiga.</p></button>
+      <button class="fcard" data-f="qarz" aria-pressed="false"><span class="badge new">Yangi</span><h3>B · Ixtiyoriy auksion</h3><p class="tiny muted">Egasi o‘z biznesini yoki mol-mulkini qarzni yopish uchun o‘zi auksionga qo‘yadi. Boshlang‘ich narx: mulk narxining 50 %.</p></button>
+      <button class="fcard" data-f="karta" aria-pressed="false"><span class="badge new">Yangi</span><h3>C · Bozor auksioni</h3><p class="tiny muted">Imkoniyat kartasi chiqdi, lekin olishning hech bir yo‘li yo‘q, yoki bankdan sotuvga qo‘yilgan «Auksion» kartasi chiqdi. Pul bankka ketadi.</p></button>
+    </div>
+    <div class="twocol">
+      <div class="panel" style="display:flex;flex-direction:column;gap:8px"><h3>Boshlang‘ich narx: 50 % dan 100 % gacha</h3><p class="tiny muted"><b>Ixtiyoriy auksionda</b> egasi o‘zi tanlaydi: 50, 60, 70, 80, 90 yoki 100 % (mulk narxidan). 50 % eng past chegara. Past narx xaridorni jalb qiladi va sotuv tez bo‘ladi, yuqori narx egasiga ko‘proq beradi, lekin xaridor topilmay qolish xavfi katta. Boshlang‘ich tanlov: <b>50 %</b>, ko‘pchilik uchun mos o‘rta yo‘l: <b>70 %</b>.</p>
+        <div class="row" id="pcts" role="group" aria-label="Boshlang‘ich narx foizi"></div></div>
+      <div class="panel" style="display:flex;flex-direction:column;gap:8px"><h3>Majburiy auksion: faqat garov</h3><p class="tiny muted">Bank krediti 3 yildan keyin to‘lanmasa yoki lombard muddati o‘tsa, auksionga <b>faqat garovdagi mulk</b> chiqadi, boshlang‘ich narx mulkning o‘z narxi (100 %). Egasi o‘zi sotmasa davlat chiqaradi. Qarz 10 000 dan oshib ketsa, bu boshqa holat: qarz hamma mulklar sotilib yopiladi (hozirgi majburiy sotuv qoidasi, auksionsiz).</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-chain">
+    <div class="kicker">2 · Bozor auksioni qachon boshlanadi</div><h2 id="h-chain">Karta olishning hamma yo‘li yopilgandagina</h2>
+    <p class="muted">Kartani tortgan o‘yinchi avval odatdagi yo‘llarni sinab ko‘radi. Har bir yo‘lni yoqib-o‘chirib ko‘ring: birinchi mos kelgani sotib olishni ochadi, hech biri bo‘lmasa karta auksionga o‘tadi.</p>
+    <div class="twocol">
+      <div class="panel chain" id="chain" aria-live="polite"></div>
+      <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+        <h3>Nega bunday tartib</h3>
+        <p class="tiny muted">Auksion o‘yinni to‘xtatadi va hammani kutdiradi, shuning uchun u oxirgi chora. Agar o‘yinchida naqd, bank limiti, lombard, sherik yoki qarz beruvchi bor bo‘lsa, karta oddiy tartibda sotib olinadi.</p>
+        <p class="tiny muted">Bozor auksioniga yana 20 ta «Auksion» kartasi ham kiradi: bank mulkni (do‘kon ulushi, avtomobil, yer va boshqalar) kartada yozilgan boshlang‘ich narx va narx qadami bilan sotadi, kamida 3 o‘yinchi bo‘lsa. Kartaning o‘zi ham «faqat naqd» deydi.</p>
+        <p class="tiny muted">Auksionga tushgan karta faqat naqd bilan olinadi. Shu sababli kreditga tayanib olingan karta emas, naqdi bor o‘yinchi yutadi.</p>
+        <div id="verdict" class="verdict"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-demo">
+    <div class="kicker">3 · Ishlaydigan model</div><h2 id="h-demo">Auksionni o‘zingiz sinab ko‘ring</h2>
+    <p class="muted">Siz «Siz» o‘yinchisisiz. «Kuzatuvchi» tugmasi katta aylana o‘yinchisi ko‘rinishini ko‘rsatadi. Aziza va Bobur botlar. Yuqorida tanlangan format shu yerda ishlaydi. Naqdingiz formatga qarab o‘zgaradi. Soat demo uchun 30 soniya (o‘yinda 30 soniyalik xonada 150 soniya).</p>
+    <div class="row" id="viewrow" role="group" aria-label="Ko‘rinish"></div>
+    <div class="stage">
+      <div class="phone"><div class="screen" id="screen" aria-live="polite"></div></div>
+      <div class="side" style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="panel"><h3 id="flowtitle">Pul qayerga ketadi</h3><div id="flowbox"></div>
+          <div class="legend"><span><i style="color:var(--bad)"></i>to‘laydi</span><span><i style="color:var(--good)"></i>oladi</span></div></div>
+        <p class="tiny muted" id="flowtext"></p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-time">
+    <div class="kicker">4 · Vaqt</div><h2 id="h-time">Auksion odatdagi vaqtning 5 baravari</h2>
+    <p class="muted">Auksion davomida oddiy navbat taymeri to‘xtab turadi va auksiondan keyin to‘liq qayta boshlanadi. Egasiga qaror qilish uchun odatdagi bir vaqt beriladi.</p>
+    <div class="panel tl" id="tl"></div>
+  </section>
+
+  <section aria-labelledby="h-ux">
+    <div class="kicker">5 · O‘yinchi nimani ko‘radi</div><h2 id="h-ux">Uch ekran: xabar, auksion, natija</h2>
+    <div class="shots" id="shots"></div>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <div class="kicker">6 · Qoidalar jadvali</div><h2 id="h-rules">Uch format yonma-yon</h2>
+    <div class="panel scroll"><table>
+      <thead><tr><th></th><th>A · Majburiy</th><th>B · Ixtiyoriy</th><th>C · Bozor</th></tr></thead>
+      <tbody>
+        <tr><th>Boshlovchi</th><td>Lombard muddati o‘tdi yoki bank krediti 36-oyda to‘lanmadi va egasi o‘zi sotmadi</td><td>Egasi o‘zi bosadi, faqat o‘z mulki uchun (garovdagi va sheriklikdagi emas)</td><td>Karta chiqdi, olishning hech bir yo‘li yo‘q</td></tr>
+        <tr><th>Sotuvchi</th><td>Davlat (qarzdorning mulki); garov bir nechta bo‘lsa eng qimmatidan boshlab alohida</td><td>Mulk egasi</td><td>Bank</td></tr>
+        <tr><th>Boshlang‘ich narx</th><td>Mulkning o‘z narxi (sotib olingan narx), faqat garovdagi mulk</td><td>Mulk narxining 50–100 % (egasi tanlaydi)</td><td>Kartaning to‘liq narxi, bitta yaxlit summa; «Auksion» kartasida kartadagi narx</td></tr>
+        <tr><th>Egasiga avval taklif</th><td>Ha, qarzni to‘lab qolish</td><td>Yo‘q, egasi o‘zi qo‘ygan</td><td>Yo‘q</td></tr>
+        <tr><th>To‘lov</th><td colspan="3">Faqat naqd. Kredit, lombard, sheriklik, o‘zaro qarz yo‘q.</td></tr>
+        <tr><th>Pul kimga</th><td>Avval bankka qarz + haq, ortiqchasi egasiga</td><td>Butun summa egasiga</td><td>Bankka (o‘yindan chiqadi)</td></tr>
+        <tr><th>Hech kim olmasa</th><td>Mulk egasida, qarz yana uning bo‘yniga</td><td>Mulk egasida qoladi; shu mulkni qayta qo‘yish uchun 4 aylana o‘tishi kerak</td><td>Karta tashlanadi, tortgan o‘yinchining navbati davom etadi (mulk bankda qoladi)</td></tr>
+        <tr><th>Eng kam qatnashchi</th><td colspan="3">Sotuvchidan (egasi yoki kartani tortgan o‘yinchi) tashqari boshlang‘ich narxni naqd to‘lay oladigan kamida 2 ta o‘yinchi kerak, botlar ham hisobga kiradi. Yetmasa auksion ochilmaydi: majburiy auksionda qarz egasiga qaytadi, ixtiyoriy auksion ochilmaydi, bozor auksionida karta o‘tkazib yuboriladi.</td></tr>
+        <tr><th>Narx qadami</th><td>100</td><td>100</td><td>«Auksion» kartasida kartadagi qadam (masalan 500), boshqasida 100</td></tr>
+        <tr><th>Kim qatnashadi</th><td colspan="3">Faqat shu aylanadagi, 16 yoshdan katta o‘yinchilar. Boshqa aylana va 16 yoshgacha: ko‘ra oladi, taklif qila olmaydi.</td></tr>
+        <tr><th>Vaqt</th><td colspan="3">Ochiq auksion: odatdagi vaqt × 5. Tugagach navbat taymeri qayta boshlanadi.</td></tr>
+      </tbody></table></div>
+  </section>
+
+  <section aria-labelledby="h-q">
+    <div class="kicker">7 · Qarorlar</div><h2 id="h-q">Qabul qilingan qarorlar va ochiq savollar</h2>
+    <div class="twocol">
+      <div class="panel"><h3>Qabul qilingan</h3>
+        <ol class="q tiny">
+          <li>Nomlar: majburiy, ixtiyoriy, bozor auksioni.</li>
+          <li>Hamma narx — bitta yaxlit summa; auksionda faqat naqd.</li>
+          <li>Ixtiyoriy auksion: boshlang‘ich narx 50–100 % (egasi tanlaydi); mulkning o‘z narxi — sotib olingan narx.</li>
+          <li>Majburiy auksion: faqat garovdagi mulk, 100 % narxdan. Garov bir nechta bo‘lsa, eng qimmatidan boshlab alohida. Qarz 10 000 dan oshsa — hamma mulk sotiladi (auksionsiz).</li>
+          <li>Ixtiyoriy auksion sotilmasa, shu mulkni qayta qo‘yish uchun 4 aylana o‘tishi kerak.</li>
+          <li>Bozor auksioni faqat kichik aylanada; katta aylanada yo‘q. 20 ta «Auksion» kartasi shu formatga kiradi.</li>
+          <li>Qatnashadi: shu aylanadagi, 16 yoshdan katta o‘yinchilar (botlar ham). Qolganlar faqat kuzatadi.</li>
+          <li>Botlar narxning 90–110 % igacha taklif qiladi.</li>
+          <li>Ochiq auksion odatdagi vaqtning 5 baravari; egasiga odatdagi vaqt.</li>
+        </ol></div>
+      <div class="panel"><h3>Yakuniy qarorlar (ikki ochiq savol)</h3>
+        <ol class="q tiny">
+          <li><b>Eng kam qatnashchi: sotuvchidan tashqari 2 ta.</b> Auksion ochilayotganda boshlang‘ich narxni naqd to‘lay oladigan, shu aylanadagi, 16 yoshdan katta kamida 2 ta o‘yinchi bo‘lishi shart (bot ham bo‘ladi). Sabab: bitta xaridor bo‘lsa, bu auksion emas, belgilangan narxdagi sotuv bo‘lib qoladi va narx raqobatda shakllanmaydi. Bu «Auksion» kartasidagi «kamida 3 o‘yinchi» bilan ham mos. Shart bajarilmasa: majburiy auksionda qarz egasiga qaytadi, ixtiyoriy auksion tugmasi o‘chiq turadi, bozor auksionida karta o‘tkazib yuboriladi.</li>
+          <li><b>Kartalar: (b) variant.</b> Kartada narx bitta yaxlit summa ko‘rinadi, boshlang‘ich to‘lov va oylik to‘lov esa izoh sifatida pastda yoziladi. Olishning hozirgi usullari saqlanadi, kartaning hech bir raqami o‘zgarmaydi. Mulkning narxi (sotish, garov, auksion uchun asos) har doim to‘liq summa. Variant (a) ni rad etdim: u 26 ta kvartira kartasini birinchi bosqichda olib bo‘lmaydigan qiladi va o‘yin balansini buzadi.</li>
+        </ol>
+        <div class="mini" style="min-height:0"><span class="pk">Karta yuzi (Y024 misolida)</span><div class="ph" style="font-size:16px">Yangi majmuada kvartira</div><div class="best"><span>Narxi</span><strong>80 000</strong></div><div class="tiny muted">Izoh: boshlang‘ich to‘lov 16 000, qolgan 64 000 bo‘lib to‘lanadi, oylik ustama haq 1 100. Auksionda va sotuvda asos: 80 000.</div></div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var watch = false, fmt = "garov", $ = function (s) { return document.querySelector(s); }, money = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " "); };
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DATA = {
+    garov: { kicker: "Majburiy auksion", head: "Sinov o‘yinchining lombard qarzi to‘lanmadi: davlat garovni sotadi", lot: "Mahallada elchixona", price: 20000, start: 20000, due: 10000, cash: 24000, payee: "Bank", payeeAmt: "qarz + haq", owner: true, note: "Boshlang‘ich narx: mulkning o‘z narxi. Bank o‘z qarzini va haqini oladi, ortiqcha summa mulk egasiga qaytadi." },
+    qarz: { kicker: "Ixtiyoriy auksion", head: "Siz kafeni qarzni yopish uchun auksionga qo‘ydingiz", lot: "Kichik kafe", price: 8000, start: 4000, pct: 50, due: 0, cash: 12000, payee: null, owner: true, note: "Boshlang‘ich narx: mulk narxining 50 %. Butun summa egasiga tushadi, qarzini u o‘zi yopadi." },
+    karta: { kicker: "Bozor auksioni", head: "Imkoniyat kartasini hech kim ololmadi", lot: "Kvartira (karta)", price: 8000, start: 8000, due: 8000, cash: 12000, payee: "Bank", payeeAmt: "kartaning narxi", all: true, owner: false, note: "Boshlang‘ich narx: kartaning to‘liq narxi, bitta yaxlit summa. Pul bankka ketadi va o‘yindan chiqadi." }
+  };
+  /* 2) qaror zanjiri */
+  var steps = [["cash", "Naqd yetadimi", "Pul bilan darhol olinadi", true], ["bank", "Bank krediti yetadimi", "Garov 120 % bo‘lsa", false], ["lomb", "Lombard bilan yetadimi", "Aktivni garovga qo‘yib", false], ["part", "Sherik topiladimi", "Faqat biznes kartalari", false], ["loan", "Qarz beruvchi bormi", "Boshqa o‘yinchidan o‘zaro qarz", false]];
+  var on = { cash: false, bank: false, lomb: false, part: false, loan: false };
+  function chain() {
+    var box = $("#chain"), html = "", hit = null;
+    steps.forEach(function (s) { if (!hit && on[s[0]]) hit = s[0]; });
+    steps.forEach(function (s, i) {
+      var cls = "step" + (hit === s[0] ? " hit" : hit && steps.findIndex(function (x) { return x[0] === hit; }) < i ? " skip" : "");
+      html += '<div class="' + cls + '"><div><b>' + s[1] + '</b><small>' + s[2] + '</small></div><button class="tg" role="switch" aria-checked="' + on[s[0]] + '" aria-label="' + s[1] + '" data-k="' + s[0] + '"></button></div><div class="arrow" aria-hidden="true">↓</div>';
+    });
+    html += '<div class="step auc' + (hit ? "" : " pulse") + '"' + (hit ? ' style="opacity:.55"' : "") + '><div><b>Karta bozor auksioniga chiqadi</b><small>Faqat naqd, eng ko‘p bergan oladi</small></div><span aria-hidden="true">🔨</span></div>';
+    box.innerHTML = html;
+    var v = $("#verdict"); v.className = "verdict " + (hit ? "buy" : "auc");
+    v.textContent = hit ? "Natija: odatdagi sotib olish (" + steps.find(function (x) { return x[0] === hit; })[1].toLowerCase() + "). Auksion ochilmaydi." : "Natija: bozor auksioni ochiladi. Hamma yo‘l yopiq.";
+    box.querySelectorAll(".tg").forEach(function (b) { b.addEventListener("click", function () { on[b.dataset.k] = !on[b.dataset.k]; chain(); }); });
+  }
+  /* 4) vaqt */
+  function timeline() {
+    var rows = [[30, "30 s xona"], [60, "60 s xona"]], max = 60 * 6 + 10, html = "";
+    rows.forEach(function (r) { var o = r[0], a = r[0] * 5, t = 10, w = function (x) { return (x / max * 100).toFixed(2) + "%"; };
+      html += '<div class="tlrow"><b>' + r[1] + '</b><div class="bar" role="img" aria-label="Egasi ' + o + ' soniya, ochiq auksion ' + a + ' soniya, keyin navbat taymeri qayta boshlanadi"><span class="b-owner" style="width:' + w(o) + '">Egasi ' + o + ' s</span><span class="b-auc" style="width:' + w(a) + '">Ochiq auksion ' + a + ' s</span><span class="b-turn" style="width:' + w(t) + '" title="Navbat taymeri qayta boshlanadi">↻</span></div></div>'; });
+    $("#tl").innerHTML = html + '<p class="tiny muted">Eni vaqtga mutanosib. Navbat taymeri (kubik uchun 10 soniya) auksiondan keyin yangidan boshlanadi.</p>';
+  }
+  /* 5) uch ekran */
+  function shots() {
+    $("#shots").innerHTML =
+      '<div class="mini"><span class="pk">1 · Xabar</span><div class="toast">🔨 Karta auksionga chiqdi: Kvartira. Boshlang‘ich narx 8 000</div><p class="tiny muted">Hamma o‘yinchi ekranida paydo bo‘ladi. Tortgan o‘yinchiga qisqa izoh: «sizga olish yo‘li topilmadi».</p><div class="best"><span>Naqdingiz</span><strong>12 000</strong></div></div>' +
+      '<div class="mini"><span class="pk">2 · Auksion</span><div class="ring" style="grid-template-columns:54px 1fr"><svg viewBox="0 0 74 74" width="54" height="54" aria-hidden="true"><circle cx="37" cy="37" r="31" fill="none" stroke="var(--surface2)" stroke-width="8"/><circle cx="37" cy="37" r="31" fill="none" stroke="var(--accent)" stroke-width="8" stroke-dasharray="195" stroke-dashoffset="58" transform="rotate(-90 37 37)" stroke-linecap="round"/></svg><div><div class="t" style="font-size:22px">1:45</div><div class="s">qoldi</div></div></div><div class="best"><span>Eng yuqori</span><strong>9 500</strong></div><div class="row"><button class="btn sm" tabindex="-1">Taklif 9 600</button><button class="btn sm ghost" tabindex="-1">O‘tkazaman</button></div></div>' +
+      '<div class="mini"><span class="pk">3 · Natija</span><div class="win" style="font-size:22px">Bobur oldi</div><div class="lot"><span>Kvartira</span><b>9 500</b><span>Bankka</span><b>9 500</b></div><p class="tiny muted">Pul oqimi animatsiya bilan: yutgandan bankka. A formatda ortiqcha egasiga qaytadi, B formatda butun summa egasiga tushadi.</p></div>';
+  }
+  /* pul oqimi diagrammasi */
+  function flow(bid) {
+    var d = DATA[fmt], box = $("#flowbox"), toPayee = d.payee ? (bid ? (d.all ? bid : Math.min(bid, d.due)) : d.due) : 0, toOwner = d.owner && bid ? Math.max(0, bid - toPayee) : 0;
+    var W = 560, H = 230, node = function (x, y, t, a) { return '<rect class="n" x="' + x + '" y="' + y + '" width="150" height="62" rx="12"/><text x="' + (x + 75) + '" y="' + (y + 26) + '" text-anchor="middle" class="amt">' + t + '</text><text x="' + (x + 75) + '" y="' + (y + 46) + '" text-anchor="middle" class="lab">' + a + '</text>'; };
+    var s = '<svg class="flow" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Pul oqimi: g‘olib ' + (bid ? money(bid) : "taklif summasi") + ' to‘laydi">';
+    s += node(20, 84, "G‘olib", bid ? "to‘laydi " + money(bid) : "taklif summasi");
+    if (d.payee) s += node(390, 12, d.payee, bid ? "oladi " + money(toPayee) : d.payeeAmt);
+    if (d.owner) s += node(390, d.payee ? 156 : 84, "Egasi", bid ? "oladi " + money(d.payee ? toOwner : bid) : (d.payee ? "ortiqcha summa" : "butun summa"));
+    if (d.payee) s += '<path class="f pay" d="M170 104 C 290 104, 280 44, 388 44"/>';
+    if (d.owner && d.payee) s += '<path class="f get" d="M170 124 C 290 124, 280 186, 388 186"/>';
+    if (d.owner && !d.payee) s += '<path class="f get" d="M170 115 L 388 115"/>';
+    s += '</svg>';
+    box.innerHTML = s; $("#flowtext").textContent = d.note;
+  }
+  function pcts() {
+    var box = $("#pcts"), d = DATA.qarz, h = "";
+    [50, 60, 70, 80, 90, 100].forEach(function (p) { h += '<button class="btn sm ' + (d.pct === p ? "" : "ghost") + '" data-p="' + p + '" aria-pressed="' + (d.pct === p) + '">' + p + ' %</button>'; });
+    box.innerHTML = h + '<span class="tiny muted" style="align-self:center">= ' + money(d.price * d.pct / 100) + ' dan boshlanadi</span>';
+    box.querySelectorAll("button").forEach(function (b) { b.addEventListener("click", function () { d.pct = Number(b.dataset.p); d.start = d.price * d.pct / 100; pcts(); fmt = "qarz"; document.querySelectorAll(".fcard").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.f === "qarz")); }); start(); }); });
+  }
+  function views() {
+    var box = $("#viewrow"); box.innerHTML = '<button class="btn sm ' + (watch ? "ghost" : "") + '" data-w="0" aria-pressed="' + !watch + '">Men kichik aylanadanman</button><button class="btn sm ' + (watch ? "" : "ghost") + '" data-w="1" aria-pressed="' + watch + '">Kuzatuvchi (katta aylana yoki 16 yoshgacha)</button>';
+    box.querySelectorAll("button").forEach(function (b) { b.addEventListener("click", function () { watch = b.dataset.w === "1"; views(); if (sim) draw(); }); });
+  }
+  /* 3) auksion modeli */
+  var sim = null;
+  function rng(seed) { var x = seed; return function () { x = (x * 1664525 + 1013904223) % 4294967296; return x / 4294967296; }; }
+  function start() {
+    if (sim && sim.timer) clearInterval(sim.timer);
+    var d = DATA[fmt], R = rng(7 + fmt.length * 13), TOTAL = 30;
+    sim = { left: TOTAL, total: TOTAL, best: null, bids: [], cash: d.cash, passed: false, done: false, d: d, R: R,
+      bots: [{ n: "Aziza", cash: 26000, max: d.price * 0.97 }, { n: "Bobur", cash: 22000, max: d.price * 1.1 }] };
+    draw(); flow(0);
+    sim.timer = setInterval(tick, 1000);
+  }
+  function minBid() { return sim.best ? sim.best.amt + 100 : Math.ceil(sim.d.start / 100) * 100; }
+  function place(n, amt) { sim.best = { n: n, amt: amt }; sim.bids.unshift({ n: n, amt: amt }); if (sim.bids.length > 4) sim.bids.pop(); }
+  function tick() {
+    if (sim.done) return; sim.left--;
+    sim.bots.forEach(function (b) {
+      if (sim.best && sim.best.n === b.n) return;
+      if (sim.R() < 0.34) { var jump = Math.max(100, Math.ceil(sim.d.start * 0.05 / 100) * 100), next = sim.best ? sim.best.amt + jump : minBid(); if (next <= b.max && next <= b.cash) { place(b.n, next); sim.passed = false; } }
+    });
+    if (sim.left <= 0) return finish();
+    draw();
+  }
+  function finish() { sim.done = true; clearInterval(sim.timer); draw(); flow(sim.best ? sim.best.amt : 0); }
+  function bidMe(amt) { if (sim.done || amt > sim.cash || amt < minBid() || (sim.best && sim.best.n === "Siz")) return; place("Siz", amt); sim.passed = false; draw(); }
+  function draw() {
+    var s = sim, d = s.d, el = $("#screen"), min = minBid(), pct = Math.max(0, s.left / s.total), C = 2 * Math.PI * 31, mm = Math.floor(s.left / 60), ss = ("0" + (s.left % 60)).slice(-2);
+    var warn = watch ? "" : min > s.cash ? "Naqdingiz yetmaydi. Kredit va lombard bu yerda ishlamaydi." : (s.best && s.best.n === "Siz" ? "Siz eng yuqori taklif egasisiz." : "");
+    var html = '<div class="pk">' + d.kicker + '</div><div class="ph">' + d.head + '</div>' +
+      '<div class="lot"><span>' + d.lot + ' (narxi)</span><b>' + money(d.price) + '</b><span>Boshlang‘ich narx</span><b>' + money(d.start) + '</b></div>' +
+      '<div class="ring"><svg viewBox="0 0 74 74" aria-hidden="true"><circle cx="37" cy="37" r="31" fill="none" stroke="var(--surface2)" stroke-width="8"/><circle cx="37" cy="37" r="31" fill="none" stroke="' + (s.left <= 8 ? "var(--bad)" : "var(--accent)") + '" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '" transform="rotate(-90 37 37)" style="transition:stroke-dashoffset 1s linear"/></svg><div><div class="t" role="timer">' + mm + ':' + ss + '</div><div class="s">qoldi · demo 30 s, o‘yinda × 5</div></div></div>' +
+      '<div class="best"><span>Eng yuqori taklif</span><strong>' + (s.best ? money(s.best.amt) : "—") + '</strong></div>' +
+      '<div class="ladder" aria-label="So‘nggi takliflar">' + s.bids.map(function (b, i) { return '<div class="bid' + (b.n === "Siz" ? " me" : "") + (i === 0 ? " top" : "") + '"><span>' + b.n + '</span><b>' + money(b.amt) + '</b></div>'; }).join("") + (s.bids.length ? "" : '<div class="tiny muted">Hali taklif yo‘q. Birinchi bo‘lib boshlang.</div>') + '</div>' +
+      (watch ? '<div class="best" style="background:var(--surface2)"><span>Siz kuzatuvchisiz: taklif qila olmaysiz, lekin hammasini ko‘rasiz.</span></div>' : '<div class="cash"><span class="cashonly">Faqat naqd</span><span>Naqdingiz ' + money(s.cash) + '</span></div><div class="cashbar"><i style="width:' + Math.min(100, s.cash / 150) + '%"></i></div>' +
+      '<div class="row"><button class="btn" id="b-min" ' + (min > s.cash || (s.best && s.best.n === "Siz") ? "disabled" : "") + '>Taklif ' + money(min) + '</button><button class="btn ghost sm" id="b-500" ' + (min + 500 > s.cash || (s.best && s.best.n === "Siz") ? "disabled" : "") + '>+500</button><button class="btn ghost sm" id="b-pass">O‘tkazaman</button></div><div class="warn">' + warn + '</div>');
+    if (s.done) {
+      var w = s.best, owner = d.owner, toPayee = w && d.payee ? (d.all ? w.amt : Math.min(w.amt, d.due)) : 0, surplus = w && owner ? (d.payee ? Math.max(0, w.amt - d.due) : w.amt) : 0;
+      html += '<div class="result" role="status"><div class="pk">Auksion tugadi</div>' + (w ? '<div class="win">' + (w.n === "Siz" ? "Siz oldingiz!" : w.n + " oldi") + '</div><div class="lot"><span>' + d.lot + '</span><b>' + money(w.amt) + '</b>' + (d.payee ? '<span>' + d.payee + 'ga</span><b>' + money(toPayee) + '</b>' : "") + (owner ? '<span>Egasiga' + (d.payee ? ' ortiqcha' : '') + '</span><b>' + money(surplus) + '</b>' : "") + '</div>' : '<div class="win" style="color:var(--muted)">Hech kim olmadi</div><p class="tiny muted">' + (fmt === "karta" ? "Karta tashlandi." : fmt === "garov" ? "Mulk egasida qoldi, qarz yana uning bo‘yniga qaytdi." : "Mulk egasida qoldi.") + '</p>') + '<button class="btn" id="b-again">Qayta boshlash</button></div>';
+    }
+    el.innerHTML = html;
+    var b1 = $("#b-min"), b2 = $("#b-500"), b3 = $("#b-pass"), b4 = $("#b-again");
+    if (b1) b1.onclick = function () { bidMe(min); }; if (b2) b2.onclick = function () { bidMe(min + 500); }; if (b3) b3.onclick = function () { sim.passed = true; b3.textContent = "O‘tkazdingiz"; b3.disabled = true; }; if (b4) b4.onclick = start;
+  }
+  document.querySelectorAll(".fcard").forEach(function (b) { b.addEventListener("click", function () {
+    fmt = b.dataset.f; document.querySelectorAll(".fcard").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); start(); }); });
+  chain(); timeline(); shots(); pcts(); views(); start();
+})();
+</script>
