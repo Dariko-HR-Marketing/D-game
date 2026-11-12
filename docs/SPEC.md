@@ -191,3 +191,12 @@ Imkoniyat katagida kichik yoki katta sarmoya kartasi qaysi shartda chiqishi qo'l
 
 
 **Auksion formatlari (qaror 2026-11-09).** Majburiy (garov, mulkning o'z narxidan; bank garovi bir nechta bo'lsa eng qimmatidan alohida), ixtiyoriy (egasi 50–100 % dan), bozor (olib bo'lmaydigan karta, to'liq narxdan, faqat kichik aylana). Faqat naqd; faqat shu aylanadagi 16+ o'yinchilar taklif qiladi; kamida 2 ta qatnashchi (sotuvchidan tashqari); ochiq auksion odatdagi vaqtning × 5. Batafsil: OPEN_QUESTIONS 173.
+
+
+## Qarz va sheriklik takliflarini rad etish; eskirgan takliflar; farzand tug'ilishi bayrami (2026-11-12, buyurtmachi talabi)
+1. **Rad etish.** Qarz so'rovida beruvchi (`loan_decline`) va sheriklik taklifida sherik (`partner_decline`) so'rovni bermasdan rad eta oladi. Taklif o'chadi, pul va mulk ko'chmaydi, so'ragan/taklif qilgan o'yinchiga xabar boradi (`loan_declined`, `partner_declined`). Sheriklik rad etilganda karta egasida qaror qoladi.
+2. **Faqat egasi bo'lgan taklif rad eta oladi:** qarzda `giver`, sheriklikda `partner`. Boshqalar `not_giver` / `not_partner` xatosini oladi; mavjud bo'lmagan taklif `no_proposal`.
+3. **Eskirgan sheriklik taklifi.** Taklif faqat karta egasida hal bo'lmagan (`pending`) paytda amal qiladi. Egasi kartani qabul qilsa, o'tkazsa yoki navbat o'tsa, taklif dvigatelda avtomatik o'chadi (`pruneStale`): sherik bo'sh kartani va «karta mavjud emas» xatosini ko'rmaydi.
+4. **Naqd yetmasa.** Qarz uchun summa, sheriklik uchun narxning yarmi (taklifda `half`) javob beruvchining naqdidan ko'p bo'lsa, «Qabul qilish» o'chib turadi, sabab va kerakli summa yoziladi, «Rad etish» ochiq qoladi. Dvigatel baribir `partner_cash` / `insufficient_cash` bilan himoya qiladi (mijozga ishonilmaydi).
+5. **Farzand tug'ilishi (suyunchi) bayrami.** Suyunchi taklifi paydo bo'lganda (katak «Siz ota bo'ldingiz») hamma o'yinchi va tomoshabin ekranida bayram: konfeti chap, o'ng va tepadan, sharlar, surnaychalar; markazda «Tug'ildi!» va kimga tug'ilgani katta yozuvda (o'zingizga: «Siz farzandli bo'ldingiz!»). O'yinni to'smaydi, ~6 soniyada o'zi yo'qoladi, bosilsa yopiladi; «harakatni kamaytirish» yoqilgan bo'lsa harakatsiz yozuv (4 soniya). Ulanish yoki qayta ulanishda eski suyunchi takliflari uchun bayram takrorlanmaydi. Bayram faqat ko'rinish: o'yin natijasiga ta'siri yo'q. Suyunchi faqat kichik aylana o'yinchilari o'rtasida (§2.7).
+6. **Kirishda telefon raqam formati** (hozir to'qqiz raqam bo'lsa ham kiradi) — alohida topshiriq sifatida keyinga qoldirildi; hozir o'zgartirilmadi.

@@ -17,6 +17,8 @@ import { Board, boardGeometry, boardPad } from "./Board";
 import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
 import { FxLayer } from "./FxLayer";
+import { BirthLayer } from "./BirthLayer";
+import { LogLine } from "./LogLine";
 import { CountText } from "./CountText";
 import { PortfolioCard, PortfolioDetail } from "./Portfolio";
 import { MomentLayer } from "./MomentLayer";
@@ -122,7 +124,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
-  const log: string[] = state.log.slice(-6).reverse().map((l: string) => humanize(room, l));
+  const log: string[] = state.log.slice(-8).reverse(); // yangisi tepada; LogLine ismlarni qalin qilib chiqaradi
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
   const recapOpen = (state.recaps?.length ?? 0) > 0; // bankrot tahlili ochiq: o'yin to'xtagan
@@ -187,7 +189,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const eventsCard = (nLines: number) => (
     <Card>
       <SectionTitle>{uz.game.events}</SectionTitle>
-      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : log.slice(0, nLines).map((l, i) => <Text key={i} style={[s.log, i === 0 && { color: color.navy, fontWeight: "700" }]} numberOfLines={wide ? 2 : undefined}>{l}</Text>)}
+      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : <View style={{ gap: 6 }}>{log.slice(0, nLines).map((l, i) => <LogLine key={i} room={room} line={l} latest={i === 0} lines={wide ? 2 : undefined} />)}</View>}
       <View accessibilityLiveRegion="polite">{reactions.map((r) => <Text key={r.id} style={s.log}>{r.from === userId ? uz.result.you : nameOf(room, r.from)}: {r.emoji}</Text>)}</View>
     </Card>);
   const reactRow = (<View style={s.reactRow} role="group" aria-label={uz.react.label}>{REACTIONS.map((e2) => <View key={e2} style={{ minWidth: 56 }}><Button label={e2} kind="ghost" onPress={() => onReact(e2)} /></View>)}</View>);
@@ -201,7 +203,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     <View style={{ gap: space.md }}>
       {timeInSide && <TimePanel room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
-        <Banner key={n.id} kind="warn">{n.key === "loan_reminder" ? `${nameOf(room, n.from)} ${uz.notice.loan_reminder}${n.amount ? `: ${money(n.amount)}` : ""}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
+        <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
@@ -262,7 +264,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
       <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
-      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
+      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} /><BirthLayer room={room} userId={userId} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
@@ -302,7 +304,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
-      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
+      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} /><BirthLayer room={room} userId={userId} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}

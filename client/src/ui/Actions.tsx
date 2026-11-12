@@ -49,10 +49,19 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
 
       {pr.loansToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.loan}: ${nameOf(room, x.receiver)} ${uz.coop.loanReq} — ${money(x.amount)} · ${x.months} ${uz.coop.months.toLowerCase()}`}>
-          <Button label={uz.coop.accept} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></Box>))}
+          {p.cash < x.amount && <Text style={s.note} accessibilityRole="alert">{uz.coop.needCashLoan.replace("{n}", money(x.amount))}</Text>}
+          <View style={s.btns}>
+            <View style={s.btn}><Button label={uz.coop.accept} disabled={p.cash < x.amount} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></View>
+            <View style={s.btn}><Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "loan_decline", proposalId: x.id })} /></View>
+          </View></Box>))}
       {pr.partnerToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.partner}: ${nameOf(room, x.owner)} ${uz.coop.partnerFrom}`}>
-          <Button label={uz.coop.accept} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} /></Box>))}
+          {x.half != null && <Text style={s.note}>{uz.coop.yourShare}: {money(x.half)}</Text>}
+          {x.half != null && p.cash < x.half && <Text style={s.note} accessibilityRole="alert">{uz.coop.needCashPartner.replace("{n}", money(x.half))}</Text>}
+          <View style={s.btns}>
+            <View style={s.btn}><Button label={uz.coop.accept} disabled={x.half != null && p.cash < x.half} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} /></View>
+            <View style={s.btn}><Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "partner_decline", proposalId: x.id })} /></View>
+          </View></Box>))}
       {(pr.loansPending.length > 0 || pr.partnerPending.length > 0) && <Text style={s.note}>{uz.coop.waiting}</Text>}
 
       {mineTurn && (
@@ -127,6 +136,7 @@ const s = StyleSheet.create({
   box: { backgroundColor: color.bg, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: color.line, gap: 10 },
   h: { fontWeight: "700", color: color.navy }, note: { color: color.text2 }, row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 },
   input: { minHeight: MIN_TAP, borderWidth: 1, borderColor: color.line, borderRadius: 10, paddingHorizontal: 12, fontSize: 16, color: color.navy, backgroundColor: color.white },
+  btns: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, btn: { flexGrow: 1, flexBasis: 140 }, // tor ekranda ustma-ust, keng ekranda yonma-yon
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, chip: { minHeight: MIN_TAP, minWidth: MIN_TAP, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1, borderColor: color.line, alignItems: "center", justifyContent: "center" },
   chipOn: { backgroundColor: color.navy, borderColor: color.navy }, chipT: { color: color.navy, fontWeight: "600" },
 });

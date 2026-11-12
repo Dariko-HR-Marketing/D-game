@@ -62,3 +62,14 @@ export function deltasOf(e: HEv): { label: string; value: string; kind: "good" |
 export const accuracyOf = (c: { firstTry: number; retried: number } | null) => (c && c.firstTry + c.retried > 0 ? { pct: Math.round((c.firstTry * 100) / (c.firstTry + c.retried)), total: c.firstTry + c.retried, firstTry: c.firstTry } : null);
 /** Tarixni ko'rsatish uchun filtr: faqat o'zimniki yoki hammasi; texnik (xato) yozuvlar chiqmaydi. */
 export const filterEvents = (events: HEv[], onlyMine: boolean) => events.filter((e) => e.ok && (!onlyMine || e.mine));
+
+/** Qator holati (rangli belgi uchun): qabul qildi / o'tkazdi / rad etdi. */
+export function statusOf(e: HEv): { label: string; kind: "good" | "bad" | "warn" | "info" } | null {
+  const h = uz.history;
+  if (!e.ok) return { label: h.failed, kind: "bad" };
+  if (e.type === "decide" && e.decision) return e.decision.accept ? { label: h.accepted, kind: "good" } : { label: h.skipped, kind: "warn" };
+  if (e.type === "loan_accept" || e.type === "partner_accept") return { label: h.accepted, kind: "good" };
+  if (e.type === "loan_decline" || e.type === "partner_decline") return { label: h.declined, kind: "bad" };
+  if (e.type === "roll" && e.move) return { label: h.types.roll, kind: "info" };
+  return null;
+}

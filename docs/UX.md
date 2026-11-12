@@ -113,3 +113,13 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - O'yinchi kartalarida «Kichik aylana» chipi va «Siz faqat o'z aylanangizni ko'rasiz…» izohi faqat aralash o'yinda (kimdir boshqa aylanada) ko'rinadi: hamma bir aylanada bo'lsa ism uchun joy ko'proq, ekranda takror yozuv yo'q.
 - CI: avtomatik deploy `DEPLOY_*` sirlari yo'q bo'lsa qizil xato emas, ko'rinadigan ogohlantirish bilan o'tkazib yuboriladi (qo'lda ishga tushirilsa — xato).
 
+
+## Qarz va sheriklikni rad etish (2026-11-12, buyurtmachi talabi)
+- Qarz so'rovi va sheriklik taklifida «Qabul qilish» yoniga «Rad etish» tugmasi qo'shildi. Rad etilsa taklif o'chadi, pul va aktiv ko'chmaydi, so'ragan/taklif qilgan o'yinchiga «... rad etdi» xabari boradi. Sheriklik rad etilsa karta egasida qaror qoladi (boshqa sherik tanlash yoki qaror qilish mumkin). Amallar: `loan_decline`, `partner_decline`.
+
+## Farzand tug'ilishi bayrami (2026-11-12)
+- `BirthLayer`: suyunchi taklifi paydo bo'lganda butun ekranda konfeti (chap, o'ng, tepadan), sharlar, surnaychalar; markazda katta «Tug'ildi!» va kimga tug'ilgani. Bosishlarni to'smaydi, ~6 s da yo'qoladi; «harakatni kamaytirish»da tinch yozuv. Brauzer tekshiruvi: `server/scripts/birth-check.ts` (tik, yotiq, kompyuter).
+
+## So'nggi voqealar va tarix (2026-11-12, buyurtmachi talabi)
+- «So'nggi voqealar»: yangi voqea tepada, eskilari pastga tushadi. O'yinchi ismi qalin; holat so'zi rangli va qalin: «qabul qildi» (yashil), «o'tkazdi» (sariq), «rad etdi» (qizil), «karta chiqdi» (ko'k). Chap tomonda holat rangi chizig'i. Dvigatel yozuvlari: karta chiqdi, qaror (qabul qildi / o'tkazdi), qarz so'radi / berdi / rad etdi, sheriklik taklif qildi / qabul qildi / rad etdi.
+- «Tarix»: yangi voqealar tepada; o'yinchi ismi kattaroq va qalin, har bir qatorda holat belgisi (qabul qildi / o'tkazdi / rad etdi). CSV tartibi o'zgarmadi (vaqt bo'yicha o'sib boradi).

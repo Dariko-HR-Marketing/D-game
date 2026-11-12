@@ -69,12 +69,12 @@ export interface RestartRecap {
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
   | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
-  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string }
+  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string; half?: number }
   | { id: number; kind: "market"; cardId: string; sold: string[] }
   | { id: number; kind: "offer"; cardId: string; sold: string[]; first: boolean }; // katalog «sotish taklifi»: `first` — faqat birinchi rozi bo'lgan sota oladi
 
 /** Xabarnoma (§5.7: inqiroz tugaganda aloqador o'yinchilarga; §5.6: qarz eslatmasi). `to`: o'yinchi ID yoki "all". */
-export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder"; round: number; from?: string; amount?: number }
+export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder" | "loan_declined" | "partner_declined"; round: number; from?: string; amount?: number }
 
 export interface GameState {
   notices: Notice[]; nextNotice: number;
@@ -280,10 +280,12 @@ export type Action =
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
   | { type: "loan_accept"; playerId: string; proposalId: number }
+  | { type: "loan_decline"; playerId: string; proposalId: number }
   | { type: "loan_repay"; playerId: string; debtId: number; amount: number }
   | { type: "loan_remind"; playerId: string; debtorId: string; debtId: number }
   | { type: "partner_offer"; playerId: string; partnerId: string }
   | { type: "partner_accept"; playerId: string; proposalId: number }
+  | { type: "partner_decline"; playerId: string; proposalId: number }
   | { type: "partner_buyout"; playerId: string; assetCode: string }
   | { type: "choose_dream"; playerId: string; dreamIdx: number }
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
@@ -295,7 +297,12 @@ export type Action =
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
+/** Har bir muvaffaqiyatli harakatdan keyin: egasi qarorini qabul qilgan (karta yopilgan) sheriklik takliflari o'chadi. Aks holda sherik «karta mavjud emas» xatosini ko'radi. */
+const pruneStale = (s: GameState) => { s.proposals = s.proposals.filter((x) => x.kind !== "partner" || (s.pending?.cardId === x.cardId && s.pending.playerId === x.owner)); };
 export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
+  const o = reduceCore(state, ctx, a); if (o.ok) pruneStale(o.state); return o;
+}
+function reduceCore(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (state.winner) return { ok: false, error: "game_over" };
   // Kirish tekshiruvi (mijozga ishonib bo'lmaydi): ob'ekt, mavjud o'yinchi yoki server.
   if (typeof a !== "object" || a === null || typeof a.playerId !== "string") return { ok: false, error: "bad_action" };
@@ -334,6 +341,7 @@ export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
   const ce = effectOf(ctx, pend.cardId, pend);
   if (a.accept && slotBlocked(ce.effect, cur)) return { ok: false, error: "slot_full" }; // hisob varag'ida joy yo'q: avval birini soting yoki o'tkazib yuboring
   s.pending = null;
+  logf(s, `${cur.id}: «${shortCard(ce.text, pend.cardId)}» — ${a.accept ? "qabul qildi" : "o'tkazdi"}`);
   decide(s, ctx, cur.id, ce, a, pend);
   endTurn(s, ctx);
   return { ok: true, state: s };
@@ -541,6 +549,8 @@ function applyOp(s: GameState, ctx: Ctx, p: GamePlayer, op: Op, src: string): Ga
   }
 }
 
+/** Voqealar yozuvi uchun karta nomi: matnning birinchi gapi, qisqartirilgan. */
+const shortCard = (t: string | undefined, id: string) => { const x = (t ?? id).replace(/\s+/g, " ").trim(); const m = /^(.+?[.!?])(\s|$)/.exec(x); const y = m ? m[1] : x; return y.length > 70 ? y.slice(0, 67) + "…" : y; };
 function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
   const id = drawFor(s, ctx, deck, p.id); noteCard(s, p.id, id);
   const ce = ctx.effects[id];
@@ -548,7 +558,7 @@ function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
   if (ce.effect.kind === "sellOffer") { applySellOffer(s, id, ce.effect, ce.text); return; }
   if (ce.mode === "mandatory") { s.pending = { type: "card", playerId: p.id, cardId: id, deck }; autoMandatory(s, ctx, p, ce); }
   else {
-    s.pending = { type: "card", playerId: p.id, cardId: id, deck };
+    s.pending = { type: "card", playerId: p.id, cardId: id, deck }; logf(s, `${p.id}: karta chiqdi — «${shortCard(ce.text, id)}»`);
     // Bozor auksioni (halol moliya): sotib olish kartasi chiqdi, lekin hech bir yo'li yo'q (naqd, bank, lombard, sheriklik, qarz) — karta bozor auksioniga chiqadi
     const e = crisisAdjusted(ce.effect, p) as { kind: string; code?: string; asset?: string; price?: number; down?: number; monthlyIncome?: number; marketValue?: number | null };
     if (s.halalFin && p.circle === "small" && e.kind === "buy" && e.code && e.asset && e.price && cannotBuyAnyWay(s, p, e)
@@ -948,7 +958,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
         receiverSalary: salaryOf(rec), receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: existing });
       if (!chk.ok) return err(chk.reason);
       s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months });
-      return ok();
+      logf(s, `${rec.id}: ${giver.id} dan qarz so'radi (${a.amount})`); return ok();
     }
     case "loan_accept": {
       const pr = s.proposals.find((x) => x.id === a.proposalId);
@@ -962,7 +972,13 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (!chk.ok) return err(chk.reason); // holat o'zgargan bo'lishi mumkin
       setP(s, { ...giver, cash: giver.cash - pr.amount });
       setP(s, { ...rec, cash: rec.cash + pr.amount, handDebts: [...rec.handDebts, { id: pr.id, to: giver.id, amount: pr.amount, months: pr.months }] });
-      s.proposals = s.proposals.filter((x) => x.id !== pr.id); return ok();
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); logf(s, `${giver.id}: ${rec.id} ga qarz berdi (${pr.amount})`); return ok();
+    }
+    case "loan_decline": { // beruvchi qarzni bermay rad etadi: taklif o'chadi, so'ragan o'yinchiga xabar boradi
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "loan") return err("no_proposal");
+      if (pr.giver !== a.playerId) return err("not_giver");
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); notify(s, pr.receiver, "loan_declined", { from: pr.giver, amount: pr.amount }); logf(s, `${pr.giver}: ${pr.receiver} ning qarz so'rovini rad etdi`); return ok();
     }
     case "loan_remind": { // qarz beruvchi qarzdorga eslatma yuboradi: har bir qarz uchun raundda bir marta (qaror, #62)
       const debtor = s.players.find((p) => p.id === a.debtorId); const d = debtor?.handDebts.find((x) => x.id === a.debtId);
@@ -995,8 +1011,8 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (slotFull(owner, e.asset)) return err("slot_full");
       const room = maxBankLoan(owner);
       if (owner.cash >= e.price || e.price - owner.cash <= room) return err("not_needed"); // naqd va bank limiti tugagach
-      s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId });
-      return ok();
+      s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId, half: e.price / 2 });
+      logf(s, `${owner.id}: ${partner.id} ga sheriklik taklif qildi`); return ok();
     }
     case "partner_accept": {
       const pr = s.proposals.find((x) => x.id === a.proposalId);
@@ -1014,8 +1030,14 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const base = { price: e.price, creditPayment: 0, credit: 0 };
       setP(s, { ...owner, cash: owner.cash - half, assets: [...owner.assets, { ...base, kind: e.asset, code: e.code, cardId: pr.cardId, monthlyIncome: inc, partnerId: partner.id }] });
       setP(s, { ...partner, cash: partner.cash - half, assets: [...partner.assets, { ...base, kind: "partner_stake", code: e.code, cardId: pr.cardId, monthlyIncome: inc, stakeOf: owner.id }] });
-      s.pending = null; s.proposals = s.proposals.filter((x) => x.id !== pr.id);
+      s.pending = null; s.proposals = s.proposals.filter((x) => x.id !== pr.id); logf(s, `${partner.id}: ${owner.id} bilan sheriklikni qabul qildi`);
       endTurn(s, ctx); return ok();
+    }
+    case "partner_decline": { // sherik sheriklikni rad etadi: taklif o'chadi, karta egasida qaror qoladi
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "partner") return err("no_proposal");
+      if (pr.partner !== a.playerId) return err("not_partner");
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); notify(s, pr.owner, "partner_declined", { from: pr.partner }); logf(s, `${pr.partner}: ${pr.owner} ning sheriklik taklifini rad etdi`); return ok();
     }
     case "partner_buyout": { // to'liq narx + 1 oylik foyda naqd (§5.6)
       const owner = P(a.playerId), asset = owner.assets.find((x) => x.code === a.assetCode && x.partnerId);

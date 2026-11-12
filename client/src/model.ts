@@ -113,3 +113,24 @@ export function humanize(room: any, line: string): string {
   let out = line; for (const id of ids) out = out.split(id).join(nameOf(room, id));
   return out.replace(/\b\d{4,}\b/g, (n) => money(Number(n))); // katta summalar to'liq va bo'shliq bilan: «9500» → «9 500»
 }
+
+export type LogKind = "good" | "warn" | "bad" | "info" | "plain";
+export type LogPart = { t: string; kind?: LogKind; bold?: boolean };
+const STATUS: [RegExp, LogKind][] = [[/qabul qildi/g, "good"], [/ga qarz berdi/g, "good"], [/sheriklikni qabul qildi/g, "good"], [/o'tkazdi/g, "warn"], [/rad etdi/g, "bad"], [/karta chiqdi/g, "info"], [/qarz so'radi|taklif qildi/g, "info"]];
+/** Voqea qatorini bo'laklarga ajratadi: o'yinchi nomlari qalin, holat so'zlari («qabul qildi», «o'tkazdi», «rad etdi») rangli va qalin. `kind` — qatorning umumiy holati. */
+export function richLog(room: any, line: string): { parts: LogPart[]; kind: LogKind } {
+  const ids: string[] = (room?.state?.players ?? []).map((p: any) => p.id).sort((a: string, b: string) => b.length - a.length);
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const byName = ids.length ? line.split(new RegExp(`(${ids.map(esc).join("|")})`)) : [line];
+  const parts: LogPart[] = []; let kind: LogKind = "plain";
+  for (const seg of byName) {
+    if (ids.includes(seg)) { parts.push({ t: nameOf(room, seg), bold: true }); continue; }
+    const rest = seg.replace(/\b\d{4,}\b/g, (n) => money(Number(n)));
+    const marks: { i: number; n: number; k: LogKind }[] = [];
+    for (const [re, k] of STATUS) for (const m of rest.matchAll(re)) marks.push({ i: m.index!, n: m[0].length, k });
+    marks.sort((a, b) => a.i - b.i); let pos = 0;
+    for (const m of marks) { if (m.i < pos) continue; if (m.i > pos) parts.push({ t: rest.slice(pos, m.i) }); parts.push({ t: rest.slice(m.i, m.i + m.n), kind: m.k, bold: true }); if (kind === "plain" || m.k === "bad") kind = m.k; pos = m.i + m.n; }
+    if (pos < rest.length) parts.push({ t: rest.slice(pos) });
+  }
+  return { parts, kind };
+}
