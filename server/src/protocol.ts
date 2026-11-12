@@ -27,10 +27,12 @@ export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("suyunchi"), proposalId: int(1, 1e9), amount: int(1, 100_000) }).strict(),
   z.object({ type: z.literal("loan_request"), giverId: id, amount: money, months: int(1, 36) }).strict(),
   z.object({ type: z.literal("loan_accept"), proposalId: int(1, 1e9) }).strict(),
+  z.object({ type: z.literal("loan_decline"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("loan_repay"), debtId: int(1, 1e9), amount: money }).strict(),
   z.object({ type: z.literal("loan_remind"), debtorId: id, debtId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("partner_offer"), partnerId: id }).strict(),
   z.object({ type: z.literal("partner_accept"), proposalId: int(1, 1e9) }).strict(),
+  z.object({ type: z.literal("partner_decline"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("partner_buyout"), assetCode: z.string().min(1).max(64) }).strict(),
   z.object({ type: z.literal("ack_restart"), id: int(1, 1e9) }).strict(), // bankrot tahlili ko'rildi — o'yin davom etadi
 ]);

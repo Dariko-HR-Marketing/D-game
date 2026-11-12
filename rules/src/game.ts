@@ -74,7 +74,7 @@ export type Proposal =
   | { id: number; kind: "offer"; cardId: string; sold: string[]; first: boolean }; // katalog «sotish taklifi»: `first` — faqat birinchi rozi bo'lgan sota oladi
 
 /** Xabarnoma (§5.7: inqiroz tugaganda aloqador o'yinchilarga; §5.6: qarz eslatmasi). `to`: o'yinchi ID yoki "all". */
-export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder"; round: number; from?: string; amount?: number }
+export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder" | "loan_declined" | "partner_declined"; round: number; from?: string; amount?: number }
 
 export interface GameState {
   notices: Notice[]; nextNotice: number;
@@ -280,10 +280,12 @@ export type Action =
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
   | { type: "loan_accept"; playerId: string; proposalId: number }
+  | { type: "loan_decline"; playerId: string; proposalId: number }
   | { type: "loan_repay"; playerId: string; debtId: number; amount: number }
   | { type: "loan_remind"; playerId: string; debtorId: string; debtId: number }
   | { type: "partner_offer"; playerId: string; partnerId: string }
   | { type: "partner_accept"; playerId: string; proposalId: number }
+  | { type: "partner_decline"; playerId: string; proposalId: number }
   | { type: "partner_buyout"; playerId: string; assetCode: string }
   | { type: "choose_dream"; playerId: string; dreamIdx: number }
   | { type: "auto_dreams"; playerId: "server"; only?: string[] }
@@ -964,6 +966,12 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       setP(s, { ...rec, cash: rec.cash + pr.amount, handDebts: [...rec.handDebts, { id: pr.id, to: giver.id, amount: pr.amount, months: pr.months }] });
       s.proposals = s.proposals.filter((x) => x.id !== pr.id); return ok();
     }
+    case "loan_decline": { // beruvchi qarzni bermay rad etadi: taklif o'chadi, so'ragan o'yinchiga xabar boradi
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "loan") return err("no_proposal");
+      if (pr.giver !== a.playerId) return err("not_giver");
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); notify(s, pr.receiver, "loan_declined", { from: pr.giver, amount: pr.amount }); return ok();
+    }
     case "loan_remind": { // qarz beruvchi qarzdorga eslatma yuboradi: har bir qarz uchun raundda bir marta (qaror, #62)
       const debtor = s.players.find((p) => p.id === a.debtorId); const d = debtor?.handDebts.find((x) => x.id === a.debtId);
       if (!debtor || !d || d.to !== a.playerId) return err("no_debt");
@@ -1016,6 +1024,12 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       setP(s, { ...partner, cash: partner.cash - half, assets: [...partner.assets, { ...base, kind: "partner_stake", code: e.code, cardId: pr.cardId, monthlyIncome: inc, stakeOf: owner.id }] });
       s.pending = null; s.proposals = s.proposals.filter((x) => x.id !== pr.id);
       endTurn(s, ctx); return ok();
+    }
+    case "partner_decline": { // sherik sheriklikni rad etadi: taklif o'chadi, karta egasida qaror qoladi
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "partner") return err("no_proposal");
+      if (pr.partner !== a.playerId) return err("not_partner");
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); notify(s, pr.owner, "partner_declined", { from: pr.partner }); return ok();
     }
     case "partner_buyout": { // to'liq narx + 1 oylik foyda naqd (§5.6)
       const owner = P(a.playerId), asset = owner.assets.find((x) => x.code === a.assetCode && x.partnerId);

@@ -49,10 +49,12 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
 
       {pr.loansToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.loan}: ${nameOf(room, x.receiver)} ${uz.coop.loanReq} — ${money(x.amount)} · ${x.months} ${uz.coop.months.toLowerCase()}`}>
-          <Button label={uz.coop.accept} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></Box>))}
+          <Button label={uz.coop.accept} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} />
+          <Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "loan_decline", proposalId: x.id })} /></Box>))}
       {pr.partnerToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.partner}: ${nameOf(room, x.owner)} ${uz.coop.partnerFrom}`}>
-          <Button label={uz.coop.accept} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} /></Box>))}
+          <Button label={uz.coop.accept} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} />
+          <Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "partner_decline", proposalId: x.id })} /></Box>))}
       {(pr.loansPending.length > 0 || pr.partnerPending.length > 0) && <Text style={s.note}>{uz.coop.waiting}</Text>}
 
       {mineTurn && (

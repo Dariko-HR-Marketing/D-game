@@ -113,3 +113,6 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 - O'yinchi kartalarida «Kichik aylana» chipi va «Siz faqat o'z aylanangizni ko'rasiz…» izohi faqat aralash o'yinda (kimdir boshqa aylanada) ko'rinadi: hamma bir aylanada bo'lsa ism uchun joy ko'proq, ekranda takror yozuv yo'q.
 - CI: avtomatik deploy `DEPLOY_*` sirlari yo'q bo'lsa qizil xato emas, ko'rinadigan ogohlantirish bilan o'tkazib yuboriladi (qo'lda ishga tushirilsa — xato).
 
+
+## Qarz va sheriklikni rad etish (2026-11-12, buyurtmachi talabi)
+- Qarz so'rovi va sheriklik taklifida «Qabul qilish» yoniga «Rad etish» tugmasi qo'shildi. Rad etilsa taklif o'chadi, pul va aktiv ko'chmaydi, so'ragan/taklif qilgan o'yinchiga «... rad etdi» xabari boradi. Sheriklik rad etilsa karta egasida qaror qoladi (boshqa sherik tanlash yoki qaror qilish mumkin). Amallar: `loan_decline`, `partner_decline`.
