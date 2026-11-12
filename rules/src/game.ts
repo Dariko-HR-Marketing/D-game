@@ -69,7 +69,7 @@ export interface RestartRecap {
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
   | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
-  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string }
+  | { id: number; kind: "partner"; owner: string; partner: string; cardId: string; half?: number }
   | { id: number; kind: "market"; cardId: string; sold: string[] }
   | { id: number; kind: "offer"; cardId: string; sold: string[]; first: boolean }; // katalog «sotish taklifi»: `first` — faqat birinchi rozi bo'lgan sota oladi
 
@@ -297,7 +297,12 @@ export type Action =
 
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
+/** Har bir muvaffaqiyatli harakatdan keyin: egasi qarorini qabul qilgan (karta yopilgan) sheriklik takliflari o'chadi. Aks holda sherik «karta mavjud emas» xatosini ko'radi. */
+const pruneStale = (s: GameState) => { s.proposals = s.proposals.filter((x) => x.kind !== "partner" || (s.pending?.cardId === x.cardId && s.pending.playerId === x.owner)); };
 export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
+  const o = reduceCore(state, ctx, a); if (o.ok) pruneStale(o.state); return o;
+}
+function reduceCore(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (state.winner) return { ok: false, error: "game_over" };
   // Kirish tekshiruvi (mijozga ishonib bo'lmaydi): ob'ekt, mavjud o'yinchi yoki server.
   if (typeof a !== "object" || a === null || typeof a.playerId !== "string") return { ok: false, error: "bad_action" };
@@ -1003,7 +1008,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (slotFull(owner, e.asset)) return err("slot_full");
       const room = maxBankLoan(owner);
       if (owner.cash >= e.price || e.price - owner.cash <= room) return err("not_needed"); // naqd va bank limiti tugagach
-      s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId });
+      s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: owner.id, partner: partner.id, cardId: s.pending.cardId, half: e.price / 2 });
       return ok();
     }
     case "partner_accept": {

@@ -116,3 +116,6 @@ Muammo: o'yinchi bankrot bo'lsa (qarz chegarasi oshsa) o'yin darrov keyingi kart
 
 ## Qarz va sheriklikni rad etish (2026-11-12, buyurtmachi talabi)
 - Qarz so'rovi va sheriklik taklifida «Qabul qilish» yoniga «Rad etish» tugmasi qo'shildi. Rad etilsa taklif o'chadi, pul va aktiv ko'chmaydi, so'ragan/taklif qilgan o'yinchiga «... rad etdi» xabari boradi. Sheriklik rad etilsa karta egasida qaror qoladi (boshqa sherik tanlash yoki qaror qilish mumkin). Amallar: `loan_decline`, `partner_decline`.
+
+## Farzand tug'ilishi bayrami (2026-11-12)
+- `BirthLayer`: suyunchi taklifi paydo bo'lganda butun ekranda konfeti (chap, o'ng, tepadan), sharlar, surnaychalar; markazda katta «Tug'ildi!» va kimga tug'ilgani. Bosishlarni to'smaydi, ~6 s da yo'qoladi; «harakatni kamaytirish»da tinch yozuv. Brauzer tekshiruvi: `server/scripts/birth-check.ts` (tik, yotiq, kompyuter).

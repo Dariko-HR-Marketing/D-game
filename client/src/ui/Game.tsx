@@ -17,6 +17,7 @@ import { Board, boardGeometry, boardPad } from "./Board";
 import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
 import { FxLayer } from "./FxLayer";
+import { BirthLayer } from "./BirthLayer";
 import { CountText } from "./CountText";
 import { PortfolioCard, PortfolioDetail } from "./Portfolio";
 import { MomentLayer } from "./MomentLayer";
@@ -262,7 +263,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
       <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
-      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} />
+      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} /><BirthLayer room={room} userId={userId} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
@@ -302,7 +303,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
-      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} />
+      <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} /><BirthLayer room={room} userId={userId} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}

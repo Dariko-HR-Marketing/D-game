@@ -46,4 +46,10 @@ describe("sheriklik taklifini rad etish", () => {
     const s = must(run(setup(), { type: "partner_offer", playerId: "p0", partnerId: "p1" }));
     expect(run(s, { type: "partner_decline", playerId: "p0", proposalId: s.proposals[0].id })).toEqual({ ok: false, error: "not_partner" });
   });
+  it("karta egasi qaror qilgach (karta yopildi), sherikdagi taklif o'chadi; taklifda sherik ulushi bor", () => {
+    let s = must(run(setup(), { type: "partner_offer", playerId: "p0", partnerId: "p1" }));
+    expect(s.proposals[0]).toMatchObject({ kind: "partner", half: expect.any(Number) });
+    s = must(run(s, { type: "decide", playerId: "p0", accept: false }));
+    expect(s.proposals.filter((x) => x.kind === "partner")).toHaveLength(0);
+  });
 });

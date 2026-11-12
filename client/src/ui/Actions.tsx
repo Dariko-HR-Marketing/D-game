@@ -49,14 +49,17 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
 
       {pr.loansToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.loan}: ${nameOf(room, x.receiver)} ${uz.coop.loanReq} — ${money(x.amount)} · ${x.months} ${uz.coop.months.toLowerCase()}`}>
+          {p.cash < x.amount && <Text style={s.note} accessibilityRole="alert">{uz.coop.needCashLoan.replace("{n}", money(x.amount))}</Text>}
           <View style={s.btns}>
-            <View style={s.btn}><Button label={uz.coop.accept} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></View>
+            <View style={s.btn}><Button label={uz.coop.accept} disabled={p.cash < x.amount} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></View>
             <View style={s.btn}><Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "loan_decline", proposalId: x.id })} /></View>
           </View></Box>))}
       {pr.partnerToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.partner}: ${nameOf(room, x.owner)} ${uz.coop.partnerFrom}`}>
+          {x.half != null && <Text style={s.note}>{uz.coop.yourShare}: {money(x.half)}</Text>}
+          {x.half != null && p.cash < x.half && <Text style={s.note} accessibilityRole="alert">{uz.coop.needCashPartner.replace("{n}", money(x.half))}</Text>}
           <View style={s.btns}>
-            <View style={s.btn}><Button label={uz.coop.accept} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} /></View>
+            <View style={s.btn}><Button label={uz.coop.accept} disabled={x.half != null && p.cash < x.half} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} /></View>
             <View style={s.btn}><Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "partner_decline", proposalId: x.id })} /></View>
           </View></Box>))}
       {(pr.loansPending.length > 0 || pr.partnerPending.length > 0) && <Text style={s.note}>{uz.coop.waiting}</Text>}
