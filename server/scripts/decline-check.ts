@@ -25,7 +25,8 @@ for (const [tag, w, h] of SIZES) {
   const s: any = room.state!; for (const p of s.players) { p.circle = "small"; p.cash = 100_000; }
   // a so'radi (beruvchi b), b ga sheriklik taklif qilindi: b ikkala so'rovni ko'radi
   s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: idb, receiver: ida, amount: 500, months: 12 });
-  s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: ida, partner: idb, cardId: "x" });
+  const cid: string = room.ctx.deckIds.katta.find((i: string) => { const e: any = room.ctx.effects[i].effect; return e.kind === "buy" && e.asset === "business"; }); s.pending = { type: "card", playerId: ida, cardId: cid, deck: "katta" }; // taklif faqat karta egasida hal bo'lmagan paytda amal qiladi
+  s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: ida, partner: idb, cardId: cid, half: 1000 });
   (x.rooms as any).emit(room);
   await c.waitForTimeout(600); if (!(await c.getByRole("button", { name: "Rad etish" }).count())) { const tab = c.getByRole("tab", { name: /Blank/ }).or(c.getByRole("button", { name: /^Blank/ })); if (await tab.count()) await tab.first().click(); }
   await c.waitForSelector("text=Rad etish", { timeout: 8000 }).catch(async (e) => { await c.screenshot({ path: `${OUT}/${tag}-yoq.png` }); throw e; });
@@ -41,7 +42,7 @@ for (const [tag, w, h] of SIZES) {
   await new Promise((r) => setTimeout(r, 400));
   check(!(room.state!.proposals as any[]).some((p) => p.kind === "loan"), `${tag}: qarz so'rovi rad etilgach o'chdi`);
   check(((room.state!.notices ?? []) as any[]).some((n) => n.to === ida && n.key === "loan_declined"), `${tag}: so'ragan o'yinchiga xabar yozildi`);
-  await c.getByRole("button", { name: "Rad etish" }).first().click(); await new Promise((r) => setTimeout(r, 400));
+  await c.getByRole("button", { name: "Rad etish" }).first().click(); await new Promise((r) => setTimeout(r, 500));
   check(!(room.state!.proposals as any[]).some((p) => p.kind === "partner"), `${tag}: sheriklik taklifi rad etilgach o'chdi`);
   await a.context().close(); await c.context().close();
 }
