@@ -1,7 +1,7 @@
 // Qarz so'rovi va sheriklik taklifini rad etish: taklif o'chadi, pul/aktiv ko'chmaydi, so'ragan o'yinchiga xabar boradi.
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
-import { newGame, reduce, type GameState } from "./index";
+import { newGame, reduce, currentPlayer, type GameState } from "./index";
 
 const run = (s: GameState, a: any) => reduce(s, ctx, a);
 const must = (r: any) => { if (!r.ok) throw new Error(r.error); return r.state as GameState; };
@@ -51,5 +51,24 @@ describe("sheriklik taklifini rad etish", () => {
     expect(s.proposals[0]).toMatchObject({ kind: "partner", half: expect.any(Number) });
     s = must(run(s, { type: "decide", playerId: "p0", accept: false }));
     expect(s.proposals.filter((x) => x.kind === "partner")).toHaveLength(0);
+  });
+});
+
+describe("voqealar yozuvi (so'nggi voqealar)", () => {
+  it("so'rov, rad etish va qabul qilish yozuvga tushadi", () => {
+    const p = newGame(ctx, Array.from({ length: 5 }, (_, i) => `p${i}`), 1, []); for (const q of p.players) { q.circle = "small"; q.cash = 100_000; q.salary = 5_000; } P(p, "p0").cash = 1_000;
+    let s = must(run(p, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 }));
+    expect(s.log.at(-1)).toContain("p0: p1 dan qarz so'radi");
+    s = must(run(s, { type: "loan_decline", playerId: "p1", proposalId: s.proposals[0].id })); expect(s.log.at(-1)).toContain("p1: p0 ning qarz so'rovini rad etdi");
+    s = must(run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 }));
+    s = must(run(s, { type: "loan_accept", playerId: "p1", proposalId: s.proposals[0].id })); expect(s.log.at(-1)).toContain("p1: p0 ga qarz berdi");
+  });
+  it("karta chiqdi va qaror (qabul qildi / o'tkazdi) yoziladi", () => {
+    let s = newGame(ctx, ["p0", "p1"], 3, []); let seen = false;
+    for (let i = 0; i < 80 && !seen; i++) {
+      const cur = currentPlayer(s).id; const r = run(s, { type: "roll", playerId: cur }); if (!r.ok) break; s = r.state;
+      if (s.pending) { const d = run(s, { type: "decide", playerId: cur, accept: false }); if (d.ok) { s = d.state; seen = s.log.some((l) => l.includes("karta chiqdi")) && s.log.some((l) => l.includes("— o'tkazdi")); } }
+    }
+    expect(seen).toBe(true);
   });
 });

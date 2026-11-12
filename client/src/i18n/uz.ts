@@ -174,7 +174,7 @@ export const uz = {
   history: {
     title: "O'yin tarixi", open: "Tarix", close: "Yopish", loading: "Tarix yuklanmoqda…", failed: "Bajarilmadi", empty: "Hali amal yo'q.", error: "Tarixni yuklab bo'lmadi. Keyinroq urinib ko'ring.",
     mine: "Mening amallarim", all: "Hammasi", csv: "CSV yuklab olish", count: "ta amal", truncated: "Tarix uzun: faqat boshidan 5 000 ta amal ko'rsatilgan.", hint: "Har bir amal: qaysi katakdan qayerga yurildi, qaysi karta chiqdi, nima qaror qilindi va pul qanday o'zgardi.",
-    round: "Tur", month: "oy", moved: "Yurdi", accepted: "Qabul qildi", skipped: "O'tkazib yubordi", die: "Kubik", landed: "Tushgan katak", toBig: "Katta aylanaga chiqdi", toSmall: "Kichik aylanaga qaytdi", monthsPassed: "oy o'tdi",
+    round: "Tur", month: "oy", moved: "Yurdi", accepted: "Qabul qildi", declined: "Rad etdi", skipped: "O'tkazib yubordi", newest: "Yangi voqealar tepada", die: "Kubik", landed: "Tushgan katak", toBig: "Katta aylanaga chiqdi", toSmall: "Kichik aylanaga qaytdi", monthsPassed: "oy o'tdi",
     stage: { drawn: "Karta chiqdi", applied: "Karta darhol qo'llandi", decided: "Qaror shu karta bo'yicha" } as Record<string, string>,
     price: "Narxi", down: "Boshlang'ich to'lov", bank: "Bank krediti", income: "Daromad / oy", yearly: "Yillik daromad", payback: "Qoplanish", months: "oy",
     cash: "Naqd", passive: "Passiv daromad", flow: "Pul oqimi", debt: "Qarz", added: "Qo'shildi", lost: "Yo'qoldi", assetsWord: "aktiv",

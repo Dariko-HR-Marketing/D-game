@@ -1,23 +1,23 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import type { Http } from "../net/http";
-import { deltasOf, filterEvents, titleOf, whyOf, type HEv, type HView } from "../history";
+import { deltasOf, filterEvents, statusOf, titleOf, whyOf, type HEv, type HView } from "../history";
 import { uz } from "../i18n/uz";
 import { color, font, HEADER_H, MIN_TAP, radius, space, surface, tone } from "../theme";
 
-function Chip({ label, kind = "plain" }: { label: string; kind?: "good" | "bad" | "plain" }) {
-  const fg = kind === "good" ? tone.good : kind === "bad" ? tone.bad : color.navy;
-  return <View style={[s.chip, { backgroundColor: surface[kind] }]}><Text style={[s.chipT, { color: fg }]}>{label}</Text></View>;
+function Chip({ label, kind = "plain" }: { label: string; kind?: "good" | "bad" | "plain" | "warn" | "info" }) {
+  const fg = kind === "good" ? tone.good : kind === "bad" ? tone.bad : kind === "warn" ? "#8A5A00" : color.navy;
+  return <View style={[s.chip, { backgroundColor: kind === "warn" ? "#FFF1CC" : surface[kind] }]}><Text style={[s.chipT, { color: fg }]}>{label}</Text></View>;
 }
 
 function Row({ e }: { e: HEv }) {
-  const why = whyOf(e), ds = deltasOf(e);
+  const why = whyOf(e), ds = deltasOf(e), st = statusOf(e);
   return (
     <View style={[s.row, e.mine && s.mine]} role="listitem" testID="history-row">
       <View style={s.num}><Text style={s.numT}>{e.n}</Text></View>
       <View style={{ flex: 1, gap: 4 }}>
         <View style={s.top}><Text style={s.who}>{e.by}</Text><Text style={s.meta}>{uz.history.round} {e.round} · {e.after.months} {uz.history.month}</Text></View>
-        <Text style={s.title}>{titleOf(e)}</Text>
+        <View style={s.statusRow}><Text style={s.title}>{titleOf(e)}</Text>{st && st.label !== titleOf(e) && <Chip label={st.label} kind={st.kind} />}</View>
         {why.map((w, i) => <Text key={i} style={s.why}>• {w}</Text>)}
         {ds.length > 0 && <View style={s.chips}>{ds.map((d) => <Chip key={d.label} label={`${d.label} ${d.value}`} kind={d.kind} />)}</View>}
         {(e.assetsAdded.length > 0 || e.assetsLost.length > 0) && <View style={s.chips}>
@@ -33,7 +33,7 @@ export function HistoryDetail({ http, code, onClose }: { http: Http; code: strin
   const [h, setH] = useState<HView | null>(null); const [err, setErr] = useState(false); const [onlyMine, setOnlyMine] = useState(true);
   useEffect(() => { http.gameLog(code).then(setH).catch(() => setErr(true)); }, [http, code]);
   useEffect(() => { const d = (globalThis as any).document; if (!d?.addEventListener) return; const k = (e: any) => { if (e.key === "Escape") onClose(); }; d.addEventListener("keydown", k); return () => d.removeEventListener("keydown", k); }, [onClose]);
-  const list = useMemo(() => (h ? filterEvents(h.events, onlyMine) : []), [h, onlyMine]);
+  const list = useMemo(() => (h ? filterEvents(h.events, onlyMine).slice().reverse() : []), [h, onlyMine]); // yangi voqealar tepada, eskilari pastga tushadi
   const download = async () => {
     const d = (globalThis as any).document; if (!d) return;
     const text = await http.gameLogCsv(code); const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
@@ -56,7 +56,7 @@ export function HistoryDetail({ http, code, onClose }: { http: Http; code: strin
         {err && <Text style={[s.hint, { color: tone.bad }]}>{uz.history.error}</Text>}
         {h?.truncated && <Text style={s.hint}>{uz.history.truncated}</Text>}
         {h && list.length === 0 && <Text style={s.hint}>{uz.history.empty}</Text>}
-        {h && list.length > 0 && <Text style={s.hint}>{list.length} {uz.history.count}</Text>}
+        {h && list.length > 0 && <Text style={s.hint}>{list.length} {uz.history.count} · {uz.history.newest}</Text>}
         <View role="list" style={{ gap: space.sm }}>{list.map((e) => <Row key={e.seq} e={e} />)}</View>
       </ScrollView>
     </View>
@@ -73,7 +73,7 @@ const s = StyleSheet.create({
   tab: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1.5, borderColor: color.navy, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, tabOn: { backgroundColor: color.navy }, tabT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
   row: { flexDirection: "row", gap: space.md, backgroundColor: color.white, borderRadius: radius.md, padding: space.md, borderWidth: 1, borderColor: "#E6ECEF" }, mine: { borderColor: color.green, borderWidth: 1.5 },
   num: { width: 34, height: 34, borderRadius: 17, backgroundColor: surface.info, alignItems: "center", justifyContent: "center" }, numT: { color: color.navy, fontWeight: "800", fontSize: font.xs, fontVariant: ["tabular-nums"] },
-  top: { flexDirection: "row", justifyContent: "space-between", gap: space.sm, flexWrap: "wrap" }, who: { color: color.navy, fontWeight: "800", fontSize: font.sm }, meta: { color: tone.muted, fontSize: font.xs },
+  top: { flexDirection: "row", justifyContent: "space-between", gap: space.sm, flexWrap: "wrap" }, who: { color: color.navy, fontWeight: "900", fontSize: font.md }, statusRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 }, meta: { color: tone.muted, fontSize: font.xs },
   title: { color: color.navy, fontWeight: "800", fontSize: font.md }, why: { color: color.text2, fontSize: font.sm, lineHeight: 18 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 }, chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }, chipT: { fontSize: 12, fontWeight: "800", fontVariant: ["tabular-nums"] },
 });

@@ -18,6 +18,7 @@ import { PlayersLane } from "./PlayersLane";
 import { PlayerList } from "./PlayerList";
 import { FxLayer } from "./FxLayer";
 import { BirthLayer } from "./BirthLayer";
+import { LogLine } from "./LogLine";
 import { CountText } from "./CountText";
 import { PortfolioCard, PortfolioDetail } from "./Portfolio";
 import { MomentLayer } from "./MomentLayer";
@@ -123,7 +124,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
-  const log: string[] = state.log.slice(-6).reverse().map((l: string) => humanize(room, l));
+  const log: string[] = state.log.slice(-8).reverse(); // yangisi tepada; LogLine ismlarni qalin qilib chiqaradi
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
   const recapOpen = (state.recaps?.length ?? 0) > 0; // bankrot tahlili ochiq: o'yin to'xtagan
@@ -188,7 +189,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const eventsCard = (nLines: number) => (
     <Card>
       <SectionTitle>{uz.game.events}</SectionTitle>
-      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : log.slice(0, nLines).map((l, i) => <Text key={i} style={[s.log, i === 0 && { color: color.navy, fontWeight: "700" }]} numberOfLines={wide ? 2 : undefined}>{l}</Text>)}
+      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : <View style={{ gap: 6 }}>{log.slice(0, nLines).map((l, i) => <LogLine key={i} room={room} line={l} latest={i === 0} lines={wide ? 2 : undefined} />)}</View>}
       <View accessibilityLiveRegion="polite">{reactions.map((r) => <Text key={r.id} style={s.log}>{r.from === userId ? uz.result.you : nameOf(room, r.from)}: {r.emoji}</Text>)}</View>
     </Card>);
   const reactRow = (<View style={s.reactRow} role="group" aria-label={uz.react.label}>{REACTIONS.map((e2) => <View key={e2} style={{ minWidth: 56 }}><Button label={e2} kind="ghost" onPress={() => onReact(e2)} /></View>)}</View>);
