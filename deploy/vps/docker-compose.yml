@@ -32,6 +32,10 @@ services:
       SMS_HTTP_URL: ${SMS_HTTP_URL:-}
       SMS_HTTP_TOKEN: ${SMS_HTTP_TOKEN:-}
       SMS_PROVIDER: ${SMS_PROVIDER:-}
+      SMS_FIXED_CODE: ${SMS_FIXED_CODE:-}   # faqat sinov (SMS_PROVIDER=fixed): doimiy 6 xonali kod
+      ESKIZ_EMAIL: ${ESKIZ_EMAIL:-}
+      ESKIZ_PASSWORD: ${ESKIZ_PASSWORD:-}
+      ESKIZ_FROM: ${ESKIZ_FROM:-}
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
       APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
       ICE_SERVERS: ${ICE_SERVERS:-}   # ovozli aloqa: STUN/TURN (JSON). Bo'sh bo'lsa ommaviy STUN; barqaror aloqa uchun TURN kerak (docs/DEPLOY.md)
