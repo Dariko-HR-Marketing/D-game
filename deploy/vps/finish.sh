@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Yakuniy qadamlar: zaxira -> yangilanish -> tiklash sinovi -> (ixtiyoriy) tashqi zaxira -> hisobot.
 # Ishlatish (serverda, root):
-#   cd /opt/poyga/deploy/vps && bash finish.sh                       # yangilanish + sinovlar, reboot YO'Q
-#   BACKUP_REMOTE=poyga-crypt:poyga bash finish.sh                   # + tashqi zaxirani cron'ga ulash (rclone oldindan sozlangan bo'lsin)
+#   cd /opt/tajriba24/deploy/vps && bash finish.sh                       # yangilanish + sinovlar, reboot YO'Q
+#   BACKUP_REMOTE=tajriba24-crypt:tajriba24 bash finish.sh                   # + tashqi zaxirani cron'ga ulash (rclone oldindan sozlangan bo'lsin)
 #   bash finish.sh --reboot                                          # oxirida 1 daqiqadan keyin qayta yuklaydi
 #   bash finish.sh --verify                                          # reboot'dan KEYIN: holatni tekshiradi
 # Hisobot: /root/finish-report.txt (parol/token yozilmaydi). SSH, ufw va .env ga tegmaydi.
 set -uo pipefail
 cd "$(dirname "$0")"
+. ./lib.sh
 [ "$(id -u)" = 0 ] || { echo "root bo'lib ishga tushiring"; exit 1; }
 REPORT=/root/finish-report.txt; DO_REBOOT=0; VERIFY=0
 for a in "$@"; do case "$a" in --reboot) DO_REBOOT=1;; --verify) VERIFY=1;; esac; done
@@ -41,14 +42,14 @@ echo "== 1. Yangilanishdan OLDIN zaxira"
 if bash ./backup.sh; then P "zaxira olindi"; else F "zaxira olinmadi: to'xtatildi"; exit 1; fi
 
 echo "== 2. Tiklash sinovi (vaqtinchalik baza)"
-last=$(ls -t /var/backups/poyga/poyga-*.sql.gz 2>/dev/null | head -1)
+last=$(ls -t /var/backups/tajriba24/tajriba24-*.sql.gz 2>/dev/null | head -1)
 ls -l "$last"
-docker compose exec -T db psql -U poyga -d postgres -qc "drop database if exists poyga_finish" -c "create database poyga_finish owner poyga" >/dev/null 2>&1
-if gunzip -c "$last" | docker compose exec -T db psql -U poyga -d poyga_finish -v ON_ERROR_STOP=1 >/dev/null 2>&1; then
-  t=$(docker compose exec -T db psql -U poyga -d poyga_finish -Atc "select count(*) from information_schema.tables where table_schema='public'" | tr -d '\r')
+docker compose exec -T db psql -U "$DB_USER" -d postgres -qc "drop database if exists tajriba24_finish" -c "create database tajriba24_finish owner "$DB_USER"" >/dev/null 2>&1
+if gunzip -c "$last" | docker compose exec -T db psql -U "$DB_USER" -d tajriba24_finish -v ON_ERROR_STOP=1 >/dev/null 2>&1; then
+  t=$(docker compose exec -T db psql -U "$DB_USER" -d tajriba24_finish -Atc "select count(*) from information_schema.tables where table_schema='public'" | tr -d '\r')
   [ "${t:-0}" -gt 0 ] && P "zaxira TIKLANADI ($t jadval)" || F "tiklandi, lekin jadvallar yo'q"
 else F "zaxirani tiklab bo'lmadi (yangilanish davom etmaydi)"; fi
-docker compose exec -T db psql -U poyga -d postgres -qc "drop database if exists poyga_finish" >/dev/null 2>&1
+docker compose exec -T db psql -U "$DB_USER" -d postgres -qc "drop database if exists tajriba24_finish" >/dev/null 2>&1
 [ "$bad" -eq 0 ] || { echo "Natija: OK=$ok OGOH=$warn XATO=$bad (to'xtadi)"; exit 1; }
 
 echo "== 3. Tizim yangilanishi"

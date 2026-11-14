@@ -89,8 +89,8 @@ Rasm fayllari (`KB_001.png`, `01_BEGONA_FIRMA_DIREKTORI.png` va h.k.) alohida be
 | Orqaga qaytarish | `git checkout <oldingi-commit-yoki-teg>` va `docker compose up -d --build` |
 | Jurnal | `docker compose logs --tail 200 server` (JSON; token/IP yozilmaydi) |
 | Metrikalar | `curl -H "Authorization: Bearer $METRICS_TOKEN" https://api.<domen>/metrics` (`.env` da `METRICS_TOKEN` o'rnatilgan bo'lsa) |
-| **Baza zaxirasi (kunlik)** | `docker compose exec -T db pg_dump -U poyga poyga \| gzip > /backup/poyga-$(date +%F).gz` — `crontab -e` ga qo'shing va nusxani **boshqa joyga** ham ko'chiring |
-| Zaxiradan tiklash | `gunzip -c poyga-YYYY-MM-DD.gz \| docker compose exec -T db psql -U poyga poyga` (bo'sh bazaga) |
+| **Baza zaxirasi (kunlik)** | `docker compose exec -T db pg_dump -U $DB_USER $DB_NAME \| gzip > /backup/tajriba24-$(date +%F).gz` — `crontab -e` ga qo'shing va nusxani **boshqa joyga** ham ko'chiring |
+| Zaxiradan tiklash | `gunzip -c tajriba24-YYYY-MM-DD.gz \| docker compose exec -T db psql -U $DB_USER $DB_NAME` (bo'sh bazaga) |
 | Disk | `df -h`, `docker system df`; eski image'lar: `docker image prune` |
 
 Kuzatuv, ogohlantirish qoidalari va nosozliklarni bartaraf etish: `docs/ops/RUNBOOK.md`, `docs/ops/alerts.yml`.
@@ -111,3 +111,7 @@ Haqiqiy kirish (SMS/Google/Apple) — hozir har kim istalgan ID bilan kira oladi
 
 **Yaratilgan karta rasmlari (2026-11-09):** rasmi yo'q 610 yangi va 108 qayta chizilishi kerak karta uchun rasmlar repoda (`content/art/generated/`). Serverda `deploy/vps/install-art.sh` ularni `deploy/vps/cards/` ga ko'chiradi (avtomatik deploy shuni chaqiradi; qo'lda: `cd deploy/vps && ./install-art.sh`). Qayta chizilgan kartalar eski fayl nomi ustiga yoziladi.
 
+
+
+## Baza nomi va foydalanuvchisi (`.env` dagi DB_USER va DB_NAME)
+Compose va skriptlar (backup, restore, audit, finish) baza foydalanuvchisi va nomini `deploy/vps/.env` dagi `DB_USER` va `DB_NAME` dan oladi; ular bo'sh bo'lsa compose ishga tushmaydi (eski konteynerlar ishlashda davom etadi). Yangi o'rnatishda `bootstrap.sh` ularni o'zi yozadi. **Mavjud serverda** bu ikki qatorni `.env` ga bir marta qo'shing: qiymatlar baza birinchi marta yaratilgan paytdagi nom bilan bir xil bo'lishi shart, aks holda server bazaga ulana olmaydi (bazani qayta nomlash shart emas).
