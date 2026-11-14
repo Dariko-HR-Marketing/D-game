@@ -36,7 +36,7 @@ export interface LiveGroup {
   kinds: { kind: string; held: number; bought: number; sold: number }[];
   channels: Record<AssetChannel, number>;
 }
-export interface LiveAnalytics { meta: { rounds: number; turns: number; months: number; mode: string; winner: string | null; players: number }; players: LivePlayer[]; group: LiveGroup }
+export interface LiveAnalytics { meta: { rounds: number; turns: number; months: number; mode: string; winner: string | null; players: number; skipped?: number }; players: LivePlayer[]; group: LiveGroup }
 
 const median = (a: number[]): number | null => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y), n = b.length; return n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2; };
 const r1 = (n: number) => Math.round(n * 10) / 10, r2 = (n: number) => Math.round(n * 100) / 100;
@@ -127,7 +127,7 @@ export function buildLive(rep: GameReport): LiveAnalytics {
     levelAvg: sample.map((m) => ({ month: m, avg: players.length ? r2(rep.players.reduce((x, p) => x + levelAt(p, m), 0) / players.length) : 0 })),
     kinds: [...kinds.entries()].map(([kind, v]) => ({ kind, ...v })).sort((a, b) => b.bought - a.bought), channels,
   };
-  return { meta: { rounds: rep.rounds, turns: rep.turns, months, mode: rep.mode, winner: rep.winner, players: rep.players.length }, players, group };
+  return { meta: { rounds: rep.rounds, turns: rep.turns, months, mode: rep.mode, winner: rep.winner, players: rep.players.length, ...(rep.skipped ? { skipped: rep.skipped } : {}) }, players, group };
 }
 
 /** Muvaffaqiyat matritsasi: guruh medianasiga nisbatan (qo'lda berilgan chegara yo'q). */

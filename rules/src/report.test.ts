@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
-import { Action, GameState, buildReport, insightsOf, chooseDream, currentPlayer, effectOf, newGame, reduce, slotBlocked, MODES, type PlayerReport } from "./index";
+import { Action, GameState, buildReport, buildLive, insightsOf, chooseDream, currentPlayer, effectOf, newGame, reduce, slotBlocked, MODES, type PlayerReport } from "./index";
 
 function play(seed: number, n: number, turns: number, bots: string[] = []) {
   const ids = Array.from({ length: n }, (_, i) => `p${i}`);
@@ -87,5 +87,17 @@ describe("tavsiyalar (insights): faqat raqamlar va qoida chegaralariga tayanadi"
   it("g'olib va vaqt tugashi", () => { expect(keys(base({ outcome: "won" }))).toContain("won"); expect(keys(base(), false, "time")).toContain("time_up"); expect(keys(base(), true)).toContain("left_game"); });
   it("viktorina: ko'p to'g'ri — yaxshi, kam — ma'lumot", () => {
     expect(keys(base({ quiz: { answered: 5, correct: 4 } }))).toContain("quiz_good"); expect(keys(base({ quiz: { answered: 5, correct: 1 } }))).toContain("quiz_low"); expect(keys(base({ quiz: { answered: 2, correct: 2 } }))).not.toContain("quiz_good");
+  });
+});
+
+describe("jurnal qoidalar o'zgargandan keyin (lenient)", () => {
+  it("mos kelmagan harakat o'tkazib yuboriladi va hisoblanadi; qat'iy rejimda xato beradi", () => {
+    const init = { playerIds: ["a", "b"], seed: 7, bots: [], restricted: [] } as any;
+    const bad = [{ type: "roll", playerId: "zzz" }] as any; // o'yinda yo'q o'yinchi — hozirgi qoidalar bo'yicha yaroqsiz
+    expect(() => buildReport(ctx, init, bad)).toThrow(/jurnal buzilgan/);
+    const rep = buildReport(ctx, init, bad, { lenient: true });
+    expect(rep.skipped).toBe(1); expect(rep.players).toHaveLength(2);
+    expect(buildLive(rep).meta.skipped).toBe(1);
+    expect(buildReport(ctx, init, [], { lenient: true }).skipped).toBeUndefined();
   });
 });

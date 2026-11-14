@@ -33,6 +33,8 @@ export interface PlayerReport {
 export interface GameReport {
   rounds: number; turns: number; months: number; winner: string | null; mode: GameMode; endReason: "win" | "time" | null;
   players: PlayerReport[]; ranking: string[];
+  /** Jurnalda hozirgi qoidalarga to'g'ri kelmagan (qoidalar o'zgargan) harakatlar soni; faqat `lenient` rejimda. */
+  skipped?: number;
 }
 
 const GROUP: Record<string, DeckGroup> = { kichik: "invest", katta: "invest", bozor: "market", xar: "expense", kxar: "expense", hod: "event" };
@@ -44,7 +46,8 @@ const pointOf = (p: GamePlayer): TimePoint => ({ month: p.monthsPlayed ?? 0, cas
 const peak = (series: TimePoint[], key: keyof TimePoint, dir: 1 | -1): Peak => { let best = series[0]; for (const x of series) if (dir * (x[key] as number) > dir * (best[key] as number)) best = x; return { value: best[key] as number, month: best.month }; };
 
 /** Jurnaldan to'liq hisobot. Noto'g'ri harakat — xato (jurnal buzilgan). */
-export function buildReport(ctx: Ctx, init: Init, actions: Action[], opts: { left?: string[] } = {}): GameReport {
+export function buildReport(ctx: Ctx, init: Init, actions: Action[], opts: { left?: string[]; lenient?: boolean } = {}): GameReport {
+  let skippedN = 0;
   let s = newGame(ctx, init.playerIds, init.seed, init.bots, init.restricted, { dreamPhase: !!init.dreamPhase, openingDice: !!init.openingDice, mode: init.mode, recapPause: !!init.recapPause, halalFin: !!init.halalFin });
   if (!init.dreamPhase) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % ctx.dreams.length)));
   type Acc = { series: TimePoint[]; turns: number; groups: PlayerReport["decisions"]["byGroup"]; auto: number; exitMonth: number | null; assets: AssetRecord[]; moments: Moment[]; expenses: { amount: number; text?: string; month: number }[]; quiz: { answered: number; correct: number }; purchases: number; purchaseTotal: number; sales: number; bankLoans: number; crisisMonths: number; unemployed: number; lastCrisis: number };
@@ -54,7 +57,7 @@ export function buildReport(ctx: Ctx, init: Init, actions: Action[], opts: { lef
   const monthOf = (st: GameState, id: string) => st.players.find((p) => p.id === id)?.monthsPlayed ?? 0;
   for (const act of actions) {
     const prev = s, pending = prev.pending;
-    const o = reduce(prev, ctx, act); if (!o.ok) throw new Error(`jurnal buzilgan: ${act.type} → ${o.error}`);
+    const o = reduce(prev, ctx, act); if (!o.ok) { if (opts.lenient) { skippedN++; continue; } throw new Error(`jurnal buzilgan: ${act.type} → ${o.error}`); } // lenient: o'yin eski qoidalar bilan o'ynalgan bo'lishi mumkin — mos kelmagan harakat o'tkazib yuboriladi va hisoblanadi
     s = o.state;
     if (act.type === "roll") { totalTurns++; const a = acc.get(act.playerId); if (a) a.turns++; }
     if ((act.type === "roll" || act.type === "decide") && (act as any).auto) { const a = acc.get(act.playerId); if (a) { a.auto++; a.moments.push({ month: monthOf(s, act.playerId), round: s.round, kind: "autopilot" }); } }
@@ -133,7 +136,7 @@ export function buildReport(ctx: Ctx, init: Init, actions: Action[], opts: { lef
     return rep;
   });
   const months = Math.max(0, ...players.map((x) => x.months));
-  return { rounds: s.round, turns: totalTurns, months, winner: s.winner, mode, endReason: s.endReason ?? null, players, ranking: order.map((x) => x.id) };
+  return { rounds: s.round, turns: totalTurns, months, winner: s.winner, mode, endReason: s.endReason ?? null, players, ranking: order.map((x) => x.id), ...(skippedN ? { skipped: skippedN } : {}) };
 }
 
 /** Tavsiyalar: faqat o'yinchining o'z raqamlari va qoidalar chegaralari asosida (taxmin va yangi raqam yo'q). */
