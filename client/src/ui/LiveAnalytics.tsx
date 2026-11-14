@@ -4,7 +4,7 @@ import type { Http } from "../net/http";
 import { LineChart, type ChartSeries } from "./LineChart";
 import { Bar, Radar } from "./LiveCharts";
 import { LiveTheory } from "./LiveTheory";
-import { Cell, Grid, Hint, Tbl } from "./LiveKit";
+import { Cell, Grid, Hint, Tbl, scale100 } from "./LiveKit";
 import { Card, Pill, SectionTitle } from "./kit";
 import { colorOf, coverOf, pct, radarOf, type LiveP, type LiveView } from "../live";
 import { chartPoints, insightText, timeText } from "../report";
@@ -83,7 +83,7 @@ function Market({ view }: { view: LiveView }) {
   return (
     <View style={s.col}>
       <Grid>
-        <Cell><Card><SectionTitle>{T.mk.crisis}</SectionTitle><LineChart series={[{ id: "crisis", label: T.mk.crisis, color: color.red, points: g.crisisShare.map((x) => ({ x: x.month, y: Math.round(x.share * 100) })) }]} ariaLabel={T.mk.crisis} xLabel={T.cols.month} height={180} /><Hint>{T.mk.crisisNote}</Hint></Card></Cell>
+        <Cell><Card><SectionTitle>{T.mk.crisis}</SectionTitle><LineChart series={[{ id: "crisis", label: T.mk.crisis, color: color.red, points: g.crisisShare.map((x) => ({ x: x.month, y: Math.round(x.share * 100) })) }, scale100(g.crisisShare)]} ariaLabel={T.mk.crisis} xLabel={T.cols.month} height={180} /><Hint>{T.mk.crisisNote}</Hint></Card></Cell>
         <Cell><Card>
           <SectionTitle>{T.mk.volume}</SectionTitle>
           {g.volume.map((v) => <View key={v.from} style={{ marginTop: space.sm }}><View style={s.rowBetween}><Text style={s.bold}>{v.from}–{v.to} {T.mk.period}</Text><Text style={s.num}>{v.bought} {T.mk.bought} · {v.sold} {T.mk.sold}</Text></View><Bar parts={[{ pct: (v.bought / mx) * 50, color: tone.good }, { pct: (v.sold / mx) * 50, color: color.gold }]} ariaLabel={`${v.from}–${v.to}`} /></View>)}

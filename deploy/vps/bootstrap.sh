@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Bitta buyruq bilan yangi Ubuntu VPS ga Tajriba 24 ni o'rnatadi (swap, Docker, devor, .env, docker compose).
 # Ishlatish (root):  curl -fsSL https://raw.githubusercontent.com/Dariko-HR-Marketing/D-game/main/deploy/vps/bootstrap.sh -o /root/bootstrap.sh && nohup bash /root/bootstrap.sh >/dev/null 2>&1 &
-# Jurnal: /root/poyga-deploy.log. Qayta ishga tushirish xavfsiz: mavjud .env (parollar) o'zgarmaydi.
+# Jurnal: /root/tajriba24-deploy.log. Qayta ishga tushirish xavfsiz: mavjud .env (parollar) o'zgarmaydi.
 # Domenlar o'zgartirilsa: API_DOMAIN, APP_DOMAIN, ADMIN_DOMAIN muhit o'zgaruvchilari bilan bering.
 set -euo pipefail
-exec > >(tee -a /root/poyga-deploy.log) 2>&1
+exec > >(tee -a /root/tajriba24-deploy.log) 2>&1
 echo "=== Tajriba 24 boshlandi $(date -Is) ==="
 APP_DOMAIN="${APP_DOMAIN:-tajriba24.uz}"; API_DOMAIN="${API_DOMAIN:-api.$APP_DOMAIN}"; ADMIN_DOMAIN="${ADMIN_DOMAIN:-admin.$APP_DOMAIN}"
 if ! swapon --show | grep -q swapfile; then
@@ -13,12 +13,14 @@ if ! swapon --show | grep -q swapfile; then
 fi
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y && apt-get install -y git openssl
-if [ ! -d /opt/poyga/.git ]; then git clone https://github.com/Dariko-HR-Marketing/D-game.git /opt/poyga; else git -C /opt/poyga pull --ff-only; fi
-bash /opt/poyga/deploy/vps/setup.sh
-cd /opt/poyga/deploy/vps
+if [ ! -d /opt/tajriba24/.git ]; then git clone https://github.com/Dariko-HR-Marketing/D-game.git /opt/tajriba24; else git -C /opt/tajriba24 pull --ff-only; fi
+bash /opt/tajriba24/deploy/vps/setup.sh
+cd /opt/tajriba24/deploy/vps
 if [ ! -f .env ]; then
   ADMINPW="Tajriba24-$(openssl rand -hex 6)-9x"
   cat > .env <<EOF
+DB_USER=tajriba24
+DB_NAME=tajriba24
 API_DOMAIN=$API_DOMAIN
 APP_DOMAIN=$APP_DOMAIN
 ADMIN_DOMAIN=$ADMIN_DOMAIN
@@ -32,7 +34,7 @@ NODE_ENV=staging
 SMS_PROVIDER=console
 EOF
   chmod 600 .env
-  printf 'login: admin\nparol: %s\n' "$ADMINPW" > /root/poyga-admin-parol.txt; chmod 600 /root/poyga-admin-parol.txt
+  printf 'login: admin\nparol: %s\n' "$ADMINPW" > /root/tajriba24-admin-parol.txt; chmod 600 /root/tajriba24-admin-parol.txt
 fi
 docker compose up -d --build
 docker compose ps

@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
+import type { ChartSeries } from "./LineChart";
 import { color, font, space, tone } from "../theme";
 
 /** Jadval: tor ekranda faqat jadval gorizontal aylanadi (sahifa emas). */
@@ -17,6 +18,8 @@ export const Grid = ({ children }: { children: React.ReactNode }) => <View style
 export const Cell = ({ children }: { children: React.ReactNode }) => <View style={s.cell}>{children}</View>;
 export const Hint = ({ children }: { children: React.ReactNode }) => <Text style={s.hint}>{children}</Text>;
 export const Note = ({ label, children }: { label: string; children: React.ReactNode }) => <Text style={s.hint}><Text style={s.tag}>{label} </Text>{children}</Text>;
+/** Ko'rinmas chiziq: grafik shkalasi har doim 0–100% bo'lsin (inqiroz bo'lmasa ham tekis chiziq o'rniga to'liq o'q chiqadi). */
+export const scale100 = (pts: { month: number }[]): ChartSeries => ({ id: "scale", label: "", color: "transparent", points: pts.length ? [{ x: pts[0].month, y: 100 }, { x: pts[pts.length - 1].month, y: 100 }] : [] });
 const s = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md, width: "100%" }, cell: { flexGrow: 1, flexBasis: 340, minWidth: 0 },
   hint: { color: tone.muted, fontSize: font.sm, lineHeight: 19, marginTop: space.sm }, tag: { color: color.navy, fontWeight: "800" },

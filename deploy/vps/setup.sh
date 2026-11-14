@@ -26,5 +26,5 @@ ufw --force enable
 dpkg-reconfigure -f noninteractive unattended-upgrades
 systemctl enable --now fail2ban
 
-mkdir -p /opt/poyga /var/backups/poyga
-echo "Tayyor. Keyingi qadam: kodni /opt/poyga ga klonlang, deploy/vps/.env ni to'ldiring (docs/SERVER.md §4–5)."
+mkdir -p /opt/tajriba24 /var/backups/tajriba24
+echo "Tayyor. Keyingi qadam: kodni /opt/tajriba24 ga klonlang, deploy/vps/.env ni to'ldiring (docs/SERVER.md §4–5)."

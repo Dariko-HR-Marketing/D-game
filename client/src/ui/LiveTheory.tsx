@@ -4,7 +4,7 @@ import { Linking } from "react-native";
 import { Scatter } from "./LiveCharts";
 import { Bar } from "./LiveCharts";
 import { LineChart } from "./LineChart";
-import { Cell, Grid, Hint, Note, Tbl } from "./LiveKit";
+import { Cell, Grid, Hint, Note, Tbl, scale100 } from "./LiveKit";
 import { Card, Pill, SectionTitle } from "./kit";
 import { colorOf, fill, pct, signedPct, type LiveP, type LiveView } from "../live";
 import { successClass, type SuccessClass } from "@tajriba24/rules";
@@ -72,7 +72,7 @@ function Cycle({ view }: { view: LiveView }) {
   const C = TH.cycle, g = view.group;
   return (
     <Grid>
-      <Cell><Card><SectionTitle>{T.mk.crisis}</SectionTitle><LineChart series={[{ id: "c", label: T.mk.crisis, color: color.red, points: g.crisisShare.map((x) => ({ x: x.month, y: Math.round(x.share * 100) })) }]} ariaLabel={T.mk.crisis} xLabel={T.cols.month} height={180} /><Note label={TH.asos}>{C.src}</Note><Note label={TH.hypo}>{C.hypo}</Note></Card></Cell>
+      <Cell><Card><SectionTitle>{T.mk.crisis}</SectionTitle><LineChart series={[{ id: "c", label: T.mk.crisis, color: color.red, points: g.crisisShare.map((x) => ({ x: x.month, y: Math.round(x.share * 100) })) }, scale100(g.crisisShare)]} ariaLabel={T.mk.crisis} xLabel={T.cols.month} height={180} /><Note label={TH.asos}>{C.src}</Note><Note label={TH.hypo}>{C.hypo}</Note></Card></Cell>
       <Cell><Card><SectionTitle>{C.title}</SectionTitle>
         <Tbl min={560} head={[T.cols.player, C.before, C.during, C.after, C.period, ""]} rows={view.players.map((p) => [<Text key="n" style={s.bold}>{p.name}</Text>, p.cycle.before, p.cycle.during, p.cycle.after, p.cycle.crisisStart === null ? C.none : `${p.cycle.crisisStart}–${p.cycle.crisisEnd} ${C.months}`, p.cycle.crisisStart === null ? "" : <Pill key="s" label={p.cycle.during > 0 ? C.counter : C.waited} kind={p.cycle.during > 0 ? "good" : "info"} />])} />
       </Card></Cell>

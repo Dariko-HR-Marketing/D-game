@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Faqat o'qiydi (hech narsani o'zgartirmaydi; zaxira sinovi vaqtinchalik bazada o'tadi va o'chiriladi).
-# Ishlatish (serverda, root):  cd /opt/poyga/deploy/vps && bash audit.sh
+# Ishlatish (serverda, root):  cd /opt/tajriba24/deploy/vps && bash audit.sh
 cd "$(dirname "$0")"
+. ./lib.sh
 ok=0; warn=0; bad=0
 P() { echo "  [OK]   $*"; ok=$((ok+1)); }
 W() { echo "  [OGOH] $*"; warn=$((warn+1)); }
@@ -47,28 +48,28 @@ if [ -n "$f" ]; then
   grep -q -E '^ADMIN_TOKENS=.+' "$f" && W "eski ADMIN_TOKENS to'ldirilgan (2FA ostida emas)" || P "eski ADMIN_TOKENS bo'sh"
   grep -q -E '^ADMIN_REQUIRE_2FA=0' "$f" && F "2FA o'chirilgan" || P "2FA majburiy"
 else W ".env topilmadi"; fi
-ls /root/poyga-admin-parol.txt 2>/dev/null && F "/root/poyga-admin-parol.txt hali bor" || P "parol fayli yo'q"
+ls /root/tajriba24-admin-parol.txt 2>/dev/null && F "/root/tajriba24-admin-parol.txt hali bor" || P "parol fayli yo'q"
 
 echo "== 6. Zaxira"
-D=/var/backups/poyga
+D=/var/backups/tajriba24
 crontab -l 2>/dev/null | grep -q backup.sh && P "cron'da backup.sh bor: $(crontab -l | grep backup.sh | head -1)" || F "cron'da zaxira yo'q"
-last=$(ls -t $D/poyga-*.sql.gz 2>/dev/null | head -1)
+last=$(ls -t $D/tajriba24-*.sql.gz 2>/dev/null | head -1)
 if [ -n "$last" ]; then
   age=$(( ( $(date +%s) - $(stat -c %Y "$last") ) / 3600 ))
   [ "$age" -le 26 ] && P "oxirgi zaxira $age soat oldin ($(du -h "$last" | cut -f1))" || F "oxirgi zaxira $age soat oldin: eski"
   gzip -t "$last" && P "arxiv butun" || F "arxiv buzilgan"
-  echo "     zaxiralar soni: $(ls $D/poyga-*.sql.gz | wc -l)"
+  echo "     zaxiralar soni: $(ls $D/tajriba24-*.sql.gz | wc -l)"
 else F "zaxira fayli yo'q ($D)"; fi
 command -v rclone >/dev/null && rclone listremotes | grep -q . && P "rclone sozlangan (BACKUP_REMOTE ni cron'ga qo'shing)" \
   || W "serverdan TASHQARI zaxira yo'q: VPS yo'qolsa zaxira ham yo'qoladi"
 if [ -n "$last" ]; then
   echo "     tiklash sinovi (vaqtinchalik baza)..."
-  docker compose exec -T db psql -U poyga -d postgres -qc "drop database if exists poyga_audit" -c "create database poyga_audit owner poyga" >/dev/null 2>&1
-  if gunzip -c "$last" | docker compose exec -T db psql -U poyga -d poyga_audit -v ON_ERROR_STOP=1 >/dev/null 2>&1; then
-    t=$(docker compose exec -T db psql -U poyga -d poyga_audit -Atc "select count(*) from information_schema.tables where table_schema='public'" | tr -d '\r')
+  docker compose exec -T db psql -U "$DB_USER" -d postgres -qc "drop database if exists tajriba24_audit" -c "create database tajriba24_audit owner "$DB_USER"" >/dev/null 2>&1
+  if gunzip -c "$last" | docker compose exec -T db psql -U "$DB_USER" -d tajriba24_audit -v ON_ERROR_STOP=1 >/dev/null 2>&1; then
+    t=$(docker compose exec -T db psql -U "$DB_USER" -d tajriba24_audit -Atc "select count(*) from information_schema.tables where table_schema='public'" | tr -d '\r')
     [ "${t:-0}" -gt 0 ] && P "zaxira tiklanadi ($t jadval)" || F "tiklandi, lekin jadvallar yo'q"
   else F "zaxirani tiklab bo'lmadi"; fi
-  docker compose exec -T db psql -U poyga -d postgres -qc "drop database if exists poyga_audit" >/dev/null 2>&1
+  docker compose exec -T db psql -U "$DB_USER" -d postgres -qc "drop database if exists tajriba24_audit" >/dev/null 2>&1
 fi
 
 echo "== 7. Resurslar"

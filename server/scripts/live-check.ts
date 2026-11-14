@@ -14,7 +14,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const TABS = ["overview", "player", "market", "compare", "theory"], FW = ["dupont", "bcg", "risk", "ansoff", "cycle", "prospect", "succ", "funnel", "swot", "level", "src"];
 for (const [tag, w, h] of [["tel", 390, 844], ["yotiq", 844, 390], ["plan", 1024, 768], ["kmp", 1440, 900]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
   const ida = "ta" + tag, idb = "tb" + tag; const a = await mk(ida), c = await mk(idb);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
@@ -40,7 +40,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yotiq", 844, 390], ["plan", 1024
       const ov = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}/${n}: «${t}» bo'limida gorizontal aylanish yo'q (${ov})`);
       if (t === "theory") for (const f of FW) { await pg.getByTestId(`live-fw-${f}`).click(); await pg.waitForTimeout(80); const o2 = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); const txt = await pg.getByTestId("live-analytics").innerText(); if (o2 > 1 || /NaN|undefined|Infinity/.test(txt)) check(false, `${tag}/${n}: nazariya «${f}»: aylanish ${o2} yoki NaN`); }
     }
-    if (n === "a") { await pg.getByTestId("live-tab-theory").click(); await pg.getByTestId("live-fw-bcg").click(); await pg.waitForTimeout(150); await pg.screenshot({ path: `${OUT}/${tag}-nazariya.png` }); await pg.getByTestId("live-tab-overview").click(); await pg.waitForTimeout(120); await pg.screenshot({ path: `${OUT}/${tag}-umumiy.png` }); }
+    if (n === "a") { for (const t of TABS) { await pg.getByTestId(`live-tab-${t}`).click(); await pg.waitForTimeout(150); await pg.screenshot({ path: `${OUT}/${tag}-${t}.png`, fullPage: true }); } }
     check(!/NaN|undefined|Infinity/.test(await pg.getByTestId("live-analytics").innerText()), `${tag}/${n}: matnda NaN/undefined yo'q`);
     await pg.getByTestId("live-close").click(); await pg.getByTestId("live-analytics").waitFor({ state: "detached", timeout: 5000 }); check(true, `${tag}/${n}: yopildi`);
   }
