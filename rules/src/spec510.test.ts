@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ctx as base } from "./testctx";
 import { Ctx, GameState, newGame, reduce, SMALL_BOARD, currentPlayer } from "./index";
-import { CellRules } from "@poyga/content/cellrules";
+import { CellRules } from "@tajriba24/content/cellrules";
 
 const idOf = (pred: (id: string, e: any) => boolean) => Object.entries(base.effects).find(([id, c]) => pred(id, c.effect))![0];
 /** Tegishli katakka tushiradigan urug' topib, belgilangan kartani deka tepasiga qo'yib bitta yurish qiladi. */

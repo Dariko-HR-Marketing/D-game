@@ -1,6 +1,6 @@
 // Yangi kasblarni CSV dan qo'shish. Ishlatish:
-//   pnpm --filter @poyga/content import:kasb templates/kasb.csv          (tekshiradi, hech narsani o'zgartirmaydi)
-//   pnpm --filter @poyga/content import:kasb templates/kasb.csv --write  (data/cards.json ga qo'shadi)
+//   pnpm --filter @tajriba24/content import:kasb templates/kasb.csv          (tekshiradi, hech narsani o'zgartirmaydi)
+//   pnpm --filter @tajriba24/content import:kasb templates/kasb.csv --write  (data/cards.json ga qo'shadi)
 import { readFileSync, writeFileSync } from "node:fs";
 import { importKasb } from "../src/tools";
 

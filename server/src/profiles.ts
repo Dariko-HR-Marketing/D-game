@@ -1,6 +1,6 @@
 // Profil, o'yin tarixi, reyting va hisobni boshqarish (SPEC §5.9, §7).
-import type { GamePlayer } from "@poyga/rules";
-import { RULES, POINTS } from "@poyga/rules";
+import type { GamePlayer } from "@tajriba24/rules";
+import { RULES, POINTS } from "@tajriba24/rules";
 import { WriteQueue } from "./persist";
 import { pointsOf, xpOf, levelOfXp, rankOfLevel, skillsOf, displayRating, leagueOf, seasonOf, DONISHMAND_TOP, DONISHMAND_MIN_GAMES, type League, type Skill } from "./progress";
 
@@ -20,7 +20,7 @@ export interface ProfilePersist {
 export const PROFILE_COLORS = 8; // §7: fishka rangi (8 ta: 2–8 o'yinchi)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
-/** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */
+/** Ball qoidalari — «Tajriba 24 o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */
 export { POINTS };
 /** Bitta o'yin uchun ball. Tashlab ketgan — faqat −20 (+ ishonchsizlik −50); oxirigacha o'ynagan — qolgan hamma bandlar. */
 export function gamePoints(p: ResultPlayer): number {

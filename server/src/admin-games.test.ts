@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { buildApp } from "./app";
 import { checkBundle, diffValues } from "./admin-games";
-import { currentPlayer, effectOf } from "@poyga/rules";
-import { loadContent } from "@poyga/content";
+import { currentPlayer, effectOf } from "@tajriba24/rules";
+import { loadContent } from "@tajriba24/content";
 
 const PW = "Parol-12345";
 const H = (t: string) => ({ authorization: `Bearer ${t}` });

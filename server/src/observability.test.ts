@@ -30,8 +30,8 @@ describe("/ready, /metrics", () => {
     await x.app.inject({ url: "/leaderboard" });
     const res = await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer S3CRET" } });
     expect(res.statusCode).toBe(200); expect(res.headers["content-type"]).toContain("text/plain");
-    expect(res.body).toContain('poyga_actions_total{result="ok",type="roll"} 1'); expect(res.body).toContain('poyga_games_total{event="started"} 1');
-    expect(res.body).toContain("poyga_rooms_active 1"); expect(res.body).toContain('poyga_http_requests_total{status="2xx"}'); expect(res.body).toContain("poyga_action_seconds_count");
+    expect(res.body).toContain('tajriba24_actions_total{result="ok",type="roll"} 1'); expect(res.body).toContain('tajriba24_games_total{event="started"} 1');
+    expect(res.body).toContain("tajriba24_rooms_active 1"); expect(res.body).toContain('tajriba24_http_requests_total{status="2xx"}'); expect(res.body).toContain("tajriba24_action_seconds_count");
   });
 });
 
@@ -54,7 +54,7 @@ describe("jurnal maxfiyligi va chidamlilik", () => {
     const free = [0, 1, 2, 3, 4, 5].find((i) => !room.state!.players.some((p) => p.dreamIdx === i))!;
     ws.send(JSON.stringify({ type: "act", seq: seq0, action: { type: "choose_dream", dreamIdx: free } })); await new Promise((r) => setTimeout(r, 200));
     expect(room.seq).toBeGreaterThan(seq0); expect(got.some((g) => g.error)).toBe(false); expect(room.timer).not.toBeNull(); // o'yin yuribdi va taymer o'rnatilgan
-    const met = await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer T" } }); expect(met.body).toContain('poyga_room_errors_total{where="persist"}');
+    const met = await x.app.inject({ url: "/metrics", headers: { authorization: "Bearer T" } }); expect(met.body).toContain('tajriba24_room_errors_total{where="persist"}');
     ws.close(); await x.app.close();
   });
   it("kutilmagan ichki xato jarayonni qulatmaydi: 'internal' xabari, ulanish ishlashda qoladi", async () => {

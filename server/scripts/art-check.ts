@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
 import { autoProfiles, slowTimers } from "./_seed";
-import { currentPlayer } from "@poyga/rules";
+import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/art"; const ART = new URL("../../content/art/generated/", import.meta.url).pathname;
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -15,7 +15,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const CARDS = [["Y001", "kichik biznes"], ["Y013", "katta biznes"], ["Y031", "bozor"], ["Y037", "xarajat"], ["Y049", "katta aylana xarajati"], ["Y061", "kutilmagan hodisa"], ["Y241", "viktorina"]] as const;
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, "ar" + tag);
+  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, "ar" + tag);
   const asked: string[] = []; await c.route("**/cards/*", async (r) => { const f = decodeURIComponent(new URL(r.request().url()).pathname.split("/").pop()!); asked.push(f); const p = join(ART, f); existsSync(p) ? await r.fulfill({ path: p, contentType: "image/webp" }) : await r.fulfill({ status: 404, body: "" }); });
   const a = await c.newPage(); await a.goto(WEB);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");

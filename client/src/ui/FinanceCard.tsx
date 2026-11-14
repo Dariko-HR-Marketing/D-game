@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Card, Row, SectionTitle, Stat, Pill } from "./kit";
 import { money } from "../format";
 import { exitProgress } from "../model";
-import { salaryOf, type GameMode } from "@poyga/rules";
+import { salaryOf, type GameMode } from "@tajriba24/rules";
 import { ModsPanel } from "./ModsPanel";
 import { color, font, radius, space, tone } from "../theme";
 import { uz } from "../i18n/uz";

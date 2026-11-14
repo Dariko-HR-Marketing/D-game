@@ -1,4 +1,4 @@
-// Do'kon va POYGA Plus (maketlar N44–N46, N53; qo'llanma/spetsifikatsiya §7–§9).
+// Do'kon va Tajriba 24 Plus (maketlar N44–N46, N53; qo'llanma/spetsifikatsiya §7–§9).
 // Tamoyillar: asosiy o'yin bepul; Plus va kosmetika o'yin natijasiga ta'sir qilmaydi; tasodifiy sandiq (loot box) yo'q; narx oldindan aniq;
 // 18 yoshgacha to'lov ota-ona roziligi bilan; to'lovdan oldin telefon tasdig'i. Narxlar sozlamada (admin) — qiymati berilmaguncha xarid yopiq.
 import { randomBytes } from "node:crypto";
@@ -111,7 +111,7 @@ export class Commerce {
     const price = this.priceOf(sku); if (price === undefined) return { ok: false, error: "bad_sku" };
     let title = ""; const m = /^item:(.+)$/.exec(sku);
     if (m) { const it = ITEM.get(m[1])!; if (!it.available || (this.config().hidden ?? []).includes(it.id)) return { ok: false, error: "unavailable" }; if (this.owns(uid, it.id)) return { ok: false, error: "already_owned" }; title = it.name; }
-    else title = sku === "plus:monthly" ? "POYGA Plus (oylik)" : "POYGA Plus (yillik)";
+    else title = sku === "plus:monthly" ? "Tajriba 24 Plus (oylik)" : "Tajriba 24 Plus (yillik)";
     if (price === null) return { ok: false, error: "price_unset" };
     if (sku.startsWith("plus:") && this.isPlus(uid) && (this.ent(uid).plusUntil! - this.now()) > 400 * DAY) return { ok: false, error: "plus_already_long" };
     if (!(this.d.providers ?? []).some((p) => p.channels.includes(channel))) return { ok: false, error: "payments_unavailable" };
@@ -187,7 +187,7 @@ export class Commerce {
   }
   /** Qo'lda Plus berish: 0 so'mlik «to'langan» buyurtma sifatida yoziladi — xaridni tiklash ham to'g'ri hisoblaydi. */
   grantManual(uid: string, plan: "monthly" | "yearly", by: string, note: string): Order {
-    const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku: `plus:${plan}`, title: `POYGA Plus (${plan === "yearly" ? "yillik" : "oylik"}) — qo'lda`, amount: 0, channel: "web", status: "paid", createdAt: this.now(), paidAt: this.now(), ref: `manual:${by}`, note };
+    const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku: `plus:${plan}`, title: `Tajriba 24 Plus (${plan === "yearly" ? "yillik" : "oylik"}) — qo'lda`, amount: 0, channel: "web", status: "paid", createdAt: this.now(), paidAt: this.now(), ref: `manual:${by}`, note };
     this.orders.set(o.id, o); this.grant(o); return o;
   }
   revokePlus(uid: string, note: string): number { let n = 0; for (const o of this.ordersOf(uid)) if (o.status === "paid" && o.sku.startsWith("plus:")) { this.orders.set(o.id, { ...o, status: "refunded", refundedAt: this.now(), note }); n++; } this.restore(uid); return n; }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
-import { canBid, nextMinBid, type Auction } from "@poyga/rules";
+import { canBid, nextMinBid, type Auction } from "@tajriba24/rules";
 import { Button } from "./Button";
 import { money } from "../format";
 import { nameOf } from "../model";

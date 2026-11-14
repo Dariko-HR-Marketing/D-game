@@ -20,7 +20,7 @@ const st = x.profiles.stats("pgme");
 check(st.level === 2 && st.xp === 400 && st.xpInto === 150 && st.xpNeed === 300, `server: XP 400 → 2-daraja (150/300): level=${st.level} xp=${st.xp} ${st.xpInto}/${st.xpNeed}`);
 check(st.rating !== null && st.rating > 1100 && st.league !== "bronze", `server: reyting ${st.rating}, liga ${st.league}`);
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, "pgme");
+  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, "pgme");
   const a = await c.newPage(); await a.goto(WEB); await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   await a.getByRole("button", { name: "Profil", exact: true }).first().click(); await a.waitForSelector("text=Keyingi daraja", { timeout: 8000 }).catch(() => {});
   const t = await a.locator("body").innerText();

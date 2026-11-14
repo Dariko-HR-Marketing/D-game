@@ -29,5 +29,5 @@ describe("katak tushuntirishi", () => {
     const q = SMALL_Q(); expect(smallCellInfo(q).text.join(" ")).toContain("4 oy maosh yo'q"); expect(smallCellInfo(0).kind).toBe("Start");
   });
 });
-import { SMALL_BOARD } from "@poyga/rules";
+import { SMALL_BOARD } from "@tajriba24/rules";
 const SMALL_Q = () => SMALL_BOARD.indexOf("Q");

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { RULES } from "@poyga/rules";
+import { RULES } from "@tajriba24/rules";
 import { Card } from "./kit";
 import { Screen } from "./Screen";
 import { uz } from "../i18n/uz";

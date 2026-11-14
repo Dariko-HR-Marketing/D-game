@@ -1,5 +1,5 @@
-import { loadContent, deriveEffects, buildPools, type Bundle } from "@poyga/content";
-import type { Ctx } from "@poyga/rules";
+import { loadContent, deriveEffects, buildPools, type Bundle } from "@tajriba24/content";
+import type { Ctx } from "@tajriba24/rules";
 
 export function buildCtxFrom(b: Bundle): Ctx {
   const fx = deriveEffects(b.cards);

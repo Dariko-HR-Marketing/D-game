@@ -5,7 +5,7 @@ import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
 import { autoProfiles, slowTimers } from "./_seed";
-import { currentPlayer, effectOf, slotBlocked } from "@poyga/rules";
+import { currentPlayer, effectOf, slotBlocked } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/report";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -16,7 +16,7 @@ autoProfiles(x, b);
 let failed = 0; let step = -1; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const SEC = ["Yakuniy ko'rsatkichlar", "Dinamika (oyma-oy)", "Maqsad sari yo'l", "Qarorlaringiz", "Investitsiyalar", "Xarajatlar va xavflar", "Xulosa va tavsiyalar", "Muhim lahzalar", "Boshqa o'yinchilar bilan taqqoslash"];
 for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["pln", 768, 1024], ["kmp", 1440, 900]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", acceptDownloads: true }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); p.on("pageerror", (e) => { console.log("PAGEERROR", String(e.message).slice(0, 300), "@", step); }); p.on("console", (m) => { if (m.type() === "error") console.log("CONSOLE", m.text().slice(0, 300)); }); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", acceptDownloads: true }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); p.on("pageerror", (e) => { console.log("PAGEERROR", String(e.message).slice(0, 300), "@", step); }); p.on("console", (m) => { if (m.type() === "error") console.log("CONSOLE", m.text().slice(0, 300)); }); await p.goto(WEB); return p; };
   const ida = "ra" + tag, idc = "rb" + tag; const a = await mk(ida), c = await mk(idc);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
@@ -45,7 +45,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["pln", 768, 10
   await a.setViewportSize({ width: w, height: 5200 }); await a.waitForTimeout(400); await a.screenshot({ path: `${OUT}/${tag}-2-full.png` }); await a.setViewportSize({ width: w, height: h }); await a.waitForTimeout(200);
   // CSV yuklab olish
   const [dl] = await Promise.all([a.waitForEvent("download", { timeout: 8000 }).catch(() => null), a.getByRole("button", { name: "Hisobotni yuklab olish (CSV)" }).click()]);
-  check(!!dl && /^poyga-hisobot-.*\.csv$/.test(dl.suggestedFilename()), `${tag} CSV yuklab olish: ${dl?.suggestedFilename() ?? "yo'q"}`);
+  check(!!dl && /^tajriba24-hisobot-.*\.csv$/.test(dl.suggestedFilename()), `${tag} CSV yuklab olish: ${dl?.suggestedFilename() ?? "yo'q"}`);
   // Axe
   await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ") " + v.nodes.slice(0, 2).map((n) => n.target.join(">")).join(";")))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(" | ")}`);
   // Ikkinchi o'yinchi ham o'z hisobotini oladi

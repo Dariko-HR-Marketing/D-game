@@ -4,7 +4,7 @@ import { chromium } from "playwright-core";
 import { autoProfiles } from "./_seed";
 import { mkdirSync } from "node:fs";
 import { buildApp } from "../src/app";
-import { currentPlayer } from "@poyga/rules";
+import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/shots";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -14,7 +14,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 const sizes: [string, number, number][] = [["n", 390, 844], ["t", 1024, 768], ["d", 1440, 900]];
 for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env.ONLY.includes(t))) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ua" + tag), c = await mk("ub" + tag);
   const shot = async (p: any, n: string) => { await p.waitForTimeout(400); await p.screenshot({ path: `${OUT}/${tag}-${n}.png`, fullPage: false }); };
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await shot(a, "01-home");

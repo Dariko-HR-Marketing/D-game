@@ -4,7 +4,7 @@ import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 import type { ContentRegistry, Part } from "./registry";
 import { WriteQueue, type Persist } from "./persist";
-import { loadContent } from "@poyga/content";
+import { loadContent } from "@tajriba24/content";
 
 export type Role = "administrator" | "content_editor" | "support" | "analyst" | "moderator" | "finance" | "edu_manager" | "tournament_manager";
 export type Perm = "content.read" | "content.write" | "content.publish" | "users.read" | "users.ban" | "users.manage" | "rooms.read" | "rooms.close" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read"

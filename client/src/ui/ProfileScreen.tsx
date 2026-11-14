@@ -27,7 +27,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
   const save = async () => { setErr(null); setMsg(null); try { await http.saveProfile({ name: name.trim(), color: col, birthYear: Number(year), gender }); setMsg(uz.profile.saved); } catch (e) { setErr((e as HttpError).code ?? "network"); } };
   const download = async () => {
     try { const data = await http.exportData(); const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const a = (globalThis as any).document?.createElement("a"); if (a) { const u = URL.createObjectURL(blob); a.href = u; a.download = "poyga-data.json"; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); } else setErr("web_only");
+      const a = (globalThis as any).document?.createElement("a"); if (a) { const u = URL.createObjectURL(blob); a.href = u; a.download = "tajriba24-data.json"; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); } else setErr("web_only");
     } catch (e) { setErr((e as HttpError).code ?? "network"); }
   };
   const del = async () => { try { await http.deleteAccount(word); onDeleted(); } catch (e) { setErr((e as HttpError).code ?? "network"); } };

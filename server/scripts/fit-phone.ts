@@ -15,7 +15,7 @@ const sizes: [number, number][] = [[320, 568], [360, 640], [375, 667], [390, 844
 let failed = 0, n = 0;
 for (const [w, h] of sizes) {
   if (n > 0) await new Promise((r) => setTimeout(r, 9000)); // server IP bo'yicha ~10 so'rov/daqiqa (AUTH.md)
-  const tag = `${w}x${h}`; const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("poyga-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB);
+  const tag = `${w}x${h}`; const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("tajriba24-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB);
   const measure = async (name: string) => {
     await p.waitForTimeout(400); const m = await p.evaluate(() => ({ sh: document.documentElement.scrollHeight, ih: window.innerHeight, sw: document.documentElement.scrollWidth, iw: window.innerWidth }));
     // ichki aylantirish (ScrollView) ham hisobga olinadi: aylanadigan konteyner kontenti oynadan baland bo'lmasin

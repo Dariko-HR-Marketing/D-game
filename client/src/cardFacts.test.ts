@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveEffects } from "@poyga/content/effects";
+import { deriveEffects } from "@tajriba24/content/effects";
 import cardsJson from "../../content/data/cards.json";
 import { cardFacts } from "./cardFacts";
 
@@ -37,7 +37,7 @@ describe("karta raqamlari", () => {
 
 describe("faol daromad ta'siri karta raqamlarida (server natijasi bilan bir xil)", () => {
   it("«Savdo va chakana» +25 % faol bo'lsa, savdo aktivi kartasida daromad ham, pul oqimi o'zgarishi ham shu bilan ko'rsatiladi", async () => {
-    const { applyEffect, passiveIncome, playerCashflow } = await import("@poyga/rules");
+    const { applyEffect, passiveIncome, playerCashflow } = await import("@tajriba24/rules");
     const buy = { kind: "buy", asset: "small_business", code: "KB-T", price: 1700, monthlyIncome: 300, sector: "Savdo va chakana" };
     const mods = [{ t: "income", sel: { any: [{ sector: "Savdo va chakana" }] }, mode: "pct", value: 5, months: 7, wait: false, src: "t", id: 1 }, { t: "income", sel: { any: [{ sector: "Savdo va chakana" }] }, mode: "pct", value: 20, months: 3, wait: false, src: "t", id: 2 }];
     const p: any = { id: "t", cash: 100000, salary: 700, assets: [], mods, baseExpenses: 400, children: 0, childCost: 0, bankLoans: [], lombards: [], bankDebt: 0 };
@@ -55,7 +55,7 @@ describe("faol daromad ta'siri karta raqamlarida (server natijasi bilan bir xil)
 
 describe("ish haqi o'sishi faol ta'sir bilan", () => {
   it("«ish haqi +10 %» faol bo'lsa kurs kartasidagi o'sish ham server hisobi bilan bir xil", async () => {
-    const { applyEffect, salaryOf } = await import("@poyga/rules");
+    const { applyEffect, salaryOf } = await import("@tajriba24/rules");
     const e = { kind: "courseSalaryPlus", price: 500, salaryPlus: 200 };
     const p: any = { id: "t", cash: 9000, salary: 1000, assets: [], mods: [{ t: "salary", pct: 10, months: 6, wait: false, src: "t", id: 1 }], baseExpenses: 400, children: 0, childCost: 0, bankLoans: [], lombards: [], bankDebt: 0 };
     const f = cardFacts(e, p, 0); const r: any = applyEffect(p, e as any); expect(r.ok).toBe(true);

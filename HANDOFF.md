@@ -1,4 +1,4 @@
-# POYGA onlayn (D-game) — yangi chat uchun to'liq topshirish fayli
+# Tajriba 24 onlayn (D-game) — yangi chat uchun to'liq topshirish fayli
 
 Sana: 2026-11-11. Repo: `Dariko-HR-Marketing/D-game`. Til: javoblar o'zbek lotin alifbosida.
 Yangi chatda birinchi ish: `CLAUDE.md`, `docs/SPEC.md` va `docs/OPEN_QUESTIONS.md` ni o'qish, so'ng shu faylni.
@@ -38,12 +38,12 @@ Buyruqlar: `pnpm typecheck` (**`-s` siz, chiqish kodini tekla** — yashirin xat
 6. **Aylanalar qoidasi (buyurtmachi qarori 2026-11-09):** qarzni faqat kichik aylana o'yinchisi so'raydi (beruvchi istalgan aylanadan); sheriklikni faqat kichik aylana o'yinchisi taklif qiladi (sherik istalgan aylanadan); suyunchi faqat kichik aylanada. Xato kodlari `big_cannot_borrow`, `big_cannot_offer_partner`. `CLAUDE.md` §2.7 va SPEC §5.3/§5.6 yangilangan.
 7. **Karta yuzi:** umumiy narx + katta (34px, oltin chegara) «Hozir to'lanadi» (`DecisionCard.tsx`).
 8. **Sayqal (#35):** tik telefonda sarlavhadan «Qoidalar» olib tashlandi, vaqt paneli zichroq, "Kichik aylana" chipi/izohi faqat aralash o'yinda, deploy sirsiz qizil xato bermaydi.
-9. **CI tuzatishlari:** typecheck xatolari, `calc-check` ochiq auksionlarni yopadi, `auction-check` poyga holatini kutadi, `responsive-check` `[data-dense]` ni istisno qiladi.
+9. **CI tuzatishlari:** typecheck xatolari, `calc-check` ochiq auksionlarni yopadi, `auction-check` sahifa yangilanishini kutadi, `responsive-check` `[data-dense]` ni istisno qiladi.
 
 ## 5. Muhim texnik tafsilotlar
 - Dvigatel jurnalni qayta o'ynaydi (`reduce`); eski o'yinlar buzilmasligi uchun yangi maydonlar ixtiyoriy (`since, overdue, arrears, fee`) va holat bayroqlari (`halalFin`) bilan.
 - Bot auksion: `pct = 90 + (charCode yig'indisi % 3)*10`, `max=floor(value*pct/100/step)*step`, `jump=max(step, ceil(start*0.05/step)*step)`. Birinchi taklif qadamga yuqoriga yaxlitlanadi.
-- Kontent: manba `content/imports/tajriba24/tajriba24_cards_import.csv` → `pnpm --filter @poyga/content cards import --apply` → `content/data/cards.json`. Katalog: faol 1033, jonli 817. `content/src/effects.ts` dagi regex matn o'zgarsa buzilishi mumkin (`lendRequest` tuzatilgan).
+- Kontent: manba `content/imports/tajriba24/tajriba24_cards_import.csv` → `pnpm --filter @tajriba24/content cards import --apply` → `content/data/cards.json`. Katalog: faol 1033, jonli 817. `content/src/effects.ts` dagi regex matn o'zgarsa buzilishi mumkin (`lendRequest` tuzatilgan).
 - Fayllar: `client/src/ui/AuctionLayer.tsx`, `Actions.tsx` (ixtiyoriy joylash 50–100), `DecisionCard.tsx`, `Board.tsx`; `client/src/model.ts` (`partnerCandidates`, `loanGivers`); `rules/src/{index,engine,game,auction}.ts`; testlar `rules/src/{auction,halal,crosscircle}.test.ts`, `server/src/auction.test.ts`, skript `server/scripts/auction-check.ts`.
 - RN-web da `data-*` uchun `dataSet` prop kerak (oddiy `data-dense` DOM ga o'tmaydi).
 - Yangi xato kodlari/matnlar `uz.ts` da: `big_cannot_borrow`, `big_cannot_offer_partner`, `relist_wait`, `few_bidders`, auksion bloki.

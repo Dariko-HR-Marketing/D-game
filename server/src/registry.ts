@@ -1,6 +1,6 @@
 // Kontent versiyalari (§12, §11): o'yin boshlanganda versiya qulflanadi, nashr qilingan yangi versiya faqat yangi o'yinlarga tegadi.
-import { loadContent, parseBundle, validateBundle, type Bundle } from "@poyga/content";
-import type { Ctx } from "@poyga/rules";
+import { loadContent, parseBundle, validateBundle, type Bundle } from "@tajriba24/content";
+import type { Ctx } from "@tajriba24/rules";
 import { buildCtxFrom } from "./ctx";
 import { WriteQueue, type Persist } from "./persist";
 import { createHash } from "node:crypto";

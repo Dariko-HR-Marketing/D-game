@@ -6,7 +6,7 @@ import { join } from "node:path";
 //  • yangi kartalar (`image: NEW_ART`, content/data/cards.json katalogi) → `<id>.webp`, katalogdagi `file` maydoniga yoziladi;  chiqish: content/art/generated (repoda; VPS ga `deploy/vps/install-art.sh` ko‘chiradi);
 //  • qayta chizish kerak kartalar (CSV `image_status=REDRAW`, eski kartalar) → eski fayl nomi ustiga (asl nusxa git tarixida).
 // Dizayner haqiqiy rasm bersa, shu nomdagi faylni almashtirish kifoya. Ishlatish:
-//   pnpm --filter @poyga/server exec tsx scripts/render-card-art.ts [--only=Y001,Y002] [--out=papka] [--no-write-json]
+//   pnpm --filter @tajriba24/server exec tsx scripts/render-card-art.ts [--only=Y001,Y002] [--out=papka] [--no-write-json]
 import { chromium } from "playwright-core";
 import { parseCatalogCsv, fileKey } from "../../content/src/catalog";
 

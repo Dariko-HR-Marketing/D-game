@@ -1,4 +1,4 @@
-# Maketlar (Design canvas «D-game · POYGA — o'yin maketlari») va kod
+# Maketlar (Design canvas «D-game · Tajriba 24 — o'yin maketlari») va kod
 
 Manba: foydalanuvchi bergan Design artifact (53 mobil ekran N01–N53, kompyuter D1–D11, planshet T2–T9, konsepsiya C1–C6, 412 karta).
 Holat — **kodda bor / qisman / yo'q**. «Qisman» — mantiq bor, ko'rinish maketga to'liq mos emas. Piksel darajasida solishtirilmagan (faqat N05, N11, N13, N12, D1 va N19 render qilib ko'rilgan).
@@ -27,7 +27,7 @@ Holat — **kodda bor / qisman / yo'q**. «Qisman» — mantiq bor, ko'rinish ma
 | N31 | Kartalar kutubxonasi | yo'q | — |
 | N33, N34, N35 | Kubik, vaqt tugadi, boshqa o'yinchi navbati | bor | `Dice`, `TimerRing`, navbat matni |
 | N40–N43 | Sheriklik, o'zaro qarz, hamkorlik | bor | `Actions` (16 yoshgacha serverda yopiq) |
-| N44, N45, N53, C6 | POYGA Plus, do'kon, daromad modeli | **yo'q** | to'lovlar 2-bosqich — qaror kerak |
+| N44, N45, N53, C6 | Tajriba 24 Plus, do'kon, daromad modeli | **yo'q** | to'lovlar 2-bosqich — qaror kerak |
 | N46, N52 | Hisob, hisobni o'chirish | bor | `ProfileScreen` |
 | N47–N49 | Telefon shart, ota-ona tasdig'i | **yo'q** | huquqiy qaror kutilmoqda |
 | N50, N51 | Aloqa uzildi, xona to'lgan | bor | oflayn banner, xato matni |

@@ -43,14 +43,14 @@ export class ParentConsents {
     hist.push(t); this.sentAt.set(childId, hist);
     const id = randomBytes(12).toString("hex"); const r: ConsentRequest = { id, childId, kind, ref, title, parentHash: ph, parentPhone: phone, status: "pending", createdAt: t, expiresAt: t + CONSENT_TTL_MS };
     this.reqs.set(id, r);
-    try { await this.sms.send(phone, `POYGA: farzandingiz "${title}" uchun ruxsat so'radi. Ko'rish va javob berish: ${this.baseUrl}/parent/${this.tokenOf(id, r.expiresAt)}`); } catch { this.reqs.set(id, { ...r, status: "cancelled", parentPhone: null }); return { ok: false, error: "sms_failed" }; }
+    try { await this.sms.send(phone, `Tajriba 24: farzandingiz "${title}" uchun ruxsat so'radi. Ko'rish va javob berish: ${this.baseUrl}/parent/${this.tokenOf(id, r.expiresAt)}`); } catch { this.reqs.set(id, { ...r, status: "cancelled", parentPhone: null }); return { ok: false, error: "sms_failed" }; }
     return { ok: true, request: r };
   }
   async resend(id: string): Promise<{ ok: boolean; error?: string }> {
     const r = this.get(id); if (!r || r.status !== "pending" || !r.parentPhone || !this.sms) return { ok: false, error: "not_pending" };
     const t = this.now(); const hist = (this.sentAt.get(r.childId) ?? []).filter((x) => t - x < 86_400_000); if (hist.length >= 5) return { ok: false, error: "rate_limited" };
     hist.push(t); this.sentAt.set(r.childId, hist);
-    try { await this.sms.send(r.parentPhone, `POYGA: farzandingiz "${r.title}" uchun ruxsat so'radi. Ko'rish va javob berish: ${this.baseUrl}/parent/${this.tokenOf(r.id, r.expiresAt)}`); return { ok: true }; } catch { return { ok: false, error: "sms_failed" }; }
+    try { await this.sms.send(r.parentPhone, `Tajriba 24: farzandingiz "${r.title}" uchun ruxsat so'radi. Ko'rish va javob berish: ${this.baseUrl}/parent/${this.tokenOf(r.id, r.expiresAt)}`); return { ok: true }; } catch { return { ok: false, error: "sms_failed" }; }
   }
   cancel(id: string, childId: string) { const r = this.get(id); if (r && r.childId === childId && r.status === "pending") this.reqs.set(id, { ...r, status: "cancelled", parentPhone: null }); }
   byToken(token: string): ConsentRequest | null { const r = this.parse(token); return r ? this.fresh(r) : null; }
@@ -72,7 +72,7 @@ export class ParentConsents {
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-const page = (body: string) => `<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>POYGA · ota-ona sahifasi</title><style>
+const page = (body: string) => `<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tajriba 24 · ota-ona sahifasi</title><style>
 body{margin:0;font-family:Manrope,system-ui,sans-serif;background:#F4F7F8;color:#082238}main{max-width:520px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:14px}
 h1{font-size:24px;margin:8px 0 0}.card{background:#fff;border:1px solid #E6ECEF;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}.muted{color:#4A5B6C;font-size:14px;line-height:1.5}
 label{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;min-height:44px}input[type=checkbox]{width:20px;height:20px;margin-top:2px}

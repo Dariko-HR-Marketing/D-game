@@ -1,9 +1,9 @@
 > Avtomatik tahlil (subagent hisoboti, 2026-10-21): dalil sifatida saqlanadi; har bir da'vo qaror qilinishidan oldin manba bilan qayta tekshiriladi. Qarorlar reestri: ../NORMATIVE_AUDIT.md
 
-# A1 — «POYGA: o'yin qo'llanmasi» (lotin, 18 bet) ↔ mavjud tizim
+# A1 — «Tajriba 24: o'yin qo'llanmasi» (lotin, 18 bet) ↔ mavjud tizim
 
 ## 0. Manba qisqacha
-- O'qildi: `txt/ca191915-POYGA_oyin_qollanmasi.txt` (717 qator) to'liq; original PDF 18 betining hammasi rasm sifatida ko'rildi (taxta, kredit kalkulyatori, jadvallar, Kranchi grafigi).
+- O'qildi: `txt/ca191915-Tajriba24_oyin_qollanmasi.txt` (717 qator) to'liq; original PDF 18 betining hammasi rasm sifatida ko'rildi (taxta, kredit kalkulyatori, jadvallar, Kranchi grafigi).
 - Bet xaritasi: §01–02 b.2–3 · §03–04 b.3–5 · §05 b.5 · §06 b.6–7 · §07 b.7–8 · §08 b.8–9 · §09 b.9 · §10 b.9–10 · §11 b.10–11 · §12 b.11–13 · §13 b.14 · §14 b.14–15 · §15 b.15 · §16 b.15–16 · §17 b.16 · §18 b.16–17 · §19 b.18.
 - Solishtirildi: `docs/SPEC.md` §5–§6, A–D ilovalar; `docs/OPEN_QUESTIONS.md` (#83–#95 qo'llanma bo'yicha qarorlar); `rules/src/index.ts` (RULES, POINTS), `engine.ts`, `game.ts`; `content/data/*.json`; `content/src/effects.ts`; `server/src/rooms.ts`, `profiles.ts`; `client/src/i18n/uz.ts`.
 - Tekshiruv usullari: (a) kodni o'qish; (b) `tsx` bilan dvigatelda probalar (scratchpad/probe/p.ts) — quyida «probа» deb belgilangan; (c) PDF b.3 dagi taxta rasmini piksel bo'yicha tahlil qilish.

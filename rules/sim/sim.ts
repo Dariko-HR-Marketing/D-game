@@ -1,6 +1,6 @@
 // Balans simulyatsiyasi (SPEC §5.11, §13): bot siyosatlari bilan ko'p o'yin o'ynab, davomiylik va chiqish/g'alaba ulushini o'lchaydi.
 // Ishga tushirish: npx tsx sim/sim.ts [o'yinlar_soni] [siyosat] [maks_navbat]
-import { loadContent, deriveEffects } from "@poyga/content";
+import { loadContent, deriveEffects } from "@tajriba24/content";
 import { Ctx, GameState, Action, newGame, reduce, chooseDream, currentPlayer, effectOf, slotBlocked, assetMatches, marketPrice, monthlyExpenses, passiveIncome, maxBankLoan, RULES } from "../src/index";
 
 const { cards, bigBoard, dreams } = loadContent();

@@ -21,8 +21,8 @@ export function installTypography() {
       return render.call(this, { ...props, style: [props?.style, { fontFamily: familyFor(flat.fontWeight), fontWeight: "normal" }] }, ref);
     };
   }
-  if (Platform.OS === "web" && typeof document !== "undefined" && !document.getElementById("poyga-theme")) {
-    const st = document.createElement("style"); st.id = "poyga-theme";
+  if (Platform.OS === "web" && typeof document !== "undefined" && !document.getElementById("tajriba24-theme")) {
+    const st = document.createElement("style"); st.id = "tajriba24-theme";
     st.textContent = `:focus-visible{outline:${FOCUS.width}px solid ${FOCUS.color} !important;outline-offset:${FOCUS.offset}px !important}`;
     document.head.appendChild(st);
   }

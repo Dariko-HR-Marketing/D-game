@@ -50,7 +50,7 @@ export interface Ctx {
   createBiquadFilter(): Node & { type: string; frequency: Param; Q: Param };
 }
 export type Prefs = { muted: boolean; volume: number };
-const KEY = "poyga-sound";
+const KEY = "tajriba24-sound";
 const load = (): Prefs => { try { const j = JSON.parse((globalThis as any).localStorage?.getItem(KEY) ?? "null"); if (j && typeof j.muted === "boolean" && typeof j.volume === "number") return { muted: j.muted, volume: Math.min(1, Math.max(0, j.volume)) }; } catch { /* saqlanmagan */ } return { muted: false, volume: 0.6 }; };
 const save = (p: Prefs) => { try { (globalThis as any).localStorage?.setItem(KEY, JSON.stringify(p)); } catch { /* maxfiy rejim */ } };
 

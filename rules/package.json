@@ -1,5 +1,5 @@
 {
- "name": "@poyga/rules",
+ "name": "@tajriba24/rules",
  "private": true,
  "version": "0.0.0",
  "type": "module",
@@ -14,7 +14,7 @@
   "tsx": "^4.19.0"
  },
  "dependencies": {
-  "@poyga/content": "workspace:*"
+  "@tajriba24/content": "workspace:*"
  },
  "main": "src/index.ts"
 }

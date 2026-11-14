@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
-import { RULES } from "@poyga/rules";
+import { RULES } from "@tajriba24/rules";
 import { Button } from "./Button";
 import { Pill } from "./kit";
 import { money } from "../format";

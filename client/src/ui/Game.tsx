@@ -45,7 +45,7 @@ import { money } from "../format";
 import { color, font, HEADER_H, radius, space, tone } from "../theme";
 import { bankRoom, phaseSeconds, untimed, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type ChatMsg, type Reaction, type RoomView } from "../net/connection";
-import { RULES } from "@poyga/rules";
+import { RULES } from "@tajriba24/rules";
 import { useMovement } from "../useMovement";
 import { useGameSounds, useSoundPrefs } from "../useGameSounds";
 

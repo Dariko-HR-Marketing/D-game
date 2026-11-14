@@ -36,7 +36,7 @@ installTypography();
 
 const SERVER = process.env.EXPO_PUBLIC_SERVER_URL ?? "ws://localhost:3000";
 // Kirish xizmati (SMS/Google/Apple) ulanmaguncha — vaqtincha qurilma identifikatori.
-const devUser = () => { try { const k = "poyga-dev-user"; const v = (globalThis as any).localStorage?.getItem(k) ?? `u${Math.random().toString(36).slice(2, 8)}`; (globalThis as any).localStorage?.setItem(k, v); return v; } catch { return `u${Math.random().toString(36).slice(2, 8)}`; } };
+const devUser = () => { try { const k = "tajriba24-dev-user"; const v = (globalThis as any).localStorage?.getItem(k) ?? `u${Math.random().toString(36).slice(2, 8)}`; (globalThis as any).localStorage?.setItem(k, v); return v; } catch { return `u${Math.random().toString(36).slice(2, 8)}`; } };
 
 const store = {
   get: (k: string): string | null => { try { return (globalThis as any).localStorage?.getItem(k) ?? null; } catch { return null; } },
@@ -52,7 +52,7 @@ export default function App() {
   const [loginErr, setLoginErr] = useState(false);
   useEffect(() => {
     let off = false;
-    const saved = store.get("poyga-session");
+    const saved = store.get("tajriba24-session");
     (async () => {
       try {
         const cfg = await auth.config(); if (off) return;
@@ -70,10 +70,10 @@ export default function App() {
   if (!fontsLoaded || sess === undefined) return null;
   if (!sess) return (
     <SafeAreaView style={s.root}><StatusBar style="dark" /><View role="main" style={{ flex: 1 }}>
-      <Login auth={auth} onDone={(x) => { store.set("poyga-session", JSON.stringify(x)); setSess(x); }} />
+      <Login auth={auth} onDone={(x) => { store.set("tajriba24-session", JSON.stringify(x)); setSess(x); }} />
       {loginErr && <Text style={{ color: color.red, textAlign: "center" }} accessibilityRole="alert">{errText("network")}</Text>}
     </View></SafeAreaView>);
-  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("poyga-session", null); setSess(null); }} />;
+  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("tajriba24-session", null); setSess(null); }} />;
 }
 
 function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
@@ -84,7 +84,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments">("home");
   const [rulesOpen, setRulesOpen] = useState(false); // o'yin davomida ham ochiladi
   useEffect(() => { const un = conn.subscribe(paced(setSt)); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
-  useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "POYGA"; } }, []);
+  useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "Tajriba 24"; } }, []);
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
   useForeground(() => conn.resume(), () => conn.markLost()); // ilovadan/ustundan qaytilganda yoki tarmoq qaytganda: «Aloqa uzildi» → qayta ulanish
   const voice = useMemo(() => new VoiceEngine({ selfId: userId, send: (m) => conn.send(m), iceServers: async () => (await http.voiceConfig()).iceServers }), [conn, http, userId]);
@@ -99,9 +99,9 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const tryJoin = (c: string) => { setJoinTry(c.trim().toUpperCase()); conn.join(c); };
   useEffect(() => { if (st.error === "already_started" && devMode && joinTry && !room) setClaim(joinTry); }, [st.error, devMode, joinTry, room]);
   useEffect(() => { if (room) { setClaim(null); setJoinTry(null); } }, [room]);
-  const claimSeat = (uid: string) => { store.set("poyga-dev-user", uid); store.set("poyga-autojoin", claim); (globalThis as any).location?.reload?.(); };
+  const claimSeat = (uid: string) => { store.set("tajriba24-dev-user", uid); store.set("tajriba24-autojoin", claim); (globalThis as any).location?.reload?.(); };
   useEffect(() => { // o'rin qaytarib olingach sahifa yangilanadi: o'yinga o'zi qaytadi
-    const code = store.get("poyga-autojoin"); if (code && st.status === "online" && !room) { store.set("poyga-autojoin", null); conn.join(code); }
+    const code = store.get("tajriba24-autojoin"); if (code && st.status === "online" && !room) { store.set("tajriba24-autojoin", null); conn.join(code); }
   }, [st.status, room, conn]);
   // Ism majburiy: profilsiz foydalanuvchi avval ismini kiritadi (xonaga kirishdan oldin)
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);

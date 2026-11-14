@@ -73,7 +73,7 @@ export class AdminAccounts {
     for (const d of [0, -1, 1]) { const st = cur + d; if (hotp(a.totpSecret, st) === code && (a.totpStep === undefined || st > a.totpStep)) return st; }
     return null;
   }
-  totpSetup(id: string) { const a = this.accts.get(id); if (!a) return null; const secret = b32(randomBytes(20)); this.accts.set(id, { ...a, totpSecret: secret, totpEnabled: false }); return { secret, uri: `otpauth://totp/POYGA:${encodeURIComponent(a.login)}?secret=${secret}&issuer=POYGA&digits=6&period=30` }; }
+  totpSetup(id: string) { const a = this.accts.get(id); if (!a) return null; const secret = b32(randomBytes(20)); this.accts.set(id, { ...a, totpSecret: secret, totpEnabled: false }); return { secret, uri: `otpauth://totp/Tajriba 24:${encodeURIComponent(a.login)}?secret=${secret}&issuer=Tajriba 24&digits=6&period=30` }; }
   totpEnable(id: string, code: unknown) { const a = this.accts.get(id); if (!a?.totpSecret || typeof code !== "string") return false; const st = this.checkTotp(a, code.trim()); if (st === null) return false; this.accts.set(id, { ...a, totpEnabled: true, totpStep: st }); return true; }
   verifyPassword(id: string, pw: unknown) { const a = this.accts.get(id); return !!a && typeof pw === "string" && pw.length <= 200 && eq(hashPw(pw, a.salt), a.hash); }
   changePassword(id: string, cur: unknown, next: unknown): { ok: true } | { ok: false; error: string } {

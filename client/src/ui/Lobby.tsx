@@ -19,7 +19,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
   const copy = async () => {
     const text = room.code;
     try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
-    try { await Share.share({ message: `POYGA: ${text}` }); } catch { /* bekor qilindi */ }
+    try { await Share.share({ message: `Tajriba 24: ${text}` }); } catch { /* bekor qilindi */ }
   };
   return (
     <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={480}>

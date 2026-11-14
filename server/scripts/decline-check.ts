@@ -14,7 +14,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const SIZES: [string, number, number][] = [["tel-tik", 390, 844], ["tel-yotiq", 844, 390], ["kichik-yotiq", 667, 375], ["plan-tik", 768, 1024], ["plan-yotiq", 1024, 768], ["kmp", 1440, 900]];
 for (const [tag, w, h] of SIZES) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
   const ida = "da" + tag, idb = "db" + tag; const a = await mk(ida), c = await mk(idb);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

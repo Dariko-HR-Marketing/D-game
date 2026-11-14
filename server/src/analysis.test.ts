@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildApp } from "./app";
-import { analyzeGame, currentPlayer, effectOf } from "@poyga/rules";
+import { analyzeGame, currentPlayer, effectOf } from "@tajriba24/rules";
 
 const H = (t: string) => ({ authorization: `Bearer ${t}` });
 const ADM = JSON.stringify({ AT: { id: "root", role: "administrator" }, NT: { id: "n", role: "analyst" }, ST: { id: "s", role: "support" } });
@@ -37,7 +37,7 @@ describe("o'yin tugagach hisobot API (har bir o'yinchi uchun)", () => {
     const x = buildApp({ adminAuth: envAdminAuth(ADM) }); const { code, room } = await playRoom(x, 100);
     room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room);
     const res = await x.app.inject({ method: "GET", url: `/me/games/${code}/report?format=csv`, headers: H("alice") }); expect(res.statusCode).toBe(200);
-    expect(res.headers["content-type"]).toContain("text/csv"); expect(res.headers["content-disposition"]).toContain(`poyga-hisobot-${code}.csv`);
+    expect(res.headers["content-type"]).toContain("text/csv"); expect(res.headers["content-disposition"]).toContain(`tajriba24-hisobot-${code}.csv`);
     const t = res.body; expect(t.charCodeAt(0)).toBe(0xfeff); expect(t).toContain("section,a,b"); expect(t).toContain("\r\nseries,0,"); expect(t).toContain("summary,o'yinchi,Alisa");
   });
 });

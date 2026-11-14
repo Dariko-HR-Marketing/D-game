@@ -1,6 +1,6 @@
 // O'yin holati va tranzitsiyalar (sof, deterministik). Tasodifiylik `Rng` orqali tashqaridan beriladi (SPEC §6.6).
-import type { Effect } from "@poyga/content/effects";
-import { matches, type Selector, type AssetDesc } from "@poyga/content/groups";
+import type { Effect } from "@tajriba24/content/effects";
+import { matches, type Selector, type AssetDesc } from "@tajriba24/content/groups";
 import { RULES, bankLoanDebt, bankLoanMonthly, bankLoanPayoff, bankPrincipalDue, feeRemaining, lombardMonthly, lombardPayoff, newBankLoanMonthly, oneTimeFee } from "./index";
 
 export type Rng = () => number; // [0,1)

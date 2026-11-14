@@ -3,8 +3,8 @@
 # C. UX/UI V2 va asl doska — solishtirish (findings/C_ux_ui_doska.md)
 
 ## 1. Manba (nima o'qildi)
-- «D-game POYGA UX UI V2» (61c70c40, 19 bet, 10.10.2026): matn (979 qator) to'liq o'qildi va 19 betning hammasi rasm sifatida ko'rildi. Betlar quyida pastki raqam bo'yicha («bet 07» = 7-bet).
-- «POYGA asl doska» (5501113f, 1 bet, qorong'u fon) va «POYGA Frame236» (7e6f94d7, 1 bet, och fon, ikonkali): 220 dpi rasm qilinib, har bir katak qator-qator o'qildi (matn qatlami tartibsiz bo'lgani uchun rasm asos qilindi). Katak ketma-ketligi quyidagi §6 da.
+- «D-game Tajriba 24 UX UI V2» (61c70c40, 19 bet, 10.10.2026): matn (979 qator) to'liq o'qildi va 19 betning hammasi rasm sifatida ko'rildi. Betlar quyida pastki raqam bo'yicha («bet 07» = 7-bet).
+- «Tajriba 24 asl doska» (5501113f, 1 bet, qorong'u fon) va «Tajriba 24 Frame236» (7e6f94d7, 1 bet, och fon, ikonkali): 220 dpi rasm qilinib, har bir katak qator-qator o'qildi (matn qatlami tartibsiz bo'lgani uchun rasm asos qilindi). Katak ketma-ketligi quyidagi §6 da.
 - Solishtirilgan tizim: docs/SPEC.md (§3, §5, §6, §9, §10, ilova A/B), docs/OPEN_QUESTIONS.md, CLAUDE.md, rules/src/engine.ts:41 (SMALL_BOARD), rules/src/game.ts (win va K/Q/V/X/Y), content/data/board_big.json, content/data/cell_rules.json, client/src/{theme.ts, boardLayout.ts, bigBoard.ts, i18n/uz.ts}, client/src/ui/{Board,Game,Home,Lobby,Login,DecisionCard,FinanceCard,Result,ProfileScreen,Sheet,Button,BottomNav,Logo}.tsx, client/App.tsx, server/src/parents.ts. Qo'llanma (ca191915) faqat taxta bilan bog'liq joylarida (harakat yo'nalishi, V jadvali, katak soni) tekshirildi.
 - Usul: SMALL_BOARD satri va board_big.json doskadan olingan ketma-ketlik bilan python orqali indeks-indeks solishtirildi.
 
@@ -54,7 +54,7 @@
 6. Doska: ikki fayl o'rtasida (asl va Frame236) chap ustun tartibi, palitra (asl: qorong'u fon, burchaklar to'q yashil; Frame236: och fon, burchaklar qizil, ikonka va pastda rang izohi «Bozor/Imkoniyat/Xarajat/Tavakkal biznes») va START rangi (sariq / to'q yashil) farq qiladi; Frame236 — asl doskaning qayta chizilgan nusxasi bo'lib ko'rinadi, lekin tartibi bir xil emas (№1).
 7. Doskada START strelkalari (№3) va «↑» strelka (kichik START ustida, katta aylanadagi BANKROT katagiga qaragan) ma'nosi tushuntirilmagan: kichik aylanadan chiqish yo'li START'dan katta aylana START'iga (34) o'tadimi yoki BANKROTga — hujjatda yo'q (dvigatel: game.ts:562 `pos: bigStart=34`).
 8. «Kubikda 5 yoki 6 tushsa» (V kataklari) — doskada yutuq qirralari bor, lekin yutilganda nima bo'lishi («Sotish narxi» yoki «Oylik daromad») ikki xil yorliq bilan berilgan; Chiqindi zavodi (i6) uchun «Sotish narxi 30 000» noaniq (№2).
-9. Doska markazida 6 ta «KARTALAR JOYI» (Bozor, Xarajatlar, Bank, Lombard, Kichik/Katta sarmoyalar) va 4 ta maqol/shior; onlayn maketda ularning o'rni belgilanmagan (V2 markazda faqat «POYGA / Moliyaviy erkinlik sari / Joriy sektor»).
+9. Doska markazida 6 ta «KARTALAR JOYI» (Bozor, Xarajatlar, Bank, Lombard, Kichik/Katta sarmoyalar) va 4 ta maqol/shior; onlayn maketda ularning o'rni belgilanmagan (V2 markazda faqat «Tajriba 24 / Moliyaviy erkinlik sari / Joriy sektor»).
 
 ## 4. MOS KELADIGANLAR (tasdiqlangan)
 - **Kichik aylana: 48/48 katak mos.** Doskadan START'dan soat mili bo'yicha o'qilgan ketma-ketlik `SIHIHIBIHBIDBIHBHIHBDHBIHIOBIBIQBHIDBHIBHIBIDBKB` = engine.ts:41 `SMALL_BOARD` (python bilan solishtirildi, farq yo'q). Sanog: I 15, B 14, H 11, D 4, S/K/Q/O 1 tadan = qo'llanma (Imkoniyat 15, Bozor 14, Xarajat 11, Daromad 4) ✓; D kataklari 11, 20, 35, 44 → aylanada 4 oy ✓.

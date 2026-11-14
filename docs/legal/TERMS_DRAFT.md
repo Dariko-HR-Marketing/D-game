@@ -2,7 +2,7 @@
 
 > **Advokat tomonidan ko'rib chiqilmagan qoralama.** `[...]` to'ldiriladi.
 
-1. **Xizmat haqida.** POYGA — moliyaviy savodxonlik uchun ta'limiy stol o'yinining onlayn versiyasi. O'yindagi pul («sh.b.») shartli; **haqiqiy pul yutuq yoki to'lovga aylanmaydi**.
+1. **Xizmat haqida.** Tajriba 24 — moliyaviy savodxonlik uchun ta'limiy stol o'yinining onlayn versiyasi. O'yindagi pul («sh.b.») shartli; **haqiqiy pul yutuq yoki to'lovga aylanmaydi**.
 2. **Hisob.** Telefon raqami orqali kiriladi. Bitta hisob — bitta faol o'yin. Hisobni boshqaga bermang.
 3. **Yosh.** 16 yoshgacha foydalanuvchilarga o'yinchilararo qarz va sheriklik yopiq. [Eng kam yosh va ota-ona roziligi — huquqshunos.]
 4. **Xatti-harakat qoidalari.** Haqorat, spam, boshqa o'yinchilarni aldash, xizmatni buzishga urinish taqiqlanadi. Qoidabuzarlik moderator tomonidan ogohlantirish yoki hisobni bloklash bilan jazolanishi mumkin; shikoyat: o'yin ichida.

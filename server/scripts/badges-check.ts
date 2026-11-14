@@ -13,7 +13,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
-const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: 390, height: 844 } }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: 390, height: 844 } }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
 const a = await mk("bga"), c = await mk("bgb");
 await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

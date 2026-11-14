@@ -12,7 +12,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); localStorage.removeItem("poyga-turn-seconds"); }, "ut" + tag);
+  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); localStorage.removeItem("tajriba24-turn-seconds"); }, "ut" + tag);
   const a = await c.newPage(); await a.goto(WEB);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor();
   if (tag === "tel") { const o = a.getByTestId("home-opts"); if (await o.count()) await o.click(); }

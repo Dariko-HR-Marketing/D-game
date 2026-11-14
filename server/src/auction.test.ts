@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import { MemoryStore } from "./store";
 import { ContentRegistry } from "./registry";
 import { RoomManager, Clock } from "./rooms";
-import { RULES, startAuction, takeLombard, tickLoans, newGame, type GameState } from "@poyga/rules";
+import { RULES, startAuction, takeLombard, tickLoans, newGame, type GameState } from "@tajriba24/rules";
 
 class TimerClock implements Clock {
   t = 0; q: { id: number; f: () => void; at: number }[] = []; n = 0;

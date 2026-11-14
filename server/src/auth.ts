@@ -117,7 +117,7 @@ export class OtpService {
     // Oldingi hali amaldagi kod ham yaroqli qoladi (begona so'rov foydalanuvchining olgan kodini bekor qila olmasin); eng ko'pi 2 ta.
     const prev = this.recs.get(phone); const live = prev && prev.exp >= t ? prev.hashes.slice(-1) : [];
     this.recs.set(phone, { hashes: [...live, hash], exp: t + this.ttl });
-    try { await this.o.sms.send(phone, `POYGA: tasdiqlash kodi ${code}. Hech kimga bermang.`); } catch { return { ok: false, error: "sms_failed" }; }
+    try { await this.o.sms.send(phone, `Tajriba 24: tasdiqlash kodi ${code}. Hech kimga bermang.`); } catch { return { ok: false, error: "sms_failed" }; }
     return { ok: true };
   }
   private locked(phone: string, t: number) { const f = this.fails.get(phone); return !!f && f.until > t; }

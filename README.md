@@ -1,4 +1,4 @@
-# POYGA onlayn
+# Tajriba 24 onlayn
 
 Stol o'yinining onlayn versiyasi (moliyaviy savodxonlik). To'liq spetsifikatsiya: [`docs/SPEC.md`](docs/SPEC.md). Ochiq savollar va qabul qilingan taxminlar: [`docs/OPEN_QUESTIONS.md`](docs/OPEN_QUESTIONS.md). **Qabul qilingan qarorlar jurnali (qanday o'zgartirish bilan): [`docs/DECISIONS_NEEDED.md`](docs/DECISIONS_NEEDED.md).**
 
@@ -30,7 +30,7 @@ Tekshiruvlar: `pnpm typecheck && pnpm test`. PostgreSQL testlari `TEST_DATABASE_
 
 ## Qulaylik (WCAG 2.2 AA, §10, §13)
 - Kontrast va tugma o'lchami birlik testlarda (`client/src/a11y.test.ts`); "harakatni kamaytirish" sozlamasiga bo'ysunadi (`client/src/motion.ts`).
-- Avtomatik brauzer tekshiruvi (axe-core, telefon/planshet/kompyuter, 7 ekran): `pnpm --filter @poyga/client export:web`, `cd client/dist && python3 -m http.server 8081`, keyin `cd server && pnpm a11y`. Oxirgi natija: buzilish yo'q.
+- Avtomatik brauzer tekshiruvi (axe-core, telefon/planshet/kompyuter, 7 ekran): `pnpm --filter @tajriba24/client export:web`, `cd client/dist && python3 -m http.server 8081`, keyin `cd server && pnpm a11y`. Oxirgi natija: buzilish yo'q.
 - Avtomatik tekshiruv hamma muammoni ushlamaydi: ekran o'quvchi (VoiceOver/TalkBack) va klaviatura bilan qo'lda sinov hali o'tkazilmagan.
 
 ## Joylashtirish

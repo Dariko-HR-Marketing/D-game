@@ -1,8 +1,8 @@
 // Karta jadvalini import qilish (Tajriba24, TZ §5). Jadval tahrirlanadi → validate → import. Kod o'zgarmaydi.
-//   pnpm --filter @poyga/content cards validate  <jadval.csv>
-//   pnpm --filter @poyga/content cards import    <jadval.csv> [--kasb kasblar.csv] --dry-run     (hech narsa yozilmaydi, hisobot)
-//   pnpm --filter @poyga/content cards import    <jadval.csv> [--kasb kasblar.csv] --apply       (data/cards.json yangilanadi, jurnal va hisobot yoziladi)
-//   pnpm --filter @poyga/content cards rollback  --import-id <ID>                                 (oxirgi importni teskari qaytaradi)
+//   pnpm --filter @tajriba24/content cards validate  <jadval.csv>
+//   pnpm --filter @tajriba24/content cards import    <jadval.csv> [--kasb kasblar.csv] --dry-run     (hech narsa yozilmaydi, hisobot)
+//   pnpm --filter @tajriba24/content cards import    <jadval.csv> [--kasb kasblar.csv] --apply       (data/cards.json yangilanadi, jurnal va hisobot yoziladi)
+//   pnpm --filter @tajriba24/content cards rollback  --import-id <ID>                                 (oxirgi importni teskari qaytaradi)
 // Xato bo'lsa chiqish kodi 1 va hech narsa yozilmaydi. Parollar/kalitlar/server manzillari bu fayllarda bo'lmaydi.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";

@@ -7,7 +7,7 @@ import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
 import { AnalysisService, presentable, presentReport, reportCsv } from "./analysis";
 import { gamePointsV2 } from "./progress";
-import { BALL, XP } from "@poyga/rules";
+import { BALL, XP } from "@tajriba24/rules";
 import { historyCsv, presentHistory } from "./history";
 import { Metrics } from "./metrics";
 import { WriteQueue } from "./persist";
@@ -48,14 +48,14 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   const logger = opts.logger ? { level: "info", ...(opts.logger === true ? {} : opts.logger), serializers } : false;
   const app = Fastify({ bodyLimit: 64 * 1024, logger, trustProxy: process.env.TRUST_PROXY === "1" ? "loopback,linklocal,uniquelocal" : false }); // Caddy ortida TRUST_PROXY=1: aks holda hamma mijoz bitta IP bo'lib qoladi
   const m = new Metrics();
-  const cHttp = m.counter("poyga_http_requests_total", "HTTP so'rovlari (holat kodi bo'yicha)");
-  const cLimited = m.counter("poyga_rate_limited_total", "Tezlik cheklovi tufayli rad etilganlar");
-  const cWs = m.counter("poyga_ws_connections_total", "WebSocket ulanishlari");
-  const cErr = m.counter("poyga_room_errors_total", "Xona ichidagi xatolar (saqlash, taymer) — o'yin davom etadi");
-  const cWsErr = m.counter("poyga_ws_errors_total", "Ichki xatolar (WebSocket)");
-  const cActions = m.counter("poyga_actions_total", "O'yin harakatlari (tur va natija bo'yicha)");
-  const cGames = m.counter("poyga_games_total", "O'yinlar (boshlandi/tugadi)");
-  const hAction = m.histogram("poyga_action_seconds", "Harakatni dvigatel bilan hisoblash vaqti", [0.001, 0.005, 0.01, 0.05, 0.1, 0.5]);
+  const cHttp = m.counter("tajriba24_http_requests_total", "HTTP so'rovlari (holat kodi bo'yicha)");
+  const cLimited = m.counter("tajriba24_rate_limited_total", "Tezlik cheklovi tufayli rad etilganlar");
+  const cWs = m.counter("tajriba24_ws_connections_total", "WebSocket ulanishlari");
+  const cErr = m.counter("tajriba24_room_errors_total", "Xona ichidagi xatolar (saqlash, taymer) — o'yin davom etadi");
+  const cWsErr = m.counter("tajriba24_ws_errors_total", "Ichki xatolar (WebSocket)");
+  const cActions = m.counter("tajriba24_actions_total", "O'yin harakatlari (tur va natija bo'yicha)");
+  const cGames = m.counter("tajriba24_games_total", "O'yinlar (boshlandi/tugadi)");
+  const hAction = m.histogram("tajriba24_action_seconds", "Harakatni dvigatel bilan hisoblash vaqti", [0.001, 0.005, 0.01, 0.05, 0.1, 0.5]);
   let openSockets = 0;
   const store: Store = opts.store ?? new MemoryStore();
   // Haqiqiy rejim: imzolangan sessiya tokeni (authSecret). Aks holda (faqat ishlab chiqish/staging) sinov tokeni = foydalanuvchi ID.
@@ -88,12 +88,12 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     onApply: (type, ok, ms, error) => { cActions({ type, result: ok ? "ok" : "rejected" }); hAction(ms / 1000, { type }); },
     onEnd: (code, r) => { cGames({ event: "finished" }); profiles.recordFromGame(code, r.state!, r.createdAt, r.contentVersion, r.members.filter((m) => m.left).map((m) => m.userId), r.members.filter((m) => m.unreliable).map((m) => m.userId), r.tag); void analysis.recordGame(code).catch((e) => console.error("tahlil xatosi:", e)); },
   });
-  m.gauge("poyga_rooms_active", "Faol (tugamagan, boshlangan) xonalar", () => [...rooms.rooms.values()].filter((r) => r.state && !r.endedAt).length);
-  m.gauge("poyga_rooms_lobby", "Boshlanmagan xonalar", () => [...rooms.rooms.values()].filter((r) => !r.state).length);
-  m.gauge("poyga_players_online", "Ulangan o'yinchilar (bot emas)", () => [...rooms.rooms.values()].reduce((t, r) => t + r.members.filter((x) => !x.bot && x.online).length, 0));
-  m.gauge("poyga_ws_sockets", "Ochiq WebSocket ulanishlari", () => openSockets);
-  m.gauge("poyga_process_resident_bytes", "Jarayon xotirasi (RSS)", () => process.memoryUsage().rss);
-  m.gauge("poyga_uptime_seconds", "Ishlash vaqti", () => Math.round(process.uptime()));
+  m.gauge("tajriba24_rooms_active", "Faol (tugamagan, boshlangan) xonalar", () => [...rooms.rooms.values()].filter((r) => r.state && !r.endedAt).length);
+  m.gauge("tajriba24_rooms_lobby", "Boshlanmagan xonalar", () => [...rooms.rooms.values()].filter((r) => !r.state).length);
+  m.gauge("tajriba24_players_online", "Ulangan o'yinchilar (bot emas)", () => [...rooms.rooms.values()].reduce((t, r) => t + r.members.filter((x) => !x.bot && x.online).length, 0));
+  m.gauge("tajriba24_ws_sockets", "Ochiq WebSocket ulanishlari", () => openSockets);
+  m.gauge("tajriba24_process_resident_bytes", "Jarayon xotirasi (RSS)", () => process.memoryUsage().rss);
+  m.gauge("tajriba24_uptime_seconds", "Ishlash vaqti", () => Math.round(process.uptime()));
   app.addHook("onResponse", async (req, reply) => { if (req.url !== "/metrics") cHttp({ status: String(Math.floor(reply.statusCode / 100)) + "xx" }); });
   // /health — jarayon tirik; /ready — saqlagich ham javob beradi (yuk balanslagich uchun); /metrics — token bilan (METRICS_TOKEN).
   app.get("/ready", async (_req, reply) => {
@@ -276,7 +276,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     const rp = res?.players.find((p) => p.id === uid); const humans = res ? res.players.filter((p) => !p.bot).length : 0;
     const score = res && rp && !rp.bot ? { points: gamePointsV2(res, rp), xp: res.mode === "tutorial" || rp.left ? null : (humans >= BALL.minHumans ? XP.game : XP.botGame) + (rp.xpBonus ?? 0) } : null;
     const rep = presentReport(r.report, (id) => profiles.get(id)?.name, uid, score);
-    if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="poyga-hisobot-${code}.csv"`).send(reportCsv(rep));
+    if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="tajriba24-hisobot-${code}.csv"`).send(reportCsv(rep));
     return rep;
   }));
   // O'yin tarixi (har bir amal): faqat ishtirokchi; tugagan va davom etayotgan o'yinlar uchun. ?format=csv — tahlil (Excel/SWOT) uchun.
@@ -285,7 +285,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     const r = await analysis.history(code); if (!r) return reply.code(404).send({ error: "no_game" });
     if (!r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
     const pres = presentHistory(r.history, r.state, (id) => profiles.get(id)?.name, uid);
-    if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="poyga-${code}.csv"`).send(historyCsv({ ...r.history, events: pres.events as any }, (x) => x));
+    if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="tajriba24-${code}.csv"`).send(historyCsv({ ...r.history, events: pres.events as any }, (x) => x));
     return pres;
   }));
   // Sinov rejimi (kirish xizmati ulanmagan; token = qurilma identifikatori): boshqa brauzer/ilovadan kirilsa, oflayn o'yinchi o'z o'rnini qaytarib oladi.

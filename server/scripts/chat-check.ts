@@ -16,7 +16,7 @@ let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok 
 const year = new Date().getFullYear();
 for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 900]] as [string, number, number][]) {
   const A = "ca" + tag, K = "cb" + tag; x.profiles.put(A, { name: "Sardor", color: 0, birthYear: 1990 }); x.profiles.put(K, { name: "Bolajon", color: 2, birthYear: year - 12 });
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); localStorage.removeItem("poyga-chat-muted"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); localStorage.removeItem("tajriba24-chat-muted"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk(A), k = await mk(K);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

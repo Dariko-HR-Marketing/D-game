@@ -7,7 +7,7 @@ import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { autoProfiles, slowTimers } from "./_seed";
 import { buildApp } from "../src/app";
-import { currentPlayer } from "@poyga/rules";
+import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/dice";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -18,7 +18,7 @@ const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.mi
 const axe = async (p: any) => { await p.addScriptTag({ content: AXE }); return (await p.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ")" + (v.id === "scrollable-region-focusable" ? v.nodes.map((n) => " " + n.target.join(">")).join(";") : "")))`)) as string[]; };
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 390]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "no-preference" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "no-preference" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const ida = "da" + tag, idc = "db" + tag; const a = await mk(ida), c = await mk(idc);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

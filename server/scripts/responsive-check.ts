@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
 import { autoProfiles, slowTimers } from "./_seed";
-import { currentPlayer } from "@poyga/rules";
+import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/resp";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -44,7 +44,7 @@ const probe = (touch: boolean) => {
 for (const [w, h] of SIZES) {
   const tag = `${w}x${h}`; if (only && !only.includes(tag)) continue;
   const touch = Math.min(w, h) < 900 && !(w >= 1000 && h >= 700 && w > h && w < 1400 && false); // planshet ham sensorli: 1024 gacha
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", hasTouch: Math.max(w, h) <= 1366 && Math.min(w, h) < 1100 }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); await c.addInitScript("window.__name = (f) => f;"); /* tsx keepNames yordamchisi sahifada yo'q */ const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", hasTouch: Math.max(w, h) <= 1366 && Math.min(w, h) < 1100 }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); await c.addInitScript("window.__name = (f) => f;"); /* tsx keepNames yordamchisi sahifada yo'q */ const p = await c.newPage(); await p.goto(WEB); return p; };
   const ida = "ra" + tag, idc = "rb" + tag; const a = await mk(ida), c = await mk(idc);
   const check = async (p: any, screen: string, cta?: RegExp) => {
     await p.waitForTimeout(450); await p.screenshot({ path: `${OUT}/${tag}-${screen}.png` });

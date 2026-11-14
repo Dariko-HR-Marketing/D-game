@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { buildCtx } from "./ctx";
 import { MemoryStore } from "./store";
 import { Clock, RoomManager, DECISION_MS, publicState } from "./rooms";
-import { currentPlayer, newGame, reduce, chooseDream, RULES, passiveIncome, playerCashflow } from "@poyga/rules";
+import { currentPlayer, newGame, reduce, chooseDream, RULES, passiveIncome, playerCashflow } from "@tajriba24/rules";
 
 const ctx = buildCtx();
 

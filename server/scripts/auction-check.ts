@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Tekshiriladi: egasiga taklif, so'ng ochiq auksion, taklif va yetakchi, muddat soati, o'yin to'xtashi, yopilgach ortiqcha summa egasiga qaytishi; telefon/yotiq/kompyuterda sig'ish.
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/auction-check.ts`
 import { chromium } from "playwright-core";
-import { RULES, startAuction, takeLombard, tickLoans } from "@poyga/rules";
+import { RULES, startAuction, takeLombard, tickLoans } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
 import { autoProfiles, slowTimers } from "./_seed";
 
@@ -14,7 +14,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 390]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const ida = "aa" + tag, idb = "ab" + tag, idc = "ac" + tag, three = true; /* majburiy auksion uchun kamida 2 ta taklif qiluvchi kerak */ const a = await mk(ida), c = await mk(idb), d = three ? await mk(idc) : null;
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

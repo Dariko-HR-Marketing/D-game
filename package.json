@@ -1,10 +1,10 @@
 {
- "name": "poyga",
+ "name": "tajriba24",
  "private": true,
  "packageManager": "pnpm@10.28.0",
  "scripts": {
   "test": "pnpm -r test",
   "typecheck": "pnpm -r typecheck",
-  "build:web": "pnpm --filter @poyga/client export:web && pnpm --filter @poyga/admin build"
+  "build:web": "pnpm --filter @tajriba24/client export:web && pnpm --filter @tajriba24/admin build"
  }
 }

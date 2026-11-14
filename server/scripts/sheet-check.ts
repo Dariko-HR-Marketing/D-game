@@ -15,7 +15,7 @@ autoProfiles(x, b);
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("sa" + tag), c = await mk("sb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
@@ -29,14 +29,14 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   (x.rooms as any).emit(room); await a.waitForTimeout(900);
   await a.getByTestId("sheet-open").click(); const det = a.getByTestId("sheet-detail"); await det.waitFor();
   const t = await det.innerText();
-  check(t.includes("POYGA | KICHIK AYLANA") && t.includes("DAROMADLAR") && t.includes("AKSIYALAR") && t.includes("XARAJATLAR"), `${tag} kichik aylana varag'i bo'limlari`);
+  check(t.includes("Tajriba 24 | KICHIK AYLANA") && t.includes("DAROMADLAR") && t.includes("AKSIYALAR") && t.includes("XARAJATLAR"), `${tag} kichik aylana varag'i bo'limlari`);
   check(t.includes("O'yinchi nomi:") && t.includes("Sizning orzuyingiz:") && !/Sizning orzuyingiz: —/.test(t), `${tag} orzu o'yin davomida ko'rinadi`);
   check(["TAPOiCh", "KCH", "ZA", "UTK", "GZ"].every((k) => t.includes(k)), `${tag} aksiya kodlari`);
   check((await a.getByTestId("sheet-months").innerText()) === "9 oy" && t.includes("Har bir katak — 1 yil"), `${tag} bosib o'tilgan vaqt: 9 oy, kataklar yillar`);
   check(t.includes("Ikkinchi aylanaga o'tish uchun 1 000 000 sh.b. naqd pul yig'ish va har oylik pul oqimi 25 000 sh.b.ga ega bo'lish kerak."), `${tag} o'tish sharti matni blankdagidek`);
   await a.screenshot({ path: `${OUT}/${tag}-1-kichik.png` });
   await a.getByTestId("sheet-tab-big").click(); await a.waitForTimeout(300); const t2 = await det.innerText();
-  check(t2.includes("POYGA | KATTA AYLANA") && t2.includes("BIZNESLARNING HISOBI") && t2.includes("100 000 sh.b.ga yetishi lozim"), `${tag} katta aylana varag'i`);
+  check(t2.includes("Tajriba 24 | KATTA AYLANA") && t2.includes("BIZNESLARNING HISOBI") && t2.includes("100 000 sh.b.ga yetishi lozim"), `${tag} katta aylana varag'i`);
   check((await a.getByTestId("sheet-locked").innerText()) === "—", `${tag} kichik aylanada o'tgandagi pul oqimi «—»`);
   await a.screenshot({ path: `${OUT}/${tag}-2-katta.png` });
   await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ")"))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);

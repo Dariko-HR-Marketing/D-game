@@ -38,7 +38,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
-        <View style={[s.brand, { flexShrink: 1, minWidth: 0 }]}><Logo size={30} /><Text style={s.logoT} numberOfLines={1}>{uz.app.name}</Text></View>
+        <View style={[s.brand, { flexShrink: 1, minWidth: 0 }]}><Logo size={tiny ? 26 : 30} /><Text style={[s.logoT, tiny && { fontSize: 15 }]} numberOfLines={1}>{uz.app.name}</Text></View>
         <View style={{ flex: 1 }} />
         {(!tiny || !online) && <View style={{ alignSelf: "center" }}><Pill label={online ? uz.home.online : status === "offline" ? uz.home.offline : uz.home.connecting} kind={online ? "good" : status === "offline" ? "bad" : "warn"} /></View>}
         <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.avatarBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>
@@ -114,7 +114,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
 }
 const s = StyleSheet.create({
   header: { height: 56, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
-  brand: { flexDirection: "row", alignItems: "center", gap: space.sm }, logoT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 2 }, avatarBtn: { minWidth: MIN_TAP, minHeight: MIN_TAP, alignItems: "center", justifyContent: "center" },
+  brand: { flexDirection: "row", alignItems: "center", gap: space.sm }, logoT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 0.3 }, avatarBtn: { minWidth: MIN_TAP, minHeight: MIN_TAP, alignItems: "center", justifyContent: "center" },
   scroll: { flexGrow: 1 }, wrap: { gap: space.lg, padding: space.lg, maxWidth: 560, width: "100%", alignSelf: "center" },
   turnRow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, turnL: { flex: 1, color: tone.muted, fontSize: font.sm, fontWeight: "700" },
   seg: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, segOn: { backgroundColor: color.green, borderColor: color.green }, segT: { color: color.navy, fontWeight: "800", fontSize: font.sm },

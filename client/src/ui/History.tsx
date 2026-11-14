@@ -37,7 +37,7 @@ export function HistoryDetail({ http, code, onClose }: { http: Http; code: strin
   const download = async () => {
     const d = (globalThis as any).document; if (!d) return;
     const text = await http.gameLogCsv(code); const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
-    const a = d.createElement("a"); a.href = url; a.download = `poyga-${code}.csv`; d.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    const a = d.createElement("a"); a.href = url; a.download = `tajriba24-${code}.csv`; d.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   };
   return (
     <View style={s.overlay} role="dialog" aria-modal aria-label={uz.history.title} testID="history-detail">

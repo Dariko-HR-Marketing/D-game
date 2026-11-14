@@ -1,4 +1,4 @@
-// POYGA qoidalar dvigateli: sof funksiyalar, UI va tarmoqsiz. Manba: docs/SPEC.md §5.
+// Tajriba 24 qoidalar dvigateli: sof funksiyalar, UI va tarmoqsiz. Manba: docs/SPEC.md §5.
 /** Reytingli o'yinda ruxsat etilgan karta havzalari (Tajriba24 TZ §6.7, RANKED_ALLOWED_POOLS): hozircha faqat asl kartalar; «EXTENDED» qo'shilsa yangi kartalar ham kiradi. */
 export const RANKED_ALLOWED_POOLS: readonly string[] = ["BASE"];
 
@@ -170,7 +170,7 @@ export function partnerBuyoutPrice(fullPrice: number, monthlyProfit: number) {
   return fullPrice + monthlyProfit;
 }
 
-/** Ball qoidalari — «POYGA o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja. */
+/** Ball qoidalari — «Tajriba 24 o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja. */
 // Platforma: Ball, XP va liga (platforma fayli, buyurtmachi tasdig'i). Hisoblash — server/src/progress.ts.
 export const BALL = {
   finish: 50, exit: 80, win: 150, firstOfDay: 20, tutorial: 50, place: [100, 60, 30], placeBase: 6,

@@ -38,7 +38,7 @@ async function metrics() {
   if (!TOKEN) return null;
   const r = await fetch(`${HTTP}/metrics`, { headers: { authorization: `Bearer ${TOKEN}` } }); const t = await r.text();
   const g = (n: string) => Number(new RegExp(`^${n} (\\S+)`, "m").exec(t)?.[1] ?? NaN);
-  return { rss: g("poyga_process_resident_bytes"), rooms: g("poyga_rooms_active"), sockets: g("poyga_ws_sockets"), p: t };
+  return { rss: g("tajriba24_process_resident_bytes"), rooms: g("tajriba24_rooms_active"), sockets: g("tajriba24_ws_sockets"), p: t };
 }
 
 const t0 = performance.now(); const m0 = await metrics();

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { RULES } from "@poyga/rules";
+import { RULES } from "@tajriba24/rules";
 import { ruleItems } from "./i18n/rulesText";
 
 describe("qoidalar ekrani (§15): manba bilan, dvigatel konstantalaridan", () => {

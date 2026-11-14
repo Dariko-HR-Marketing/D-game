@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ctx as base } from "./testctx";
 import { Ctx, GameState, newGame, reduce, SMALL_BOARD, currentPlayer } from "./index";
-import { CellRules } from "@poyga/content/cellrules";
+import { CellRules } from "@tajriba24/content/cellrules";
 
 const withRules = (r: unknown): Ctx => ({ ...base, cellRules: CellRules.parse(r) });
 const cellAt = (c: "K" | "Q") => SMALL_BOARD.indexOf(c);

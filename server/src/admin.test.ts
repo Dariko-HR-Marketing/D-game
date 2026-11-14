@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildApp } from "./app";
 import { envAdminAuth, PERMS, can } from "./admin";
-import { loadContent } from "@poyga/content";
+import { loadContent } from "@tajriba24/content";
 import { ContentRegistry } from "./registry";
 
 const tokens = JSON.stringify({

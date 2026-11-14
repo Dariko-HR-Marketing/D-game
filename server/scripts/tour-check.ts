@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { autoProfiles } from "./_seed";
 import { buildApp } from "../src/app";
-import { currentPlayer } from "@poyga/rules";
+import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/tour";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -14,7 +14,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const sizes: [string, number, number][] = [["tel", 390, 844], ["kmp", 1440, 900]];
 for (const [tag, w, h] of sizes) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => localStorage.setItem("poyga-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => localStorage.setItem("tajriba24-dev-user", u), uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ta" + tag), c = await mk("tb" + tag);
   const dlg = (p: any) => p.getByRole("dialog");
   const title = async (p: any) => (await dlg(p).getAttribute("aria-label")) ?? "";
@@ -23,11 +23,11 @@ for (const [tag, w, h] of sizes) {
   const fits = async (p: any, n: string) => { const bb = await dlg(p).boundingBox(); check(!!bb && bb.x >= 0 && bb.y >= 0 && bb.x + bb.width <= w + 1 && bb.y + bb.height <= h + 1, `${tag} ${n}: yo'riqnoma oynasi ekran ichida`); };
 
   // 1) Bosh sahifa: birinchi kirishda ko'rinadi (3 qadam), tugagach qaytmaydi
-  await dlg(a).waitFor({ timeout: 15000 }); check((await title(a)).startsWith("POYGA"), `${tag} bosh sahifa: yo'riqnoma birinchi kirishda chiqdi`);
+  await dlg(a).waitFor({ timeout: 15000 }); check((await title(a)).startsWith("Tajriba 24"), `${tag} bosh sahifa: yo'riqnoma birinchi kirishda chiqdi`);
   await shot(a, "01-home-1"); await fits(a, "home 1"); await next(a); await shot(a, "01-home-2"); await fits(a, "home 2"); await next(a); await shot(a, "01-home-3"); await fits(a, "home 3"); await next(a);
   check((await dlg(a).count()) === 0, `${tag} bosh sahifa: yo'riqnoma tugadi`);
   await a.reload(); await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.waitForTimeout(600); check((await dlg(a).count()) === 0, `${tag} bosh sahifa: qayta kirganda chiqmaydi`);
-  await a.getByTestId("tour-help").click(); await dlg(a).waitFor(); check((await title(a)).startsWith("POYGA"), `${tag} «?» tugmasi yo'riqnomani qayta ochadi`); await a.keyboard.press("Escape");
+  await a.getByTestId("tour-help").click(); await dlg(a).waitFor(); check((await title(a)).startsWith("Tajriba 24"), `${tag} «?» tugmasi yo'riqnomani qayta ochadi`); await a.keyboard.press("Escape");
   // 2) Xona: yo'riqnoma (kod, hodisa kartalari)
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await dlg(a).waitFor(); check((await title(a)) === "Xona kodi", `${tag} xona: yo'riqnoma`); await shot(a, "02-lobby-1"); await fits(a, "lobby 1"); await next(a); await shot(a, "02-lobby-2"); await next(a);
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();

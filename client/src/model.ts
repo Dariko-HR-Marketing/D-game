@@ -1,5 +1,5 @@
 import { money } from "./format";
-import { canExitSmallCircle, MODES, modeOf, type GameMode, monthlyExpenses, passiveIncome, playerCashflow, openPartnerships } from "@poyga/rules";
+import { canExitSmallCircle, MODES, modeOf, type GameMode, monthlyExpenses, passiveIncome, playerCashflow, openPartnerships } from "@tajriba24/rules";
 
 export const me = (room: any, userId: string) => room?.state?.players.find((p: any) => p.id === userId) ?? null;
 export const currentId = (room: any): string | null => (room?.state ? room.state.players[room.state.turn % room.state.players.length].id : null);
@@ -17,7 +17,7 @@ export function exitProgress(p: any, mode?: GameMode | null) {
   return { checks, passive, expenses: exp, cashflow: playerCashflow(p), debt, canExit: canExitSmallCircle({ cash: p.cash, salary: p.salary, passiveIncome: passive, expenses: exp, bankDebt: p.bankDebt, otherDebt: debt - p.bankDebt, openPartnerships: openPartnerships(p) }, mode), need };
 }
 
-import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice, offerPrice, CRISIS_KINDS } from "@poyga/rules";
+import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice, offerPrice, CRISIS_KINDS } from "@tajriba24/rules";
 
 /** Hozir olish mumkin bo'lgan eng katta bank krediti (garov 120 %, 2 000–5 000); 0 — kredit yo'q. */
 export const bankRoom = (p: any) => maxBankLoan({ salary: 0, ...p, assets: p.assets ?? [], bankLoans: p.bankLoans ?? [], bankDebt: p.bankDebt ?? 0 });

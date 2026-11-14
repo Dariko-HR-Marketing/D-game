@@ -53,7 +53,7 @@ SPEC aytmagan qoidalar bo'yicha qarorlarni loyiha jamoasi **professional taxmin 
 }
 ```
 
-| Katak | Qoida (manba: «POYGA o'yin qo'llanmasi») | Qanday o'zgartiriladi |
+| Katak | Qoida (manba: «Tajriba 24 o'yin qo'llanmasi») | Qanday o'zgartiriladi |
 |---|---|---|
 | Kichik aylana K | «Kutilmagan hodisa»: xona egasi yoqsa hod kartasi (naqd/bank/qarz bilan to'lanadi, yetmasa yangi kasb); o'chirilgan bo'lsa oddiy katak | `small.K`, xona sozlamasi `events` |
 | Kichik aylana Q | 4 oy (bir aylana) maosh yo'q, faqat passiv daromad; xarajat to'lanadi | `small.Q.months` |

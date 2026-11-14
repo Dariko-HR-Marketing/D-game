@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { sheetOf, SLOTS } from "./sheet";
-import { monthlyExpenses, playerCashflow } from "@poyga/rules";
+import { monthlyExpenses, playerCashflow } from "@tajriba24/rules";
 
 const player = (extra: any = {}) => ({ id: "me", cash: 500, salary: 3000, baseExpenses: 1950, childCost: 200, children: 2, bankDebt: 3000, bankLoans: [{ amount: 3000, left: 20 }], lombards: [{ amount: 1000, left: 10, code: "D1" }], qar: true, insuredCar: false, handLoans: 0, handDebts: [],
   pos: 0, circle: "small", monthsPlayed: 7, dreamIdx: 1, lockedFlow: 0,

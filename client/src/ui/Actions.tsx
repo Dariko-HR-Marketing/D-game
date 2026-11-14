@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { bankLoanPayoff, lombardPayoff, oneTimeFee, RULES } from "@poyga/rules";
+import { bankLoanPayoff, lombardPayoff, oneTimeFee, RULES } from "@tajriba24/rules";
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { Button } from "./Button";
 import { uz } from "../i18n/uz";
