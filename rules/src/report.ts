@@ -1,11 +1,13 @@
 // O'yin tugagach har bir o'yinchi uchun to'liq tahlil hisoboti: urug' + harakatlar jurnalidan o'yinni qayta o'ynab (analyzeGame kabi) hisoblanadi.
 // Hamma raqam dvigatel holatidan olinadi (taxmin yo'q); tavsiyalar (insights) faqat shu raqamlar va SPEC chegaralariga tayanadi. Matnlar mijozda (i18n): bu yerda faqat kalit va parametrlar.
-import { Action, Ctx, GameMode, GameState, GamePlayer, MODES, RULES, chooseDream, modeOf, monthlyExpenses, newGame, passiveIncome, playerCashflow, reduce, salaryOf, totalDebt, openPartnerships, allDebt } from "./index";
+import { Action, Ctx, GameMode, GameState, GamePlayer, MODES, RULES, chooseDream, modeOf, monthlyExpenses, newGame, passiveIncome, playerCashflow, reduce, salaryOf, voluntarySalePrice, totalDebt, openPartnerships, allDebt } from "./index";
 import type { Init } from "./analysis";
 
 export type DeckGroup = "invest" | "market" | "expense" | "event" | "other";
 export interface TimePoint { month: number; cash: number; cashflow: number; passive: number; expenses: number; debt: number; netWorth: number }
-export interface AssetRecord { code: string; name?: string; kind: string; boughtMonth: number; paid: number; price: number; income: number; paybackMonths: number | null; status: "held" | "sold" | "handed" | "lost" }
+export interface AssetRecord { code: string; name?: string; kind: string; boughtMonth: number; paid: number; price: number; income: number; paybackMonths: number | null; status: "held" | "sold" | "handed" | "lost"; channel?: AssetChannel; soldMonth?: number; soldRatio?: number }
+/** Aktiv qaysi yo'l bilan olingan: odatiy karta, bozor, auksion yoki sheriklik. */
+export type AssetChannel = "karta" | "bozor" | "auksion" | "sherik";
 export type MomentKind = "exit" | "restart" | "bought" | "sold" | "won" | "crisis" | "loan" | "expense" | "time_up" | "autopilot";
 export interface Moment { month: number; round: number; kind: MomentKind; text?: string; amount?: number }
 export interface Peak { value: number; month: number }
@@ -88,13 +90,14 @@ export function buildReport(ctx: Ctx, init: Init, actions: Action[], opts: { lef
       if (p.assets.length > before.assets.length) {
         for (const x of p.assets.slice(before.assets.length)) {
           const card = pending ? ctx.effects[pending.cardId] : undefined;
-          const rec: AssetRecord = { code: x.code, name: x.name ?? first(card?.text, 56), kind: x.kind, boughtMonth: m, paid: Math.max(0, x.price - x.credit), price: x.price, income: x.monthlyIncome, paybackMonths: x.monthlyIncome > 0 ? Math.ceil(Math.max(0, x.price - x.credit) / x.monthlyIncome) : null, status: "held" };
+          const channel: AssetChannel = act.type === "partner_accept" ? "sherik" : act.type.startsWith("auction_") ? "auksion" : card?.effect?.kind === "marketSale" || card?.deck === "bozor" ? "bozor" : "karta";
+          const rec: AssetRecord = { code: x.code, name: x.name ?? first(card?.text, 56), kind: x.kind, boughtMonth: m, paid: Math.max(0, x.price - x.credit), price: x.price, income: x.monthlyIncome, paybackMonths: x.monthlyIncome > 0 ? Math.ceil(Math.max(0, x.price - x.credit) / x.monthlyIncome) : null, status: "held", channel };
           a.assets.push(rec); list.push(rec); a.purchases++; a.purchaseTotal += rec.paid; a.moments.push({ month: m, round: r, kind: "bought", text: rec.name, amount: rec.paid });
         }
       } else if (p.assets.length < before.assets.length) {
         const gone = before.assets.filter((x) => !p.assets.some((y) => y.code === x.code && y.price === x.price && y.monthlyIncome === x.monthlyIncome));
         const why: AssetRecord["status"] = p.restarts > before.restarts ? "lost" : before.circle === "small" && p.circle === "big" ? "handed" : "sold";
-        for (const x of gone) { const rec = list.find((q) => q.code === x.code && q.status === "held"); if (rec) rec.status = why; if (why === "sold") { a.sales++; a.moments.push({ month: m, round: r, kind: "sold", text: rec?.name ?? x.code }); } }
+        for (const x of gone) { const rec = list.find((q) => q.code === x.code && q.status === "held"); if (rec) { rec.status = why; if (why === "sold") { rec.soldMonth = m; rec.soldRatio = x.price > 0 ? Math.round((voluntarySalePrice(before as any, x as any) / x.price) * 100) / 100 : 1; } } if (why === "sold") { a.sales++; a.moments.push({ month: m, round: r, kind: "sold", text: rec?.name ?? x.code }); } }
       }
     }
     if (!prev.winner && s.winner) acc.get(s.winner)!.moments.push({ month: monthOf(s, s.winner), round: s.round, kind: "won" });

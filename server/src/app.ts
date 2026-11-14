@@ -5,7 +5,7 @@ import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
 import { ProfileService } from "./profiles";
-import { AnalysisService, presentable, presentReport, reportCsv } from "./analysis";
+import { AnalysisService, presentable, presentLive, presentReport, reportCsv } from "./analysis";
 import { gamePointsV2 } from "./progress";
 import { BALL, XP } from "@tajriba24/rules";
 import { historyCsv, presentHistory } from "./history";
@@ -278,6 +278,15 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     const rep = presentReport(r.report, (id) => profiles.get(id)?.name, uid, score);
     if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="tajriba24-hisobot-${code}.csv"`).send(reportCsv(rep));
     return rep;
+  }));
+  // Jonli tahlil (o'yin davomida): diagrammalar, bozor, har bir o'yinchi va nazariy matritsalar. Ishtirokchi (yoki xona a'zosi) hammaning tahlilini ko'radi.
+  app.get("/me/games/:code/live", secured(async (uid, req, reply) => {
+    const code = String((req.params as any).code).toUpperCase();
+    const res = profiles.resultOf(code); const left = res ? res.players.filter((p) => p.left).map((p) => p.id) : [];
+    const r = await analysis.live(code, left); if (!r) return reply.code(404).send({ error: "no_game" });
+    const member = rooms.rooms.get(code)?.members.some((m) => m.userId === uid);
+    if (!member && !r.state.players.some((p: any) => p.id === uid)) return reply.code(403).send({ error: "not_participant" });
+    return presentLive(r.live, (id) => profiles.get(id)?.name, uid, r.state.restricted ?? []);
   }));
   // O'yin tarixi (har bir amal): faqat ishtirokchi; tugagan va davom etayotgan o'yinlar uchun. ?format=csv — tahlil (Excel/SWOT) uchun.
   app.get("/me/games/:code/log", secured(async (uid, req, reply) => {

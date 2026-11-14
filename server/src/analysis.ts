@@ -1,6 +1,6 @@
 import { buildHistory, type History } from "./history";
 // O'yin tahlili va karta statistikasi: jurnaldan qayta o'ynab hisoblanadi (§5.9, §12).
-import { analyzeGame, buildReport, type Action, type Analysis, type GameReport, type GameState, type PlayerReport } from "@tajriba24/rules";
+import { analyzeGame, buildLive, buildReport, type LiveAnalytics, type Action, type Analysis, type GameReport, type GameState, type PlayerReport } from "@tajriba24/rules";
 import type { ContentRegistry } from "./registry";
 import type { Store } from "./store";
 import type { WriteQueue } from "./persist";
@@ -36,6 +36,16 @@ export class AnalysisService {
     const actions = journal.map((e) => ("reason" in e.action ? e.action.action : e.action) as Action);
     const report = buildReport(ctx, { playerIds: state.players.map((p: any) => p.id), seed: state.seed, bots: state.bots, restricted: state.restricted ?? [], dreamPhase: !!state.dreamPhase, openingDice: !!state.openingDice, mode: state.mode, recapPause: !!state.recapPause, halalFin: !!state.halalFin }, actions, { left });
     return { report, state };
+  }
+
+  /** Jonli tahlil (o'yin davomida ham): jurnaldan qayta o'ynab hisoblanadi; jurnal o'zgarmaguncha xotiradan beriladi. */
+  private liveCache = new Map<string, { n: number; live: LiveAnalytics }>();
+  async live(code: string, left: string[] = []): Promise<{ live: LiveAnalytics; state: GameState } | null> {
+    const n = (await this.store.journal(code)).length, hit = this.liveCache.get(code), room = hit && hit.n === n ? await this.store.loadRoom(code) : null;
+    if (hit && room && hit.n === n) return { live: hit.live, state: room.state };
+    const r = await this.report(code, left); if (!r) return null;
+    const live = buildLive(r.report); this.liveCache.set(code, { n, live }); if (this.liveCache.size > 200) this.liveCache.delete(this.liveCache.keys().next().value as string);
+    return { live, state: r.state };
   }
 
   /** Har bir amalning tarixi (katakdan-katakka, karta, qaror, pul o'zgarishi). */
@@ -111,4 +121,11 @@ export function reportCsv(rep: ReturnType<typeof presentReport>): string {
   rows.push(["header", "kalit", "daraja", "parametrlar"]);
   for (const x of m.insights) rows.push(["insights", x.key, x.level, JSON.stringify(x.params)]);
   return "\ufeff" + rows.map((r) => r.map(q).join(",")).join("\r\n") + "\r\n";
+}
+
+/** Jonli tahlil hamma ishtirokchiga ko'rinadi. Ismlar: o'zingiz — o'z ismingiz, botlar — «Bot N», 16 yoshgacha o'yinchilar boshqalarga «O'yinchi N» (maxfiylik). */
+export function presentLive(l: LiveAnalytics, nameOf: (id: string) => string | undefined, me: string, restricted: string[]) {
+  const label = new Map<string, string>(); let n = 0, nb = 0;
+  for (const p of l.players) label.set(p.id, p.id === me ? nameOf(p.id) ?? "Siz" : p.bot ? `Bot ${++nb}` : restricted.includes(p.id) ? `O'yinchi ${++n}` : nameOf(p.id) ?? `O'yinchi ${++n}`);
+  return { ...l, meta: { ...l.meta, winner: l.meta.winner ? label.get(l.meta.winner) ?? null : null }, players: l.players.map((p) => ({ ...p, id: label.get(p.id)!, name: label.get(p.id)!, isMe: p.id === me })) };
 }
