@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Bizda Finlit.uz va Moliya olami bepul, menga pulli litsenziya kerak emas. O'qituvchi paneli ham hali tayyor emas, sotib olib nima olishimni bilmayman.",
+  "objection": "Maktabda planshet/kompyuter yetarli emas, internet ham sekin. Xonaga kod bilan 2-8 kishi ulanadigan onlayn o'yin sinfda ishlamay qolishi mumkin. Bepul muqobil bor, pulni nimaga to'layman?",
+  "would_change_my_mind": "Tayyor o'qituvchi paneli, bir sinf bilan bepul sinov davri va sekin internetda ishlashi isbotlangan bo'lsa, shuningdek Maorif vazirligi yoki Markaziy bank tavsiyasi bo'lsa qayta ko'rib chiqaman.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 3000000,
+  "price_too_expensive": 6000000
+}

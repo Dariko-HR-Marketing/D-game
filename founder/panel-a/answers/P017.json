@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Markaziy bankning Finlit.uz va Moliya olami bepul, menga ularning o'zi yetadi. O'qituvchi paneli hali tayyor emas, tayyor bo'lmagan narsa uchun maktab hisobidan pul to'lamayman.",
+  "objection": "Bepul davlat materiallari turganda nega pul to'lashim kerak? Panel hali yo'q, narx ham e'lon qilinmagan, dastur darsga qanday mos kelishini bilmayman. Litsenziyaga pul ajratish uchun bo'lim va rahbariyat ruxsati kerak.",
+  "would_change_my_mind": "Tayyor o'qituvchi paneli, maktabda sinab ko'rish uchun bepul sinov davri, dastur Markaziy bank materiallari va o'quv dasturiga mosligi haqida rasmiy tasdiq yoki boshqa maktabdan tavsiya.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 3000000,
+  "price_too_expensive": 6000000
+}

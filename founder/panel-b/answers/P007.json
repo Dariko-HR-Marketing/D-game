@@ -1,0 +1,13 @@
+{
+  "id": "P007",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Korporativ xona va turnir boshqaruvi hali ishlab chiqilmoqda, narx ham e'lon qilinmagan. Mijozlar uchun aksiyani bank ichida tasdiqlatish uchun menga aniq narx, shartnoma va natija hisoboti kerak, hozir bularning hech biri yo'q.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum, turnir boshqaruvi hali tayyor emas. Qatnashchi soni, ro'yxatdan o'tish va mijoz jalb qilish bo'yicha hisobotni qayerdan olishimni bilmayman. Bepul Finlit.uz bor, rahbariyatga nega pul to'lashimizni tushuntirishim kerak.",
+  "would_change_my_mind": "Tayyor ishlaydigan turnir paneli, ro'yxatdan o'tish va qatnashchi sonini ko'rsatadigan hisobot, so'mda aniq narx va oddiy shartnoma namunasi, shuningdek boshqa bankdagi sinov turniri natijasi.",
+  "price_too_cheap": 1000000,
+  "price_cheap": 5000000,
+  "price_expensive": 20000000,
+  "price_too_expensive": 50000000
+}

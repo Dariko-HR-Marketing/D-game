@@ -1,0 +1,132 @@
+{
+ "business": "Tajriba 24 onlayn: brendli turnir va korporativ xona (Panel B, banklar va kompaniyalar)",
+ "seed": 499780,
+ "dealt": 20,
+ "answered": 20,
+ "skipped": [],
+ "buys": 0,
+ "passes": 20,
+ "buy_rate": 0.0,
+ "by_segment": [
+  [
+   "HR/o'qitish rahbari (kompaniya yoki bank)",
+   6,
+   0.0
+  ],
+  [
+   "Filial yoki bo'lim boshlig'i",
+   4,
+   0.0
+  ],
+  [
+   "Bank marketing/mijozlar bilan ishlash menejeri",
+   6,
+   0.0
+  ],
+  [
+   "Kichik/o'rta kompaniya egasi",
+   4,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "Brend tadbirlarini sevadi",
+   4,
+   0.0
+  ],
+  [
+   "Byudjetga qat'iy",
+   4,
+   0.0
+  ],
+  [
+   "Raqobatchiga qaraydi",
+   3,
+   0.0
+  ],
+  [
+   "Natijani o'lchaydi",
+   3,
+   0.0
+  ],
+  [
+   "Ishonchli yetkazib beruvchini afzal ko'radi",
+   3,
+   0.0
+  ],
+  [
+   "Ruxsat zanjiri",
+   3,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "under $223,343,000",
+   6,
+   0.0
+  ],
+  [
+   "$223,343,000 to $262,862,000",
+   7,
+   0.0
+  ],
+  [
+   "$262,862,000 and up",
+   7,
+   0.0
+  ]
+ ],
+ "why_not": [
+  [
+   "timing",
+   10,
+   [
+    "Korporativ xona va turnir boshqaruvi hali tayyor emas, men esa tayyor bo'lmagan narsani xodimlarimga ham, mijozlarga ham taklif qilmayman. Boshqa banklarda sinalganini ko'rmasam, buyurtma bermayman.",
+    "Men yillik reja va smetadan tashqariga chiqmayman, bu yil uchun bunday band yo'q. Korporativ xona va turnir boshqaruvi hali tayyor emas, tayyor bo'lmagan narsaga byudjet ajratmayman."
+   ],
+   [
+    "P001",
+    "P002"
+   ]
+  ],
+  [
+   "trust",
+   10,
+   [
+    "Turnir va korporativ xona boshqaruvi hali tayyor emas, ya'ni men sotib oladigan narsaning o'zi hali yo'q. Birinchi o'tkazadigan tadbirim bilan tajriba o'tkazmayman, filialda bu xavfli.",
+    "Yillik reja va smetadan tashqariga chiqmayman, o'rtada esa yurist va compliance bo'limi bor. Korporativ xona va turnir boshqaruvi hali tayyor emas, faqat veb-versiya ishlayapti, shuning uchun hozir bankka taklif qilib bo'lmaydi."
+   ],
+   [
+    "P003",
+    "P005"
+   ]
+  ]
+ ],
+ "why_yes": [],
+ "flip": [
+  "Korporativ xona va turnir boshqaruvi ishlab turgani, ma'lumotlar xavfsizligi bo'yicha yozma kafolat va kamida bitta bank yoki yirik kompaniyada o'tgan sinov tajribasi haqida ma'lumot.",
+  "Ishlaydigan korporativ xona, qatnashchilar bo'yicha natija hisoboti va boshqa bankda o'tkazilgan sinov natijasi, shuningdek keyingi yil smetasiga kiritish uchun aniq narx.",
+  "Ishlaydigan turnir paneli, ishtirokchilar bo'yicha hisobot va boshqa bankda yoki kompaniyada o'tgan tadbirning real natijalari, hamda compliance va yuridik bo'lim ko'rib chiqishi uchun tayyor hujjat.",
+  "Aniq narx va shartnoma namunasi, ishlaydigan turnir boshqaruvi bilan bitta sinov turniri (demo), va boshqa bankda o'tkazilgan turnir natijasi.",
+  "Boshqa bankda o'tgan turnir natijasi va compliance'dan o'tganini ko'rsatadigan hujjat, ishlaydigan korporativ xona demosi va aniq narx. Shundan keyin kelasi yilgi smetaga kiritishni ko'rib chiqaman.",
+  "Bironta boshqa bank yoki yirik kompaniya turnirni haqiqatan o'tkazgani va ma'lumotlar xavfsizligi bo'yicha yozma kafolat, ishlaydigan korporativ xona namunasi.",
+  "Tayyor ishlaydigan turnir paneli, ro'yxatdan o'tish va qatnashchi sonini ko'rsatadigan hisobot, so'mda aniq narx va oddiy shartnoma namunasi, shuningdek boshqa bankdagi sinov turniri natijasi.",
+  "Ishlaydigan turnir boshqaruvi, boshqa bankda o'tgan haqiqiy turnirdan natijalar (ishtirokchilar soni, qaytib kelganlar) va aniq narx. Shunda keyingi yilgi smetaga kiritaman.",
+  "Ishlaydigan turnir paneli: ro'yxatdan o'tish, qatnashchi soni va faollik hisobotini ko'rsatadigan, boshqa bankda o'tgan haqiqiy turnir natijasi bilan.",
+  "Boshqa bankda yoki yirik kompaniyada o'tgan turnir natijalari va compliance tomonidan yozma tasdiq, korporativ xona ishlaydigan holatda va narx kelasi yil smetasiga kirgizish mumkin bo'lgan qat'iy summada.",
+  "Ishlaydigan korporativ xona yoki turnir demosi, boshqa bank yoki kompaniyadagi aniq o'tkazilgan turnir natijalari (qatnashchilar soni, hisobot) va aniq narx, shunda keyingi yilgi smetaga kiritaman.",
+  "Korporativ xona va turnir boshqaruvi ishlab turgan holda ko'rsatilsa, boshqa kompaniya yoki bank bilan o'tkazilgan turnir natijasi va shartnomada qo'llab-quvvatlash muddati yozib berilsa.",
+  "Korporativ xona va turnir boshqaruvi tayyor bo'lib, boshqa bank yoki kompaniyada o'tkazilgan real turnir misoli, shartnoma bo'yicha qo'llab-quvvatlash kafolati va ma'lumotlar xavfsizligi hujjatlari ko'rsatilsa.",
+  "Boshqa yirik bank turnirni o'tkazib, natijasini ko'rsatsa, korporativ xona ishlab turgan bo'lsa va bosh ofis yoki Markaziy bank tomonidan tasdiq bo'lsa.",
+  "Ishlayotgan korporativ xona va boshqa kompaniyada o'tgan pilot natijasi: ishtirokchilar soni, o'yin tugatish ulushi va hisobot. Shuningdek ma'lumotlar xavfsizligi va yuridik shartlar hujjati, aniq narx.",
+  "Boshqa taniqli bank yoki kompaniya bu o'yinni o'tkazgani haqida real misol, ma'lumotlar xavfsizligi bo'yicha yozma hujjat, va ishlaydigan korporativ xona bilan sinov seansi.",
+  "Aniq narx va shartnoma namunasi, ishlaydigan turnir boshqaruvi bilan sinov turniri va bankka o'xshash mijozdan tavsiya.",
+  "Yuridik va compliance xulosasi yozma ko'rinishda (islomiy moliya rejimi ham), ishlab turgan korporativ xona/turnir boshqaruvi, hamda O'zbekistondagi biror bank yoki kompaniya o'tkazgan turnir misoli va natijalar hisoboti.",
+  "Ishlaydigan korporativ xona yoki turnir bilan sinov, aniq narx, tayyor shartnoma namunasi va ro'yxatdan o'tish hamda qatnashchi soni bo'yicha hisobot ko'rsatilsa.",
+  "Tayyor ishlayotgan korporativ xona, yozma narx va shartnoma, shuningdek mening sohamdagi biror tanilgan bank yoki kompaniya bilan o'tkazilgan turnirning real natijasi."
+ ],
+ "purchases_first_month_per_buyer": null,
+ "price_answers": 20
+}

@@ -1,0 +1,222 @@
+[
+ {
+  "id": "P001",
+  "name": "Jade",
+  "age": 43,
+  "segment": "HR/o'qitish rahbari (kompaniya yoki bank)",
+  "income": 219824000,
+  "behaviour": "Brend tadbirlarini sevadi",
+  "behaviour_how": "Mijozlarni jalb qiladigan yangi formatlarni qidiradi.",
+  "objection": "Brend va mijoz ma'lumotlari xavfsizmi?",
+  "habit": "yangi hamkorni ko'rib chiqishdan oldin boshqa banklardagi tajribaga qaraysiz"
+ },
+ {
+  "id": "P002",
+  "name": "Zoe",
+  "age": 38,
+  "segment": "HR/o'qitish rahbari (kompaniya yoki bank)",
+  "income": 124528000,
+  "behaviour": "Byudjetga qat'iy",
+  "behaviour_how": "Yillik reja va smetadan tashqariga chiqmaydi.",
+  "objection": "Qancha odam qatnashadi va qanday natija o'lchanadi?",
+  "habit": "siz yillik marketing/HR reja va smeta bilan ishlaysiz"
+ },
+ {
+  "id": "P003",
+  "name": "Kenji",
+  "age": 28,
+  "segment": "Filial yoki bo'lim boshlig'i",
+  "income": 230140000,
+  "behaviour": "Brend tadbirlarini sevadi",
+  "behaviour_how": "Mijozlarni jalb qiladigan yangi formatlarni qidiradi.",
+  "objection": "Qancha odam qatnashadi va qanday natija o'lchanadi?",
+  "habit": "qarorga compliance va yuridik bo'lim ham qo'shiladi"
+ },
+ {
+  "id": "P004",
+  "name": "Farah",
+  "age": 48,
+  "segment": "Bank marketing/mijozlar bilan ishlash menejeri",
+  "income": 172109000,
+  "behaviour": "Brend tadbirlarini sevadi",
+  "behaviour_how": "Mijozlarni jalb qiladigan yangi formatlarni qidiradi.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P005",
+  "name": "Alma",
+  "age": 39,
+  "segment": "Bank marketing/mijozlar bilan ishlash menejeri",
+  "income": 296461000,
+  "behaviour": "Byudjetga qat'iy",
+  "behaviour_how": "Yillik reja va smetadan tashqariga chiqmaydi.",
+  "objection": "Yurist/compliance rad etmaydimi (islomiy moliya, kredit, foiz haqida o'yin)?",
+  "habit": "yangi hamkorni ko'rib chiqishdan oldin boshqa banklardagi tajribaga qaraysiz"
+ },
+ {
+  "id": "P006",
+  "name": "Sana",
+  "age": 31,
+  "segment": "HR/o'qitish rahbari (kompaniya yoki bank)",
+  "income": 233457000,
+  "behaviour": "Raqobatchiga qaraydi",
+  "behaviour_how": "Boshqa banklar nima qilganini ko'rib qaror qiladi.",
+  "objection": "Brend va mijoz ma'lumotlari xavfsizmi?",
+  "habit": "mijozlar uchun aksiya va tadbirlar o'tkazasiz"
+ },
+ {
+  "id": "P007",
+  "name": "Jonah",
+  "age": 48,
+  "segment": "Bank marketing/mijozlar bilan ishlash menejeri",
+  "income": 273350000,
+  "behaviour": "Natijani o'lchaydi",
+  "behaviour_how": "Ro'yxatdan o'tish, qatnashchi soni va mijoz jalb qilish ko'rsatkichlarini so'raydi.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum",
+  "habit": "mijozlar uchun aksiya va tadbirlar o'tkazasiz"
+ },
+ {
+  "id": "P008",
+  "name": "Ines",
+  "age": 30,
+  "segment": "Bank marketing/mijozlar bilan ishlash menejeri",
+  "income": 284645000,
+  "behaviour": "Brend tadbirlarini sevadi",
+  "behaviour_how": "Mijozlarni jalb qiladigan yangi formatlarni qidiradi.",
+  "objection": "Markaziy bank bepul o'z platformasi bor, bank qo'shimcha o'yin nega kerak?",
+  "habit": "siz yillik marketing/HR reja va smeta bilan ishlaysiz"
+ },
+ {
+  "id": "P009",
+  "name": "Amara",
+  "age": 32,
+  "segment": "Bank marketing/mijozlar bilan ishlash menejeri",
+  "income": 156095000,
+  "behaviour": "Natijani o'lchaydi",
+  "behaviour_how": "Ro'yxatdan o'tish, qatnashchi soni va mijoz jalb qilish ko'rsatkichlarini so'raydi.",
+  "objection": "Qancha odam qatnashadi va qanday natija o'lchanadi?",
+  "habit": "mijozlar uchun aksiya va tadbirlar o'tkazasiz"
+ },
+ {
+  "id": "P010",
+  "name": "Nia",
+  "age": 40,
+  "segment": "HR/o'qitish rahbari (kompaniya yoki bank)",
+  "income": 223343000,
+  "behaviour": "Byudjetga qat'iy",
+  "behaviour_how": "Yillik reja va smetadan tashqariga chiqmaydi.",
+  "objection": "Yurist/compliance rad etmaydimi (islomiy moliya, kredit, foiz haqida o'yin)?",
+  "habit": "yangi hamkorni ko'rib chiqishdan oldin boshqa banklardagi tajribaga qaraysiz"
+ },
+ {
+  "id": "P011",
+  "name": "Lena",
+  "age": 46,
+  "segment": "HR/o'qitish rahbari (kompaniya yoki bank)",
+  "income": 233250000,
+  "behaviour": "Byudjetga qat'iy",
+  "behaviour_how": "Yillik reja va smetadan tashqariga chiqmaydi.",
+  "objection": "Bu o'yin bizning mijozlar auditoriyasiga mosmi?",
+  "habit": "siz yillik marketing/HR reja va smeta bilan ishlaysiz"
+ },
+ {
+  "id": "P012",
+  "name": "Selin",
+  "age": 39,
+  "segment": "Kichik/o'rta kompaniya egasi",
+  "income": 262862000,
+  "behaviour": "Ishonchli yetkazib beruvchini afzal ko'radi",
+  "behaviour_how": "Katta, tanilgan agentlik yoki mahalliy hamkorni tanlaydi.",
+  "objection": "Jamoa kichik, uzoq muddat qo'llab-quvvatlaydimi?",
+  "habit": "siz yillik marketing/HR reja va smeta bilan ishlaysiz"
+ },
+ {
+  "id": "P013",
+  "name": "Fatima",
+  "age": 44,
+  "segment": "Filial yoki bo'lim boshlig'i",
+  "income": 246997000,
+  "behaviour": "Ruxsat zanjiri",
+  "behaviour_how": "Qarorga bir necha bo'lim (compliance, IT, yuridik) tasdig'i kerak.",
+  "objection": "Jamoa kichik, uzoq muddat qo'llab-quvvatlaydimi?",
+  "habit": "mijozlar uchun aksiya va tadbirlar o'tkazasiz"
+ },
+ {
+  "id": "P014",
+  "name": "Liam",
+  "age": 30,
+  "segment": "Filial yoki bo'lim boshlig'i",
+  "income": 264449000,
+  "behaviour": "Raqobatchiga qaraydi",
+  "behaviour_how": "Boshqa banklar nima qilganini ko'rib qaror qiladi.",
+  "objection": "Markaziy bank bepul o'z platformasi bor, bank qo'shimcha o'yin nega kerak?",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P015",
+  "name": "Mei",
+  "age": 44,
+  "segment": "Kichik/o'rta kompaniya egasi",
+  "income": 170799000,
+  "behaviour": "Ruxsat zanjiri",
+  "behaviour_how": "Qarorga bir necha bo'lim (compliance, IT, yuridik) tasdig'i kerak.",
+  "objection": "Qancha odam qatnashadi va qanday natija o'lchanadi?",
+  "habit": "siz yillik marketing/HR reja va smeta bilan ishlaysiz"
+ },
+ {
+  "id": "P016",
+  "name": "Ezra",
+  "age": 37,
+  "segment": "HR/o'qitish rahbari (kompaniya yoki bank)",
+  "income": 232183000,
+  "behaviour": "Raqobatchiga qaraydi",
+  "behaviour_how": "Boshqa banklar nima qilganini ko'rib qaror qiladi.",
+  "objection": "Brend va mijoz ma'lumotlari xavfsizmi?",
+  "habit": "yangi hamkorni ko'rib chiqishdan oldin boshqa banklardagi tajribaga qaraysiz"
+ },
+ {
+  "id": "P017",
+  "name": "Leah",
+  "age": 30,
+  "segment": "Bank marketing/mijozlar bilan ishlash menejeri",
+  "income": 224032000,
+  "behaviour": "Ishonchli yetkazib beruvchini afzal ko'radi",
+  "behaviour_how": "Katta, tanilgan agentlik yoki mahalliy hamkorni tanlaydi.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum",
+  "habit": "siz yillik marketing/HR reja va smeta bilan ishlaysiz"
+ },
+ {
+  "id": "P018",
+  "name": "Raj",
+  "age": 48,
+  "segment": "Kichik/o'rta kompaniya egasi",
+  "income": 541525000,
+  "behaviour": "Ruxsat zanjiri",
+  "behaviour_how": "Qarorga bir necha bo'lim (compliance, IT, yuridik) tasdig'i kerak.",
+  "objection": "Yurist/compliance rad etmaydimi (islomiy moliya, kredit, foiz haqida o'yin)?",
+  "habit": "mijozlar uchun aksiya va tadbirlar o'tkazasiz"
+ },
+ {
+  "id": "P019",
+  "name": "Tariq",
+  "age": 41,
+  "segment": "Filial yoki bo'lim boshlig'i",
+  "income": 150038000,
+  "behaviour": "Natijani o'lchaydi",
+  "behaviour_how": "Ro'yxatdan o'tish, qatnashchi soni va mijoz jalb qilish ko'rsatkichlarini so'raydi.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum",
+  "habit": "qarorga compliance va yuridik bo'lim ham qo'shiladi"
+ },
+ {
+  "id": "P020",
+  "name": "Lina",
+  "age": 41,
+  "segment": "Kichik/o'rta kompaniya egasi",
+  "income": 398734000,
+  "behaviour": "Ishonchli yetkazib beruvchini afzal ko'radi",
+  "behaviour_how": "Katta, tanilgan agentlik yoki mahalliy hamkorni tanlaydi.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum",
+  "habit": "mijozlar uchun aksiya va tadbirlar o'tkazasiz"
+ }
+]

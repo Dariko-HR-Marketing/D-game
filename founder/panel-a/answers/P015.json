@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Men ota-onaman, maktab litsenziyasini sotib olish meni vazifam emas, o'quvchi esa to'lamaydi. Farzandim uchun bepul veb-versiyani sinab ko'rishim mumkin, lekin pul to'lamayman, ayniqsa bepul Finlit.uz bor ekan.",
+  "objection": "Bolalar ma'lumoti va to'lov xavfsizmi? O'qituvchi paneli hali tayyor emas, ya'ni maktab uchun asosiy narsa hozircha yo'q, narxi ham noma'lum.",
+  "would_change_my_mind": "Farzandimning maktabi shu o'yinni tanlasa va bolalar ma'lumoti qanday saqlanishi aniq yozib berilsa; yoki o'qituvchi paneli tayyor bo'lib, namuna dars ko'rsatilsa.",
+  "price_too_cheap": 200000,
+  "price_cheap": 700000,
+  "price_expensive": 2500000,
+  "price_too_expensive": 6000000
+}

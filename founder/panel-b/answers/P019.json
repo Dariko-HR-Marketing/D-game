@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Turnir va korporativ xona boshqaruvi hali ishlab chiqilmoqda, ya'ni men sotib oladigan narsa hali yo'q. Narx ham, shartnoma ham noma'lum, shuning uchun bir oyda men hech narsa imzolay olmayman.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum, mahsulotning asosiy qismi tayyor emas. Compliance va yuridik bo'limga nima ko'rsataman? Ro'yxatdan o'tish, qatnashchi soni va mijoz jalb qilish bo'yicha hisobot ham ko'rinmayapti, Finlit.uz esa bepul.",
+  "would_change_my_mind": "Ishlaydigan korporativ xona yoki turnir bilan sinov, aniq narx, tayyor shartnoma namunasi va ro'yxatdan o'tish hamda qatnashchi soni bo'yicha hisobot ko'rsatilsa.",
+  "price_too_cheap": 2000000,
+  "price_cheap": 8000000,
+  "price_expensive": 25000000,
+  "price_too_expensive": 60000000
+}

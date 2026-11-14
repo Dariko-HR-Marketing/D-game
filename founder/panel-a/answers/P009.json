@@ -1,0 +1,13 @@
+{
+  "id": "P009",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "O'qituvchi paneli hali tayyor emas, sinfga sinab ko'rish uchun kerakli narsa yo'q. Litsenziyani maktab oladi, men emas, direktorga ishlamaydigan narsani taklif qila olmayman, bepul Finlit.uz bor.",
+  "objection": "Sinf va xona yaratish, o'quvchilar natijasi hisoboti ishlamasa, darsda foydalana olmayman. Direktorga pul so'rash uchun avval o'zim sinab ko'rishim kerak, narx ham noma'lum.",
+  "would_change_my_mind": "Tayyor o'qituvchi paneli bilan bepul sinov yoki namuna: bitta sinf bilan bir-ikki dars sinab ko'rish, shundan keyin direktorga ko'rsatish.",
+  "price_too_cheap": 500000,
+  "price_cheap": 1500000,
+  "price_expensive": 4000000,
+  "price_too_expensive": 8000000
+}

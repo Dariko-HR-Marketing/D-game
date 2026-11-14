@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Finlit.uz va Moliya olami bepul, men shularga o'rganganman. O'qituvchi paneli hali tayyor emas, maktab nomidan pul to'lash esa o'zimning qo'limda ham emas.",
+  "objection": "Dars soatiga sig'adimi? O'yin bir necha soat davom etadi, bizda dars 45 daqiqa. Maktabda internet sekin, qurilmalar kam, 2-8 kishilik xonaga hamma o'quvchi bir vaqtda ulana oladimi? Yana pulli litsenziya uchun direktorni ko'ndirishim kerak.",
+  "would_change_my_mind": "Bir dars (45 daqiqa) ichida tugaydigan qisqa rejim, sekin internetda ishlashi ko'rsatilgan sinov va o'qituvchi paneli tayyor bo'lib, bepul sinov davri berilsa, direktorga taklif qilib ko'raman.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 3000000,
+  "price_too_expensive": 7000000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Yillik reja va smeta allaqachon tasdiqlangan, unda bunday o'yin uchun qator yo'q. Korporativ xona va turnir boshqaruvi hali tayyor emas, tayyor bo'lmagan narsaga pul ajrata olmayman.",
+  "objection": "Bu o'yin bizning mijozlar auditoriyasiga mosmi, degan savol ochiq. Bepul Finlit.uz va Markaziy bank platformalari bor, ularning o'rniga pul to'lashimni rahbariyatga isbotlay olmayman. Narx ham, natija hisoboti ham yo'q.",
+  "would_change_my_mind": "Ishlaydigan korporativ xona yoki turnir demosi, boshqa bank yoki kompaniyadagi aniq o'tkazilgan turnir natijalari (qatnashchilar soni, hisobot) va aniq narx, shunda keyingi yilgi smetaga kiritaman.",
+  "price_too_cheap": 1000000,
+  "price_cheap": 3000000,
+  "price_expensive": 10000000,
+  "price_too_expensive": 25000000
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P001",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Vazirlik yoki tuman bo'limi ruxsat bermaguncha men maktabga yangi dastur kiritmayman. Markaziy bankning bepul Finlit.uz va Moliya olami bor, o'qituvchi paneli esa hali tayyor emas.",
+  "objection": "Bolalar ma'lumoti va to'lov xavfsizmi? Tuman bo'limi tasdiqlaganmi? Bepul muqobil turganda nega pul to'layman, panel ham hali yo'q.",
+  "would_change_my_mind": "Vazirlik yoki tuman xalq ta'limi bo'limining rasmiy tasdig'i yoki tavsiya xati, bolalar ma'lumoti himoyasi haqida yozma hujjat va ishlaydigan o'qituvchi paneli.",
+  "price_too_cheap": 500000,
+  "price_cheap": 1500000,
+  "price_expensive": 5000000,
+  "price_too_expensive": 12000000
+}

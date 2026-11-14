@@ -1,0 +1,91 @@
+{
+  "business": "Tajriba 24 onlayn: sinf uchun o'qituvchi paneli (Panel A, ta'lim)",
+  "target": "O'zbekistondagi maktab, kollej va o'quv markazlarida moliyaviy savodxonlik/iqtisod darsi berishi yoki dasturini tanlashi mumkin bo'lgan o'qituvchilar, direktorlar, metodistlar va farzandi uchun o'quv o'yini qidirayotgan ota-onalar",
+  "where": "O'zbekiston (Toshkent va viloyatlar), yillik daromad so'mda (TAXMINIY oraliqlar, haqiqiy ma'lumot emas)",
+  "age": [
+    24,
+    55
+  ],
+  "segments": [
+    {
+      "name": "Maktab/kollej o'qituvchisi",
+      "share": 0.4,
+      "income": [
+        36000000,
+        96000000
+      ]
+    },
+    {
+      "name": "Direktor yoki metodist (qaror qabul qiladi)",
+      "share": 0.2,
+      "income": [
+        72000000,
+        180000000
+      ]
+    },
+    {
+      "name": "Xususiy o'quv markazi egasi/o'qituvchisi",
+      "share": 0.2,
+      "income": [
+        60000000,
+        240000000
+      ]
+    },
+    {
+      "name": "Ota-ona (farzandi 10-17 yosh)",
+      "share": 0.2,
+      "income": [
+        48000000,
+        216000000
+      ]
+    }
+  ],
+  "behaviours": [
+    {
+      "name": "Yangilikka ochiq",
+      "share": 0.15,
+      "how": "Yangi o'quv vositalarini sinab ko'rishni yaxshi ko'radi, lekin avval namuna so'raydi."
+    },
+    {
+      "name": "Byudjetga qaram",
+      "share": 0.2,
+      "how": "Pulli narsaga faqat tasdiqlangan byudjet bo'lsa rozi; o'zi to'lamaydi."
+    },
+    {
+      "name": "Bepulga o'rgangan",
+      "share": 0.2,
+      "how": "Markaziy bank va davlat materiallari (finlit.uz, Moliya olami) bepul, pulli narsaga shubha bilan qaraydi."
+    },
+    {
+      "name": "Rasmiy tasdiq kutadi",
+      "share": 0.15,
+      "how": "Vazirlik yoki tuman bo'limi ruxsat bermaguncha yangi dastur kiritmaydi."
+    },
+    {
+      "name": "Natijaga qaraydi",
+      "share": 0.15,
+      "how": "O'quvchilar natijasi va hisobotini ko'rishni xohlaydi."
+    },
+    {
+      "name": "Xavfsizlikka sezgir",
+      "share": 0.15,
+      "how": "Bolalar ma'lumoti, to'lov va chat xavfsizligidan xavotirda."
+    }
+  ],
+  "objections": [
+    "Bepul Markaziy bank materiallari bor, nega to'layman?",
+    "Maktabda planshet/kompyuter va internet yetarlimi?",
+    "Dars soatiga sig'adimi (o'yin bir necha soat davom etadi)?",
+    "Vazirlik yoki direktor ruxsat beradimi?",
+    "Bolalar ma'lumoti va to'lov xavfsizmi?",
+    "Tizim yangi, ishlaydi deb ishonib bo'ladimi?",
+    "O'qituvchi paneli hali tayyor emas"
+  ],
+  "habits": [
+    "siz haftasiga bir necha dars berasiz va Telegram guruhlarida kasbdoshlar bilan yangi o'quv vositalarini muhokama qilasiz",
+    "maktabingizda internet sekin va qurilmalar cheklangan",
+    "o'quvchilar telefonda o'ynashni yaxshi ko'radi",
+    "xarid qilish uchun direktor yoki bo'lim ruxsati kerak",
+    "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+ "n": 20,
+ "seed": 499780,
+ "customer": {
+  "business": "Tajriba 24 onlayn: brendli turnir va korporativ xona (Panel B, banklar va kompaniyalar)",
+  "target": "O'zbekistondagi banklar, kompaniyalar va ularning HR, marketing, mijozlar bilan ishlash bo'limi rahbarlari va filial boshqaruvchilari",
+  "where": "O'zbekiston (asosan Toshkent), yillik daromad so'mda (TAXMINIY oraliqlar, haqiqiy ma'lumot emas)",
+  "age": [
+   26,
+   50
+  ],
+  "segments": [
+   {
+    "name": "Bank marketing/mijozlar bilan ishlash menejeri",
+    "share": 0.3,
+    "income": [
+     96000000,
+     300000000
+    ]
+   },
+   {
+    "name": "HR/o'qitish rahbari (kompaniya yoki bank)",
+    "share": 0.3,
+    "income": [
+     84000000,
+     264000000
+    ]
+   },
+   {
+    "name": "Filial yoki bo'lim boshlig'i",
+    "share": 0.2,
+    "income": [
+     120000000,
+     360000000
+    ]
+   },
+   {
+    "name": "Kichik/o'rta kompaniya egasi",
+    "share": 0.2,
+    "income": [
+     120000000,
+     720000000
+    ]
+   }
+  ],
+  "behaviours": [
+   {
+    "name": "Brend tadbirlarini sevadi",
+    "share": 0.2,
+    "how": "Mijozlarni jalb qiladigan yangi formatlarni qidiradi."
+   },
+   {
+    "name": "Byudjetga qat'iy",
+    "share": 0.2,
+    "how": "Yillik reja va smetadan tashqariga chiqmaydi."
+   },
+   {
+    "name": "Raqobatchiga qaraydi",
+    "share": 0.15,
+    "how": "Boshqa banklar nima qilganini ko'rib qaror qiladi."
+   },
+   {
+    "name": "Natijani o'lchaydi",
+    "share": 0.15,
+    "how": "Ro'yxatdan o'tish, qatnashchi soni va mijoz jalb qilish ko'rsatkichlarini so'raydi."
+   },
+   {
+    "name": "Ruxsat zanjiri",
+    "share": 0.15,
+    "how": "Qarorga bir necha bo'lim (compliance, IT, yuridik) tasdig'i kerak."
+   },
+   {
+    "name": "Ishonchli yetkazib beruvchini afzal ko'radi",
+    "share": 0.15,
+    "how": "Katta, tanilgan agentlik yoki mahalliy hamkorni tanlaydi."
+   }
+  ],
+  "objections": [
+   "Markaziy bank bepul o'z platformasi bor, bank qo'shimcha o'yin nega kerak?",
+   "Qancha odam qatnashadi va qanday natija o'lchanadi?",
+   "Brend va mijoz ma'lumotlari xavfsizmi?",
+   "Yurist/compliance rad etmaydimi (islomiy moliya, kredit, foiz haqida o'yin)?",
+   "Jamoa kichik, uzoq muddat qo'llab-quvvatlaydimi?",
+   "Narx va shartnoma ko'rinishi noma'lum",
+   "Bu o'yin bizning mijozlar auditoriyasiga mosmi?"
+  ],
+  "habits": [
+   "siz yillik marketing/HR reja va smeta bilan ishlaysiz",
+   "mijozlar uchun aksiya va tadbirlar o'tkazasiz",
+   "yangi hamkorni ko'rib chiqishdan oldin boshqa banklardagi tajribaga qaraysiz",
+   "qarorga compliance va yuridik bo'lim ham qo'shiladi",
+   "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+  ]
+ },
+ "pitch": "Tajriba 24 onlayn: o'zbek lotin tilidagi moliyaviy savodxonlik o'yini (stol o'yinining onlayn versiyasi), 2 dan 8 gacha o'yinchi bitta xonada, natijani server hisoblaydi.\nSiz uchun: brendli turnir (ishtirok bepul, homiy summa va o'yin qoidasini o'zgartirmaydi) yoki xodimlar/mijozlar uchun korporativ xona.\nO'yin ichida kredit, depozit, sarmoya va halol (islomiy) moliya rejimi bor; pulli narsa natijaga ta'sir qilmaydi.\nBepul muqobillar bor: Markaziy bankning Finlit.uz va Moliya olami platformalari; Cashflow o'yinining bepul ingliz tilidagi onlayn versiyasi; Toshkentdagi jonli Cashflow seanslari.\nNarx hali e'lon qilinmagan. Narx savollariga FAQAT so'mda javob bering. Narx birligi: bitta brendli turnir yoki bitta korporativ xona uchun BIR MARTALIK narx.\nIshlayotgan veb-versiya: tajriba24.uz. Korporativ xona va turnir boshqaruvi hali ishlab chiqilmoqda."
+}

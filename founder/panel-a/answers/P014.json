@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "O'qituvchi paneli hali tayyor emas, sinf uchun asosiy narsa shu-ku. Byudjetsiz o'zim to'lamayman, bepul Finlit.uz bor ekan, avval shuni ishlatib ko'raman.",
+  "objection": "Panel tayyor emas, narx noma'lum, byudjet so'rash uchun menda ko'rsatadigan narsa yo'q. Bepul muqobil turganda nima uchun to'laymiz, deb so'rashadi. Markazda planshet va internet yetarlimi, bilmayman.",
+  "would_change_my_mind": "Ishlaydigan o'qituvchi paneli va natija hisoboti, narx oldindan aniq e'lon qilinishi va bir hafta sinov berilishi. Shunda byudjet so'rab ko'raman.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 3000000,
+  "price_too_expensive": 6000000
+}

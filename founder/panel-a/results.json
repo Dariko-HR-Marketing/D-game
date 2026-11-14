@@ -1,0 +1,154 @@
+{
+ "business": "Tajriba 24 onlayn: sinf uchun o'qituvchi paneli (Panel A, ta'lim)",
+ "seed": 951267,
+ "dealt": 20,
+ "answered": 20,
+ "skipped": [],
+ "buys": 0,
+ "passes": 20,
+ "buy_rate": 0.0,
+ "by_segment": [
+  [
+   "Direktor yoki metodist (qaror qabul qiladi)",
+   4,
+   0.0
+  ],
+  [
+   "Ota-ona (farzandi 10-17 yosh)",
+   4,
+   0.0
+  ],
+  [
+   "Xususiy o'quv markazi egasi/o'qituvchisi",
+   4,
+   0.0
+  ],
+  [
+   "Maktab/kollej o'qituvchisi",
+   8,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "Rasmiy tasdiq kutadi",
+   3,
+   0.0
+  ],
+  [
+   "Bepulga o'rgangan",
+   4,
+   0.0
+  ],
+  [
+   "Natijaga qaraydi",
+   3,
+   0.0
+  ],
+  [
+   "Yangilikka ochiq",
+   3,
+   0.0
+  ],
+  [
+   "Byudjetga qaram",
+   4,
+   0.0
+  ],
+  [
+   "Xavfsizlikka sezgir",
+   3,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "$133,853,000 and up",
+   7,
+   0.0
+  ],
+  [
+   "$72,732,000 to $133,853,000",
+   7,
+   0.0
+  ],
+  [
+   "under $72,732,000",
+   6,
+   0.0
+  ]
+ ],
+ "why_not": [
+  [
+   "timing",
+   8,
+   [
+    "O'qituvchi paneli hali tayyor emas, ya'ni o'quvchilar natijasi hisobotini ko'ra olmayman, men esa aynan natijaga qarayman. Finlit.uz bepul, shuning uchun tayyor bo'lmagan narsaga pul to'lamayman.",
+    "O'quvchilar telefonda o'ynashni yaxshi ko'radi, g'oya menga yoqdi, lekin o'qituvchi paneli hali tayyor emas, ya'ni sinfda ishlatadigan asosiy narsam yo'q. Litsenziyani maktab to'laydi, men esa bepul Finlit.uz bilan ishlay olaman."
+   ],
+   [
+    "P003",
+    "P004"
+   ]
+  ],
+  [
+   "trust",
+   6,
+   [
+    "Vazirlik yoki tuman bo'limi ruxsat bermaguncha men maktabga yangi dastur kiritmayman. Markaziy bankning bepul Finlit.uz va Moliya olami bor, o'qituvchi paneli esa hali tayyor emas.",
+    "Menga o'qituvchi paneli kerak, lekin u hali tayyor emas, narx ham e'lon qilinmagan. Bepul Finlit.uz bor, shuning uchun hali tayyor bo'lmagan narsaga maktab nomidan pul to'lamayman."
+   ],
+   [
+    "P001",
+    "P006"
+   ]
+  ],
+  [
+   "need",
+   5,
+   [
+    "Menda tasdiqlangan byudjet yo'q, o'zim to'lamayman. O'qituvchi paneli hali tayyor emas, Finlit.uz esa bepul va Markaziy bankdan, shuning uchun hozir pul to'lash uchun sabab ko'rmayapman.",
+    "Bizda Finlit.uz va Moliya olami bepul, menga pulli litsenziya kerak emas. O'qituvchi paneli ham hali tayyor emas, sotib olib nima olishimni bilmayman."
+   ],
+   [
+    "P005",
+    "P010"
+   ]
+  ],
+  [
+   "habit",
+   1,
+   [
+    "Men bepul narsaga o'rganganman: Finlit.uz va Moliya olami bor, ular davlat materiali va ishonchli. O'qituvchi paneli hali tayyor emas, maktabimda internet sekin, shuning uchun pul to'lashga asos ko'rmayapman."
+   ],
+   [
+    "P002"
+   ]
+  ]
+ ],
+ "why_yes": [],
+ "flip": [
+  "Vazirlik yoki tuman xalq ta'limi bo'limining rasmiy tasdig'i yoki tavsiya xati, bolalar ma'lumoti himoyasi haqida yozma hujjat va ishlaydigan o'qituvchi paneli.",
+  "Bir dars soatida (45 daqiqa) tugaydigan qisqa rejim, sekin internetda ishlashi sinab ko'rilgani va tayyor o'qituvchi paneli; birinchi yil bepul sinov yoki maktab direktori/Markaziy bank tavsiyasi bo'lsa.",
+  "Tayyor o'qituvchi paneli va o'quvchilar natijasi hisobotini o'zim sinab ko'rsam, hamda bir oy bepul sinov berilsa.",
+  "Tayyor o'qituvchi paneli va bitta sinf bilan bepul sinov davri (namuna), keyin aniq narx.",
+  "Tayyor o'qituvchi paneli, bitta dars soatiga (45 daqiqa) sig'adigan qisqa rejim va maktab byudjetiga kiradigan past yillik narx; yoki sinovda bir sinf bilan bepul sinab ko'rish imkoni.",
+  "Tayyor o'qituvchi paneli, bitta sinfda bepul sinov davri, boshqa maktabdan haqiqiy fikr va bolalar ma'lumoti qayerda saqlanishi haqida yozma tushuntirish.",
+  "Ishlaydigan o'qituvchi paneli (sinf yaratish va o'quvchilar natijasi hisoboti), bolalar ma'lumoti xavfsizligi haqida aniq yozma tushuntirish va bir oylik bepul sinov.",
+  "Panel ishga tushib, maktab uni sinab ko'rgani va bolalar ma'lumoti hamda chat xavfsizligi bo'yicha ochiq, yozma kafolat berilgani.",
+  "Tayyor o'qituvchi paneli bilan bepul sinov yoki namuna: bitta sinf bilan bir-ikki dars sinab ko'rish, shundan keyin direktorga ko'rsatish.",
+  "Tayyor o'qituvchi paneli, bir sinf bilan bepul sinov davri va sekin internetda ishlashi isbotlangan bo'lsa, shuningdek Maorif vazirligi yoki Markaziy bank tavsiyasi bo'lsa qayta ko'rib chiqaman.",
+  "Tayyor o'qituvchi paneli, bolalar ma'lumoti qanday saqlanishi haqida aniq yozuv, bir oylik bepul sinov va boshqa maktabda ishlatilgani haqida tasdiq.",
+  "Panel ishlab turishini o'z ko'zim bilan ko'rsam, narx e'lon qilinsa va bepul muqobillardan nimasi yaxshiligini darsda sinab ko'rsam, direktorga taklif yozaman.",
+  "Tayyor o'qituvchi paneli, rasmiy tasdiq (Vazirlik yoki tuman bo'limi ruxsati) va sekin internetda ishlashi isbotlangan bo'lsa.",
+  "Ishlaydigan o'qituvchi paneli va natija hisoboti, narx oldindan aniq e'lon qilinishi va bir hafta sinov berilishi. Shunda byudjet so'rab ko'raman.",
+  "Farzandimning maktabi shu o'yinni tanlasa va bolalar ma'lumoti qanday saqlanishi aniq yozib berilsa; yoki o'qituvchi paneli tayyor bo'lib, namuna dars ko'rsatilsa.",
+  "Bir dars (45 daqiqa) ichida tugaydigan qisqa rejim, sekin internetda ishlashi ko'rsatilgan sinov va o'qituvchi paneli tayyor bo'lib, bepul sinov davri berilsa, direktorga taklif qilib ko'raman.",
+  "Tayyor o'qituvchi paneli, maktabda sinab ko'rish uchun bepul sinov davri, dastur Markaziy bank materiallari va o'quv dasturiga mosligi haqida rasmiy tasdiq yoki boshqa maktabdan tavsiya.",
+  "Vazirlik yoki tuman ta'lim bo'limining rasmiy ruxsati yoki tavsiyasi, dars soatiga (45 daqiqa) sig'adigan qisqa variant va ishlaydigan o'qituvchi paneli.",
+  "Tayyor o'qituvchi paneli: sinf yaratish va o'quvchilar natijasi hisobotini o'zim ko'rishim, yana bir oy bepul sinov berilishi.",
+  "Ishlayotgan o'qituvchi paneli va 45 daqiqalik dars formati, bir dars soatiga sig'adigan qisqa rejim; bir marta bepul sinab ko'rish, so'ng direktorga ko'rsatish."
+ ],
+ "purchases_first_month_per_buyer": null,
+ "price_answers": 20
+}

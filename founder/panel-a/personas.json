@@ -1,0 +1,222 @@
+[
+ {
+  "id": "P001",
+  "name": "Eli",
+  "age": 37,
+  "segment": "Direktor yoki metodist (qaror qabul qiladi)",
+  "income": 153948000,
+  "behaviour": "Rasmiy tasdiq kutadi",
+  "behaviour_how": "Vazirlik yoki tuman bo'limi ruxsat bermaguncha yangi dastur kiritmaydi.",
+  "objection": "Bolalar ma'lumoti va to'lov xavfsizmi?",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P002",
+  "name": "Leila",
+  "age": 39,
+  "segment": "Ota-ona (farzandi 10-17 yosh)",
+  "income": 118294000,
+  "behaviour": "Bepulga o'rgangan",
+  "behaviour_how": "Markaziy bank va davlat materiallari (finlit.uz, Moliya olami) bepul, pulli narsaga shubha bilan qaraydi.",
+  "objection": "Dars soatiga sig'adimi (o'yin bir necha soat davom etadi)?",
+  "habit": "maktabingizda internet sekin va qurilmalar cheklangan"
+ },
+ {
+  "id": "P003",
+  "name": "Jasper",
+  "age": 40,
+  "segment": "Xususiy o'quv markazi egasi/o'qituvchisi",
+  "income": 133853000,
+  "behaviour": "Natijaga qaraydi",
+  "behaviour_how": "O'quvchilar natijasi va hisobotini ko'rishni xohlaydi.",
+  "objection": "Maktabda planshet/kompyuter va internet yetarlimi?",
+  "habit": "xarid qilish uchun direktor yoki bo'lim ruxsati kerak"
+ },
+ {
+  "id": "P004",
+  "name": "Jordan",
+  "age": 34,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 46538000,
+  "behaviour": "Yangilikka ochiq",
+  "behaviour_how": "Yangi o'quv vositalarini sinab ko'rishni yaxshi ko'radi, lekin avval namuna so'raydi.",
+  "objection": "Maktabda planshet/kompyuter va internet yetarlimi?",
+  "habit": "o'quvchilar telefonda o'ynashni yaxshi ko'radi"
+ },
+ {
+  "id": "P005",
+  "name": "Marcus",
+  "age": 49,
+  "segment": "Direktor yoki metodist (qaror qabul qiladi)",
+  "income": 172170000,
+  "behaviour": "Byudjetga qaram",
+  "behaviour_how": "Pulli narsaga faqat tasdiqlangan byudjet bo'lsa rozi; o'zi to'lamaydi.",
+  "objection": "Dars soatiga sig'adimi (o'yin bir necha soat davom etadi)?",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P006",
+  "name": "Marco",
+  "age": 42,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 44447000,
+  "behaviour": "Xavfsizlikka sezgir",
+  "behaviour_how": "Bolalar ma'lumoti, to'lov va chat xavfsizligidan xavotirda.",
+  "objection": "Tizim yangi, ishlaydi deb ishonib bo'ladimi?",
+  "habit": "siz haftasiga bir necha dars berasiz va Telegram guruhlarida kasbdoshlar bilan yangi o'quv vositalarini muhokama qilasiz"
+ },
+ {
+  "id": "P007",
+  "name": "Priya",
+  "age": 45,
+  "segment": "Xususiy o'quv markazi egasi/o'qituvchisi",
+  "income": 69146000,
+  "behaviour": "Natijaga qaraydi",
+  "behaviour_how": "O'quvchilar natijasi va hisobotini ko'rishni xohlaydi.",
+  "objection": "Bolalar ma'lumoti va to'lov xavfsizmi?",
+  "habit": "o'quvchilar telefonda o'ynashni yaxshi ko'radi"
+ },
+ {
+  "id": "P008",
+  "name": "Malik",
+  "age": 55,
+  "segment": "Ota-ona (farzandi 10-17 yosh)",
+  "income": 148602000,
+  "behaviour": "Xavfsizlikka sezgir",
+  "behaviour_how": "Bolalar ma'lumoti, to'lov va chat xavfsizligidan xavotirda.",
+  "objection": "O'qituvchi paneli hali tayyor emas",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P009",
+  "name": "Andre",
+  "age": 30,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 78335000,
+  "behaviour": "Yangilikka ochiq",
+  "behaviour_how": "Yangi o'quv vositalarini sinab ko'rishni yaxshi ko'radi, lekin avval namuna so'raydi.",
+  "objection": "O'qituvchi paneli hali tayyor emas",
+  "habit": "siz haftasiga bir necha dars berasiz va Telegram guruhlarida kasbdoshlar bilan yangi o'quv vositalarini muhokama qilasiz"
+ },
+ {
+  "id": "P010",
+  "name": "Ruby",
+  "age": 29,
+  "segment": "Direktor yoki metodist (qaror qabul qiladi)",
+  "income": 150762000,
+  "behaviour": "Bepulga o'rgangan",
+  "behaviour_how": "Markaziy bank va davlat materiallari (finlit.uz, Moliya olami) bepul, pulli narsaga shubha bilan qaraydi.",
+  "objection": "Maktabda planshet/kompyuter va internet yetarlimi?",
+  "habit": "maktabingizda internet sekin va qurilmalar cheklangan"
+ },
+ {
+  "id": "P011",
+  "name": "Ada",
+  "age": 37,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 79028000,
+  "behaviour": "Xavfsizlikka sezgir",
+  "behaviour_how": "Bolalar ma'lumoti, to'lov va chat xavfsizligidan xavotirda.",
+  "objection": "Bepul Markaziy bank materiallari bor, nega to'layman?",
+  "habit": "siz haftasiga bir necha dars berasiz va Telegram guruhlarida kasbdoshlar bilan yangi o'quv vositalarini muhokama qilasiz"
+ },
+ {
+  "id": "P012",
+  "name": "Nico",
+  "age": 32,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 68436000,
+  "behaviour": "Byudjetga qaram",
+  "behaviour_how": "Pulli narsaga faqat tasdiqlangan byudjet bo'lsa rozi; o'zi to'lamaydi.",
+  "objection": "O'qituvchi paneli hali tayyor emas",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P013",
+  "name": "Quinn",
+  "age": 41,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 57838000,
+  "behaviour": "Rasmiy tasdiq kutadi",
+  "behaviour_how": "Vazirlik yoki tuman bo'limi ruxsat bermaguncha yangi dastur kiritmaydi.",
+  "objection": "O'qituvchi paneli hali tayyor emas",
+  "habit": "maktabingizda internet sekin va qurilmalar cheklangan"
+ },
+ {
+  "id": "P014",
+  "name": "Lucia",
+  "age": 35,
+  "segment": "Xususiy o'quv markazi egasi/o'qituvchisi",
+  "income": 197896000,
+  "behaviour": "Byudjetga qaram",
+  "behaviour_how": "Pulli narsaga faqat tasdiqlangan byudjet bo'lsa rozi; o'zi to'lamaydi.",
+  "objection": "Maktabda planshet/kompyuter va internet yetarlimi?",
+  "habit": "siz haftasiga bir necha dars berasiz va Telegram guruhlarida kasbdoshlar bilan yangi o'quv vositalarini muhokama qilasiz"
+ },
+ {
+  "id": "P015",
+  "name": "Maeve",
+  "age": 25,
+  "segment": "Ota-ona (farzandi 10-17 yosh)",
+  "income": 93879000,
+  "behaviour": "Yangilikka ochiq",
+  "behaviour_how": "Yangi o'quv vositalarini sinab ko'rishni yaxshi ko'radi, lekin avval namuna so'raydi.",
+  "objection": "Bolalar ma'lumoti va to'lov xavfsizmi?",
+  "habit": "sizning daromadingiz so'mda va yillik hisoblangan; brief'dagi '$' belgisini e'tiborsiz qoldiring, hamma summa so'mda"
+ },
+ {
+  "id": "P016",
+  "name": "Yusuf",
+  "age": 55,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 74553000,
+  "behaviour": "Bepulga o'rgangan",
+  "behaviour_how": "Markaziy bank va davlat materiallari (finlit.uz, Moliya olami) bepul, pulli narsaga shubha bilan qaraydi.",
+  "objection": "Dars soatiga sig'adimi (o'yin bir necha soat davom etadi)?",
+  "habit": "maktabingizda internet sekin va qurilmalar cheklangan"
+ },
+ {
+  "id": "P017",
+  "name": "Elle",
+  "age": 50,
+  "segment": "Direktor yoki metodist (qaror qabul qiladi)",
+  "income": 116952000,
+  "behaviour": "Bepulga o'rgangan",
+  "behaviour_how": "Markaziy bank va davlat materiallari (finlit.uz, Moliya olami) bepul, pulli narsaga shubha bilan qaraydi.",
+  "objection": "Bepul Markaziy bank materiallari bor, nega to'layman?",
+  "habit": "xarid qilish uchun direktor yoki bo'lim ruxsati kerak"
+ },
+ {
+  "id": "P018",
+  "name": "Leah",
+  "age": 55,
+  "segment": "Maktab/kollej o'qituvchisi",
+  "income": 72732000,
+  "behaviour": "Rasmiy tasdiq kutadi",
+  "behaviour_how": "Vazirlik yoki tuman bo'limi ruxsat bermaguncha yangi dastur kiritmaydi.",
+  "objection": "Dars soatiga sig'adimi (o'yin bir necha soat davom etadi)?",
+  "habit": "xarid qilish uchun direktor yoki bo'lim ruxsati kerak"
+ },
+ {
+  "id": "P019",
+  "name": "Noah",
+  "age": 52,
+  "segment": "Xususiy o'quv markazi egasi/o'qituvchisi",
+  "income": 65346000,
+  "behaviour": "Natijaga qaraydi",
+  "behaviour_how": "O'quvchilar natijasi va hisobotini ko'rishni xohlaydi.",
+  "objection": "Bepul Markaziy bank materiallari bor, nega to'layman?",
+  "habit": "xarid qilish uchun direktor yoki bo'lim ruxsati kerak"
+ },
+ {
+  "id": "P020",
+  "name": "Hugo",
+  "age": 52,
+  "segment": "Ota-ona (farzandi 10-17 yosh)",
+  "income": 203591000,
+  "behaviour": "Byudjetga qaram",
+  "behaviour_how": "Pulli narsaga faqat tasdiqlangan byudjet bo'lsa rozi; o'zi to'lamaydi.",
+  "objection": "Dars soatiga sig'adimi (o'yin bir necha soat davom etadi)?",
+  "habit": "siz haftasiga bir necha dars berasiz va Telegram guruhlarida kasbdoshlar bilan yangi o'quv vositalarini muhokama qilasiz"
+ }
+]

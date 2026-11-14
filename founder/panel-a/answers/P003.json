@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "O'qituvchi paneli hali tayyor emas, ya'ni o'quvchilar natijasi hisobotini ko'ra olmayman, men esa aynan natijaga qarayman. Finlit.uz bepul, shuning uchun tayyor bo'lmagan narsaga pul to'lamayman.",
+  "objection": "Hisobot yo'q bo'lsa, ota-onalarga va o'zimga natijani ko'rsata olmayman. Markazda planshet/kompyuter va internet yetarlimi, bu ham noaniq. Bepul muqobil bor ekan, pulli litsenziyani asoslash qiyin.",
+  "would_change_my_mind": "Tayyor o'qituvchi paneli va o'quvchilar natijasi hisobotini o'zim sinab ko'rsam, hamda bir oy bepul sinov berilsa.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 3000000,
+  "price_too_expensive": 6000000
+}
