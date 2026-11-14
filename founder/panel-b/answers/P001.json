@@ -1,0 +1,13 @@
+{
+  "id": "P001",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Korporativ xona va turnir boshqaruvi hali tayyor emas, men esa tayyor bo'lmagan narsani xodimlarimga ham, mijozlarga ham taklif qilmayman. Boshqa banklarda sinalganini ko'rmasam, buyurtma bermayman.",
+  "objection": "Brend va mijoz ma'lumotlari xavfsizmi? Bankning nomi ostida o'tadigan tadbirda nosozlik chiqsa, javobni men beraman.",
+  "would_change_my_mind": "Korporativ xona va turnir boshqaruvi ishlab turgani, ma'lumotlar xavfsizligi bo'yicha yozma kafolat va kamida bitta bank yoki yirik kompaniyada o'tgan sinov tajribasi haqida ma'lumot.",
+  "price_too_cheap": 500000,
+  "price_cheap": 2000000,
+  "price_expensive": 8000000,
+  "price_too_expensive": 20000000
+}

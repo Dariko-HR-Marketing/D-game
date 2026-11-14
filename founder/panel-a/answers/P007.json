@@ -1,0 +1,13 @@
+{
+  "id": "P007",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Men uchun eng muhimi o'quvchilar natijasi va hisobot, o'qituvchi paneli esa hali tayyor emas. Tayyor bo'lmagan narsaga litsenziya to'lamayman, bepul Finlit.uz bor, shuning uchun hozircha kutaman.",
+  "objection": "Bolalar ma'lumoti va to'lov xavfsizmi? Hisobot paneli bo'lmasa, o'quvchilar nima o'rganganini ko'ra olmayman, bepul muqobil esa bor.",
+  "would_change_my_mind": "Ishlaydigan o'qituvchi paneli (sinf yaratish va o'quvchilar natijasi hisoboti), bolalar ma'lumoti xavfsizligi haqida aniq yozma tushuntirish va bir oylik bepul sinov.",
+  "price_too_cheap": 200000,
+  "price_cheap": 600000,
+  "price_expensive": 1500000,
+  "price_too_expensive": 3000000
+}

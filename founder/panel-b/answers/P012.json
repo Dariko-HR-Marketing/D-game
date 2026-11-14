@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Korporativ xona va turnir boshqaruvi hali tayyor emas, men esa yillik reja va smeta bilan ishlayman, tayyor bo'lmagan narsaga pul ajratmayman. Jamoa kichikga o'xshaydi, bir yildan keyin ham qo'llab-quvvatlaydimi, bilmayman.",
+  "objection": "Jamoa kichik, uzoq muddat qo'llab-quvvatlaydimi? Xodimlarim oldida nomim chiqadigan turnir buzilib qolsa, obro'yim zarar ko'radi. Bepul Finlit.uz bor, men nega buni tanlashim kerak?",
+  "would_change_my_mind": "Korporativ xona va turnir boshqaruvi ishlab turgan holda ko'rsatilsa, boshqa kompaniya yoki bank bilan o'tkazilgan turnir natijasi va shartnomada qo'llab-quvvatlash muddati yozib berilsa.",
+  "price_too_cheap": 3000000,
+  "price_cheap": 15000000,
+  "price_expensive": 60000000,
+  "price_too_expensive": 150000000
+}

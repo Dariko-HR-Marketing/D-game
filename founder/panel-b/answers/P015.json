@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Korporativ xona va turnir boshqaruvi hali tayyor emas, narx ham yo'q. Men yillik reja va smetaga kiritilmagan narsani, compliance, IT va yuridikdan o'tkazmasdan, ishlamayotgan mahsulotga sotib olmayman.",
+  "objection": "Qancha odam qatnashadi va natija qanday o'lchanadi? Hisobot, ishtirokchilar soni va xodimlar bilimi o'sganini ko'rsatadigan raqam bo'lmasa, bepul Finlit.uz yoki jonli Cashflow seansidan nima farqi bor, ichkarida buni tushuntira olmayman.",
+  "would_change_my_mind": "Ishlayotgan korporativ xona va boshqa kompaniyada o'tgan pilot natijasi: ishtirokchilar soni, o'yin tugatish ulushi va hisobot. Shuningdek ma'lumotlar xavfsizligi va yuridik shartlar hujjati, aniq narx.",
+  "price_too_cheap": 3000000,
+  "price_cheap": 10000000,
+  "price_expensive": 40000000,
+  "price_too_expensive": 100000000
+}

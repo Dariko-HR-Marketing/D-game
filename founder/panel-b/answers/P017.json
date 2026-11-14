@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Men yillik reja va smeta bilan ishlayman, oyning o'rtasida narxi yo'q, shartnoma ko'rinishi noma'lum, korporativ xona va turnir boshqaruvi hali tayyor bo'lmagan mahsulotni sotib ololmayman. Bank ichida tasdiqdan o'tkazish uchun menga tanilgan hamkor, aniq narx va ishlaydigan boshqaruv kerak.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum, turnir boshqaruvi hali ishlab chiqilmoqda, bepul Finlit.uz bor. Rahbariyatga nima uchun bank brendini yangi, noma'lum jamoa o'yiniga bog'layotganimizni tushuntira olmayman.",
+  "would_change_my_mind": "Aniq narx va shartnoma namunasi, ishlaydigan turnir boshqaruvi bilan sinov turniri va bankka o'xshash mijozdan tavsiya.",
+  "price_too_cheap": 3000000,
+  "price_cheap": 15000000,
+  "price_expensive": 60000000,
+  "price_too_expensive": 150000000
+}

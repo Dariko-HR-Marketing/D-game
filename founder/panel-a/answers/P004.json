@@ -1,0 +1,13 @@
+{
+  "id": "P004",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "O'quvchilar telefonda o'ynashni yaxshi ko'radi, g'oya menga yoqdi, lekin o'qituvchi paneli hali tayyor emas, ya'ni sinfda ishlatadigan asosiy narsam yo'q. Litsenziyani maktab to'laydi, men esa bepul Finlit.uz bilan ishlay olaman.",
+  "objection": "Panel tayyor emas, narx noma'lum, maktabda planshet/kompyuter va internet yetarli emasligi mumkin. Direktorni pulli litsenziyaga ko'ndirish uchun avval o'zim sinab ko'rishim kerak.",
+  "would_change_my_mind": "Tayyor o'qituvchi paneli va bitta sinf bilan bepul sinov davri (namuna), keyin aniq narx.",
+  "price_too_cheap": 200000,
+  "price_cheap": 800000,
+  "price_expensive": 2500000,
+  "price_too_expensive": 5000000
+}

@@ -111,8 +111,8 @@ function Compare({ view }: { view: LiveView }) {
 
 /** Jonli tahlil ekrani: o'yin davomida hamma o'yinchi, bozor va nazariy matritsalar. Har harakatdan keyin (tick) yangilanadi. */
 export function LiveAnalytics({ http, code, tick, onClose }: { http: Http; code: string; tick: number; onClose: () => void }) {
-  const { width } = useWindowDimensions(); const [view, setView] = useState<LiveView | null>(null), [err, setErr] = useState(false), [tab, setTab] = useState<Tab>("overview"), [sel, setSel] = useState<string | null>(null);
-  const load = useCallback(() => { http.gameLive(code).then((v: LiveView) => { setView(v); setErr(false); }).catch(() => setErr(true)); }, [http, code]);
+  const { width } = useWindowDimensions(); const [view, setView] = useState<LiveView | null>(null), [err, setErr] = useState<string | null>(null), [tab, setTab] = useState<Tab>("overview"), [sel, setSel] = useState<string | null>(null);
+  const load = useCallback(() => { http.gameLive(code).then((v: LiveView) => { setView(v); setErr(null); }).catch((e: any) => setErr(e && typeof e.status === "number" ? `${e.status}${e.code ? ` ${e.code}` : ""}` : "net")); }, [http, code]);
   useEffect(() => { const h = setTimeout(load, 700); return () => clearTimeout(h); }, [load, tick]); // har harakatdan keyin (ketma-ket o'zgarishlar bitta so'rovga birlashadi)
   useEffect(() => { const i = setInterval(load, 20000); return () => clearInterval(i); }, [load]);
   useEffect(() => { const d = (globalThis as any).document; if (!d?.addEventListener) return; const k = (e: any) => { if (e.key === "Escape") onClose(); }; d.addEventListener("keydown", k); return () => d.removeEventListener("keydown", k); }, [onClose]);
@@ -129,7 +129,8 @@ export function LiveAnalytics({ http, code, tick, onClose }: { http: Http; code:
       <ScrollView tabIndex={0} role="region" aria-label={T.title} contentContainerStyle={[s.body, width >= 1500 && { maxWidth: 1360 }]}>
         <Text style={s.hint}>{T.hint}</Text>
         {!view && !err && <Text style={s.hint} accessibilityLiveRegion="polite">{T.loading}</Text>}
-        {err && !view && <View style={s.rowWrap}><Text style={[s.hint, { color: tone.bad }]}>{T.error}</Text><Pressable accessibilityRole="button" onPress={load} style={s.chip}><Text style={s.chipT}>{T.refresh}</Text></Pressable></View>}
+        {err && !view && <View style={s.rowWrap}><Text style={[s.hint, { color: tone.bad }]}>{T.error} ({err})</Text><Pressable accessibilityRole="button" onPress={load} style={s.chip}><Text style={s.chipT}>{T.refresh}</Text></Pressable></View>}
+        {view && view.meta.skipped ? <Text style={s.hint} testID="live-partial">{T.partial}</Text> : null}
         {view && view.players.length === 0 && <Text style={s.hint}>{T.empty}</Text>}
         {view && cur && (
           <View style={s.col}>

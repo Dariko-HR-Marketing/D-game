@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Korporativ xona va turnir boshqaruvi hali tayyor emas, men esa ishlamayotgan narsaga smetaga pul yozmayman. Yillik reja allaqachon tasdiqlangan, o'rtada yangi hamkor uchun joy yo'q.",
+  "objection": "Yurist va compliance kredit, foiz va depozit haqidagi o'yinni qanday ko'radi? Boshqa banklar bunday o'yinni ishlatganmi, natijasi qanday bo'lgan, men shuni bilmayman. Finlit.uz bepul, o'zimizniki kabi turibdi, buni nega pulga almashtiraman?",
+  "would_change_my_mind": "Boshqa bankda yoki yirik kompaniyada o'tgan turnir natijalari va compliance tomonidan yozma tasdiq, korporativ xona ishlaydigan holatda va narx kelasi yil smetasiga kirgizish mumkin bo'lgan qat'iy summada.",
+  "price_too_cheap": 2000000,
+  "price_cheap": 8000000,
+  "price_expensive": 30000000,
+  "price_too_expensive": 80000000
+}

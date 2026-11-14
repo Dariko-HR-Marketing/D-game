@@ -1,0 +1,13 @@
+{
+  "id": "P013",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Korporativ xona va turnir boshqaruvi hali ishlab chiqilmoqda, ya'ni men sotib olmoqchi bo'lgan narsa hozir yo'q. Bunday narsani compliance, IT va yuridik bo'limlardan o'tkazish uchun ishlaydigan mahsulot va ishonchli kompaniya kerak.",
+  "objection": "Jamoa kichik, uzoq muddat qo'llab-quvvatlaydimi? Aksiyani o'tkazaman deb, o'yin o'rtasida ishlamay qolsa yoki kompaniya yo'qolib qolsa, javobni men beraman. Bepul Finlit.uz bor, shuning uchun rahbariyatga nega pul to'laymiz deb tushuntirishim kerak.",
+  "would_change_my_mind": "Korporativ xona va turnir boshqaruvi tayyor bo'lib, boshqa bank yoki kompaniyada o'tkazilgan real turnir misoli, shartnoma bo'yicha qo'llab-quvvatlash kafolati va ma'lumotlar xavfsizligi hujjatlari ko'rsatilsa.",
+  "price_too_cheap": 2000000,
+  "price_cheap": 8000000,
+  "price_expensive": 25000000,
+  "price_too_expensive": 60000000
+}

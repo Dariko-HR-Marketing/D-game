@@ -1,0 +1,13 @@
+{
+  "id": "P016",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Korporativ xona va turnir boshqaruvi hali tayyor emas, faqat veb-versiya ishlayapti. Boshqa banklar bunday o'yin bilan ishlaganini ko'rmagunimcha, men birinchi bo'lib pul to'lamayman.",
+  "objection": "Brend va mijoz ma'lumotlari xavfsizmi? Xodimlarimiz ma'lumotlari kim qo'lida qoladi, serverlar qayerda? Yana Markaziy bankning bepul Finlit.uz platformasi bor, nega to'lashim kerak?",
+  "would_change_my_mind": "Boshqa taniqli bank yoki kompaniya bu o'yinni o'tkazgani haqida real misol, ma'lumotlar xavfsizligi bo'yicha yozma hujjat, va ishlaydigan korporativ xona bilan sinov seansi.",
+  "price_too_cheap": 2000000,
+  "price_cheap": 8000000,
+  "price_expensive": 30000000,
+  "price_too_expensive": 80000000
+}

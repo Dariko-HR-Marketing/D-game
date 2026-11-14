@@ -1,0 +1,13 @@
+{
+  "id": "P011",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Markaziy bankning bepul materiallari bor, o'qituvchi paneli esa hali tayyor emas. Yarim tayyor narsa uchun maktab nomidan to'lov so'rashga jur'at qilmayman.",
+  "objection": "Bolalar ma'lumoti, to'lov va chat xavfsizligi menga noma'lum, panel ham hali yo'q. Narx e'lon qilinmagan, direktorga nima deb tushuntiraman, bepul Finlit.uz bor-ku.",
+  "would_change_my_mind": "Tayyor o'qituvchi paneli, bolalar ma'lumoti qanday saqlanishi haqida aniq yozuv, bir oylik bepul sinov va boshqa maktabda ishlatilgani haqida tasdiq.",
+  "price_too_cheap": 300000,
+  "price_cheap": 800000,
+  "price_expensive": 2500000,
+  "price_too_expensive": 5000000
+}

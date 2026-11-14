@@ -1,0 +1,13 @@
+{
+  "id": "P018",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Kredit, depozit va foiz haqidagi o'yinni o'z brendim ostida mijozlarga taklif qilishdan oldin yurist va compliance ko'rib chiqishi kerak, bu esa oylar oladi. Korporativ xona va turnir boshqaruvi hali tayyor emas, narx ham yo'q, shuning uchun bu oy hech narsa sotib olmayman.",
+  "objection": "Yurist yoki compliance rad etmaydimi? Kredit va foiz haqidagi o'yin bizning brendimiz nomidan chiqsa, tartibga soluvchi oldida javob kim beradi? Yana: boshqaruv paneli hali yo'q, tayyor bo'lmagan narsaga pul to'lamayman.",
+  "would_change_my_mind": "Yuridik va compliance xulosasi yozma ko'rinishda (islomiy moliya rejimi ham), ishlab turgan korporativ xona/turnir boshqaruvi, hamda O'zbekistondagi biror bank yoki kompaniya o'tkazgan turnir misoli va natijalar hisoboti.",
+  "price_too_cheap": 1000000,
+  "price_cheap": 5000000,
+  "price_expensive": 25000000,
+  "price_too_expensive": 80000000
+}

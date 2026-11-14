@@ -1,0 +1,13 @@
+{
+  "id": "P006",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Korporativ xona va turnir boshqaruvi hali tayyor emas, faqat oddiy veb-versiya bor. Bankda tayyor bo'lmagan mahsulotga aksiya byudjeti ajratmayman, avval boshqa banklar o'tkazganini ko'rishim kerak.",
+  "objection": "Brend va mijoz ma'lumotlari xavfsizmi? Xodim va mijozlarimiz o'yinga kirsa, ma'lumotlar qayerda saqlanadi, kim ko'ra oladi? Bu haqda hech narsa yozilmagan, o'zi ham tayyor mahsulot yo'q.",
+  "would_change_my_mind": "Bironta boshqa bank yoki yirik kompaniya turnirni haqiqatan o'tkazgani va ma'lumotlar xavfsizligi bo'yicha yozma kafolat, ishlaydigan korporativ xona namunasi.",
+  "price_too_cheap": 1000000,
+  "price_cheap": 5000000,
+  "price_expensive": 20000000,
+  "price_too_expensive": 50000000
+}

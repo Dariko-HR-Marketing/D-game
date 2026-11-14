@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Men yillik reja va smetadan tashqariga chiqmayman, bu yil uchun bunday band yo'q. Korporativ xona va turnir boshqaruvi hali tayyor emas, tayyor bo'lmagan narsaga byudjet ajratmayman.",
+  "objection": "Qancha xodim qatnashadi va natija qanday o'lchanadi? Hisobot yo'q bo'lsa, rahbariyatga bu xarajatni asoslay olmayman. Finlit.uz kabi bepul variantlar ham bor.",
+  "would_change_my_mind": "Ishlaydigan korporativ xona, qatnashchilar bo'yicha natija hisoboti va boshqa bankda o'tkazilgan sinov natijasi, shuningdek keyingi yil smetasiga kiritish uchun aniq narx.",
+  "price_too_cheap": 1000000,
+  "price_cheap": 5000000,
+  "price_expensive": 15000000,
+  "price_too_expensive": 40000000
+}

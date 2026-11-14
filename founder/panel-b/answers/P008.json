@@ -1,0 +1,13 @@
+{
+  "id": "P008",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Brendli turnir g'oyasi menga yoqadi, lekin korporativ xona va turnir boshqaruvi hali tayyor emas, narx ham yo'q. Yillik reja va smetada bunga joy yo'q, tayyor bo'lmagan narsaga pul yozolmayman.",
+  "objection": "Markaziy bankning o'z bepul platformasi bor, bank nega qo'shimcha o'yinga pul to'laydi? Ichki rahbariyatga buni asoslash qiyin, mijozlar o'ynashini ham hech kim kafolatlamaydi.",
+  "would_change_my_mind": "Ishlaydigan turnir boshqaruvi, boshqa bankda o'tgan haqiqiy turnirdan natijalar (ishtirokchilar soni, qaytib kelganlar) va aniq narx. Shunda keyingi yilgi smetaga kiritaman.",
+  "price_too_cheap": 3000000,
+  "price_cheap": 10000000,
+  "price_expensive": 30000000,
+  "price_too_expensive": 70000000
+}

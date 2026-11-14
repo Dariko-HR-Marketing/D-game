@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "timing",
+  "reason": "Menga sinf uchun kerak, lekin o'qituvchi paneli hali tayyor emas, ya'ni sinfni yaratib, o'quvchilar natijasini ko'ra olmayman. Litsenziyani men o'zim to'lamayman, maktab byudjeti kerak, tayyor bo'lmagan narsaga direktordan pul so'rab bo'lmaydi.",
+  "objection": "Asosiy qismi, ya'ni o'qituvchi paneli yo'q. Bepul Finlit.uz bor, direktorga nega pulli narsa kerakligini tushuntira olmayman.",
+  "would_change_my_mind": "Panel ishlab turishini o'z ko'zim bilan ko'rsam, narx e'lon qilinsa va bepul muqobillardan nimasi yaxshiligini darsda sinab ko'rsam, direktorga taklif yozaman.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 3000000,
+  "price_too_expensive": 6000000
+}

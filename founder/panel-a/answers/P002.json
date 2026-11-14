@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Men bepul narsaga o'rganganman: Finlit.uz va Moliya olami bor, ular davlat materiali va ishonchli. O'qituvchi paneli hali tayyor emas, maktabimda internet sekin, shuning uchun pul to'lashga asos ko'rmayapman.",
+  "objection": "Dars soatiga sig'adimi? O'yin bir necha soat davom etadi, bizda esa dars qisqa, internet sekin va qurilmalar kam. Panel ham hali yo'q, litsenziyaga pulni nimaga beraman?",
+  "would_change_my_mind": "Bir dars soatida (45 daqiqa) tugaydigan qisqa rejim, sekin internetda ishlashi sinab ko'rilgani va tayyor o'qituvchi paneli; birinchi yil bepul sinov yoki maktab direktori/Markaziy bank tavsiyasi bo'lsa.",
+  "price_too_cheap": 200000,
+  "price_cheap": 500000,
+  "price_expensive": 1500000,
+  "price_too_expensive": 3000000
+}

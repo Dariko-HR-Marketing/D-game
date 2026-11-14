@@ -1,0 +1,13 @@
+{
+  "id": "P018",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Men o'zim sotib ola olmayman: tuman bo'limi yoki vazirlik ruxsat bermaguncha yangi dasturni darsga kiritmayman, direktor ham ruxsatsiz pul to'lamaydi. O'qituvchi paneli hali tayyor emas, Finlit.uz esa bepul va Markaziy bankdan.",
+  "objection": "Bir o'yin bir necha soat davom etadi, dars soatiga sig'maydi. Ustiga o'qituvchi paneli hali yo'q va rasmiy tasdig'i yo'q dasturni maktabga kiritolmayman.",
+  "would_change_my_mind": "Vazirlik yoki tuman ta'lim bo'limining rasmiy ruxsati yoki tavsiyasi, dars soatiga (45 daqiqa) sig'adigan qisqa variant va ishlaydigan o'qituvchi paneli.",
+  "price_too_cheap": 300000,
+  "price_cheap": 1000000,
+  "price_expensive": 4000000,
+  "price_too_expensive": 10000000
+}

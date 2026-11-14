@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Turnir va korporativ xona boshqaruvi hali ishlab chiqilmoqda, narx ham, shartnoma ham yo'q. Mijozlarim oldida sinalmagan mahsulotni men o'z nomimdan chiqara olmayman, men tanilgan agentlik yoki mahalliy hamkor bilan ishlayman.",
+  "objection": "Narx va shartnoma ko'rinishi noma'lum, asosiy qismi (turnir va korporativ xona) hali tayyor emas. Kim javob beradi, nosozlik bo'lsa kim hal qiladi, noma'lum.",
+  "would_change_my_mind": "Tayyor ishlayotgan korporativ xona, yozma narx va shartnoma, shuningdek mening sohamdagi biror tanilgan bank yoki kompaniya bilan o'tkazilgan turnirning real natijasi.",
+  "price_too_cheap": 3000000,
+  "price_cheap": 10000000,
+  "price_expensive": 40000000,
+  "price_too_expensive": 100000000
+}

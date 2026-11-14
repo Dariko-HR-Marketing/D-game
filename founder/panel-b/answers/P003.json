@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Turnir va korporativ xona boshqaruvi hali tayyor emas, ya'ni men sotib oladigan narsaning o'zi hali yo'q. Birinchi o'tkazadigan tadbirim bilan tajriba o'tkazmayman, filialda bu xavfli.",
+  "objection": "Qancha odam qatnashadi va qanday natija o'lchanadi? Hisobot, ishtirokchilar soni, mijoz bazasiga aloqa yo'q bo'lsa, rahbariyatga va compliance bo'limiga nima deb asoslayman? Bepul muqobillar (Finlit.uz, jonli Cashflow) ham bor.",
+  "would_change_my_mind": "Ishlaydigan turnir paneli, ishtirokchilar bo'yicha hisobot va boshqa bankda yoki kompaniyada o'tgan tadbirning real natijalari, hamda compliance va yuridik bo'lim ko'rib chiqishi uchun tayyor hujjat.",
+  "price_too_cheap": 2000000,
+  "price_cheap": 8000000,
+  "price_expensive": 30000000,
+  "price_too_expensive": 70000000
+}

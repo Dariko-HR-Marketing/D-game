@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Markaziy bankning o'z bepul platformalari bor, bosh ofis shunga qarab yuradi. Filial boshlig'i sifatida men yangi o'yinni o'zimcha olib, boshqa banklar ishlatganini ko'rmasdan javob bera olmayman.",
+  "objection": "Korporativ xona va turnir boshqaruvi hali tayyor emas, faqat oddiy veb-versiya ishlayapti. Markaziy bankning Finlit.uz va Moliya olami bepul turganda, bank nega qo'shimcha o'yin uchun pul to'lashi kerak? Boshqa qaysi bank buni ishlatgan, bilmayman.",
+  "would_change_my_mind": "Boshqa yirik bank turnirni o'tkazib, natijasini ko'rsatsa, korporativ xona ishlab turgan bo'lsa va bosh ofis yoki Markaziy bank tomonidan tasdiq bo'lsa.",
+  "price_too_cheap": 1000000,
+  "price_cheap": 5000000,
+  "price_expensive": 20000000,
+  "price_too_expensive": 50000000
+}
