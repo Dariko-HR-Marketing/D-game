@@ -44,10 +44,11 @@ describe("o'zaro qarz", () => {
     s = must(run(s, { type: "loan_repay", playerId: "p0", debtId: id, amount: 300 }));
     expect(P(s, "p0").handDebts).toHaveLength(0);
   });
-  it("5 dan kam odam, beruvchi 20 %, botlar — rad", () => {
+  it("5 dan kam odam, beruvchi 30 %, botlar — rad", () => {
     expect(run(prep(mk(4)), { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 })).toEqual({ ok: false, error: "5 dan kam o'yinchi" });
     const s = prep(mk(5)); P(s, "p1").cash = 1000;
-    expect(run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 201, months: 12 }).ok).toBe(false);
+    expect(run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 301, months: 12 }).ok).toBe(false);
+    expect(run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 300, months: 12 }).ok).toBe(true); // aynan 30 % ruxsat
     // 5 ta o'yinchi, lekin 1 bot → odamlar 4 ta
     expect(run(prep(mk(5, ["p4"])), { type: "loan_request", playerId: "p0", giverId: "p1", amount: 100, months: 12 }).ok).toBe(false);
     expect(run(prep(mk(6, ["p4"])), { type: "loan_request", playerId: "p0", giverId: "p4", amount: 100, months: 12 })).toEqual({ ok: false, error: "bot" });
@@ -57,6 +58,44 @@ describe("o'zaro qarz", () => {
     Object.assign(p, { cash: 5_000_000, salary: 0, baseExpenses: 0, assets: [{ kind: "business", code: "X", price: 1, monthlyIncome: 30_000, creditPayment: 0, credit: 0 }], handDebts: [{ id: 9, to: "p1", amount: 10, months: 5 }] });
     for (let seed = 1; seed < 200; seed++) { const t = structuredClone(s); t.rngState = seed;
       const r = run(t, { type: "roll", playerId: "p0" }); if (r.ok && !r.state.pending) { expect(P(r.state, "p0").circle).toBe("small"); return; } }
+  });
+});
+
+describe("o'zaro qarz: 3 guvoh (witnessLoans)", () => {
+  const mkw = (n = 6, bots: string[] = [], restricted: string[] = []) => {
+    const s = newGame(ctx, Array.from({ length: n }, (_, i) => `p${i}`), 1, bots, restricted, { witnessLoans: true });
+    P(s, "p0").cash = 1000; P(s, "p0").salary = 1000; P(s, "p1").cash = 100_000; return s;
+  };
+  const req = (s: GameState, witnesses?: string[]) => run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12, witnesses });
+  it("oluvchi 3 ta boshqa-boshqa guvohni tanlamasa — rad", () => {
+    const s = mkw();
+    expect(req(s)).toEqual({ ok: false, error: "bad_witnesses" });
+    expect(req(s, ["p2", "p3"])).toEqual({ ok: false, error: "bad_witnesses" });
+    expect(req(s, ["p2", "p2", "p3"])).toEqual({ ok: false, error: "bad_witnesses" });
+    expect(req(s, ["p0", "p2", "p3"])).toEqual({ ok: false, error: "bad_witnesses" }); // o'zi
+    expect(req(s, ["p1", "p2", "p3"])).toEqual({ ok: false, error: "bad_witnesses" }); // beruvchi
+    expect(req(s, ["p2", "p3", "zzz"])).toEqual({ ok: false, error: "bad_witnesses" });
+    expect(req(mkw(7, ["p6"]), ["p2", "p3", "p6"])).toEqual({ ok: false, error: "bad_witnesses" }); // bot guvoh bo'lmaydi
+    expect(req(mkw(6, [], ["p5"]), ["p2", "p3", "p5"])).toEqual({ ok: false, error: "bad_witnesses" }); // 16 yoshgacha guvoh bo'lmaydi
+  });
+  it("guvohlar xabardor bo'lmaguncha beruvchi qabul qila olmaydi; hammasi xabardor bo'lgach qarz beriladi (rad etish shart emas)", () => {
+    let s = must(req(mkw(), ["p2", "p3", "p4"]));
+    const id = s.proposals[0].id;
+    expect(run(s, { type: "loan_accept", playerId: "p1", proposalId: id })).toEqual({ ok: false, error: "witnesses_pending" });
+    expect(run(s, { type: "loan_witness", playerId: "p5", proposalId: id })).toEqual({ ok: false, error: "not_witness" }); // tanlanmagan
+    s = must(run(s, { type: "loan_witness", playerId: "p2", proposalId: id }));
+    expect(run(s, { type: "loan_witness", playerId: "p2", proposalId: id })).toEqual({ ok: false, error: "already_confirmed" });
+    s = must(run(s, { type: "loan_witness", playerId: "p3", proposalId: id }));
+    expect(run(s, { type: "loan_accept", playerId: "p1", proposalId: id })).toEqual({ ok: false, error: "witnesses_pending" }); // 2 / 3
+    s = must(run(s, { type: "loan_witness", playerId: "p4", proposalId: id }));
+    s = must(run(s, { type: "loan_accept", playerId: "p1", proposalId: id }));
+    expect(P(s, "p0").cash).toBe(1500); expect(P(s, "p0").handDebts).toHaveLength(1);
+  });
+  it("beruvchi guvohlar xabardor bo'lmasdan ham rad eta oladi; eski o'yinlar (witnessLoans yo'q) guvohsiz ishlaydi", () => {
+    const s = must(req(mkw(), ["p2", "p3", "p4"]));
+    expect(run(s, { type: "loan_decline", playerId: "p1", proposalId: s.proposals[0].id }).ok).toBe(true);
+    const old = mk(5); P(old, "p0").cash = 1000; P(old, "p0").salary = 1000; P(old, "p1").cash = 100_000;
+    expect(run(old, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 }).ok).toBe(true);
   });
 });
 

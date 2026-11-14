@@ -67,9 +67,9 @@ describe("§5.6 o'zaro qarz", () => {
   it("limit (maosh+passiv)×50%×36", () => expect(R.mutualLoanLimit(100, 100)).toBe(3600));
   it("ruxsat", () => expect(R.checkMutualLoan(p).ok).toBe(true));
   it("5 dan kam", () => expect(R.checkMutualLoan({ ...p, players: 4 }).ok).toBe(false));
-  it("beruvchi 20 %", () => {
-    expect(R.checkMutualLoan({ ...p, amount: 200 }).ok).toBe(true);
-    expect(R.checkMutualLoan({ ...p, amount: 201 }).ok).toBe(false);
+  it("beruvchi 30 %", () => {
+    expect(R.checkMutualLoan({ ...p, amount: 300 }).ok).toBe(true);
+    expect(R.checkMutualLoan({ ...p, amount: 301 }).ok).toBe(false);
   });
   it("36 oydan oshmaydi", () => expect(R.checkMutualLoan({ ...p, months: 37 }).ok).toBe(false));
   it("oluvchi limiti", () => expect(R.checkMutualLoan({ ...p, giverCash: 1e9, amount: 3601 }).ok).toBe(false));

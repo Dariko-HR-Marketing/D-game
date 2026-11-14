@@ -5,7 +5,7 @@ import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, MIN_TAP } from "../theme";
-import { nameOf, bankRoom, pledgeableAssets, sellableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
+import { nameOf, bankRoom, pledgeableAssets, sellableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, loanWitnessOptions, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
 import type { RoomView } from "../net/connection";
 
 const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -21,7 +21,7 @@ const Num = ({ value, onChange, label }: { value: string; onChange: (v: string) 
 
 export function Actions({ room, userId, onAct }: { room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void }) {
   const p = me(room, userId); const st = room.state;
-  const [bank, setBank] = useState(""); const [giver, setGiver] = useState(""); const [loanAmt, setLoanAmt] = useState(""); const [months, setMonths] = useState("12");
+  const [bank, setBank] = useState(""); const [giver, setGiver] = useState(""); const [wit, setWit] = useState<string[]>(["", "", ""]); const [loanAmt, setLoanAmt] = useState(""); const [months, setMonths] = useState("12");
   const [listPct, setListPct] = useState(50);
   const [partner, setPartner] = useState(""); const [sAmt, setSAmt] = useState("100"); const [sellIdx, setSellIdx] = useState<number | null>(null);
   if (!p || st.winner) return null;
@@ -47,11 +47,16 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
           <Button label={`${uz.coop.give} ${money(Number(sAmt))}`} onPress={() => onAct({ type: "suyunchi", proposalId: x.id, amount: Number(sAmt) })} />
         </Box>))}
 
+      {pr.loansToWitness.map((x: any) => (
+        <Box key={`w${x.id}`} title={uz.coop.witnessTitle.replace("{a}", nameOf(room, x.receiver)).replace("{b}", nameOf(room, x.giver)) + ` — ${money(x.amount)} · ${x.months} ${uz.coop.months.toLowerCase()}`}>
+          <Text style={s.note}>{uz.coop.witnessAsk}</Text>
+          <Button label={uz.coop.witnessYes} onPress={() => onAct({ type: "loan_witness", proposalId: x.id })} /></Box>))}
       {pr.loansToAccept.map((x: any) => (
         <Box key={x.id} title={`${uz.coop.loan}: ${nameOf(room, x.receiver)} ${uz.coop.loanReq} — ${money(x.amount)} · ${x.months} ${uz.coop.months.toLowerCase()}`}>
+          {x.witnesses && (x.confirmed ?? []).length < x.witnesses.length && <Text style={s.note} accessibilityRole="alert">{uz.coop.witnessWait.replace("{n}", String((x.confirmed ?? []).length)).replace("{m}", String(x.witnesses.length))}</Text>}
           {p.cash < x.amount && <Text style={s.note} accessibilityRole="alert">{uz.coop.needCashLoan.replace("{n}", money(x.amount))}</Text>}
           <View style={s.btns}>
-            <View style={s.btn}><Button label={uz.coop.accept} disabled={p.cash < x.amount} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></View>
+            <View style={s.btn}><Button label={uz.coop.accept} disabled={p.cash < x.amount || (!!x.witnesses && (x.confirmed ?? []).length < x.witnesses.length)} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /></View>
             <View style={s.btn}><Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "loan_decline", proposalId: x.id })} /></View>
           </View></Box>))}
       {pr.partnerToAccept.map((x: any) => (
@@ -109,12 +114,14 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
       {p.circle === "small" && gv.length > 0 && (
         <Box title={uz.coop.loan}>
           {!loanBounds(room, userId, gv[0]).enough ? <Text style={s.note}>{uz.coop.fewPlayers}</Text> : (<>
-            <Pick label={uz.coop.giver} options={gv} value={giver} onChange={setGiver} names={(id) => nameOf(room, id)} />
+            <Pick label={uz.coop.giver} options={gv} value={giver} onChange={(v: string) => { setGiver(v); setWit(["", "", ""]); }} names={(id) => nameOf(room, id)} />
             {bounds && <Text style={s.note}>{uz.coop.max}: {money(bounds.max)}</Text>}
             <Num label={uz.coop.amount} value={loanAmt} onChange={setLoanAmt} />
             <Num label={uz.coop.months} value={months} onChange={setMonths} />
-            <Button label={uz.coop.loanAsk} kind="ghost" disabled={!giver || !loanAmt || !months || Number(loanAmt) > (bounds?.max ?? 0) || Number(months) > 36}
-              onPress={() => { onAct({ type: "loan_request", giverId: giver, amount: Number(loanAmt), months: Number(months) }); setLoanAmt(""); }} /></>)}
+            {giver !== "" && !!room.state.witnessLoans && [0, 1, 2].map((i) => (
+              <Pick key={`wp${i}`} label={uz.coop.witnessPick.replace("{n}", String(i + 1))} options={loanWitnessOptions(room, userId, giver).filter((id) => !wit.some((w, j) => j !== i && w === id))} value={wit[i] ?? ""} onChange={(v: string) => setWit((w) => w.map((x, j) => (j === i ? v : x)))} names={(id) => nameOf(room, id)} />))}
+            <Button label={uz.coop.loanAsk} kind="ghost" disabled={!giver || !loanAmt || !months || Number(loanAmt) > (bounds?.max ?? 0) || Number(months) > 36 || (!!room.state.witnessLoans && wit.some((w) => !w))}
+              onPress={() => { onAct({ type: "loan_request", giverId: giver, amount: Number(loanAmt), months: Number(months), ...(room.state.witnessLoans ? { witnesses: wit } : {}) }); setLoanAmt(""); setWit(["", "", ""]); }} /></>)}
         </Box>)}
 
       {(() => {

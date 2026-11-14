@@ -29,7 +29,8 @@ export const RULES = {
   suyunchiMax: 500,
   suyunchiStep: 10,
   mutualMinPlayers: 5,
-  mutualGiverCashShare: 0.2,
+  loanWitnesses: 3,             // o'zaro qarz: 3 guvoh hammasi tasdiqlashi shart (2026-11-14, buyurtmachi)
+  mutualGiverCashShare: 0.3, // 2026-11-14 (buyurtmachi): beruvchi naqdining ≤ 30 % (oldin 20 %)
   mutualLimitShare: 0.5,
   mutualMaxMonths: 36,
   partnerDividendMonths: 24,
@@ -154,7 +155,7 @@ export function checkMutualLoan(p: {
   receiverExistingMutualDebt?: number;
 }): { ok: true } | { ok: false; reason: string } {
   if (p.players < RULES.mutualMinPlayers) return { ok: false, reason: "5 dan kam o'yinchi" };
-  if (p.amount > p.giverCash * RULES.mutualGiverCashShare) return { ok: false, reason: "beruvchi naqdining 20 % idan oshdi" };
+  if (p.amount > p.giverCash * RULES.mutualGiverCashShare) return { ok: false, reason: "beruvchi naqdining 30 % idan oshdi" };
   if (p.months > RULES.mutualMaxMonths) return { ok: false, reason: "36 oydan oshdi" };
   const limit = mutualLoanLimit(p.receiverSalary, p.receiverPassive);
   if (p.amount + (p.receiverExistingMutualDebt ?? 0) > limit) return { ok: false, reason: "oluvchi limitidan oshdi" };
