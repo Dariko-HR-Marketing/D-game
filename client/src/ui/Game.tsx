@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { layoutOf } from "../layout";
 import { chatText } from "../chatText";
 import { lazyNamed, LaterOverlay } from "../lazy";
-const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), AuctionLayer = lazyNamed(() => import("./AuctionLayer"), "AuctionLayer"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
+const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), LiveAnalytics = lazyNamed(() => import("./LiveAnalytics"), "LiveAnalytics"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), AuctionLayer = lazyNamed(() => import("./AuctionLayer"), "AuctionLayer"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
 import { getMuted } from "../chatMute";
 import { VoicePanel, useVoice } from "./VoicePanel";
 import type { VoiceEngine } from "../voice/engine";
@@ -87,7 +87,7 @@ function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; labe
 }
 
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
-  const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [liveOpen, setLiveOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
   useEffect(() => { if (chatOpen) setSeenChat(lastChat); }, [chatOpen, lastChat]);
@@ -248,6 +248,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
         <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
         {http && <HBtn ui={ui} icon="clock" label={uz.history.title} text={uz.history.open} onPress={() => setHistoryOpen(true)} tid="history-open" />}
+        {http && <HBtn ui={ui} icon="people" label={uz.live.title} text={uz.live.open} onPress={() => setLiveOpen(true)} tid="live-open" />}
       </Seg>
       <Seg ui={ui} label={uz.hud.group.talk}>
         {onChat && <HBtn ui={ui} icon="chat" label={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} text={uz.chat.title} onPress={() => setChatOpen(true)} tid="chat-open">{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</HBtn>}
@@ -267,7 +268,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} /><BirthLayer room={room} userId={userId} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
-      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
+      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
       {header}
       <View style={s.shell}>
         {card && mineTurn && mine && !deckPick ? (
@@ -307,7 +308,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} /><BirthLayer room={room} userId={userId} />
       {portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
-      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}
+      {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
       {header}
       <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetOpen && { paddingBottom: 420 }]}>
         {banners}
