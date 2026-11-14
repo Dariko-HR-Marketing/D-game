@@ -11,7 +11,7 @@ import { CardPaper } from "./CardPaper";
 import { headOf, deckKey } from "./cardLook";
 import { cardFacts } from "../cardFacts";
 import { exitProgress } from "../model";
-import { crisisAdjusted, slotBlocked, slotKey, SLOT_LIMITS } from "@poyga/rules";
+import { crisisAdjusted, slotBlocked, slotKey, SLOT_LIMITS } from "@tajriba24/rules";
 import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, radius, space, tone } from "../theme";

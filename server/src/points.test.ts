@@ -1,4 +1,4 @@
-// Ball tizimi — «POYGA o'yin qo'llanmasi» §15.
+// Ball tizimi — «Tajriba 24 o'yin qo'llanmasi» §15.
 import { describe, it, expect } from "vitest";
 import { gamePoints, POINTS, type ResultPlayer } from "./profiles";
 import { buildApp } from "./app";

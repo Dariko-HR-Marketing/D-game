@@ -1,6 +1,6 @@
 // Admin ma'lumotlari va kontent versiyalarini saqlash. Yozuvlar ketma-ket (tartibni saqlab) bajariladi.
 import type { Pool } from "pg";
-import type { Bundle } from "@poyga/content";
+import type { Bundle } from "@tajriba24/content";
 import type { AuditEntry, Complaint } from "./admin";
 import type { VersionInfo } from "./registry";
 import type { GameResult, Profile, ProfilePersist } from "./profiles";

@@ -1,6 +1,6 @@
 // Ball, XP/daraja va liga (platforma fayli: «Ball», «Tajriba darajasi», «Ligalar»). Hammasi o'yin natijalaridan hisoblanadi (alohida holat saqlanmaydi).
 // Ballni sotib olib, o'tkazib yoki pulga almashtirib bo'lmaydi. Malaka va Akademiya keyingi bosqich (dars matnlari kerak).
-import { POINTS, BALL, XP, LEAGUES } from "@poyga/rules";
+import { POINTS, BALL, XP, LEAGUES } from "@tajriba24/rules";
 import type { GameResult, ResultPlayer } from "./profiles";
 
 export { BALL, XP, LEAGUES };

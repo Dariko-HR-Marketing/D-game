@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
-import { currentPlayer, effectOf } from "@poyga/rules";
+import { currentPlayer, effectOf } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
 import { autoProfiles } from "./_seed";
 
@@ -16,7 +16,7 @@ autoProfiles(x, b);
 const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", acceptDownloads: true }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", acceptDownloads: true }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ha" + tag), c = await mk("hb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
@@ -39,7 +39,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("history-all").click(); await a.waitForTimeout(300);
   const all = await a.getByTestId("history-row").count(); check(all >= rows, `${tag} «Hammasi» filtri: ${all} >= ${rows}`);
   const [dl] = await Promise.all([a.waitForEvent("download", { timeout: 8000 }), a.getByTestId("history-csv").click()]);
-  check(dl.suggestedFilename() === `poyga-${code}.csv`, `${tag} CSV yuklanadi: ${dl.suggestedFilename()}`);
+  check(dl.suggestedFilename() === `tajriba24-${code}.csv`, `${tag} CSV yuklanadi: ${dl.suggestedFilename()}`);
   await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ") " + v.nodes.map((n) => n.target.join(" ") + " :: " + n.html.slice(0, 160)).join(" | ")))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);
   await a.keyboard.press("Escape"); await a.waitForTimeout(300); check((await a.getByTestId("history-detail").count()) === 0, `${tag} Esc bilan yopiladi`);
   await a.context().close(); await c.context().close();

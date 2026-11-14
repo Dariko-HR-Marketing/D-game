@@ -38,4 +38,4 @@
 ## Hali yo'q
 - Google/Apple **mijoz tomoni** (tugmalar): `expo-auth-session` / Apple Sign In uchun provayder konsolida ilova yaratilib client ID'lar olinishi kerak. Server tayyor, mijozga faqat `idToken` olib `/auth/google` ga yuborish qoladi.
 - Sessiyani bekor qilish ro'yxati (hozircha `AUTH_SECRET` almashtirish hamma sessiyani bekor qiladi).
-- Telefon raqami egaligi uchun SMS xarajati/spam monitoringi: `poyga_rate_limited_total{scope="auth"}` ko'rsatkichi bor.
+- Telefon raqami egaligi uchun SMS xarajati/spam monitoringi: `tajriba24_rate_limited_total{scope="auth"}` ko'rsatkichi bor.

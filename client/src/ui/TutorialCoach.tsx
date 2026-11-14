@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { Button } from "./Button";
 import { Banner } from "./kit";
 import { coachStep, COACH_ORDER } from "../coach";
-import { MODES } from "@poyga/rules";
+import { MODES } from "@tajriba24/rules";
 import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { space } from "../theme";

@@ -56,7 +56,7 @@ Batafsil dalillar: `docs/audit/` (A1 qo'llanma lotin, A2 qo'llanma kirill, B TZ+
 | B14 | Hisob varag'i | kasb kartasidagi 9 satr nomi aniqlandi | **Tuzatildi.** «Uy ijarasi» va «O'qish xarajatlari» kartada yo'q — bo'sh qatorlar. «Yana pullar» ustuni dvigatelda yo'q. | ✔ |
 
 ## 4. Yetishmaydigan materiallar
-- `poyga-platforma-tuzilmasi.xlsx` (rollar, ruxsatlar, ball katalogi, qiymatlar) va `donishmand-ota-kartalar.xlsx` (7 almashtirilgan karta, balans) — yagona spetsifikatsiya havola qiladi, yuklanmagan.
+- `tajriba24-platforma-tuzilmasi.xlsx` (rollar, ruxsatlar, ball katalogi, qiymatlar) va `donishmand-ota-kartalar.xlsx` (7 almashtirilgan karta, balans) — yagona spetsifikatsiya havola qiladi, yuklanmagan.
 - Lotin qo'llanma jadvalida 4 biznes ko'rinmaydi (Ofis mebeli, kiyim tikish, UzDigital TV, gaz quyish) — asl HTML bilan tasdiqlash.
 - «Zotdor sigirlar fermasi» (150 000, +120 000/oy, qoplanish 1,25 oy) — 8× chetlanish: asl doska bilan tasdiqlansin.
 - 6 ta yangi karta rasmi; «Reklama agenti» rasmi endi bor (yopildi).

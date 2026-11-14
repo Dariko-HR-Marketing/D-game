@@ -1,6 +1,6 @@
 import { buildHistory, type History } from "./history";
 // O'yin tahlili va karta statistikasi: jurnaldan qayta o'ynab hisoblanadi (§5.9, §12).
-import { analyzeGame, buildReport, type Action, type Analysis, type GameReport, type GameState, type PlayerReport } from "@poyga/rules";
+import { analyzeGame, buildReport, type Action, type Analysis, type GameReport, type GameState, type PlayerReport } from "@tajriba24/rules";
 import type { ContentRegistry } from "./registry";
 import type { Store } from "./store";
 import type { WriteQueue } from "./persist";

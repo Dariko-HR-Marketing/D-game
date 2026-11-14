@@ -4,7 +4,7 @@
 
 Tayyorlangan sana: 2026-10-21. Repo faqat o'qildi, kod o'zgartirilmadi.
 
-Qisqartmalar: **TZ** = `txt/cd143a36-TZ.txt` (24 bet, sarlavhasi "Oct 14, 2026"); **ARX** = `txt/41c31c19-Oyin_arxitekturasi.txt` (8 bet, "Oct 14, 2026"); **YaS** = `txt/POYGA___oyin_tuzilmasi_yagona_spetsifikatsiya_1.txt` (163 qator, "Oct 9, 2026"; havolalar — bo'lim nomi va txt qatori); **SPEC** = `docs/SPEC.md`; **CLAUDE** = `CLAUDE.md`; **OQ** = `docs/OPEN_QUESTIONS.md`.
+Qisqartmalar: **TZ** = `txt/cd143a36-TZ.txt` (24 bet, sarlavhasi "Oct 14, 2026"); **ARX** = `txt/41c31c19-Oyin_arxitekturasi.txt` (8 bet, "Oct 14, 2026"); **YaS** = `txt/Tajriba24___oyin_tuzilmasi_yagona_spetsifikatsiya_1.txt` (163 qator, "Oct 9, 2026"; havolalar — bo'lim nomi va txt qatori); **SPEC** = `docs/SPEC.md`; **CLAUDE** = `CLAUDE.md`; **OQ** = `docs/OPEN_QUESTIONS.md`.
 
 ---
 
@@ -17,7 +17,7 @@ Qisqartmalar: **TZ** = `txt/cd143a36-TZ.txt` (24 bet, sarlavhasi "Oct 14, 2026")
 | YaS | 163 qator to'liq | 8 rejim, ta'lim modullari, 10 rol, 6 malaka, ball/XP/liga, "hamma yosh uchun", yo'l xaritasi. Chiqish: `.docx`, Claude Docs hujjati, **revision 14** (docProps/core.xml) |
 | Mavjud tizim | SPEC (to'liq, A–D ilovalardan tashqari), CLAUDE, OQ (#1–#128), `rules/src/index.ts`, `game.ts`, `effects.ts`, `server/src/{rooms,auth,profiles,admin,commerce}.ts`, `content/data/*.json`, `client/src/i18n/uz.ts` | Kodga havolalar fayl:satr ko'rinishida |
 
-**Yetishmaydigan qo'shimcha fayllar (YaS tilga oladi, yuklanmagan):** `poyga-platforma-tuzilmasi.xlsx` (18 varaq: ruxsatlar, ball katalogi, ta'lim kontenti), `donishmand-ota-kartalar.xlsx` (11 varaq, balans bilan), "Daraja, malaka va ball tizimi", "Texnik arxitektura", "Tashkiliy tuzilma" hujjatlari. YaS-dagi ko'p qoida (14 amal ruxsatlari, 7 almashtirilgan karta, 6 mukofot narxi) faqat shu fayllarda — hozir tekshirib bo'lmaydi.
+**Yetishmaydigan qo'shimcha fayllar (YaS tilga oladi, yuklanmagan):** `tajriba24-platforma-tuzilmasi.xlsx` (18 varaq: ruxsatlar, ball katalogi, ta'lim kontenti), `donishmand-ota-kartalar.xlsx` (11 varaq, balans bilan), "Daraja, malaka va ball tizimi", "Texnik arxitektura", "Tashkiliy tuzilma" hujjatlari. YaS-dagi ko'p qoida (14 amal ruxsatlari, 7 almashtirilgan karta, 6 mukofot narxi) faqat shu fayllarda — hozir tekshirib bo'lmaydi.
 
 ---
 
@@ -61,7 +61,7 @@ Qisqartmalar: **TZ** = `txt/cd143a36-TZ.txt` (24 bet, sarlavhasi "Oct 14, 2026")
 | I-20 | Maydon va kubik | Kichik 1 kubik, katta 2 kubik (glossariy, FR-301) | "1 yoki 2 kubik" (3-bet) | Maydon 1400×700, markazda logotip o'rnida karta ochiladi; telefonda kvadrat; kichik 1, katta 2 kubik (154–163-qator). TZ FR-303: "karta darhol ochiladi (oraliq ekransiz)" | past |
 | I-21 | Mutaxassis ma'lumotlari | O'zaro qarz limiti: FR-802 "umumiy daromad × 50% × 36" va 8.1 "(maosh+passiv) × 50% × 36" (ikki xil yozilgan) | "umumiy daromad × 50% × 36" | — | past |
 | I-22 | TZ ekranlar jadvali | "6 planshet" deyiladi, lekin planshet ustunida T2, T3, T5, T6, T7 va **"D4"** (T4 emas) ko'rsatilgan (14-bet, PDFda tasdiqlandi); "43 mobil, 6 planshet, 7 kompyuter" (1-bet) | "N01–N43, T2–T7, D1–D7" (8-bet) | — | past |
-| I-23 | Brend/nom | "D-game brendi, DARIKO ekotizimi" (1-bet) | — | "POYGA (Donishmand ota)"; "POYGA" va "Donishmand ota" tovar belgisi; mualliflik — og'zaki ruxsat (4, 116-qator). D-game/DARIKO tilga olinmaydi | past |
+| I-23 | Brend/nom | "D-game brendi, DARIKO ekotizimi" (1-bet) | — | "Tajriba 24 (Donishmand ota)"; "Tajriba 24" va "Donishmand ota" tovar belgisi; mualliflik — og'zaki ruxsat (4, 116-qator). D-game/DARIKO tilga olinmaydi | past |
 | I-24 | O'quv o'yini ballari | — | — | O'quv o'yini (bot "Ustoz") oxirida **50 ball** (48-qator) **va** "Bot bilan o'yin uchun ball berilmaydi" (107-qator) — o'zi bilan zid | o'rta |
 | I-25 | Kubik "oldindan belgilangan" | TZ NFR: kubikni oldindan bilish — xavfsizlik testida o'tmasligi kerak (13-bo'lim, 23-bet) | "tasodifiy sonlar faqat serverda" (7-bet) | O'quv o'yinida "kubik natijalari oldindan belgilangan" (48-qator) | past (server stsenariy rejimi sifatida hal qilinadi) |
 

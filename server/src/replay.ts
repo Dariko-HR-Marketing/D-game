@@ -1,5 +1,5 @@
 // O'yin jurnalini qadam-baqadam qayta o'ynash (admin tekshiruvi): har qadamdan keyingi holatning qisqa ko'rinishi.
-import { chooseDream, newGame, playerCashflow, reduce, type Action, type Ctx, type GameState } from "@poyga/rules";
+import { chooseDream, newGame, playerCashflow, reduce, type Action, type Ctx, type GameState } from "@tajriba24/rules";
 import type { JournalEntry } from "./store";
 
 export interface ReplayStep { i: number; seq: number; at: number; type: string; by: string | null; auto: string | null; ok: boolean; error?: string; round: number; phase: string; turn: string | null;

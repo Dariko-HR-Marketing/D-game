@@ -55,4 +55,4 @@ const STARTED_IDLE_MS = Number(process.env.ROOM_IDLE_STARTED_HOURS ?? 24) * 3_60
 setInterval(() => { rooms.sweep(IDLE_MS, STARTED_IDLE_MS).then((n) => n && app.log.info({ n }, "tashlab ketilgan xonalar yopildi")).catch((e) => app.log.error({ err: String(e?.message ?? e) }, "sweep xatosi")); }, 60_000).unref();
 const port = Number(process.env.PORT ?? 3000);
 await app.listen({ port, host: "0.0.0.0" });
-console.log(`POYGA server :${port}`);
+console.log(`Tajriba 24 server :${port}`);

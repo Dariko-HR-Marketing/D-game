@@ -1,6 +1,6 @@
 // §15: qoidalar ilovada manbasi (SPEC bo'limi) bilan ko'rinadi. Raqamlar dvigatelning RULES konstantalaridan olinadi — qo'lda yozilmaydi.
-import type { RULES } from "@poyga/rules";
-import { POINTS, BALL, XP } from "@poyga/rules";
+import type { RULES } from "@tajriba24/rules";
+import { POINTS, BALL, XP } from "@tajriba24/rules";
 import { money } from "../format";
 
 export interface RuleItem { id: string; title: string; text: string; source: string }

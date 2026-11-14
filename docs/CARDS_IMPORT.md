@@ -5,10 +5,10 @@ Manba: `content/imports/tajriba24/` (CSV, JSON, kasb to'ldirmasi, `validate_card
 
 ## Buyruqlar
 ```
-pnpm --filter @poyga/content cards validate imports/tajriba24/tajriba24_cards_import.csv
-pnpm --filter @poyga/content cards import   imports/tajriba24/tajriba24_cards_import.csv --kasb imports/tajriba24/tajriba24_kasblar.csv --dry-run   # hech narsa yozilmaydi, hisobot
-pnpm --filter @poyga/content cards import   ... --apply                                                                                            # data/cards.json + jurnal + hisobot
-pnpm --filter @poyga/content cards rollback --import-id <ID>                                                                                        # jurnal bo'yicha teskari qaytarish
+pnpm --filter @tajriba24/content cards validate imports/tajriba24/tajriba24_cards_import.csv
+pnpm --filter @tajriba24/content cards import   imports/tajriba24/tajriba24_cards_import.csv --kasb imports/tajriba24/tajriba24_kasblar.csv --dry-run   # hech narsa yozilmaydi, hisobot
+pnpm --filter @tajriba24/content cards import   ... --apply                                                                                            # data/cards.json + jurnal + hisobot
+pnpm --filter @tajriba24/content cards rollback --import-id <ID>                                                                                        # jurnal bo'yicha teskari qaytarish
 python3 content/imports/tajriba24/validate_cards.py content/imports/tajriba24/tajriba24_cards_import.csv                                           # asl Python tekshiruvi (CI da)
 ```
 Xato bo'lsa chiqish kodi 1, hech narsa yozilmaydi. Qayta import — 0 o'zgarish (CI da tekshiriladi). Jurnal: `content/data/import_log/`.
@@ -32,7 +32,7 @@ Eski kartalar o'z kolodalarida qoladi (`kasb, kichik, katta, bozor, xar, kxar, h
 Tuzilgan effektlar (`effect1_type…`) dvigatelda `Op` ro'yxatiga aylanadi: naqd (xavf bo'yicha sug'urta qoplashi bilan), ish haqi foizi/qo'shimcha/nol, oylik, xarajat va kredit foizi, daromad (foiz/nol/ko'paytma, «eng yaxshisini tanlash»), narx (hozirgi/modifikator), sotish taklifi (bozor qatlami), sug'urta polisi, depozit (muddatli/talab bo'yicha; muddatidan oldin yechish), homiy (XP, reklama), viktorina (javob serverda, XP). Vaqt: 1 aylana = 4 oy.
 
 ## Karta rasmlarini avtomatik yaratish (2026-11-09)
-`pnpm --filter @poyga/server exec tsx scripts/render-card-art.ts [--only=Y001,02_DAN_SERJANTI.webp] [--out=papka] [--no-write-json] [--json-only]`
+`pnpm --filter @tajriba24/server exec tsx scripts/render-card-art.ts [--only=Y001,02_DAN_SERJANTI.webp] [--out=papka] [--no-write-json] [--json-only]`
 - Manba: `content/data/cards.json` (katalog `image: NEW_ART`) va import CSV (`image_status=REDRAW`, eski karta `legacy_file` bo'yicha topiladi). Har kolodaning shabloni mavjud rasmlar uslubida: bozor — ko'k sarlavha; kichik sarmoya — yashil; katta sarmoya — to'q sariq; xarajat — qizil (sug'urta — ko'k); katta aylana xarajati — g'isht rang; kutilmagan hodisa — qora (viktorina variantlari bilan, to'g'ri javobsiz); karyera/missiya — yashil ramka; qayta chizilgan kasb — qisqa xulosa.
 - Matn avtomatik sig'diriladi; sig'masa konsolda «MATN SIG'MADI» ro'yxati chiqadi. Ming ajratuvchi — bo'sh joy (1 020 000).
 - Chiqish `content/art/generated/*.webp` (repoda). Yangi kartalarning kodlari `cards.json` → `art` ga yoziladi; `file` esa `<kod>.webp`. VPS: `deploy/vps/install-art.sh` (avtomatik deploy ham chaqiradi).

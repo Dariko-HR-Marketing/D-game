@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadContent } from "@poyga/content";
+import { loadContent } from "@tajriba24/content";
 import { ContentRegistry } from "./registry";
 
 describe("paketdan sinxronlash (deploy'dan keyin yangi kartalar)", () => {

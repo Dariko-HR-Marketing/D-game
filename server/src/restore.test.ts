@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { Pool } from "pg";
-import { loadContent } from "@poyga/content";
+import { loadContent } from "@tajriba24/content";
 import { MemoryStore } from "./store";
 import { RoomManager, DECISION_MS, Clock } from "./rooms";
 import { ContentRegistry } from "./registry";

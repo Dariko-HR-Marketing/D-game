@@ -1,6 +1,6 @@
 // Admin 2-bosqich: kontent (farq, tekshiruv, ko'rib chiqish), o'yinlar ro'yxati, shubhali o'yinlar, qayta o'ynatish, majburan yopish.
 import type { FastifyInstance } from "fastify";
-import { EXPECTED_COUNTS } from "@poyga/content";
+import { EXPECTED_COUNTS } from "@tajriba24/content";
 import type { Guard } from "./admin";
 import type { Ops } from "./ops";
 import type { ProfileService } from "./profiles";

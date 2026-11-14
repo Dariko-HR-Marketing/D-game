@@ -1,9 +1,9 @@
-# CLAUDE.md — POYGA onlayn
+# CLAUDE.md — Tajriba 24 onlayn
 
 To'liq spetsifikatsiya: `docs/SPEC.md` (A–D ilovalar ham shu yerda). Quyida §1, §2 va §14 ko'chirilgan. Zid bo'lsa SPEC.md ustun. Qoidani o'zingdan to'qima; noaniq joyni SPEC §16 ro'yxatiga yoz va to'xta.
 
 ## 1. Mahsulot
-- **Nomi:** POYGA onlayn (D-game, DARIKO ekotizimi o'yin brendi). Stol o'yinining onlayn versiyasi: moliyaviy savodxonlik, pul oqimi va passiv daromad yaratishni o'rgatadi.
+- **Nomi:** Tajriba 24 onlayn (D-game, DARIKO ekotizimi o'yin brendi). Stol o'yinining onlayn versiyasi: moliyaviy savodxonlik, pul oqimi va passiv daromad yaratishni o'rgatadi.
 - **Maqsad:** stol o'yinidagi tajribani saqlab, qalam, o'chirg'ich va qo'lda hisobni olib tashlash.
 - **Auditoriya:** o'yinchilar (yosh cheklovi yo'q; 16 yoshgacha to'lov/qarz/chat himoyasi yurist xulosasigacha saqlanadi), ta'lim muassasalari, bank va kompaniyalar.
 - **Platforma:** iOS, Android va veb (planshet va kompyuter, veb-to'lov shu yerda). Bitta kod bazasi tavsiya etiladi.
@@ -38,5 +38,5 @@ TypeScript monorepo (pnpm); `rules` — sof TS + Vitest; `server` — Node + Fas
 
 ## Buyruqlar
 `pnpm typecheck` · `pnpm test` (PostgreSQL testlari uchun `TEST_DATABASE_URL`) · server: `cd server && npx tsx src/main.ts` · veb: `cd client && npx expo start --web` · admin: `cd admin && npx vite`.
-Kartalar importi: `docs/CARDS_IMPORT.md` (`pnpm --filter @poyga/content cards ...`).
+Kartalar importi: `docs/CARDS_IMPORT.md` (`pnpm --filter @tajriba24/content cards ...`).
 Holat: qoidalar dvigateli, kontent (katalog: faol 1033, jonli 817), server (xonalar, hamkorlik, saqlash, tiklash), admin, profil/reyting, mijoz (veb) tayyor. Ochiq masalalar: `docs/OPEN_QUESTIONS.md`.

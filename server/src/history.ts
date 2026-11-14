@@ -1,6 +1,6 @@
 // O'yin tarixi: jurnalni qadam-baqadam qayta o'ynab, har bir amalda kim qaysi katakdan qaysisiga yurgani, qaysi karta chiqqani, qanday qaror qilingani va pul qanday o'zgargani yoziladi.
 // Maqsad — keyingi tahlil (qarorlar to'g'ri/noto'g'ri bo'lganligi, kuchli/zaif tomonlar — SWOT). Faqat jurnaldan hisoblanadi (yangi ma'lumot saqlanmaydi, hisob daftari izohlari bundan mustasno).
-import { allDebt, chooseDream, crisisAdjusted, effectOf, newGame, passiveIncome, playerCashflow, reduce, smallCell, type Action, type Ctx, type GameState } from "@poyga/rules";
+import { allDebt, chooseDream, crisisAdjusted, effectOf, newGame, passiveIncome, playerCashflow, reduce, smallCell, type Action, type Ctx, type GameState } from "@tajriba24/rules";
 import type { JournalEntry } from "./store";
 
 export interface HSnap { cash: number; passive: number; flow: number; debt: number; assets: number; pos: number; circle: "small" | "big"; months: number }

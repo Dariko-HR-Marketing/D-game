@@ -1,4 +1,4 @@
--- POYGA: o'yin jurnali va holat snapshotlari (SPEC §6.6, §11)
+-- Tajriba 24: o'yin jurnali va holat snapshotlari (SPEC §6.6, §11)
 create table if not exists rooms (
   code text primary key,
   created_at timestamptz not null default now(),

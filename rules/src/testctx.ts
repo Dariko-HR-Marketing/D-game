@@ -1,4 +1,4 @@
-import { loadContent, deriveEffects, buildPools } from "@poyga/content";
+import { loadContent, deriveEffects, buildPools } from "@tajriba24/content";
 import type { Ctx } from "./index";
 
 const { cards, bigBoard, dreams } = loadContent();

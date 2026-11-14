@@ -84,7 +84,7 @@ export class VoiceEngine {
     if (!this.joined || this.peers.has(id)) return;
     const pc = new RTCPeerConnection({ iceServers: this.ice });
     const p: Peer = { id, pc, initiator: this.d.selfId < id, stream: null, audio: null, speak: null, muted: false, state: "connecting", failures: 0, q: Promise.resolve() };
-    try { p.muted = !!JSON.parse(localStorage.getItem("poyga-voice-muted") ?? "[]").includes(id); } catch { /* xotira yopiq */ }
+    try { p.muted = !!JSON.parse(localStorage.getItem("tajriba24-voice-muted") ?? "[]").includes(id); } catch { /* xotira yopiq */ }
     this.peers.set(id, p);
     for (const d of this.early.get(id) ?? []) this.enqueue(p, d); this.early.delete(id); // peer yaratilguncha kelgan signallar
     if (p.initiator) { if (this.local) for (const t of this.local.getAudioTracks()) pc.addTrack(t, this.local); else pc.addTransceiver("audio", { direction: "recvonly" }); } // taklif beruvchi: audio qatorini o'zi ochadi
@@ -137,7 +137,7 @@ export class VoiceEngine {
   setMuted(m: boolean) { this.muted = m; this.local?.getAudioTracks().forEach((t) => (t.enabled = !m)); this.emit(); }
   setPeerMuted(id: string, m: boolean) {
     const p = this.peers.get(id); if (p) { p.muted = m; if (p.audio) p.audio.muted = m; }
-    try { const s = new Set<string>(JSON.parse(localStorage.getItem("poyga-voice-muted") ?? "[]")); m ? s.add(id) : s.delete(id); localStorage.setItem("poyga-voice-muted", JSON.stringify([...s].slice(-200))); } catch { /* xotira yopiq */ }
+    try { const s = new Set<string>(JSON.parse(localStorage.getItem("tajriba24-voice-muted") ?? "[]")); m ? s.add(id) : s.delete(id); localStorage.setItem("tajriba24-voice-muted", JSON.stringify([...s].slice(-200))); } catch { /* xotira yopiq */ }
     this.emit();
   }
   private async listDevices() {

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-native";
 import { useReducedMotion } from "../motion";
 import { stepMs } from "../motionConfig";
-import { SMALL_BOARD } from "@poyga/rules";
+import { SMALL_BOARD } from "@tajriba24/rules";
 import { color, font, PLAYER_COLORS, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
 import { pathIndex, squareRing, type Tile } from "../boardLayout";

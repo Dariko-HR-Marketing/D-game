@@ -52,7 +52,7 @@ export function Login({ auth, onDone }: { auth: ReturnType<typeof makeAuth>; onD
   );
 }
 const s = StyleSheet.create({
-  brandT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 2 }, board: { width: "100%", height: 150, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", backgroundColor: color.white }, lead: { color: tone.muted, fontSize: font.md, lineHeight: 22, textAlign: "center" },
+  brandT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 0.3 }, board: { width: "100%", height: 150, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", backgroundColor: color.white }, lead: { color: tone.muted, fontSize: font.md, lineHeight: 22, textAlign: "center" },
   scroll: { flexGrow: 1, justifyContent: "center" }, wrap: { gap: space.lg, padding: space.xl, maxWidth: 440, width: "100%", alignSelf: "center" }, brand: { alignItems: "center", gap: space.sm },
   h: { fontSize: font.xl, fontWeight: "800", color: color.navy }, label: { color: color.navy, fontWeight: "700", fontSize: font.sm }, note: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   input: { minHeight: MIN_TAP + 6, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingHorizontal: space.lg, fontSize: font.xl, backgroundColor: color.white, color: color.navy },

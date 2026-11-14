@@ -1,4 +1,4 @@
-# Bitta VPS'da hammasi: PostgreSQL + POYGA server + veb mijoz + admin panel + Caddy (HTTPS).
+# Bitta VPS'da hammasi: PostgreSQL + Tajriba 24 server + veb mijoz + admin panel + Caddy (HTTPS).
 # Ishlatish: deploy/vps/ papkasida `cp .env.example .env`, qiymatlarni to'ldiring, so'ng `docker compose up -d --build`.
 services:
   db:

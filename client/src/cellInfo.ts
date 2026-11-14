@@ -1,5 +1,5 @@
 /** Katakni bosganda chiqadigan tushuntirish: tur, nom, narx/daromad, qoida, egasi. Faqat ma'lumotdan (`BIG_CELLS`, `CELL_RULES`, o'yin holati) tuziladi. */
-import { SMALL_BOARD, RULES } from "@poyga/rules";
+import { SMALL_BOARD, RULES } from "@tajriba24/rules";
 import { BIG_CELLS } from "./bigBoard";
 import { CELL_RULES } from "./cellRules";
 import { money } from "./format";

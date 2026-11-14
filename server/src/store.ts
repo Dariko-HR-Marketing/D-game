@@ -1,4 +1,4 @@
-import type { Action, GameState } from "@poyga/rules";
+import type { Action, GameState } from "@tajriba24/rules";
 
 /** O'yin jurnali (§6.6): urug' + harakatlar ketma-ketligi — o'yinni to'liq qayta tiklash mumkin. */
 export interface CalcNote { kind: "decide" | "confirm"; wrong: number; hint: boolean }

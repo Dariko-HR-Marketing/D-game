@@ -1,5 +1,5 @@
 {
-  "name": "@poyga/server",
+  "name": "@tajriba24/server",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,8 +12,8 @@
     "screens": "tsx scripts/screens.ts"
   },
   "dependencies": {
-    "@poyga/content": "workspace:*",
-    "@poyga/rules": "workspace:*",
+    "@tajriba24/content": "workspace:*",
+    "@tajriba24/rules": "workspace:*",
     "fastify": "^5.1.0",
     "@fastify/websocket": "^11.0.1",
     "pg": "^8.13.0",

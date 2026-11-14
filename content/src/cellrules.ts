@@ -13,7 +13,7 @@ export const CellAction = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("drawDeck"), deck: DeckRef }).strict(),                             // kartalar dekasidan karta tortiladi
   z.object({ kind: z.literal("drawCard"), cardId: z.string().min(1).max(64) }).strict(),             // aniq karta (masalan hod-7) tortiladi
   z.object({ kind: z.literal("offerCellAsset") }).strict(),                                      // katakdagi biznes (narx/daromad) sotib olish taklifi
-  // Qo'llanma (POYGA o'yin qo'llanmasi) bo'yicha qo'shilganlar:
+  // Qo'llanma (Tajriba 24 o'yin qo'llanmasi) bo'yicha qo'shilganlar:
   z.object({ kind: z.literal("noSalary"), months: z.number().int().min(1).max(36) }).strict(),  // N oy maosh yo'q (faqat passiv daromad), xarajat to'lanadi
   z.object({ kind: z.literal("payCashShare"), share: z.number().gt(0).lte(1) }).strict(),         // naqd pulning ulushi bankka (naqd bo'lmasa — ta'sirsiz)
   z.object({ kind: z.literal("loseWorstBusiness") }).strict(),                                    // eng kam daromadli biznes yo'qoladi; yo'q bo'lsa — kichik aylanaga qaytish

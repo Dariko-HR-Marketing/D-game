@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PgStore } from "./pgstore";
-import { newGame } from "@poyga/rules";
+import { newGame } from "@tajriba24/rules";
 import { buildCtx } from "./ctx";
 
 const url = process.env.TEST_DATABASE_URL;

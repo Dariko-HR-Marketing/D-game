@@ -51,8 +51,8 @@ export function ShopScreen({ http, onBack }: { http: Http; onBack: () => void })
             : (<View style={s.rowW}><Field label="SMS kodi (6 raqam)" value={otp} onChange={(v) => setOtp(v.replace(/\D/g, ""))} keyboard="number-pad" max={6} /><Button label="Tasdiqlash" disabled={otp.length !== 6} onPress={() => run(async () => { await http.phoneVerify(phone, otp); setSent(false); setOtp(""); }, "Telefon tasdiqlandi")} /></View>)}
         </Card>)}
       {d && (<>
-        <Card label="POYGA Plus" accent={d.plus.active ? "green" : undefined}>
-          <SectionTitle right={<Pill label={d.plus.active ? "Faol" : "Faol emas"} kind={d.plus.active ? "good" : "plain"} />}>POYGA Plus</SectionTitle>
+        <Card label="Tajriba 24 Plus" accent={d.plus.active ? "green" : undefined}>
+          <SectionTitle right={<Pill label={d.plus.active ? "Faol" : "Faol emas"} kind={d.plus.active ? "good" : "plain"} />}>Tajriba 24 Plus</SectionTitle>
           <Text style={s.p}>Cheklovsiz xonalar, to'liq o'yin tarixi va barcha o'yinlar tahlili, reklamasiz, har oy bitta Plus narsa. O'yin kuchiga ta'sir qilmaydi.</Text>
           <Row l="Bepul tarifda" v={`kuniga ${d.plus.features.rooms ?? "∞"} xona, oxirgi ${d.plus.features.history ?? "∞"} o'yin`} />
           {d.plus.active ? (<>
@@ -123,7 +123,7 @@ export function ClassScreen({ http, onBack, onEnterRoom }: { http: Http; onBack:
           <TeacherList http={http} onOpen={setOpen} active={t.active} /></Card>
       ) : (
         <Card label="O'qituvchi sifatida ulanish"><SectionTitle>O'qituvchimisiz?</SectionTitle>
-          <Text style={s.p}>Maktabingiz POYGA bilan shartnoma tuzgan bo'lsa, tashkilot bergan taklif kodini kiriting.</Text>
+          <Text style={s.p}>Maktabingiz Tajriba 24 bilan shartnoma tuzgan bo'lsa, tashkilot bergan taklif kodini kiriting.</Text>
           <View style={s.rowW}><Field label="Taklif kodi" value={invite} onChange={(v) => setInvite(v.toUpperCase().replace(/[^A-Z0-9]/g, ""))} max={8} caps /><Button label="Ulanish" disabled={invite.length !== 8} onPress={() => run(async () => { await http.eduRedeem(invite); setInvite(""); }, "O'qituvchi sifatida ulandingiz")} /></View></Card>)}
     </Screen>
   );

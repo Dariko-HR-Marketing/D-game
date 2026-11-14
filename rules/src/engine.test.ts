@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadContent, deriveEffects } from "@poyga/content";
+import { loadContent, deriveEffects } from "@tajriba24/content";
 import * as E from "./engine";
 
 const { cards } = loadContent();

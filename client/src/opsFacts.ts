@@ -1,5 +1,5 @@
 // Katalog kartalari (Tajriba24): tuzilgan ta'sirlarni «Karta raqamlari» qatorlariga aylantirish va o'yinchidagi faol ta'sirlarni matnlash.
-import type { Selector } from "@poyga/content/groups";
+import type { Selector } from "@tajriba24/content/groups";
 import { uz } from "./i18n/uz";
 
 export interface OpRow { label: string; value: string; tone?: "good" | "bad" | "neutral" }

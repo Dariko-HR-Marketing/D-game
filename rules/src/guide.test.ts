@@ -1,6 +1,6 @@
-// «POYGA o'yin qo'llanmasi» bo'yicha qoidalar: Q/K, X kataklari, Yana pullar, tavakkal, birovning biznesi, orzu, katta aylana qarzi, ishdan bo'shash.
+// «Tajriba 24 o'yin qo'llanmasi» bo'yicha qoidalar: Q/K, X kataklari, Yana pullar, tavakkal, birovning biznesi, orzu, katta aylana qarzi, ishdan bo'shash.
 import { describe, it, expect } from "vitest";
-import { loadContent } from "@poyga/content";
+import { loadContent } from "@tajriba24/content";
 import { ctx as base } from "./testctx";
 import { Ctx, GameState, newGame, reduce, slotBlocked, effectOf, SMALL_BOARD, canExitSmallCircle } from "./index";
 import { settleOwe } from "./engine";

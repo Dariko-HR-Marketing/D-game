@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { readFileSync } from "node:fs";
-import type { GameState } from "@poyga/rules";
+import type { GameState } from "@tajriba24/rules";
 import type { ActiveRoom, JournalEntry, RoomMeta, Store } from "./store";
 
 export class PgStore implements Store {

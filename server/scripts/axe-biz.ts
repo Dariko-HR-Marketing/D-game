@@ -24,14 +24,14 @@ const scan = async (p: any, name: string) => {
   const r = await p.evaluate(async () => (window as any).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }));
   total += r.violations.length; console.log(name.padEnd(26), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 100)}`).join(" | ") : "OK");
 };
-const open = async (uid: string, w: number, h: number) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); p.on("pageerror", (e) => { console.log("PAGEERROR", e.message); total++; }); await p.goto(WEB);
+const open = async (uid: string, w: number, h: number) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); p.on("pageerror", (e) => { console.log("PAGEERROR", e.message); total++; }); await p.goto(WEB);
   const sk = p.getByRole("button", { name: "O'tkazib yuborish" }); await p.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }).catch(async () => { if (await sk.count()) await sk.click(); }); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); return p; };
 const back = async (p: any, name = "Orqaga") => p.getByRole("button", { name }).first().click();
 for (const [w, h] of [[390, 844], [1440, 900]] as [number, number][]) {
   const tag = `${w}px`;
   x.tournaments.unregister(t.id, "stu");
   const s = await open("stu", w, h); await scan(s, `bosh sahifa ${tag}`);
-  await s.getByRole("button", { name: /^Do'kon va Plus/ }).click(); await s.waitForSelector("text=POYGA Plus"); await s.waitForSelector("text=Kumush"); await scan(s, `do'kon ${tag}`);
+  await s.getByRole("button", { name: /^Do'kon va Plus/ }).click(); await s.waitForSelector("text=Tajriba 24 Plus"); await s.waitForSelector("text=Kumush"); await scan(s, `do'kon ${tag}`);
   await s.getByRole("tab", { name: "Ramkalar" }).click(); await scan(s, `do'kon ramkalar ${tag}`); await back(s);
   await s.getByRole("button", { name: /^Sinf\./ }).click(); await s.waitForSelector("text=Sinfga qo'shilish"); await s.waitForSelector("text=O'qituvchi: Ismtch"); await scan(s, `sinf o'quvchi ${tag}`); await back(s);
   await s.getByRole("button", { name: /^Turnirlar\./ }).click(); await s.waitForSelector("text=Kuz kubogi"); await scan(s, `turnirlar ${tag}`);

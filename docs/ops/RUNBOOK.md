@@ -1,4 +1,4 @@
-# POYGA — ekspluatatsiya qo'llanmasi (runbook)
+# Tajriba 24 — ekspluatatsiya qo'llanmasi (runbook)
 
 ## Kuzatuv
 | Nima | Qayerda | Eslatma |
@@ -9,7 +9,7 @@
 | Jurnal | stdout, JSON (pino) | `LOG_LEVEL`; token/so'rov parametrlari/IP yozilmaydi |
 | Ogohlantirishlar | `docs/ops/alerts.yml` | Prometheus qoidalari |
 
-Asosiy ko'rsatkichlar: `poyga_rooms_active`, `poyga_players_online`, `poyga_ws_sockets`, `poyga_actions_total{type,result}`, `poyga_games_total{event}`, `poyga_action_seconds`, `poyga_http_requests_total{status}`, `poyga_rate_limited_total`, `poyga_ws_errors_total`.
+Asosiy ko'rsatkichlar: `tajriba24_rooms_active`, `tajriba24_players_online`, `tajriba24_ws_sockets`, `tajriba24_actions_total{type,result}`, `tajriba24_games_total{event}`, `tajriba24_action_seconds`, `tajriba24_http_requests_total{status}`, `tajriba24_rate_limited_total`, `tajriba24_ws_errors_total`.
 
 ## Server ishlamayapti
 1. `curl $HOST/health`. Javob yo'q → konteyner/jarayonni qayta ishga tushiring (tizim `SIGTERM` da toza to'xtaydi).
@@ -21,7 +21,7 @@ Asosiy ko'rsatkichlar: `poyga_rooms_active`, `poyga_players_online`, `poyga_ws_s
 - Zaxira nusxa: kunlik `pg_dump`; migratsiyalar `server/migrations` (ketma-ket, `if not exists`).
 
 ## Ichki xatolar
-`poyga_ws_errors_total` o'sdi → jurnalda `ws: ichki xato` yozuvlarini toping (`type` maydoni qaysi xabar turi ekanini ko'rsatadi). O'yin holati buzilgan bo'lsa: jurnal (`journal` jadvali) + urug'dan o'yinni qayta o'ynang (`rules/src/analysis.ts: analyzeGame`).
+`tajriba24_ws_errors_total` o'sdi → jurnalda `ws: ichki xato` yozuvlarini toping (`type` maydoni qaysi xabar turi ekanini ko'rsatadi). O'yin holati buzilgan bo'lsa: jurnal (`journal` jadvali) + urug'dan o'yinni qayta o'ynang (`rules/src/analysis.ts: analyzeGame`).
 
 ## Nizo / shikoyat
 Admin panel → Xonalar → O'yin jurnali. O'yin urug' va harakatlardan to'liq qayta tiklanadi (tekshiriladigan tasodifiy manba).
@@ -30,7 +30,7 @@ Admin panel → Xonalar → O'yin jurnali. O'yin urug' va harakatlardan to'liq q
 Admin → Kontent → oldingi versiyani "Nashr qilish". Boshlangan o'yinlar o'z versiyasida qoladi.
 
 ## Tashlab ketilgan xonalar
-Hamma odam oflayn bo'lsa o'yin to'xtab turadi; zal va odamsiz qolgan xona `ROOM_IDLE_MINUTES` (standart 30), boshlangan o'yin `ROOM_IDLE_STARTED_HOURS` (standart 24) dan ortiq oflayn bo'lsa har daqiqa ishlaydigan tozalash bilan yopiladi (`poyga_games_total{event="abandoned"}`). Server qayta ishga tushganda tiklangan, hech kim ulanmagan xonalar ham shu muddatdan keyin yopiladi.
+Hamma odam oflayn bo'lsa o'yin to'xtab turadi; zal va odamsiz qolgan xona `ROOM_IDLE_MINUTES` (standart 30), boshlangan o'yin `ROOM_IDLE_STARTED_HOURS` (standart 24) dan ortiq oflayn bo'lsa har daqiqa ishlaydigan tozalash bilan yopiladi (`tajriba24_games_total{event="abandoned"}`). Server qayta ishga tushganda tiklangan, hech kim ulanmagan xonalar ham shu muddatdan keyin yopiladi.
 
 ## Yuk va cheklovlar
 Hozirgi arxitektura bitta jarayon (xonalar xotirada, taymerlar jarayonda). Gorizontal masshtablash uchun xona→jarayon biriktirish (sticky routing yoki xona egasi qulfi) kerak — hali yo'q (OPEN_QUESTIONS #46).

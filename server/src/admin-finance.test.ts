@@ -8,7 +8,7 @@ async function setup() {
   const A = tokOf("admin1", "administrator"), F = tokOf("fin1", "finance"), S = tokOf("supp1", "support");
   const j = (m: any, url: string, tok = A, payload?: unknown) => x.app.inject({ method: m, url, headers: H(tok), payload: payload as any });
   const prof = (u: string) => x.app.inject({ method: "PUT", url: "/me/profile", headers: H(u), payload: { name: "N" + u, color: 1, birthYear: 1990 } });
-  const paidOrder = async (uid: string, sku: string, amount: number) => { x.adminState.touch(uid, Date.now()); const o = { id: `o-${uid}-${sku}`, userId: uid, sku, title: sku.startsWith("plus") ? "POYGA Plus (oylik)" : "Zumrad", amount, channel: "web" as const, status: "pending_payment" as const, createdAt: Date.now() }; x.commerce.orders.set(o.id, o); expect(x.commerce.confirmPaid(o.id, amount).ok).toBe(true); return o.id; };
+  const paidOrder = async (uid: string, sku: string, amount: number) => { x.adminState.touch(uid, Date.now()); const o = { id: `o-${uid}-${sku}`, userId: uid, sku, title: sku.startsWith("plus") ? "Tajriba 24 Plus (oylik)" : "Zumrad", amount, channel: "web" as const, status: "pending_payment" as const, createdAt: Date.now() }; x.commerce.orders.set(o.id, o); expect(x.commerce.confirmPaid(o.id, amount).ok).toBe(true); return o.id; };
   return { x, A, F, S, j, prof, paidOrder };
 }
 
@@ -17,7 +17,7 @@ describe("moliya hisoboti va buyurtmalar", () => {
     const s = await setup(); for (const u of ["u1", "u2", "u3"]) await s.prof(u); await s.paidOrder("u1", "plus:monthly", 30_000); await s.paidOrder("u2", "item:pawn-emerald", 9_000);
     s.x.commerce.grantManual("u3", "monthly", "root", "tanlov"); // 0 so'm — daromadga kirmaydi
     const r = (await s.j("GET", "/admin/finance/summary", s.F)).json(); expect(r.revenue).toBe(39_000); expect(r.orders).toBe(2); expect(r.payers).toBe(2); expect(r.avgOrder).toBe(19_500); expect(r.plus.active).toBe(2); expect(r.plus.mrr).toBe(60_000);
-    expect(r.series.reduce((a: number, b: number) => a + b, 0)).toBe(39_000); expect(r.bySku[0]).toMatchObject({ name: "POYGA Plus (oylik)", sum: 30_000 }); expect(r.conversion).toBeGreaterThan(0);
+    expect(r.series.reduce((a: number, b: number) => a + b, 0)).toBe(39_000); expect(r.bySku[0]).toMatchObject({ name: "Tajriba 24 Plus (oylik)", sum: 30_000 }); expect(r.conversion).toBeGreaterThan(0);
     expect((await s.j("GET", "/admin/finance/summary", s.S)).statusCode).toBe(403);
   });
   it("buyurtmalar ro'yxati: filtr, qidiruv, tafsilot", async () => {

@@ -12,7 +12,7 @@ const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
-const open = async (uid: string, w = 390, h = 844) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+const open = async (uid: string, w = 390, h = 844) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
 const a0 = await open("rja"), b0 = await open("rjb"), c0 = await open("rjc");
 await a0.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a0.getByTestId("seats-4").click(); await a0.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a0.waitForSelector("text=O'yinchilar");
 const code = (await a0.locator("[aria-label^='Xona kodi']").textContent())!.trim();
@@ -36,7 +36,7 @@ for (let i = 1; i <= 5; i++) {
   check(room.members.find((m: any) => m.userId === "rja")!.online === true, `${i}-qaytish: serverda onlayn`);
 }
 // 2) Begona (boshqa qurilma/brauzer) boshlangan xonaga kira olmaydi; sinov rejimida faqat OFLAYN o'yinchining o'rnini qaytarib oladi
-const openKeep = async (uid: string) => { const c = await b.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }); await c.addInitScript((u) => { if (!localStorage.getItem("poyga-dev-user")) localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; }; // yangilashda qaytarib olingan o'rin bosilib ketmasin
+const openKeep = async (uid: string) => { const c = await b.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }); await c.addInitScript((u) => { if (!localStorage.getItem("tajriba24-dev-user")) localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; }; // yangilashda qaytarib olingan o'rin bosilib ketmasin
 const d = await openKeep("rjd"); const enter = async (p: any) => { await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).waitFor({ timeout: 15000 }); await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await p.getByRole("textbox").fill(code); await p.getByRole("button", { name: "Kirish", exact: true }).click(); };
 await enter(d); await d.getByText("Qaysi o'yinchi edingiz?").waitFor({ timeout: 8000 }).catch(() => {});
 check(await d.getByText("Qaysi o'yinchi edingiz?").count() > 0 && !room.members.some((m: any) => m.userId === "rjd"), "begona qurilma: o'yinga kirmadi, «Qaysi o'yinchi edingiz?» ko'rsatildi");
@@ -47,7 +47,7 @@ const claimBtn = d.getByTestId("claim-seats").getByRole("button"); await claimBt
 check(await claimBtn.count() === 1 && /Bu menman/.test(await claimBtn.first().innerText()), "oflayn o'yinchi (a) ro'yxatda: yagona «Bu menman»");
 await claimBtn.first().click();
 check(await inGame(d), "o'rin qaytarib olindi: boshqa brauzerdan o'yinga qaytdi (sahifa o'zi yangilandi)");
-for (let i = 0; i < 80 && room.members.find((m: any) => m.userId === "rja")!.online !== true; i++) await new Promise((r) => setTimeout(r, 100)); // sahifa qayta yuklanib ulanguncha (poyga yuklanish tezligiga bog'liq)
+for (let i = 0; i < 80 && room.members.find((m: any) => m.userId === "rja")!.online !== true; i++) await new Promise((r) => setTimeout(r, 100)); // sahifa qayta yuklanib ulanguncha (yuklanish tezligiga bog'liq)
 check(room.members.find((m: any) => m.userId === "rja")!.online === true && !room.members.some((m: any) => m.userId === "rjd"), "serverda a o'rni onlayn; yangi a'zo qo'shilmadi");
 // 3) O'zi «O'yindan chiqish»ni bosgan qayta kira olmaydi
 x.rooms.leave(code, "rjb"); await ctxOf(b0).close(); const b1 = await open("rjb");

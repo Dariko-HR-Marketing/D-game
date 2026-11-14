@@ -1,5 +1,5 @@
 // Karta qarori uchun raqamlar: o'yinchi narx, boshlang'ich to'lov, daromad va pul oqimiga ta'sirni ko'rib qaror qiladi.
-import { crisisAdjusted, newAssetIncome, passiveIncome, salaryOf, RULES } from "@poyga/rules";
+import { crisisAdjusted, newAssetIncome, passiveIncome, salaryOf, RULES } from "@tajriba24/rules";
 import { uz } from "./i18n/uz";
 import { opsFacts, offerFacts, depositFacts } from "./opsFacts";
 

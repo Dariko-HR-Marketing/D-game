@@ -10,7 +10,7 @@ COPY content/package.json content/
 COPY server/package.json server/
 COPY client/package.json client/
 COPY admin/package.json admin/
-RUN pnpm install --frozen-lockfile --filter @poyga/client... --filter @poyga/admin...
+RUN pnpm install --frozen-lockfile --filter @tajriba24/client... --filter @tajriba24/admin...
 COPY rules rules
 COPY content content
 COPY client client
@@ -18,8 +18,8 @@ COPY admin admin
 ARG API_WS
 ARG API_HTTP
 RUN test -n "$API_WS" && test -n "$API_HTTP" \
- && EXPO_PUBLIC_SERVER_URL="$API_WS" CI=1 pnpm --filter @poyga/client export:web \
- && VITE_API_URL="$API_HTTP" pnpm --filter @poyga/admin build \
+ && EXPO_PUBLIC_SERVER_URL="$API_WS" CI=1 pnpm --filter @tajriba24/client export:web \
+ && VITE_API_URL="$API_HTTP" pnpm --filter @tajriba24/admin build \
  && grep -rqF "$API_WS" client/dist/_expo/static/js/web/ \
  && grep -rqF "$API_HTTP" admin/dist/assets/
 

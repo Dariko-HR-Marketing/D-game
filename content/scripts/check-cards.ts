@@ -1,5 +1,5 @@
 // Karta rasmlari tekshiruvi: nimalar yetishmaydi, ortiqcha, noto'g'ri nomli yoki bo'sh.
-//   pnpm --filter @poyga/content check:cards ../deploy/vps/cards [--strict]
+//   pnpm --filter @tajriba24/content check:cards ../deploy/vps/cards [--strict]
 import { readdirSync, statSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkCardFiles, expectedFiles } from "../src/tools";

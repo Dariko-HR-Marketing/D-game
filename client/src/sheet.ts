@@ -1,5 +1,5 @@
-// «Hisob varag'i» (stol o'yinidagi «POYGA | KICHIK AYLANA» va «KATTA AYLANA» blanklari): hamma qiymat server holatidan olinadi, yangi hisob yo'q. React'siz — testlanadi.
-import { RULES, SLOT_LIMITS, allDebt, bankLoanMonthly, lombardMonthly, monthlyExpenses, monthlyBonus, passiveIncome, playerCashflow, salaryOf } from "@poyga/rules";
+// «Hisob varag'i» (stol o'yinidagi «Tajriba 24 | KICHIK AYLANA» va «KATTA AYLANA» blanklari): hamma qiymat server holatidan olinadi, yangi hisob yo'q. React'siz — testlanadi.
+import { RULES, SLOT_LIMITS, allDebt, bankLoanMonthly, lombardMonthly, monthlyExpenses, monthlyBonus, passiveIncome, playerCashflow, salaryOf } from "@tajriba24/rules";
 import { portfolioOf, type AssetRow } from "./portfolio";
 import { nameOf } from "./model";
 

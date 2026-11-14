@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildApp } from "./app";
-import { currentPlayer, effectOf } from "@poyga/rules";
+import { currentPlayer, effectOf } from "@tajriba24/rules";
 
 const H = (t: string) => ({ authorization: `Bearer ${t}` });
 

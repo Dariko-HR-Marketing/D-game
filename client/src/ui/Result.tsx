@@ -19,7 +19,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
   useEffect(() => { http.gameLog(code).then((h: HView) => setAcc(accuracyOf(h.players.find((p) => p.isMe)?.calc ?? null))).catch(() => {}); }, [http, code]); // hisob aniqligi — qo'shimcha ma'lumot, xato bo'lsa ko'rsatilmaydi
   const download = async () => {
     const doc = (globalThis as any).document; if (!doc) return; setCsvErr(false);
-    try { const text = await http.reportCsv(code); const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })); const a = doc.createElement("a"); a.href = url; a.download = `poyga-hisobot-${code}.csv`; doc.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); } catch { setCsvErr(true); }
+    try { const text = await http.reportCsv(code); const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })); const a = doc.createElement("a"); a.href = url; a.download = `tajriba24-hisobot-${code}.csv`; doc.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); } catch { setCsvErr(true); }
   };
   return (
     <Screen title={uz.result.title} subtitle={d ? `${uz.report.title} · ${d.meta.rounds} ${uz.result.round}` : undefined} maxWidth={1080}>

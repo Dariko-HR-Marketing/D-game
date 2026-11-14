@@ -1,13 +1,13 @@
 import { existsSync } from "node:fs";
 // WCAG 2.2 AA avtomatik tekshiruvi (axe-core, haqiqiy brauzerda). Telefon va planshet o'lchamida barcha asosiy ekranlar.
-// Oldindan: `pnpm --filter @poyga/client export:web` va `cd client/dist && python3 -m http.server 8081`.
+// Oldindan: `pnpm --filter @tajriba24/client export:web` va `cd client/dist && python3 -m http.server 8081`.
 // Ishga tushirish: `cd server && pnpm a11y`  (CHROMIUM=/opt/pw-browsers/chromium, WEB=http://localhost:8081)
 import { chromium } from "playwright-core";
 import { autoProfiles } from "./_seed";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { buildApp } from "../src/app";
-import { currentPlayer, effectOf } from "@poyga/rules";
+import { currentPlayer, effectOf } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -24,7 +24,7 @@ const scan = async (p: any, name: string) => {
   console.log(name.padEnd(22), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 80)}`).join(" | ") : "OK");
 };
 for (const [w, h] of [[390, 844], [844, 390], [768, 1024], [1024, 768], [1440, 900]] as [number, number][]) { // tik telefon, yotiq telefon, tik planshet, yotiq planshet, kompyuter
-  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ua" + w), c = await mk("ub" + w); const tag = `${w}px`;
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await scan(a, `bosh sahifa ${tag}`);
   await a.getByRole("button", { name: "Qoidalar", exact: true }).first().click(); await a.waitForSelector("text=O'yin qoidalari"); await scan(a, `qoidalar ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();

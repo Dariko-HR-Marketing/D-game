@@ -50,7 +50,7 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
       <View style={s.grid} aria-hidden>{Array.from({ length: Math.max(24, years + 1) }, (_, i) => <View key={i} style={[s.mc, i < years ? { backgroundColor: color.green } : i === years && inYear > 0 ? { backgroundColor: "#9FD6B9" } : null]} />)}</View>
       <Text style={s.note}>{uz.sheet.yearCell}</Text></View></View>);
   return (<View style={{ gap: space.md }}>
-    <Head title={`POYGA | ${uz.sheet.small}`} sub={uz.sheet.smallSub} /><Meta d={d} />
+    <Head title={`Tajriba 24 | ${uz.sheet.small}`} sub={uz.sheet.smallSub} /><Meta d={d} />
     <View style={[wide && { flexDirection: "row", alignItems: "flex-start" }, { gap: space.md }]}><View style={wide ? { flex: 1 } : undefined}>{left}</View><View style={wide ? { flex: 1 } : undefined}>{right}</View></View>
     <View style={[wide && { flexDirection: "row", alignItems: "flex-start" }, { gap: space.md }]}><View style={wide ? { flex: 1 } : undefined}>{exp}</View><View style={wide ? { flex: 1 } : undefined}>{credits}</View></View>
     <View style={s.goal}><Text style={s.goalT}>{uz.sheet.exitNote} {money(d.exit.cashGoal)} sh.b. {uz.sheet.exitNote2} {money(d.exit.flowGoal)} sh.b.{uz.sheet.exitNote3}</Text></View>
@@ -60,7 +60,7 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
 function BigSheet({ d }: { d: SheetBig }) {
   const rows = Array.from({ length: Math.max(SLOTS.big, d.businesses.length) }, (_, i) => d.businesses[i]);
   return (<View style={{ gap: space.md }}>
-    <Head title={`POYGA | ${uz.sheet.big}`} sub={uz.sheet.bigSub} /><Meta d={d} />
+    <Head title={`Tajriba 24 | ${uz.sheet.big}`} sub={uz.sheet.bigSub} /><Meta d={d} />
     <Box><View style={s.lockRow}><Text style={[s.cl, { flex: 1, fontWeight: "800" }]}>{uz.sheet.lockedFlow}:</Text><Text style={s.cv} testID="sheet-locked">{d.lockedFlow === null ? uz.sheet.none : money(d.lockedFlow)}</Text></View></Box>
     <Box title={uz.sheet.bizTable}>
       <View style={s.tr}><Text style={[s.th, { flex: 2 }]}>{uz.sheet.bizName}</Text><Text style={s.th}>{uz.sheet.bizValue}</Text><Text style={s.th}>{uz.sheet.bizIncome}</Text></View>

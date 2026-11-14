@@ -6,12 +6,12 @@ jobs:
     services:
       postgres:
         image: postgres:16
-        env: { POSTGRES_USER: poyga, POSTGRES_PASSWORD: poyga, POSTGRES_DB: poyga_test }
+        env: { POSTGRES_USER: tajriba24, POSTGRES_PASSWORD: tajriba24, POSTGRES_DB: tajriba24_test }
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U poyga" --health-interval 5s --health-retries 10
+          --health-cmd "pg_isready -U tajriba24" --health-interval 5s --health-retries 10
     env:
-      TEST_DATABASE_URL: postgres://poyga:poyga@localhost:5432/poyga_test
+      TEST_DATABASE_URL: postgres://tajriba24:tajriba24@localhost:5432/tajriba24_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -23,7 +23,7 @@ jobs:
       - name: Karta jadvali (Tajriba24) — tekshiruv va import quruq yurgizish (0 o'zgarish kutiladi)
         run: |
           python3 content/imports/tajriba24/validate_cards.py content/imports/tajriba24/tajriba24_cards_import.csv
-          pnpm --filter @poyga/content cards import imports/tajriba24/tajriba24_cards_import.csv --kasb imports/tajriba24/tajriba24_kasblar.csv --dry-run | tee /tmp/dry.txt
+          pnpm --filter @tajriba24/content cards import imports/tajriba24/tajriba24_cards_import.csv --kasb imports/tajriba24/tajriba24_kasblar.csv --dry-run | tee /tmp/dry.txt
           grep -q "o'zgarishsiz: 1052" /tmp/dry.txt
       - run: pnpm build:web
   docker:
@@ -31,17 +31,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t poyga-server .
+      - run: docker build -t tajriba24-server .
       - run: |
           # production rejimi haqiqiy autentifikatsiyasiz ataylab ishga tushmaydi (server/src/app.ts), shuning uchun smoke-test staging'da
-          docker run -d --name poyga -p 3000:3000 -e NODE_ENV=staging poyga-server
+          docker run -d --name tajriba24 -p 3000:3000 -e NODE_ENV=staging tajriba24-server
           for i in $(seq 1 30); do curl -sf localhost:3000/ready && exit 0; sleep 1; done
-          docker logs poyga; exit 1
+          docker logs tajriba24; exit 1
       - name: Veb image (mijoz + admin + Caddy) va Caddyfile tekshiruvi
         run: |
-          docker build -f deploy/vps/Dockerfile.web --build-arg API_WS=wss://api.example.uz --build-arg API_HTTP=https://api.example.uz -t poyga-web .
-          docker run --rm -e API_DOMAIN=api.example.uz -e APP_DOMAIN=game.example.uz -e ADMIN_DOMAIN=admin.example.uz poyga-web caddy validate --config /etc/caddy/Caddyfile
-          docker run --rm poyga-web sh -c 'test -f /srv/app/index.html && test -f /srv/admin/index.html'
+          docker build -f deploy/vps/Dockerfile.web --build-arg API_WS=wss://api.example.uz --build-arg API_HTTP=https://api.example.uz -t tajriba24-web .
+          docker run --rm -e API_DOMAIN=api.example.uz -e APP_DOMAIN=game.example.uz -e ADMIN_DOMAIN=admin.example.uz tajriba24-web caddy validate --config /etc/caddy/Caddyfile
+          docker run --rm tajriba24-web sh -c 'test -f /srv/app/index.html && test -f /srv/admin/index.html'
   ui:
     # Brauzerda: veb eksport → axe-core (WCAG 2.2 AA) barcha ekranlarda va kirish/admin ekranlarida → bot bilan 60 navbat o'ynash (xatosiz)
     runs-on: ubuntu-latest
@@ -52,48 +52,48 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: npx playwright-core install --with-deps chromium
-      - run: pnpm --filter @poyga/client export:web
-      - run: pnpm --filter @poyga/admin build
+      - run: pnpm --filter @tajriba24/client export:web
+      - run: pnpm --filter @tajriba24/admin build
       - name: Statik serverlar
         run: |
           (cd client/dist && python3 -m http.server 8081 >/dev/null 2>&1 &)
           (cd admin/dist && python3 -m http.server 8082 >/dev/null 2>&1 &)
           sleep 2
-      - run: pnpm --filter @poyga/server a11y
-      - run: pnpm --filter @poyga/server exec tsx scripts/screens-login.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/screens-admin.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/e2e-play.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/identity-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/portfolio-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/calc-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/history-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/resume-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/sheet-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/seats-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/dock-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/moment-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/slots-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/badges-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/rejoin-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/timers-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/modes-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/progress-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/catalog-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/art-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/dice-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/circles-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/owners-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/auction-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/birth-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/decline-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/report-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/dreams-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/mods-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/recap-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/time-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/untimed-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/perf-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/chat-check.ts
-      - run: pnpm --filter @poyga/server exec tsx scripts/voice-check.ts
+      - run: pnpm --filter @tajriba24/server a11y
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/screens-login.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/screens-admin.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/e2e-play.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/identity-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/portfolio-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/calc-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/history-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/resume-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/sheet-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/seats-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/dock-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/moment-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/slots-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/badges-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/rejoin-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/timers-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/modes-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/progress-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/catalog-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/art-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/dice-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/circles-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/owners-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/auction-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/birth-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/decline-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/report-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/dreams-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/mods-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/recap-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/time-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/untimed-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/perf-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/chat-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/voice-check.ts
       - name: Moslashuvchanlik (katlanuvchi, tik telefon, yotiq telefon, tik planshet, 125 % kompyuter)
-        run: STRICT=1 ONLY=280x653,390x844,844x390,768x1024,1536x730 pnpm --filter @poyga/server exec tsx scripts/responsive-check.ts
+        run: STRICT=1 ONLY=280x653,390x844,844x390,768x1024,1536x730 pnpm --filter @tajriba24/server exec tsx scripts/responsive-check.ts

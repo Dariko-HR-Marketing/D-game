@@ -14,7 +14,7 @@ autoProfiles(x, b);
 const tryClick = async (l: any) => { try { await l.first().click({ timeout: 2500 }); return true; } catch { return false; } };
 let failed = 0; const fail = (m: string) => { failed++; console.log("✗", m); };
 for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [string, number, number][]) {
-  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("poyga-dev-user", u); localStorage.setItem("poyga-tours-off", "1"); }, "e2e-" + tag);
+  const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, "e2e-" + tag);
   const p = await c.newPage(); const errors: string[] = [];
   if (process.env.PERF) { // o'lchov rejimi: CPU 4× sekinlashtirilgan (o'rta telefon), uzoq vazifalar (>50 ms) yig'iladi
     await (await c.newCDPSession(p)).send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.PERF) || 4 });

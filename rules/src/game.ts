@@ -1,8 +1,8 @@
 // O'yin darajasidagi holat mashinasi: navbat, katak, karta qarori, chiqish, g'alaba.
 // Hamma narsa sof va serializatsiya qilinadigan holat ustida; tasodifiylik holatdagi `rng` dan.
-import type { CardEffect, Effect, Op } from "@poyga/content/effects";
-import { matches, type Selector } from "@poyga/content/groups";
-import type { CellActionT, CellRulesT } from "@poyga/content/cellrules";
+import type { CardEffect, Effect, Op } from "@tajriba24/content/effects";
+import { matches, type Selector } from "@tajriba24/content/groups";
+import type { CellActionT, CellRulesT } from "@tajriba24/content/cellrules";
 import { startAuction, auctionAct, isAuctionAction, cannotBuyAnyWay, startMarketAuction, type Auction, type AuctionAction } from "./auction";
 import { RULES, RANKED_ALLOWED_POOLS, MODES, modeOf, type GameMode, bankLoanPayoff, bankPrincipalDue, canExitSmallCircle, checkMutualLoan, hasWonBigCircle, isValidSuyunchi, mutualLoanLimit, partnerBuyoutPrice } from "./index";
 import {

@@ -1,5 +1,5 @@
 // «Mening kartalarim»: o'yinchiga tegishli aktivlar, qarzlar (berilgan/olingan), faol kartalar va ularning tahlili. React'siz — testlanadi.
-import { assetIncome, passiveIncome, allDebt, monthlyExpenses } from "@poyga/rules";
+import { assetIncome, passiveIncome, allDebt, monthlyExpenses } from "@tajriba24/rules";
 import { marketOffers, nameOf } from "./model";
 import { uz } from "./i18n/uz";
 

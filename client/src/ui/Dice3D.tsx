@@ -7,10 +7,10 @@ import { color } from "../theme";
 import { uz } from "../i18n/uz";
 
 // Aylanib tushish: kub uch o'qda aylanadi (sekinlashib), tepaga otilib, 2–3 marta sakrab joyiga tushadi; soya balandlikka qarab kichrayadi.
-const CSS = ["a", "b"].map((k) => `@keyframes poyga-toss-${k}{0%{transform:translateY(0) scale(1)}26%{transform:translateY(calc(var(--up)*-1)) scale(1.1)}56%{transform:translateY(0) scale(1)}70%{transform:translateY(calc(var(--up)*-.3))}84%{transform:translateY(0)}92%{transform:translateY(calc(var(--up)*-.09))}100%{transform:translateY(0)}}
-@keyframes poyga-shadow-${k}{0%{transform:scale(1);opacity:.4}26%{transform:scale(.55);opacity:.16}56%{transform:scale(1);opacity:.4}70%{transform:scale(.85);opacity:.28}84%{transform:scale(1);opacity:.4}100%{transform:scale(1);opacity:.4}}`).join("\n");
+const CSS = ["a", "b"].map((k) => `@keyframes tajriba24-toss-${k}{0%{transform:translateY(0) scale(1)}26%{transform:translateY(calc(var(--up)*-1)) scale(1.1)}56%{transform:translateY(0) scale(1)}70%{transform:translateY(calc(var(--up)*-.3))}84%{transform:translateY(0)}92%{transform:translateY(calc(var(--up)*-.09))}100%{transform:translateY(0)}}
+@keyframes tajriba24-shadow-${k}{0%{transform:scale(1);opacity:.4}26%{transform:scale(.55);opacity:.16}56%{transform:scale(1);opacity:.4}70%{transform:scale(.85);opacity:.28}84%{transform:scale(1);opacity:.4}100%{transform:scale(1);opacity:.4}}`).join("\n");
 let injected = false;
-const inject = () => { const d = (globalThis as any).document; if (injected || !d?.head) return; injected = true; const el = d.createElement("style"); el.setAttribute("data-poyga", "dice"); el.textContent = CSS; d.head.appendChild(el); };
+const inject = () => { const d = (globalThis as any).document; if (injected || !d?.head) return; injected = true; const el = d.createElement("style"); el.setAttribute("data-tajriba24", "dice"); el.textContent = CSS; d.head.appendChild(el); };
 
 const PIPS: Record<number, number[]> = { 1: [4], 2: [2, 6], 3: [2, 4, 6], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 const FACE_TF: Record<Face, string> = { front: "", back: "rotateY(180deg)", right: "rotateY(90deg)", left: "rotateY(-90deg)", top: "rotateX(90deg)", bottom: "rotateX(-90deg)" };
@@ -46,8 +46,8 @@ export function Dice3D({ value, n, size = 64 }: { value: number | null; n?: numb
   const label = value === null ? uz.game.diceNone : `${uz.game.diceLabel}: ${value}`, ab = k % 2 ? "b" : "a";
   return h("div", { role: "img", "aria-label": label, style: { width: size, height: size, position: "relative", flexShrink: 0, perspective: size * 5, margin: `${size * 0.16}px ${size * 0.18}px ${size * 0.1}px` } },
     h("div", { "aria-hidden": true, style: { position: "absolute", left: size * 0.08, right: size * 0.08, bottom: -size * 0.1, height: size * 0.2, borderRadius: "50%", background: "radial-gradient(closest-side,rgba(8,34,56,.6),rgba(8,34,56,0))", opacity: 0.4,
-      animation: rolling ? `poyga-shadow-${ab} ${DICE_MS}ms ease-out both` : undefined } }),
-    h("div", { "aria-hidden": true, style: { width: "100%", height: "100%", transformStyle: "preserve-3d", ["--up" as any]: `${size * 0.5}px`, animation: rolling ? `poyga-toss-${ab} ${DICE_MS}ms cubic-bezier(.3,.55,.4,1) both` : undefined } },
+      animation: rolling ? `tajriba24-shadow-${ab} ${DICE_MS}ms ease-out both` : undefined } }),
+    h("div", { "aria-hidden": true, style: { width: "100%", height: "100%", transformStyle: "preserve-3d", ["--up" as any]: `${size * 0.5}px`, animation: rolling ? `tajriba24-toss-${ab} ${DICE_MS}ms cubic-bezier(.3,.55,.4,1) both` : undefined } },
       h("div", { style: { width: "100%", height: "100%", position: "relative", transformStyle: "preserve-3d", transform: `rotateX(-22deg) rotateY(28deg) rotateX(${a.x}deg) rotateY(${a.y}deg)`,
         transition: rolling ? `transform ${Math.round(DICE_MS * 0.93)}ms cubic-bezier(.16,.66,.28,1)` : "none" } }, FACES.map((f) => face(f, size, numeral)))));
 }
