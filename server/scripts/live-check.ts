@@ -22,11 +22,15 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yotiq", 844, 390], ["plan", 1024
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room); await new Promise((r) => setTimeout(r, 600));
+  const unblock = async () => { // bankrot tahlili va auksion o'yinni to'xtatadi: tasdiqlab (rad etib) davom ettiramiz
+    for (const r of [...(room.state!.recaps ?? [])]) await x.rooms.act(code, r.playerId, { type: "ack_restart", playerId: r.playerId, id: r.id }, room.seq);
+    const au: any = room.state!.auction; if (au) await (x.rooms as any).apply(room, { type: au.phase === "owner" ? "auction_decline" : "auction_close", playerId: au.phase === "owner" ? au.owner : "server" }, "test");
+  };
   for (let i = 0; i < 140 && !room.state!.winner; i++) { // o'yinni oldinga suramiz: ma'lumot to'plansin
-    const me = currentPlayer(room.state!).id;
+    await unblock(); const me = currentPlayer(room.state!).id;
     if (room.state!.pending) { const e = effectOf(room.ctx, room.state!.pending.cardId).effect; await x.rooms.act(code, me, { type: "decide", playerId: me, accept: e.kind === "gain" || e.kind === "buy" }, room.seq); } else await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq);
   }
-  await a.waitForTimeout(800);
+  await unblock(); await a.waitForTimeout(800);
   for (const [n, pg] of [["a", a], ["b", c]] as const) {
     await pg.getByTestId("live-open").click(); await pg.getByTestId("live-analytics").waitFor({ timeout: 8000 }); await pg.getByTestId("live-tab-overview").waitFor({ timeout: 10000 });
     check(true, `${tag}/${n}: jonli tahlil ochildi`);
