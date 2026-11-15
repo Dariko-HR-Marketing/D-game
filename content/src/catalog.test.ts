@@ -124,5 +124,9 @@ describe("yaratilgan karta rasmlari (content/art/generated)", () => {
     const need = current.catalog.filter((c) => c.image === "NEW_ART").map((c) => c.id); expect(need.filter((id) => !current.art.includes(id))).toEqual([]);
     for (const r of rows.filter((x) => x.image_status === "REDRAW")) expect(existsSync(new URL(r.legacy_file.replace(/\.png$/i, ".webp").replace(/'/g, ""), ART)) || existsSync(new URL(r.legacy_file.replace(/\.png$/i, ".webp"), ART)), `${r.legacy_file}: yaratilgan rasm yo'q`).toBe(true);
   });
+  it("«yangi» 6 ta karta (cards.new) va halol moliyaga moslangan Q_001 uchun rasm bor (hech qachon rasmsiz qolmaydi)", () => {
+    for (const c of current.new as { file: string }[]) expect(existsSync(new URL(c.file, ART)), `${c.file}: rasm yo'q`).toBe(true);
+    expect(existsSync(new URL("Q_001.webp", ART))).toBe(true);
+  });
   it("yaratilgan fayl nomlari xavfsiz shaklga mos (§2.5)", () => { for (const f of readdirSync(ART).filter((x) => x.endsWith(".webp"))) expect(isSafeCardFile(f), f).toBe(true); });
 });
