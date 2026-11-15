@@ -42,7 +42,13 @@ jobs:
         if: steps.gate.outputs.configured == 'true'
         run: |
           ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$DEPLOY_USER@$HOST" \
-            "set -e; cd ${DEPLOY_PATH:-~/D-game} && git pull --ff-only origin main && cd deploy/vps && ./install-art.sh && docker compose up -d --build && docker compose ps"
+            "set -e; cd ${DEPLOY_PATH:-~/D-game}; \
+             if ! git diff --quiet; then \
+               p=\$HOME/deploy-local-changes-\$(date +%Y%m%d-%H%M%S).patch; git diff > \$p; \
+               echo '::warning::Serverda qolda ozgartirilgan fayllar bor; patch saqlandi:' \$p; git diff --stat; cat \$p; \
+               git stash push -m deploy-auto-\$(date +%s); \
+             fi; \
+             git pull --ff-only origin main && cd deploy/vps && ./install-art.sh && docker compose up -d --build && docker compose ps"
       - name: Tayyorlikni tekshirish
         if: steps.gate.outputs.configured == 'true'
         run: |
