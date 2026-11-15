@@ -14,7 +14,7 @@ export interface Analysis {
 }
 
 /** `actions` — jurnaldagi harakatlar (avtomatik yozuvlar ham ichidagi harakat bilan). Noto'g'ri harakat — xato (jurnal buzilgan). */
-export function analyzeGame(ctx: Ctx, init: Init, actions: Action[]): { analysis: Analysis; final: GameState } {
+export function analyzeGame(ctx: Ctx, init: Init, actions: Action[], opts: { lenient?: boolean } = {}): { analysis: Analysis; final: GameState } {
   let s = newGame(ctx, init.playerIds, init.seed, init.bots, init.restricted, { dreamPhase: !!init.dreamPhase, openingDice: !!init.openingDice, mode: init.mode, recapPause: !!init.recapPause, halalFin: !!init.halalFin, witnessLoans: !!init.witnessLoans });
   if (!init.dreamPhase) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % ctx.dreams.length))); // eski (bosqichsiz) o'yinlar
   const pa = new Map<string, PlayerAnalysis>(s.players.map((p) => [p.id, { id: p.id, bot: init.bots.includes(p.id), series: [], exitRound: null, restarts: 0, peakCashflow: -Infinity, peakCash: -Infinity, decisions: { accepted: 0, skipped: 0 }, assetsAtEnd: 0 }]));
@@ -30,7 +30,7 @@ export function analyzeGame(ctx: Ctx, init: Init, actions: Action[]): { analysis
   for (const act of actions) {
     const prev = s; const pending = prev.pending;
     const o = reduce(prev, ctx, act);
-    if (!o.ok) throw new Error(`jurnal buzilgan: ${act.type} → ${o.error}`);
+    if (!o.ok) { if (opts.lenient) continue; throw new Error(`jurnal buzilgan: ${act.type} → ${o.error}`); } // lenient: eski qoidalar bilan o'ynalgan jurnal (report.ts dagidek)
     s = o.state;
     if (act.type === "roll") turns++;
     if (act.type === "decide" && pending) {

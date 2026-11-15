@@ -67,6 +67,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
             <View style={s.btn}><Button label={uz.coop.accept} disabled={x.half != null && p.cash < x.half} onPress={() => onAct({ type: "partner_accept", proposalId: x.id })} /></View>
             <View style={s.btn}><Button kind="ghost" label={uz.coop.decline} onPress={() => onAct({ type: "partner_decline", proposalId: x.id })} /></View>
           </View></Box>))}
+      {pr.loansPending.map((x: any) => x.witnesses ? <Text key={`lp${x.id}`} style={s.note} accessibilityLiveRegion="polite">{uz.coop.witnessWait.replace("{n}", String((x.confirmed ?? []).length)).replace("{m}", String(x.witnesses.length))}</Text> : null)}
       {(pr.loansPending.length > 0 || pr.partnerPending.length > 0) && <Text style={s.note}>{uz.coop.waiting}</Text>}
 
       {mineTurn && (
@@ -118,8 +119,9 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
             {bounds && <Text style={s.note}>{uz.coop.max}: {money(bounds.max)}</Text>}
             <Num label={uz.coop.amount} value={loanAmt} onChange={setLoanAmt} />
             <Num label={uz.coop.months} value={months} onChange={setMonths} />
+            {giver !== "" && !!room.state.witnessLoans && loanWitnessOptions(room, userId, giver).length < 3 && <Text style={s.note} accessibilityRole="alert">{uz.coop.fewWitnesses}</Text>}
             {giver !== "" && !!room.state.witnessLoans && [0, 1, 2].map((i) => (
-              <Pick key={`wp${i}`} label={uz.coop.witnessPick.replace("{n}", String(i + 1))} options={loanWitnessOptions(room, userId, giver).filter((id) => !wit.some((w, j) => j !== i && w === id))} value={wit[i] ?? ""} onChange={(v: string) => setWit((w) => w.map((x, j) => (j === i ? v : x)))} names={(id) => nameOf(room, id)} />))}
+              <View key={`wv${i}`} style={{ gap: 4 }}><Text style={s.note}>{uz.coop.witnessPick.replace("{n}", String(i + 1))}</Text><Pick key={`wp${i}`} label={uz.coop.witnessPick.replace("{n}", String(i + 1))} options={loanWitnessOptions(room, userId, giver).filter((id) => !wit.some((w, j) => j !== i && w === id))} value={wit[i] ?? ""} onChange={(v: string) => setWit((w) => w.map((x, j) => (j === i ? v : x)))} names={(id) => nameOf(room, id)} /></View>))}
             <Button label={uz.coop.loanAsk} kind="ghost" disabled={!giver || !loanAmt || !months || Number(loanAmt) > (bounds?.max ?? 0) || Number(months) > 36 || (!!room.state.witnessLoans && wit.some((w) => !w))}
               onPress={() => { onAct({ type: "loan_request", giverId: giver, amount: Number(loanAmt), months: Number(months), ...(room.state.witnessLoans ? { witnesses: wit } : {}) }); setLoanAmt(""); setWit(["", "", ""]); }} /></>)}
         </Box>)}
