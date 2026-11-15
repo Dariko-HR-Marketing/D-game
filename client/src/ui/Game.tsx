@@ -122,7 +122,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   }, [wide, compact, tablet, tri, width, height, nCells, pad, reserveH, sideW]);
   const sheetOpen = !wide && !!card && mineTurn;
   const pr = myProposals(room, userId);
-  const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.partnerToAccept.length;
+  const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.loansToWitness.length + pr.partnerToAccept.length;
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
   const log: string[] = state.log.slice(-8).reverse(); // yangisi tepada; LogLine ismlarni qalin qilib chiqaradi
   const bank = mine ? bankRoom(mine) : 0;

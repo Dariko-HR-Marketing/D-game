@@ -155,6 +155,22 @@ for (const r of rows.filter((x) => x.image_status === "REDRAW")) {
   }
   jobs.push({ out: c.file, w: 960, h, ...t });
 }
+// ── 6 ta «yangi» karta (cards.new: rasmi hech qachon bo'lmagan) va halol moliyaga moslangan Q_001 (eski rasmda «qarz… 600 qilib qaytarish» yozuvi bor) ──
+for (const c of cards.new as any[]) {
+  if (ONLY && !ONLY.includes(c.file)) continue; let t: Pick<Job, "html" | "fit"> | null = null;
+  const amt = typeof c.amount === "number" ? c.amount : undefined, foot = typeof c.amount === "string" ? c.amount : amt !== undefined ? `Jami: ${fmt(amt)} sh.b.` : undefined;
+  switch (c.deck) {
+    case "bozor": t = bozor({ head: `BOZOR  /  ${c.code === "Q" ? "Foyda ulushi" : String(c.kind).split(" · ")[0]}`, chip: c.code, title: c.code === "Q" ? "FOYDA ULUSHI QAYTDI" : c.code === "IJR" ? "IJARACHI KO‘CHIB KETDI" : "BOZOR XABARI", text: c.text, foot }); break;
+    case "xar": t = xar({ head: "XARAJATLAR  /  SUG‘URTA", chip: "SUG‘URTA", title: "AVTOMOBIL SUG‘URTASI", text: c.text, amountLabel: "Sug‘urta narxi", amount: amt, theme: "blue" }); break;
+    case "kichik": t = c.code === "MO"
+      ? kichik({ title: "Malaka oshirish kursi", text: c.text, boxes: [["Kurs narxi (bir marta)", fmt(c.price)], ["Ish haqi oshadi (oyiga)", `+${fmt(c.salary_plus)}`]], code: "MO", note: "Kursga yozilsangiz, narxni bankka to‘lang: ish haqingiz har oy doimiy oshadi." })
+      : kichik({ title: "Mahalla maktabiga homiylik", text: c.text, boxes: [["To‘lov (daromaddan)", "10 %"], ["3 navbatda", "2 ta zar"]], code: "XAY", note: "Xayriya ixtiyoriy: rozi bo‘lsangiz, to‘lovni bankka to‘lang." }); break;
+    case "hod": t = hod({ sub: "Suv toshqini", text: c.text, amount: amt }); break;
+  }
+  if (t) jobs.push({ out: c.file, w: 960, h: 617, ...t }); else console.log("o'tkazildi (shablon yo'q):", c.file);
+}
+{ const q = (cards.kichik as any[]).find((c) => c.file === "Q_001.webp"); // halol: mudoraba (sarmoya + foyda ulushi), qarz/foiz emas
+  if (q && (!ONLY || ONLY.includes("Q_001.webp"))) jobs.push({ out: "Q_001.webp", w: 960, h: 617, ...kichik({ title: "Mudoraba: do‘stingiz biznesiga sarmoya", text: q.text, boxes: [["Sizning sarmoyangiz", fmt(300)], ["Foyda ulushi bilan jami", fmt(600)]], code: "Q", note: "Rozi bo‘lsangiz, sarmoyani bankka to‘lang. Foyda ulushi bilan jami summa keyin qaytadi (qarz emas, foizsiz)." }) }); }
 console.log(`ishlar: ${jobs.length} (katalog ${jobs.filter((j) => j.id).length}, qayta chizish ${jobs.filter((j) => !j.id).length}), topilmagan eski karta: ${missing}`);
 
 if (JSON_ONLY) { const ids = [...new Set<string>(jobs.filter((j) => j.id).map((j) => j.id!))].sort(); cards.art = ids; writeFileSync(CARDS, JSON.stringify(cards, null, 1) + "\n"); console.log(`cards.json: art = ${ids.length} ta karta kodi (chizilmadi)`); process.exit(0); }

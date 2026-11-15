@@ -68,7 +68,7 @@ export interface RestartRecap {
 
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
-  | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number }
+  | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number; witnesses?: string[]; confirmed?: string[] }
   | { id: number; kind: "partner"; owner: string; partner: string; cardId: string; half?: number }
   | { id: number; kind: "market"; cardId: string; sold: string[] }
   | { id: number; kind: "offer"; cardId: string; sold: string[]; first: boolean }; // katalog «sotish taklifi»: `first` — faqat birinchi rozi bo'lgan sota oladi
@@ -99,6 +99,8 @@ export interface GameState {
   recapPause?: boolean; recaps?: RestartRecap[]; nextRecap?: number;
   /** Halol moliya (2026-11-09): yangi o'yinlarda kredit/lombard foizsiz, bir martalik haq bilan; eski jurnallar eski hisob bilan o'ynaladi. */
   halalFin?: boolean;
+  /** O'zaro qarz: 3 guvoh tasdiqlamaguncha qarz berilmaydi (2026-11-14, buyurtmachi); faqat yangi o'yinlarda, eski jurnallar guvohsiz o'ynaladi. */
+  witnessLoans?: boolean;
   /** Garov auksioni (halol moliya): ochiq bo'lsa boshqa harakatlar to'xtaydi. `nextAuction`: ID hisoblagichi. */
   auction?: Auction | null; nextAuction?: number; relist?: Record<string, number>;
   mode?: GameMode; endReason?: "win" | "time"; pending: Pending; winner: string | null; log: string[]; logN?: number; // logN: jami yozilgan voqealar (jurnal 30 tagacha kesiladi; mijoz «yangi voqealar» sonini shundan hisoblaydi)
@@ -115,9 +117,9 @@ function withRng<T>(s: GameState, f: (r: () => number) => T): T {
 const clone = <T>(x: T): T => structuredClone(x);
 
 /** `restricted`: 16 yoshgacha o'yinchilar — o'zaro qarz va sheriklik yopiq (SPEC §2.8). */
-export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode; recapPause?: boolean; halalFin?: boolean } = {}): GameState {
+export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: string[] = [], restricted: string[] = [], opts: { dreamPhase?: boolean; events?: boolean; openingDice?: boolean; mode?: GameMode; recapPause?: boolean; halalFin?: boolean; witnessLoans?: boolean } = {}): GameState {
   const s = { version: 1, bots, restricted, proposals: [], nextProposal: 1, notices: [], nextNotice: 1, phase: "play", dreamPhase: false, events: opts.events !== false, seed, rngState: seed >>> 0, mode: modeOf(opts.mode), players: [], turn: 0, round: 1,
-    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [], ...(opts.recapPause ? { recapPause: true, recaps: [], nextRecap: 1 } : {}), ...(opts.halalFin ? { halalFin: true } : {}) } as GameState;
+    decks: {} as Record<DeckName, DeckState>, pending: null, winner: null, log: [], ...(opts.recapPause ? { recapPause: true, recaps: [], nextRecap: 1 } : {}), ...(opts.halalFin ? { halalFin: true } : {}), ...(opts.witnessLoans ? { witnessLoans: true } : {}) } as GameState;
   withRng(s, (r) => {
     // Reytingli o'yinda faqat asosiy havza (ranked_pool=BASE): EXTENDED kartalar sozlama (RULES.rankedPools) bilan yoqilmaguncha kirmaydi (Tajriba24 TZ §6.7)
     const closed = new Set(modeOf(opts.mode) === "rated" && !RANKED_ALLOWED_POOLS.includes("EXTENDED") ? ctx.extended ?? [] : []);
@@ -278,9 +280,10 @@ export type Action =
   | { type: "sell_asset"; playerId: string; assetIdx: number }
   | { type: "market_sell"; playerId: string; proposalId: number; assetCode?: string }
   | { type: "suyunchi"; playerId: string; proposalId: number; amount: number }
-  | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number }
+  | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number; witnesses?: string[] }
   | { type: "loan_accept"; playerId: string; proposalId: number }
   | { type: "loan_decline"; playerId: string; proposalId: number }
+  | { type: "loan_witness"; playerId: string; proposalId: number }
   | { type: "loan_repay"; playerId: string; debtId: number; amount: number }
   | { type: "loan_remind"; playerId: string; debtorId: string; debtId: number }
   | { type: "partner_offer"; playerId: string; partnerId: string }
@@ -957,13 +960,21 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       const chk = checkMutualLoan({ players: humans(s).length, amount: a.amount, months: a.months, giverCash: giver.cash,
         receiverSalary: salaryOf(rec), receiverPassive: passiveIncome(rec), receiverExistingMutualDebt: existing });
       if (!chk.ok) return err(chk.reason);
-      s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months });
+      let witnesses: string[] | undefined;
+      if (s.witnessLoans) { // 3 guvohni oluvchi o'zi tanlaydi: boshqa-boshqa, beruvchi va o'zidan boshqa, bot bo'lmagan, 16+ o'yinchilar
+        const w = a.witnesses ?? [];
+        if (w.length !== RULES.loanWitnesses || new Set(w).size !== w.length) return err("bad_witnesses");
+        if (w.some((id) => id === rec.id || id === giver.id || !s.players.some((p) => p.id === id) || s.bots.includes(id) || s.restricted.includes(id))) return err("bad_witnesses");
+        witnesses = [...w];
+      }
+      s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months, ...(witnesses ? { witnesses, confirmed: [] } : {}) });
       logf(s, `${rec.id}: ${giver.id} dan qarz so'radi (${a.amount})`); return ok();
     }
     case "loan_accept": {
       const pr = s.proposals.find((x) => x.id === a.proposalId);
       if (!pr || pr.kind !== "loan") return err("no_proposal");
       if (pr.giver !== a.playerId) return err("not_giver");
+      if (pr.witnesses && pr.witnesses.some((w) => !(pr.confirmed ?? []).includes(w))) return err("witnesses_pending"); // 3 guvoh xabardor bo'lmaguncha qarz berilmaydi
       if (s.restricted.includes(pr.giver) || s.restricted.includes(pr.receiver)) return err("restricted_age");
       const giver = P(pr.giver), rec = P(pr.receiver);
       if (rec.circle !== "small") return err("big_cannot_borrow"); // oluvchi taklifdan keyin katta aylanaga chiqib ketgan bo'lishi mumkin
@@ -973,6 +984,13 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       setP(s, { ...giver, cash: giver.cash - pr.amount });
       setP(s, { ...rec, cash: rec.cash + pr.amount, handDebts: [...rec.handDebts, { id: pr.id, to: giver.id, amount: pr.amount, months: pr.months }] });
       s.proposals = s.proposals.filter((x) => x.id !== pr.id); logf(s, `${giver.id}: ${rec.id} ga qarz berdi (${pr.amount})`); return ok();
+    }
+    case "loan_witness": { // guvoh qarzdan faqat xabardor bo'ladi («Xabardor bo'ldim»): tasdiqlash ham, rad etish ham emas; hammasi xabardor bo'lmaguncha beruvchi qabul qila olmaydi
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "loan") return err("no_proposal");
+      if (!pr.witnesses?.includes(a.playerId)) return err("not_witness");
+      if ((pr.confirmed ?? []).includes(a.playerId)) return err("already_confirmed");
+      pr.confirmed = [...(pr.confirmed ?? []), a.playerId]; logf(s, `${a.playerId}: ${pr.receiver} ning ${pr.giver} dan qarzidan xabardor bo'ldi (guvoh)`); return ok();
     }
     case "loan_decline": { // beruvchi qarzni bermay rad etadi: taklif o'chadi, so'ragan o'yinchiga xabar boradi
       const pr = s.proposals.find((x) => x.id === a.proposalId);

@@ -38,6 +38,7 @@ export function myProposals(room: any, userId: string) {
   return {
     suyunchi: all.filter((x) => x.kind === "suyunchi" && x.parent !== userId && !x.given.includes(userId) && p?.circle === "small" && !isBot(userId)),
     loansToAccept: all.filter((x) => x.kind === "loan" && x.giver === userId),
+    loansToWitness: all.filter((x) => x.kind === "loan" && (x.witnesses ?? []).includes(userId) && !(x.confirmed ?? []).includes(userId)),
     loansPending: all.filter((x) => x.kind === "loan" && x.receiver === userId),
     partnerToAccept: all.filter((x) => x.kind === "partner" && x.partner === userId),
     partnerPending: all.filter((x) => x.kind === "partner" && x.owner === userId),
@@ -71,6 +72,10 @@ export function loanBounds(room: any, userId: string, giverId: string) {
 }
 export const loanGivers = (room: any, userId: string): string[] =>
   me(room, userId)?.circle !== "small" ? [] : room.state.players.filter((x: any) => x.id !== userId && !room.state.bots.includes(x.id)).map((x: any) => x.id); // qarz oladigan — kichik aylana; beruvchi — istalgan aylanadan (2026-11-09)
+
+/** Qarz guvohi bo'la oladiganlar: beruvchi va o'zimdan boshqa, bot bo'lmagan, 16+ o'yinchilar. */
+export const loanWitnessOptions = (room: any, userId: string, giverId: string): string[] =>
+  room.state.players.filter((x: any) => x.id !== userId && x.id !== giverId && !room.state.bots.includes(x.id) && !(room.state.restricted ?? []).includes(x.id)).map((x: any) => x.id);
 
 /** Mening ochiq sheriklik aktivlarim (sotib olish uchun). */
 export const myPartneredAssets = (p: any): any[] => p.assets.filter((a: any) => a.partnerId);
