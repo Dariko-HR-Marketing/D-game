@@ -78,6 +78,12 @@ describe("o'zaro qarz: 3 guvoh (witnessLoans)", () => {
     expect(req(mkw(7, ["p6"]), ["p2", "p3", "p6"])).toEqual({ ok: false, error: "bad_witnesses" }); // bot guvoh bo'lmaydi
     expect(req(mkw(6, [], ["p5"]), ["p2", "p3", "p5"])).toEqual({ ok: false, error: "bad_witnesses" }); // 16 yoshgacha guvoh bo'lmaydi
   });
+  it("mos guvoh yetmasa — aniq xato (not_enough_witnesses): botlar va 16 yoshgacha o'yinchilar guvoh bo'la olmaydi", () => {
+    // 9 o'yinchi: 3 tasi bot (odamlar 6 ta, 5 dan kam emas), 2 tasi 16 yoshgacha → oluvchi va beruvchidan boshqa mos guvoh 2 ta
+    expect(req(mkw(9, ["p6", "p7", "p8"], ["p4", "p5"]), ["p2", "p3", "p4"])).toEqual({ ok: false, error: "not_enough_witnesses" });
+    expect(req(mkw(7, [], ["p4", "p5", "p6"]), ["p2", "p3", "p4"])).toEqual({ ok: false, error: "not_enough_witnesses" });
+    expect(req(mkw(6), ["p2", "p3", "p4"]).ok).toBe(true);
+  });
   it("guvohlar xabardor bo'lmaguncha beruvchi qabul qila olmaydi; hammasi xabardor bo'lgach qarz beriladi (rad etish shart emas)", () => {
     let s = must(req(mkw(), ["p2", "p3", "p4"]));
     const id = s.proposals[0].id;

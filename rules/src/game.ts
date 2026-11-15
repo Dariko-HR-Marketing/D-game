@@ -962,6 +962,8 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (!chk.ok) return err(chk.reason);
       let witnesses: string[] | undefined;
       if (s.witnessLoans) { // 3 guvohni oluvchi o'zi tanlaydi: boshqa-boshqa, beruvchi va o'zidan boshqa, bot bo'lmagan, 16+ o'yinchilar
+        const pool = s.players.filter((p) => p.id !== rec.id && p.id !== giver.id && !s.bots.includes(p.id) && !s.restricted.includes(p.id)).length;
+        if (pool < RULES.loanWitnesses) return err("not_enough_witnesses"); // mos guvoh yetmaydi (bot/16 yoshgacha o'yinchilar guvoh bo'la olmaydi): aniq xabar
         const w = a.witnesses ?? [];
         if (w.length !== RULES.loanWitnesses || new Set(w).size !== w.length) return err("bad_witnesses");
         if (w.some((id) => id === rec.id || id === giver.id || !s.players.some((p) => p.id === id) || s.bots.includes(id) || s.restricted.includes(id))) return err("bad_witnesses");
