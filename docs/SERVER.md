@@ -115,3 +115,8 @@ Haqiqiy kirish (SMS/Google/Apple) — hozir har kim istalgan ID bilan kira oladi
 
 ## Baza nomi va foydalanuvchisi (`.env` dagi DB_USER va DB_NAME)
 Compose va skriptlar (backup, restore, audit, finish) baza foydalanuvchisi va nomini `deploy/vps/.env` dagi `DB_USER` va `DB_NAME` dan oladi; ular bo'sh bo'lsa compose ishga tushmaydi (eski konteynerlar ishlashda davom etadi). Yangi o'rnatishda `bootstrap.sh` ularni o'zi yozadi. **Mavjud serverda** bu ikki qatorni `.env` ga bir marta qo'shing: qiymatlar baza birinchi marta yaratilgan paytdagi nom bilan bir xil bo'lishi shart, aks holda server bazaga ulana olmaydi (bazani qayta nomlash shart emas).
+
+## SMS va production rejimi (2026-11-15)
+- `NODE_ENV=production` da server FAQAT `SMS_PROVIDER=eskiz` (ESKIZ_EMAIL, ESKIZ_PASSWORD, ESKIZ_FROM) yoki `SMS_HTTP_URL`+`SMS_HTTP_TOKEN` bilan ishga tushadi. `SMS_PROVIDER=fixed` (doimiy kod) va `console` rad etiladi (`server/src/sms-select.ts`, testlangan).
+- **Joriy holat:** `docker-compose.yml` `NODE_ENV` standarti `staging`. Agar serverdagi `.env` da `SMS_PROVIDER=fixed` bo'lsa, hamma uchun bitta doimiy kod ishlaydi (server boshlanishida ogohlantirish chiqadi). Production'ga o'tish: Eskiz kabinetida jo'natuvchi nomi va shablon tasdiqlangach `.env` ga `SMS_PROVIDER=eskiz`, `ESKIZ_*`, `NODE_ENV=production` yozing (parolni faqat serverda).
+- Eskiz API (hujjat bilan solishtirildi): `POST /api/auth/login` (email, password → `data.token`), `POST /api/message/sms/send` (Bearer, `mobile_phone` `+`siz, `message`, `from`). Token 401 da qayta olinadi. `from=4546` — sinov nomi; shablon moderatsiyadan o'tishi kerak.
