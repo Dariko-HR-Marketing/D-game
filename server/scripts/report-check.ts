@@ -4,12 +4,12 @@ import { createRequire } from "node:module";
 // `OUT=papka pnpm tsx scripts/report-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, axeSource } from "./_seed";
 import { currentPlayer, effectOf, slotBlocked } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/report";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
-const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
+const AXE = axeSource();
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
