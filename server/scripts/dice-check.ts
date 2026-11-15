@@ -5,7 +5,7 @@ process.env.ROLLMODAL = "1"; // kubik oynasi yoqilgan
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, axeSource } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -14,7 +14,7 @@ process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
-const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
+const AXE = axeSource();
 const axe = async (p: any) => { await p.addScriptTag({ content: AXE }); return (await p.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ")" + (v.id === "scrollable-region-focusable" ? v.nodes.map((n) => " " + n.target.join(">")).join(";") : "")))`)) as string[]; };
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 390]] as [string, number, number][]) {

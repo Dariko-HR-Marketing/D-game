@@ -3,11 +3,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, axeSource } from "./_seed";
 import { buildApp } from "../src/app";
 
 const WEB = process.env.WEB ?? "http://localhost:8081"; process.env.CORS_ORIGINS = WEB;
-const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
+const AXE = axeSource();
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const H = (u: string) => ({ authorization: `Bearer ${u}` });
 const prof = (u: string, y: number) => x.app.inject({ method: "PUT", url: "/me/profile", headers: H(u), payload: { name: "Ism" + u, color: 1, birthYear: y } });

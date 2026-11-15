@@ -1,13 +1,13 @@
 import { existsSync } from "node:fs";
 // Kirish ekrani rasmlari (haqiqiy rejim): `OUT=papka pnpm tsx scripts/screens-login.ts`
 import { chromium } from "playwright-core";
-import { passGate } from "./_seed";
+import { passGate, axeSource } from "./_seed";
 import { mkdirSync } from "node:fs";
 import { buildApp } from "../src/app";
 import { OtpService, type SmsSender } from "../src/auth";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
+const AXE = axeSource();
 let total = 0;
 const scan = async (p: any, name: string) => { await p.addScriptTag({ content: AXE }); const r = await p.evaluate(async () => (window as any).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } })); total += r.violations.length; console.log(name.padEnd(18), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 80)}`).join(" | ") : "OK"); };
 

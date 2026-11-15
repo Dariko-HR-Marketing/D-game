@@ -128,5 +128,16 @@ describe("yaratilgan karta rasmlari (content/art/generated)", () => {
     for (const c of current.new as { file: string }[]) expect(existsSync(new URL(c.file, ART)), `${c.file}: rasm yo'q`).toBe(true);
     expect(existsSync(new URL("Q_001.webp", ART))).toBe(true);
   });
+  it("bankdan sotuv auksion kartalari (Y381…Y400): bayroq bilan jonli (narx, qadam, matndagi daromad), bayroqsiz eski versiyalar o'zgarmaydi", () => {
+    const ids = Array.from({ length: 20 }, (_, i) => `cat-Y${381 + i}`);
+    const on = new Map(deriveEffects({ ...current, bankSaleLive: true }).map((e) => [e.id, e])), off = new Map(deriveEffects({ ...current, bankSaleLive: undefined }).map((e) => [e.id, e]));
+    for (const id of ids) { expect(on.get(id)!.effect.kind, id).toBe("bankAuction"); expect(off.get(id)!.effect.kind, id).toBe("unresolved"); }
+    const e = (id: string) => on.get(id)!.effect as { price: number; step: number; monthlyIncome: number; asset: string };
+    expect(e("cat-Y381")).toMatchObject({ price: 5000, step: 500, monthlyIncome: 400, asset: "business" });
+    expect(e("cat-Y398")).toMatchObject({ price: 12000, step: 1000, monthlyIncome: 1100 }); // «+1 100» — ming ajratuvchi bo'sh joy
+    expect(e("cat-Y383")).toMatchObject({ price: 20000, step: 2000, monthlyIncome: 0, asset: "other" }); // matnda aniq daromad yo'q — o'ylab topilmaydi
+    expect(e("cat-Y391").monthlyIncome).toBe(0); expect(e("cat-Y387").monthlyIncome).toBe(0);
+    expect(current.bankSaleLive).toBe(true);
+  });
   it("yaratilgan fayl nomlari xavfsiz shaklga mos (§2.5)", () => { for (const f of readdirSync(ART).filter((x) => x.endsWith(".webp"))) expect(isSafeCardFile(f), f).toBe(true); });
 });

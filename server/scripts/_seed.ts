@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 // Brauzer skriptlari uchun: dev foydalanuvchi (`addInitScript` ga berilgan uid) uchun profil (ism) oldindan yaratiladi — ism majburiy, profilsiz bosh sahifa o'rniga ism so'raladi.
 export function autoProfiles(x: { profiles: { put(id: string, p: unknown): unknown; get(id: string): unknown } }, b: { newContext: (...a: any[]) => Promise<any> }) {
   const orig = b.newContext.bind(b);
@@ -18,3 +20,9 @@ export async function passGate(p: any, name = "Sinov", year = "1990") {
 
 /** Uzoq kutadigan brauzer tekshiruvlari uchun: xona taymerlari ×10 (server o'zi kubik tashlab/karta o'tkazib yubormasin). Faqat test. */
 export function slowTimers(x: { rooms: unknown }, room: any) { room.turnSeconds = 300; room.armKey = null; (x.rooms as any).arm(room); }
+
+/** axe-core manbasi + o'rama: tekshiruvdan oldin ishlab turgan animatsiyalar (toast/oyna kirish effekti) tugashini kutadi. Beqarorlik sababi (10-band): animatsiya o'rtasida tugma o'lchami vaqtincha kichik bo'lib, `target-size` qoidasi tasodifan yiqilardi. */
+export function axeSource(): string {
+  const src = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
+  return src + `;(function(){const run=axe.run.bind(axe);axe.run=async function(...a){for(let i=0;i<50;i++){const an=document.getAnimations?document.getAnimations().filter(function(x){return x.playState==="running"&&x.effect&&x.effect.getTiming().iterations!==Infinity}):[];if(!an.length)break;await new Promise(function(r){setTimeout(r,100)})}await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});return run.apply(null,a)}})();`;
+}

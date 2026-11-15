@@ -29,7 +29,12 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const me = "ca" + tag, P = () => room.state!.players.find((p: any) => p.id === me)!;
   // Navbat «a» ga kelguncha «b» ni server orqali o'tkazamiz
   const other = "cb" + tag;
-  for (let i = 0; i < 80 && currentPlayer(room.state!).id !== me; i++) { const cur = currentPlayer(room.state!).id; if (room.state!.pending) await x.rooms.act(code, cur, { type: "decide", accept: false, playerId: cur } as any, room.seq).catch(() => {}); else { (room.ledger as any)[cur] = snapOf(room.state!.players.find((p: any) => p.id === cur)); await x.rooms.act(code, cur, { type: "roll", playerId: cur } as any, room.seq); } }
+  // Beqarorlik sababi (10-band): «b» ni surayotganda unga bankrot tahlili (recap_open) yoki auksion (auction_open) chiqsa, o'yin to'xtaydi va sikl 80 marta bo'sh aylanib «navbat a da» bo'lmay qolardi. Har qadamda to'siqlar olib tashlanadi (server taymeri o'yinda shuni qiladi).
+  const clearBlocks = async () => {
+    for (const r of [...(room.state!.recaps ?? [])]) await x.rooms.act(code, r.playerId, { type: "ack_restart", playerId: r.playerId, id: r.id } as any, room.seq).catch(() => {});
+    const au = (room.state as any).auction; if (au) await (x.rooms as any).apply(room, au.phase === "owner" ? { type: "auction_decline", playerId: au.owner } : { type: "auction_close", playerId: "server" }, "test");
+  };
+  for (let i = 0; i < 200 && currentPlayer(room.state!).id !== me; i++) { await clearBlocks(); const cur = currentPlayer(room.state!).id; if (room.state!.pending) await x.rooms.act(code, cur, { type: "decide", accept: false, playerId: cur } as any, room.seq).catch(() => {}); else { (room.ledger as any)[cur] = snapOf(room.state!.players.find((p: any) => p.id === cur)); await x.rooms.act(code, cur, { type: "roll", playerId: cur } as any, room.seq); } }
   check(currentPlayer(room.state!).id === me && !room.state!.pending, `${tag} navbat «a» da`);
   // 1) Pul o'zgardi (bank kredit qiymati kabi) → hisobni yangilamaguncha kubik yo'q
   P().cash += 500; (x.rooms as any).emit(room); await a.waitForTimeout(700);
@@ -49,6 +54,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   // 2) Karta qarori: ixtiyoriy sotib olish — hisobni kiritmasdan qabul qilib bo'lmaydi
   let got = false;
   for (let i = 0; i < 600 && !got; i++) { // tasodifiy karta: chegara yuqori (CI da kam uchraydigan holat)
+    await clearBlocks(); // bankrot tahlili/auksion o'yinni to'xtatsa, sikl bo'sh aylanmasin (beqarorlik sababi)
     const au = (room.state as any).auction; if (au) { await (x.rooms as any).apply(room, au.phase === "owner" ? { type: "auction_decline", playerId: au.owner } : { type: "auction_close", playerId: "server" }, "test"); continue; } // botga karta chiqib bozor auksioni ochilsa — yopamiz (o'yinda server taymeri yopadi)
     const cur = currentPlayer(room.state!).id;
     if (cur === me && room.state!.pending) { const e = room.ctx.effects[room.state!.pending.cardId]?.effect as any; if (e?.kind === "buy" && P().cash >= (e.down ?? e.price) && (e.monthlyIncome ?? 0) > 0) { got = true; break; } await x.rooms.act(code, me, { type: "decide", accept: false, playerId: me } as any, room.seq); continue; }

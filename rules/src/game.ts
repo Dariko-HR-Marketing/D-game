@@ -506,6 +506,11 @@ function drawFor(s: GameState, ctx: Ctx, deck: DeckName, pid: string): string {
   return id;
 }
 /** Katalog «sotish taklifi»: hamma mos aktivli o'yinchiga taklif (navbatni to'xtatmaydi). */
+/** Bankdan sotuv auksioni (Y381…Y400): kartani tortgan (kichik aylana) o'yinchi taklif qilmaydi; qolganlari boshlang'ich narxdan qadam bilan; g'olib naqd to'laydi, pul bankka. Halol moliya (yangi) o'yinlarda. */
+function applyBankAuction(s: GameState, p: GamePlayer, id: string, e: Extract<Effect, { kind: "bankAuction" }>) {
+  if (!s.halalFin || p.circle !== "small") { logf(s, `${p.id}: ${e.code} bankdan sotuv auksioni bu o'yinda/aylanada o'tkazilmaydi`); return; }
+  if (!startMarketAuction(s, p, id, { code: e.code, asset: e.asset, price: e.price, monthlyIncome: e.monthlyIncome, marketValue: null }, e.step, e.price)) logf(s, `${p.id}: ${e.code} auksioni o'tkazilmadi: boshlang'ich narxni to'lay oladigan qatnashchi yetarli emas`);
+}
 function applySellOffer(s: GameState, id: string, e: Extract<Effect, { kind: "sellOffer" }>, text?: string) {
   logf(s, `bozor: ${text ?? id}`); s.proposals.push({ id: s.nextProposal++, kind: "offer", cardId: id, sold: [], first: e.first });
 }
@@ -559,6 +564,7 @@ function offer(s: GameState, p: GamePlayer, deck: DeckName, ctx: Ctx) {
   const ce = ctx.effects[id];
   if (ce.effect.kind === "marketSale") { applyMarketCard(s, ctx, id, ce.effect, ce.text); return; } // navbatni to'xtatmaydi
   if (ce.effect.kind === "sellOffer") { applySellOffer(s, id, ce.effect, ce.text); return; }
+  if (ce.effect.kind === "bankAuction") { applyBankAuction(s, p, id, ce.effect); return; } // bankdan sotuv auksioni: navbatni to'xtatmaydi, auksion tugaguncha o'yin to'xtab turadi
   if (ce.mode === "mandatory") { s.pending = { type: "card", playerId: p.id, cardId: id, deck }; autoMandatory(s, ctx, p, ce); }
   else {
     s.pending = { type: "card", playerId: p.id, cardId: id, deck }; logf(s, `${p.id}: karta chiqdi — «${shortCard(ce.text, id)}»`);
@@ -727,6 +733,7 @@ export function forceCard(s: GameState, ctx: Ctx, p: GamePlayer, id: string) {
   if (s.decks[deck]) { const d = s.decks[deck]; d.draw = d.draw.filter((x) => x !== id); d.discard = d.discard.filter((x) => x !== id); d.discard.push(id); }
   if (ce.effect.kind === "marketSale") { applyMarketCard(s, ctx, id, ce.effect, ce.text); return; }
   if (ce.effect.kind === "sellOffer") { applySellOffer(s, id, ce.effect, ce.text); return; }
+  if (ce.effect.kind === "bankAuction") { applyBankAuction(s, p, id, ce.effect); return; }
   if (ce.mode === "mandatory") { autoMandatory(s, ctx, p, ce); return; }
   s.pending = { type: "card", playerId: p.id, cardId: id, deck };
 }
@@ -962,6 +969,8 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (!chk.ok) return err(chk.reason);
       let witnesses: string[] | undefined;
       if (s.witnessLoans) { // 3 guvohni oluvchi o'zi tanlaydi: boshqa-boshqa, beruvchi va o'zidan boshqa, bot bo'lmagan, 16+ o'yinchilar
+        const pool = s.players.filter((p) => p.id !== rec.id && p.id !== giver.id && !s.bots.includes(p.id) && !s.restricted.includes(p.id)).length;
+        if (pool < RULES.loanWitnesses) return err("not_enough_witnesses"); // mos guvoh yetmaydi (bot/16 yoshgacha o'yinchilar guvoh bo'la olmaydi): aniq xabar
         const w = a.witnesses ?? [];
         if (w.length !== RULES.loanWitnesses || new Set(w).size !== w.length) return err("bad_witnesses");
         if (w.some((id) => id === rec.id || id === giver.id || !s.players.some((p) => p.id === id) || s.bots.includes(id) || s.restricted.includes(id))) return err("bad_witnesses");

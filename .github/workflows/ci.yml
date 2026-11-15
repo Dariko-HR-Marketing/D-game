@@ -86,6 +86,7 @@ jobs:
       - run: pnpm --filter @tajriba24/server exec tsx scripts/auction-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/birth-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/live-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/csp-check.ts # Content-Security-Policy (Caddyfile dagi APP siyosati) majburiy rejimda
       - run: pnpm --filter @tajriba24/server exec tsx scripts/decline-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/report-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/dreams-check.ts

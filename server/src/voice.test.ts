@@ -74,3 +74,18 @@ describe("WebSocket: ovozli aloqa", () => {
     await app.close();
   });
 });
+
+describe("TURN vaqtinchalik hisob (coturn use-auth-secret)", () => {
+  const env = { TURN_URLS: "turn:turn.tajriba24.uz:3478?transport=udp, turns:turn.tajriba24.uz:5349", TURN_SECRET: "x".repeat(32), TURN_TTL_S: "3600" };
+  it("username = tugash_vaqti:uid, credential = base64(HMAC-SHA1) — coturn bilan mos", async () => {
+    const { createHmac } = await import("node:crypto"); const { turnServerFor } = await import("./voice");
+    const s = turnServerFor(env, "user-1", 1_700_000_000_000)!; expect(s.username).toBe("1700003600:user-1"); expect(s.urls).toEqual(["turn:turn.tajriba24.uz:3478?transport=udp", "turns:turn.tajriba24.uz:5349"]);
+    expect(s.credential).toBe(createHmac("sha1", env.TURN_SECRET).update("1700003600:user-1").digest("base64"));
+  });
+  it("sozlama yo'q yoki noto'g'ri — null (faqat STUN); begona belgilar tozalanadi; TTL chegaralangan", async () => {
+    const { turnServerFor } = await import("./voice");
+    expect(turnServerFor({}, "u")).toBeNull(); expect(turnServerFor({ ...env, TURN_SECRET: "qisqa" }, "u")).toBeNull(); expect(turnServerFor({ ...env, TURN_URLS: "http://evil" }, "u")).toBeNull();
+    expect(turnServerFor(env, "a:b c/../x", 0)!.username).toBe("3600:a_b_c_.._x"); expect(turnServerFor({ ...env, TURN_TTL_S: "999999999" }, "u", 0)!.username).toBe("86400:u"); expect(turnServerFor({ ...env, TURN_TTL_S: "1" }, "u", 0)!.username).toBe("300:u");
+  });
+});
+

@@ -12,6 +12,7 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 | 1.5 | O'qituvchi paneli keyslari (20, `Y341…Y360`) rasmsiz: kolodada yo'q, rasm talab qilinmaydi | ✅ (xato aytilgan edi: ular «auksion» emas) |
 | 1.6 | Auksion kartalari (`Y381…Y400`, 20 ta) rasmi bor; o'yinga to'liq ulanganligi tekshirilmagan | ⬜ |
 | 1.7 | Qisqa matnli kartalarda katta bo'sh joy (masalan, «Qurilish materiallari qimmatlashdi»): dizayn sayqali | ⬜ ixtiyoriy |
+| 1.9 | `client/assets/board.webp` (o'yin maydoni rasmi) ichida eski «POYGA» nomi qolgan; kirish sahifasidan olib tashlandi, boshqa joyda ishlatilsa qayta chizish kerak | 🟡 |
 | 1.8 | Eski dizayner rasmlari (`deploy/vps/cards/`) sandbox nusxasida yo'q, faqat serverda; `install-art.sh` generatsiya qilinganlarini ustidan yozadi | ⏳ serverda tekshirish kerak |
 
 ## 2. O'yin qoidalari

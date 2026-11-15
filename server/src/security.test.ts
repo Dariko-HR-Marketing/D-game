@@ -45,6 +45,12 @@ describe("HTTP", () => {
     let last = 0; for (let i = 0; i < 100; i++) last = (await x.app.inject({ method: "GET", url: "/admin/audit", headers: { authorization: "Bearer bad" } })).statusCode;
     expect(last).toBe(429);
   });
+  it("Content-Security-Policy: API javoblarida qat'iy (default-src 'none'); ota-ona sahifasida faqat inline uslub va o'ziga forma", async () => {
+    const x = buildApp(); const r = await x.app.inject({ method: "GET", url: "/health" });
+    expect(r.headers["content-security-policy"]).toBe("default-src 'none'; frame-ancestors 'none'");
+    const p = await x.app.inject({ method: "GET", url: "/parent/yoq" });
+    if (p.statusCode !== 404) { const csp = String(p.headers["content-security-policy"]); expect(csp).toContain("style-src 'unsafe-inline'"); expect(csp).toContain("form-action 'self'"); expect(csp).toContain("frame-ancestors 'none'"); expect(csp).not.toMatch(/script-src/); }
+  });
   it("katta tana rad etiladi (413)", async () => {
     const x = buildApp(); const r = await x.app.inject({ method: "PUT", url: "/me/profile", headers: { authorization: "Bearer u", "content-type": "application/json" }, payload: JSON.stringify({ name: "a".repeat(70_000) }) });
     expect(r.statusCode).toBe(413);

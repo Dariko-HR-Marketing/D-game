@@ -43,6 +43,8 @@ export const Cards = z.object({
   meta: z.record(z.string(), CardMeta).default({}),
   /** Rasmi yaratilgan katalog kartalari (karta kodlari): rasm fayli `<kod>.webp` (generator: server/scripts/render-card-art.ts, fayllar content/art/generated). Import jadvaliga tegmaydi, shuning uchun qayta import rasmni yo'qotmaydi. */
   art: z.array(z.string()).default([]),
+  /** Bankdan sotuv auksion kartalari (Y381…Y400) faolmi. Faqat yangi kontent versiyalarida yoqiladi: eski saqlangan versiyalarda yo'q (kolodasi o'zgarmaydi, eski o'yinlar jurnali buzilmaydi). */
+  bankSaleLive: z.boolean().optional(),
 });
 export type Cards = z.infer<typeof Cards>;
 
