@@ -1,5 +1,5 @@
 import { iceServersFrom } from "./voice";
-import { OtpService, type SmsSender, normalizePhone, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
+import { OtpService, type SmsSender, normalizePhone, phoneError, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
 import type { OidcVerifier } from "./oidc";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
@@ -165,14 +165,14 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   app.post("/auth/sms/request", async (req, reply) => {
     if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
     if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
-    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
+    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: phoneError((req.body as any)?.phone) ?? "bad_phone" });
     const r = await opts.otp.request(phone); if (!r.ok) return reply.code(r.error === "rate_limited" ? 429 : 502).send({ error: r.error });
     return { ok: true };
   });
   app.post("/auth/sms/verify", async (req, reply) => {
     if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
     if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
-    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: "bad_phone" });
+    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return reply.code(400).send({ error: phoneError((req.body as any)?.phone) ?? "bad_phone" });
     const r = opts.otp.verify(phone, (req.body as any)?.code); if (!r.ok) return reply.code(401).send({ error: r.error });
     phones.link(r.userId, phone); // SMS bilan kirgan — telefon tasdiqlangan
     return { token: r.token, userId: r.userId };

@@ -56,14 +56,29 @@ export class EskizSms implements SmsSender {
   }
 }
 
-/** +998901234567 ko'rinishiga keltiradi; noto'g'ri bo'lsa null. */
+/** O'zbekiston MOBIL operator kodlari (998 dan keyingi 2 raqam). Shahar telefonlari (61…79 oralig'idagi) SMS qabul qilmaydi, shuning uchun ro'yxatda yo'q.
+ *  Manba: Vikipediya «Telephone numbers in Uzbekistan», ITU, operatorlar sahifalari (Beeline 90/91/20, Ucell 93/94/50, Uzmobile 99/95/77/70, Mobiuz 97/87, Humans 33, Perfectum 98, 88, 55).
+ *  Yangi kod ochilsa, kodni o'zgartirmasdan `PHONE_UZ_MOBILE_CODES=20,33,...` bilan yangilanadi. */
+export const UZ_MOBILE_CODES: ReadonlySet<string> = new Set((process.env.PHONE_UZ_MOBILE_CODES ?? "20,33,50,55,70,77,87,88,90,91,93,94,95,97,98,99").split(",").map((s) => s.trim()).filter(Boolean));
+
+/** +998901234567 ko'rinishiga keltiradi; noto'g'ri bo'lsa null. +998 raqamlari aniq 12 xonali bo'lishi va operator kodi mobil ro'yxatda bo'lishi shart. */
 export function normalizePhone(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const d = raw.replace(/[\s()-]/g, "");
   const m = /^\+?(\d{9,15})$/.exec(d); if (!m) return null;
   let n = m[1];
   if (n.length === 9) n = "998" + n; // mahalliy 9 xonali (90 123 45 67)
-  return /^\d{11,15}$/.test(n) ? "+" + n : null;
+  if (!/^\d{11,15}$/.test(n)) return null;
+  if (n.startsWith("998") && (n.length !== 12 || !UZ_MOBILE_CODES.has(n.slice(3, 5)))) return null; // O'zbekiston raqami: operator kodi tekshiriladi
+  return "+" + n;
+}
+/** Telefon xatosining aniq kodi: `bad_operator` — raqam O'zbekiston formatida, lekin operator kodi mobil ro'yxatda yo'q; `bad_phone` — boshqa shakl xatosi; `null` — yaroqli. */
+export function phoneError(raw: unknown): "bad_phone" | "bad_operator" | null {
+  if (normalizePhone(raw) !== null) return null;
+  if (typeof raw !== "string") return "bad_phone";
+  const m = /^\+?(\d{9,15})$/.exec(raw.replace(/[\s()-]/g, "")); if (!m) return "bad_phone";
+  const n = m[1].length === 9 ? "998" + m[1] : m[1];
+  return n.startsWith("998") && n.length === 12 ? "bad_operator" : "bad_phone";
 }
 
 const b64 = (b: Buffer) => b.toString("base64url");

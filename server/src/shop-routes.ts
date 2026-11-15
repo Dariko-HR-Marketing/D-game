@@ -1,7 +1,7 @@
 // Do'kon, Plus, telefon tasdig'i va ota-ona sahifasi marshrutlari.
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
-import { normalizePhone, type OtpService } from "./auth";
+import { normalizePhone, phoneError, type OtpService } from "./auth";
 import type { Commerce } from "./commerce";
 import type { ParentConsents } from "./parents";
 import { parentPage } from "./parents";
@@ -68,13 +68,13 @@ export function registerShop(d: ShopDeps) {
   app.post("/me/phone/request", d.secured(async (uid, req, reply) => {
     if (!d.otp) return reply.code(404).send({ error: "not_enabled" });
     if (!phoneLimit.allow(uid)) { d.limited("phone"); return fail(reply, "rate_limited"); }
-    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return fail(reply, "bad_phone");
+    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return fail(reply, phoneError((req.body as any)?.phone) ?? "bad_phone");
     const r = await d.otp.request(phone); return r.ok ? { ok: true } : reply.code(r.error === "rate_limited" ? 429 : 502).send({ error: r.error });
   }));
   app.post("/me/phone/verify", d.secured((uid, req, reply) => {
     if (!d.otp) return reply.code(404).send({ error: "not_enabled" });
     if (!phoneLimit.allow(uid)) { d.limited("phone"); return fail(reply, "rate_limited"); }
-    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return fail(reply, "bad_phone");
+    const phone = normalizePhone((req.body as any)?.phone); if (!phone) return fail(reply, phoneError((req.body as any)?.phone) ?? "bad_phone");
     const v = d.otp.verify(phone, (req.body as any)?.code); if (!v.ok) return reply.code(401).send({ error: v.error });
     const l = phones.link(uid, phone); return l.ok ? { ok: true } : reply.code(409).send({ error: l.error });
   }));

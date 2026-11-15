@@ -52,7 +52,7 @@ const DAY = 86_400_000, ym = (t: number) => new Date(t).toISOString().slice(0, 7
 const MINOR_PAY_AGE = 18;
 
 export interface CommerceDeps { docs?: DocStore; now?: () => number; providers?: PaymentProvider[]; consents?: ParentConsents; phoneOk: (uid: string) => boolean; ageOf: (uid: string) => number | null; achievements: (uid: string) => string[]; phoneHashOf: (uid: string) => string | undefined; hashOf: (p: string) => string }
-export type OrderErr = "bad_sku" | "price_unset" | "unavailable" | "already_owned" | "phone_required" | "profile_required" | "parent_phone_required" | "payments_unavailable" | "bad_phone" | "same_phone" | "rate_limited" | "sms_failed" | "sms_unavailable" | "plus_already_long" | "not_found" | "not_pending" | "bad_item" | "not_owned" | "not_plus" | "already_claimed" | "amount_mismatch";
+export type OrderErr = "bad_sku" | "price_unset" | "unavailable" | "already_owned" | "phone_required" | "profile_required" | "parent_phone_required" | "payments_unavailable" | "bad_phone" | "bad_operator" | "same_phone" | "rate_limited" | "sms_failed" | "sms_unavailable" | "plus_already_long" | "not_found" | "not_pending" | "bad_item" | "not_owned" | "not_plus" | "already_claimed" | "amount_mismatch";
 
 export class Commerce {
   readonly ents: Collection<Ent>; readonly orders: Collection<Order>; readonly cfg: Collection<CatalogConfig>;

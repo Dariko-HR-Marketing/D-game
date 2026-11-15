@@ -35,7 +35,7 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 ## 4. Kirish, to'lov, xavfsizlik
 | # | Muammo | Holat |
 |---|---|---|
-| 4.1 | Telefon: istalgan to'qqiz raqam kirib ketadi; format/davlat kodi, SMS tasdiq | ⬜ (alohida topshiriq deyilgan) |
+| 4.1 | Telefon: istalgan to'qqiz raqam kirib ketardi | 🟡 O'zbekiston MOBIL operator kodi tekshiriladi (`bad_operator`); chet el raqamlari va davlat kodi siyosati ochiq (OPEN_QUESTIONS 174) |
 | 4.2 | SMS: Eskiz ulanishi, belgilangan kodni o'chirish | ⬜ |
 | 4.3 | Yurist xulosasi: 16 yoshgacha to'lov, ma'lumot joylashuvi | ⏳ buyurtmachi |
 | 4.4 | IP: karta, qoidalar, «Tajriba 24» nomi huquqi yozma tasdiqlanishi | ⏳ buyurtmachi |
