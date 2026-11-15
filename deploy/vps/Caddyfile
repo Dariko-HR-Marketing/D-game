@@ -1,6 +1,14 @@
 # Caddy: TLS sertifikatini o'zi oladi va yangilaydi (Let's Encrypt). WebSocket (wss) avtomatik proksilanadi.
 # Uchta manzil: API (server), APP (o'yin mijozi), ADMIN (admin panel).
 
+# Content-Security-Policy. Rejim muhit o'zgaruvchisi bilan almashtiriladi (kodni o'zgartirmasdan): standart — majburiy;
+# muammo chiqsa serverdagi .env ga CSP_HEADER=Content-Security-Policy-Report-Only yozib Caddy'ni qayta yuklang (faqat ogohlantiradi, bloklamaydi).
+# API (server) CSP ni o'zi qo'yadi (server/src/app.ts; ota-ona sahifasi — alohida siyosat), shuning uchun bu yerda faqat APP va ADMIN.
+# Siyosat matni `server/scripts/csp-check.ts` tomonidan shu fayldan o'qiladi va haqiqiy brauzerda tekshiriladi (CI).
+(csp_app) {
+	header {$CSP_HEADER:Content-Security-Policy} "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://{$API_DOMAIN}; font-src 'self' data:; connect-src 'self' https://{$API_DOMAIN} wss://{$API_DOMAIN}; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+}
+
 (security) {
 	header {
 		X-Content-Type-Options nosniff
@@ -18,6 +26,7 @@
 
 {$APP_DOMAIN} {
 	import security
+	import csp_app
 	encode zstd gzip
 	# Karta rasmlari (§2.5): alohida beriladi; `deploy/vps/cards/` papkasiga qo'yiladi (docs/SERVER.md)
 	handle_path /cards/* {
@@ -39,6 +48,7 @@
 
 {$ADMIN_DOMAIN} {
 	import security
+	import csp_app
 	encode zstd gzip
 	root * /srv/admin
 	@hashed path /assets/*

@@ -80,7 +80,7 @@ export function registerShop(d: ShopDeps) {
   }));
 
   // --- ota-ona sahifasi (SMS havolasi; tokenning o'zi kalit) ---
-  const ct = (reply: any) => reply.header("content-type", "text/html; charset=utf-8").header("cache-control", "no-store").header("referrer-policy", "no-referrer").header("x-frame-options", "DENY");
+  const ct = (reply: any) => reply.header("content-type", "text/html; charset=utf-8").header("cache-control", "no-store").header("referrer-policy", "no-referrer").header("x-frame-options", "DENY").header("content-security-policy", "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
   app.get("/parent/:token", async (req, reply) => { const t = String((req.params as any).token); const r = consents.byToken(t); return ct(reply).send(parentPage(t, r, r ? d.nameOf(r.childId) ?? "O'yinchi" : "")); });
   app.post("/parent/:token", async (req, reply) => {
     const t = String((req.params as any).token); const b = (req.body ?? {}) as Record<string, unknown>;
