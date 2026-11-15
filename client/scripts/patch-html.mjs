@@ -1,6 +1,7 @@
 // Veb eksportdan keyin index.html ni tuzatadi: til (uz — brauzer «tarjima qilinsinmi?» deb so'ramasin), mavzu rangi, tavsif,
 // PWA (manifest, ikonka), yuklanish paytida bo'sh oq ekran o'rniga rangli fon va matn.
 import { readFileSync, writeFileSync } from "node:fs";
+import { seoHead } from "./seo.mjs";
 const f = new URL("../dist/index.html", import.meta.url);
 let h = readFileSync(f, "utf8");
 const once = (a, b) => { if (!h.includes(a)) throw new Error("index.html shabloni o'zgargan: " + a); h = h.replace(a, b); };
@@ -12,5 +13,7 @@ once("<title>Tajriba 24</title>", "<title>Tajriba 24 onlayn</title>");
 once("body {\n        overflow: hidden;\n      }", "body {\n        overflow: hidden;\n        background: #F4F7F8;\n        overscroll-behavior: none;\n        -webkit-text-size-adjust: 100%;\n      }\n      #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 18px system-ui, sans-serif; color: #0A2540; letter-spacing: 1px }\n      #root:not(:empty) + #boot { display: none }");
 once('<div id="root"></div>', '<div id="root"></div>\n    <div id="boot" aria-hidden="true">Tajriba 24</div>');
 once("<noscript>\n      You need to enable JavaScript to run this app.\n    </noscript>", "<noscript>\n      O'yinni ishga tushirish uchun JavaScript yoqilgan bo'lishi kerak.\n    </noscript>");
+// Open Graph / Twitter / canonical / JSON-LD (11-band): sayt manzili SITE_URL dan
+once("</head>", "  " + seoHead(process.env.SITE_URL || "https://tajriba24.uz") + "\n  </head>");
 writeFileSync(f, h);
 console.log("index.html tuzatildi");

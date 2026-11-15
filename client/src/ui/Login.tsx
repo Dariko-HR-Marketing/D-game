@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, ScrollView, Image, useWindowDimensions } from "react-native";
+import { View, Text, TextInput, StyleSheet, ScrollView, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card } from "./kit";
 import { Logo } from "./Logo";
@@ -11,7 +11,7 @@ const RESEND_S = 60; // server ham 1 daqiqada bitta SMS ruxsat beradi
 
 /** SMS bir martalik kod bilan kirish (§7). Telefon raqami faqat kod yuborish uchun; serverda saqlanmaydi. */
 export function Login({ auth, onDone }: { auth: ReturnType<typeof makeAuth>; onDone: (s: { token: string; userId: string }) => void }) {
-  const [phone, setPhone] = useState(""); const [code, setCode] = useState(""); const [step, setStep] = useState<"phone" | "code">("phone"); const { height } = useWindowDimensions(); const tall = height >= 760, roomy = height >= 620; // bitta sahifa: past ekranda rasm va izoh yig'iladi
+  const [phone, setPhone] = useState(""); const [code, setCode] = useState(""); const [step, setStep] = useState<"phone" | "code">("phone"); const { height } = useWindowDimensions(); const roomy = height >= 620; // bitta sahifa: past ekranda rasm va izoh yig'iladi
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [cool, setCool] = useState(0);
   useEffect(() => { if (cool <= 0) return; const h = setTimeout(() => setCool(cool - 1), 1000); return () => clearTimeout(h); }, [cool]);
   const run = async (f: () => Promise<void>) => { setBusy(true); setErr(null); try { await f(); } catch (e) { setErr(e instanceof HttpError ? e.code : "network"); } finally { setBusy(false); } };
@@ -23,7 +23,13 @@ export function Login({ auth, onDone }: { auth: ReturnType<typeof makeAuth>; onD
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}><Logo size={roomy ? 44 : 34} /><Text style={s.brandT}>{uz.app.name}</Text></View>
           <Text style={s.lead} aria-level={1} accessibilityRole="header">{uz.login.welcomeLead}</Text>
         </View>
-        {tall && <Image source={require("../../assets/board.webp")} accessibilityLabel={uz.login.boardAlt} resizeMode="contain" style={s.board} />}
+        <View testID="login-intro"><Card>
+          <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.login.introTitle}</Text>
+          <Text style={s.note}>{uz.login.introWhat}</Text>
+          <Text style={[s.note, { fontWeight: "700", color: color.navy }]}>{uz.login.introFree}</Text>
+          <Text style={s.label} aria-level={3} accessibilityRole="header">{uz.login.howTitle}</Text>
+          <View style={{ gap: space.xs }} role="list">{uz.login.steps.map((t, i) => <View key={i} style={{ flexDirection: "row", gap: space.sm }} role="listitem"><Text style={[s.label, { width: 18 }]}>{i + 1}.</Text><Text style={[s.note, { flex: 1 }]}>{t}</Text></View>)}</View>
+        </Card></View>
         <Card>
           <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.login.title}</Text>
           {step === "phone" ? (<>
