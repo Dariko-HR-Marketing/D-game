@@ -24,7 +24,7 @@ const sold = (s: GameState, pid: string, proposalId: number, code?: string) => r
 describe("katalog: ta'sirlar jonli va dvigatelda ishlaydi", () => {
   it("jonli katalog kartalari: xarid, to'lov, tuzilgan ta'sir (ops), sotish taklifi; ushlab turilganlar kolodada yo'q", () => {
     const live = Object.values(ctx.effects).filter((e) => e.info?.catalog && !e.info.held); const kinds = new Set(live.map((e) => e.effect.kind));
-    expect([...kinds].sort()).toEqual(["buy", "deposit", "gain", "ops", "pay", "quiz", "sellOffer", "xpInfo"]); expect(live.length).toBeGreaterThan(300);
+    expect([...kinds].sort()).toEqual(["bankAuction", "buy", "deposit", "gain", "ops", "pay", "quiz", "sellOffer", "xpInfo"]); expect(live.length).toBeGreaterThan(300);
   });
 
   it("SOTISH_FOIZ (BZ001, +25 %, ≥ 1 aylana ushlab turilgan): yangi aktiv sotilmaydi; 4 oydan keyin sotib olingan narx × 1,25 − kredit", () => {

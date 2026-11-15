@@ -1,4 +1,4 @@
-import { iceServersFrom } from "./voice";
+import { iceServersFrom, turnServerFor } from "./voice";
 import { OtpService, type SmsSender, normalizePhone, phoneError, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
 import type { OidcVerifier } from "./oidc";
 import Fastify from "fastify";
@@ -146,7 +146,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   const iceServers = iceServersFrom(process.env.ICE_SERVERS);
   app.get("/voice/config", async (req, reply) => { // STUN/TURN sozlamasi: faqat kirgan foydalanuvchiga
     const uid = auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined); if (!uid) return reply.code(401).send({ error: "unauthorized" });
-    return { iceServers };
+    const turn = turnServerFor(process.env, uid); return { iceServers: turn ? [...iceServers, turn] : iceServers }; // TURN vaqtinchalik hisob bilan (NAT orqasidagilar uchun)
   });
   // --- kirish (SMS bir martalik kod) ---
   const authLimit = new KeyedLimiter(10 / 60, 10); // IP bo'yicha ~10 so'rov/daqiqa

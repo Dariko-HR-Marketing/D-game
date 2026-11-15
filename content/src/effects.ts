@@ -41,6 +41,7 @@ export type Effect =
   | { kind: "debtRepaid"; amount: number }
   | { kind: "courseSalaryPlus"; price: number; salaryPlus: number }
   | { kind: "charity"; incomeShare: 0.1; turns: 3; dice: 2 }
+  | { kind: "bankAuction"; code: string; asset: string; price: number; step: number; monthlyIncome: number } // bankdan sotuv: karta chiqqanda bozor auksioni (boshlang'ich narx + qadam), g'olib to'laydi — pul bankka
   | { kind: "tenantLeft" }
   | { kind: "carInsurance"; price: number }
   | { kind: "floodCarRepair"; amount: number; exemptWithInsurance: true }
@@ -160,7 +161,7 @@ export function deriveEffects(c: Cards): CardEffect[] {
   for (const k of c.catalog) { const b = k.kind === "ASSET_BUY" && k.pool === "DECK" && k.draw && k.publish ? buyOf(k) : null; if (b && b.effect.kind === "buy") universe.push({ kind: b.effect.asset, sector: b.effect.sector, name: b.effect.name, tags: b.effect.tags }); }
   const artIds = new Set(c.art ?? []);
   for (const k of c.catalog) {
-    const d = catalogEffect(k, universe);
+    const d = catalogEffect(k, universe, { bankSale: !!c.bankSaleLive });
     out.push({ deck: CAT_DECK[k.deck], id: `cat-${k.id}`, file: k.file ?? (artIds.has(k.id) ? `${k.id}.webp` : ""), mode: d.mode, effect: d.effect, text: catalogText(k), title: k.title,
       info: { ranked: k.ranked, age: k.age, sector: k.sector, kind: k.kind, image: k.image, goal: k.goal, ...(d.held ? { held: d.held } : {}), ...(k.retired ? { retired: k.retired } : {}), catalog: true } });
   }

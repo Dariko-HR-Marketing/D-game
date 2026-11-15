@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
-import { newGame, reduce, startAuction, startMarketAuction, cannotBuyAnyWay, nextDefault, botAuctionAction, bankLoanMonthly, bankLoanPayoff, RULES, type GameState, type Asset } from "./index";
+import { newGame, reduce, forceCard, startAuction, startMarketAuction, cannotBuyAnyWay, nextDefault, botAuctionAction, bankLoanMonthly, bankLoanPayoff, RULES, type GameState, type Asset } from "./index";
 import { takeLombard, takeBankLoan, tickLoans, settleOwe } from "./engine";
 
 const biz = (price: number, n = 0, extra: Partial<Asset> = {}): Asset => ({ kind: "small_business", code: `B${n}`, price, monthlyIncome: 500, creditPayment: 0, credit: 0, ...extra });
@@ -172,3 +172,34 @@ describe("auksion: botlar", () => {
   });
   it("egasi bot bo'lsa va puli yetsa qarzni to'lab qoladi", () => { expect(botAuctionAction(lombardCase({ aCash: 50_000, bots: ["a"] }), "a")).toEqual({ type: "auction_buyback", playerId: "a" }); });
 });
+
+describe("bankdan sotuv auksioni (Y381…Y400)", () => {
+  const draw = (s: GameState, id: string, pid = "a") => forceCard(s, ctx, P(s, pid), `cat-${id}`);
+  it("karta chiqqanda bozor auksioni ochiladi: egasi taklif qila olmaydi; g'olib naqd to'laydi, pul bankka, aktiv daromad bilan", () => {
+    const s = base(); draw(s, "Y381");
+    expect(s.auction).toMatchObject({ format: "bozor", owner: "a", start: 5000, step: 500, kind: "card" });
+    expect(s.auction!.lot[0]).toMatchObject({ code: "Y381", kind: "business", price: 5000, income: 400 });
+    expect(err(s, { type: "auction_bid", playerId: "a", amount: 5000 })).toBe("owner_cannot_bid");
+    expect(err(s, { type: "auction_bid", playerId: "b", amount: 5200 })).toBeTruthy(); // qadam 500: eng kam 5 000
+    let t = act(s, { type: "auction_bid", playerId: "b", amount: 5000 }); t = act(t, { type: "auction_bid", playerId: "c", amount: 5500 }); t = act(t, { type: "auction_pass", playerId: "b" });
+    expect(t.auction).toBeFalsy(); expect(P(t, "c").cash).toBe(100_000 - 5500); expect(P(t, "c").assets[0]).toMatchObject({ code: "Y381", price: 5500, monthlyIncome: 400 }); expect(P(t, "a").cash).toBe(100_000);
+  });
+  it("kamida 2 ta qatnashchi bo'lmasa, 16 yoshgacha bo'lsa yoki eski (halalFin yo'q) o'yinda auksion ochilmaydi; o'yin davom etadi", () => {
+    const poor = base(); P(poor, "b").cash = 100; P(poor, "c").cash = 100; draw(poor, "Y382"); expect(poor.auction).toBeFalsy();
+    const old = newGame(ctx, ["a", "b", "c"], 1, [], [], {}); for (const p of old.players) { p.circle = "small"; p.cash = 100_000; } draw(old, "Y381"); expect(old.auction).toBeFalsy();
+    const big = base(); P(big, "a").circle = "big"; draw(big, "Y381"); expect(big.auction).toBeFalsy();
+  });
+  it("hamma 20 karta ishlaydi: auksion ochiladi, birinchi taklif (qadam to'rida) qabul qilinadi, g'olib aktivni oladi", () => {
+    for (let n = 381; n <= 400; n++) {
+      const s = base(); for (const p of s.players) p.cash = 1_000_000; draw(s, `Y${n}`); const au = s.auction!; expect(au, `Y${n}`).toBeTruthy();
+      expect(au.lot[0].code).toBe(`Y${n}`); expect(au.start).toBeGreaterThan(0); expect(au.step).toBeGreaterThan(0);
+      const first = Math.ceil(au.start / au.step) * au.step; // dvigatel qoidasi: narx qadam to'riga ko'tariladi (7 kartada boshlang'ich narx qadamga karrali emas: OPEN_QUESTIONS)
+      let t = act(s, { type: "auction_bid", playerId: "b", amount: first }); t = act(t, { type: "auction_pass", playerId: "c" });
+      expect(t.auction, `Y${n}`).toBeFalsy(); expect(P(t, "b").assets.some((x) => x.code === `Y${n}`), `Y${n}`).toBe(true); expect(P(t, "b").cash).toBe(1_000_000 - first);
+    }
+  });
+  it("daromadi matnda yo'q karta (Y383 yer) 'other' aktiv, daromad 0", () => {
+    const s = base(); draw(s, "Y383"); expect(s.auction!.lot[0]).toMatchObject({ code: "Y383", kind: "other", price: 20_000 }); expect(s.auction!.lot[0].income).toBe(0); expect(s.auction!.step).toBe(2000);
+  });
+});
+

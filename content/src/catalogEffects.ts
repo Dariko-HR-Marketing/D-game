@@ -153,12 +153,19 @@ function compileOps(c: CatalogCardT, universe: AssetDesc[]): Compiled {
 }
 
 /** `universe`: o'yinda jonli xarid kartalari yarata oladigan aktivlar (nishon aktiv hech qachon bo'lmaydigan kartalar ushlab turiladi). */
-export function catalogEffect(c: CatalogCardT, universe: AssetDesc[] = []): CatalogDerived {
+export function catalogEffect(c: CatalogCardT, universe: AssetDesc[] = [], opts: { bankSale?: boolean } = {}): CatalogDerived {
   const un = (held: string): CatalogDerived => ({ mode: "mandatory", effect: { kind: "unresolved", reason: held }, held });
   if (c.pool === "TEACHER_PANEL") return un("o‘qituvchi paneli kartasi (o‘yin kolodasiga kirmaydi)");
   if (c.needsMapping) return un("effekt tuzilgan maydonlarga hali o‘tkazilmagan (jadvalda needs_engine_mapping)");
   if (!c.draw || !c.publish) return un("jadvalda kolodaga tushirish o‘chirilgan");
   if (c.deck === 1 && c.kind !== "PROFESSION") return un(`${c.kind === "GOAL" ? "missiya" : "karyera"} kartasi: kasb kolodasidan qaysi katakda/qachon tortilishi aniqlanmagan (SPEC §16)`);
+  if (c.kind === "AUCTION") { // bankdan sotuv auksioni (2026-11-15): boshlang'ich narx — `value`, qadam — `qadam=N`; oylik daromad kartaning matnidan (aniq «+N» bo'lmasa — 0, o'ylab topilmaydi)
+    if (!opts.bankSale) return un("bankdan sotuv auksioni: hali faollashtirilmagan (kontent bayrog'i bankSaleLive yo'q)");
+    const e = c.effects[0], start = intOf(e?.value ?? ""), step = Number(/^qadam=(\d+)$/.exec((e?.condition ?? "").trim())?.[1]);
+    if (e?.type !== "AUKSION_BOSHLANISH" || c.effects.length !== 1 || !Number.isFinite(start) || start <= 0 || !Number.isFinite(step) || step <= 0) return un("auksion kartasi: boshlang‘ich narx yoki qadam noto‘g‘ri");
+    const m = /\+\s*(\d+(?:[\s\u00a0]\d{3})*)/.exec(c.text ?? ""); const income = m ? Number(m[1].replace(/[\s\u00a0]/g, "")) : 0;
+    return { mode: "mandatory", effect: { kind: "bankAuction", code: c.id, asset: income > 0 ? "business" : "other", price: start, step, monthlyIncome: income } };
+  }
   if (c.kind === "ASSET_BUY") { const b = buyOf(c); return b ?? un(`aktiv turi qo‘llanmaydi: ${c.cardType}`); }
   const types = c.effects.map((e) => e.type);
   if (c.kind === "ASSET_SELL_OFFER") {

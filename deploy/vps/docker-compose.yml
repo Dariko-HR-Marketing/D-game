@@ -38,6 +38,8 @@ services:
       ESKIZ_FROM: ${ESKIZ_FROM:-}
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
       APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      TURN_URLS: ${TURN_URLS:-}       # TURN (coturn) manzillari: turn:host:3478?transport=udp,turns:host:5349 — vaqtinchalik hisob (REST/HMAC) bilan
+      TURN_SECRET: ${TURN_SECRET:-}   # coturn bilan umumiy sir (kamida 16 belgi); mijozga hech qachon berilmaydi
       ICE_SERVERS: ${ICE_SERVERS:-}   # ovozli aloqa: STUN/TURN (JSON). Bo'sh bo'lsa ommaviy STUN; barqaror aloqa uchun TURN kerak (docs/DEPLOY.md)
       LOG_LEVEL: info
       PORT: "3000"
@@ -60,5 +62,37 @@ services:
       APP_DOMAIN: ${APP_DOMAIN}
       ADMIN_DOMAIN: ${ADMIN_DOMAIN}
     volumes: ["caddy_data:/data", "caddy_config:/config", "./cards:/srv/cards:ro"]
+
+
+  # TURN (ovozli aloqa, NAT orqasidagilar uchun). Faqat yoqilganda ishga tushadi: `docker compose --profile turn up -d turn` (TURN_SECRET, TURN_REALM, TURN_EXTERNAL_IP kerak).
+  # host tarmog'i: UDP relay oralig'i keng bo'ladi; xavfsizlik devorida oching: 3478/udp+tcp, 5349/tcp (TLS), TURN_MIN_PORT–TURN_MAX_PORT/udp.
+  turn:
+    image: coturn/coturn:4.6.2
+    profiles: ["turn"]
+    network_mode: host
+    restart: unless-stopped
+    command:
+      - "-n"
+      - "--log-file=stdout"
+      - "--use-auth-secret"
+      - "--static-auth-secret=${TURN_SECRET:-}"
+      - "--realm=${TURN_REALM:-}"
+      - "--external-ip=${TURN_EXTERNAL_IP:-}"
+      - "--listening-port=3478"
+      - "--min-port=${TURN_MIN_PORT:-49152}"
+      - "--max-port=${TURN_MAX_PORT:-49452}"
+      - "--fingerprint"
+      - "--no-cli"
+      - "--no-multicast-peers"
+      # ichki tarmoqqa (serverning o'ziga, db ga, bulut metadata ga) relay qilishni taqiqlaydi
+      - "--denied-peer-ip=0.0.0.0-0.255.255.255"
+      - "--denied-peer-ip=10.0.0.0-10.255.255.255"
+      - "--denied-peer-ip=100.64.0.0-100.127.255.255"
+      - "--denied-peer-ip=127.0.0.0-127.255.255.255"
+      - "--denied-peer-ip=169.254.0.0-169.254.255.255"
+      - "--denied-peer-ip=172.16.0.0-172.31.255.255"
+      - "--denied-peer-ip=192.168.0.0-192.168.255.255"
+      - "--total-quota=100"
+      - "--user-quota=12"
 
 volumes: { pgdata: {}, caddy_data: {}, caddy_config: {} }
