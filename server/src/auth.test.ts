@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import WebSocket from "ws";
 import { buildApp } from "./app";
-import { OtpService, normalizePhone, signToken, verifyToken, HttpSms, EskizSms, NoopSms, fixedCode, ConsoleSms, Revocations, type SmsSender } from "./auth";
+import { OtpService, normalizePhone, phoneError, signToken, verifyToken, HttpSms, EskizSms, NoopSms, fixedCode, ConsoleSms, Revocations, type SmsSender } from "./auth";
 import { ipKey, KeyedLimiter } from "./ratelimit";
 
 const SECRET = "x".repeat(40);
@@ -12,6 +12,17 @@ class Capture implements SmsSender { sent: { phone: string; text: string }[] = [
 describe("telefon raqami", () => {
   it.each([["+998901234567", "+998901234567"], ["90 123-45-67", "+998901234567"], ["998 (90) 123 45 67", "+998901234567"], ["+12025550123", "+12025550123"]])("%s", (a, b) => expect(normalizePhone(a)).toBe(b));
   it.each(["", "abc", "123", "+99890123", 12345, null, "+998901234567890123"])("rad: %s", (v) => expect(normalizePhone(v)).toBeNull());
+  it.each(["20", "33", "50", "55", "70", "77", "87", "88", "90", "91", "93", "94", "95", "97", "98", "99"])("haqiqiy mobil operator kodi %s qabul qilinadi", (c) => expect(normalizePhone(`+998${c}1234567`)).toBe(`+998${c}1234567`));
+  it.each(["12", "00", "10", "71", "61", "69", "89", "92", "96", "30", "40", "60", "78"])("noto'g'ri/shahar kodi %s rad etiladi (SMS yetmaydi)", (c) => { expect(normalizePhone(`+998${c}1234567`)).toBeNull(); expect(normalizePhone(`${c}1234567`.padEnd(9, "0"))).toBeNull(); });
+  it("+998 raqami aniq 12 xonali bo'lishi shart; chet el raqamlariga tegilmaydi", () => {
+    expect(normalizePhone("+99890123456789")).toBeNull(); expect(normalizePhone("+9989012345")).toBeNull();
+    expect(normalizePhone("+447911123456")).toBe("+447911123456");
+  });
+  it("aniq xato kodi: operator noto'g'ri → bad_operator, shakl noto'g'ri → bad_phone, yaroqli → null", () => {
+    expect(phoneError("+998121234567")).toBe("bad_operator"); expect(phoneError("121234567")).toBe("bad_operator");
+    expect(phoneError("abc")).toBe("bad_phone"); expect(phoneError("+99890123")).toBe("bad_phone"); expect(phoneError(null)).toBe("bad_phone");
+    expect(phoneError("+998901234567")).toBeNull(); expect(phoneError("+12025550123")).toBeNull();
+  });
 });
 describe("sessiya tokeni", () => {
   it("imzo, muddat, buzilish va bekor qilish", () => {
@@ -95,6 +106,19 @@ describe("OTP", () => {
     expect(calls[0].b.get("email")).toBe("a@b.c");
     await s.send("+998901234567", "ok"); expect(logins).toBe(2);
     await expect(s.send("+998901234567", "fail")).rejects.toThrow("sms_gateway_500");
+  });
+});
+describe("noto'g'ri operator kodi: SMS so'ralmaydi", () => {
+  it("/auth/sms/request: bad_operator (400), hech qanday SMS yuborilmaydi; yaroqli raqamda yuboriladi", async () => {
+    const sms = new Capture(); const otp = new OtpService({ secret: SECRET, sms }); const x = buildApp({ otp, authSecret: SECRET });
+    for (const bad of ["121234567", "+998 71 123 45 67", "+998691234567"]) {
+      const r = await x.app.inject({ method: "POST", url: "/auth/sms/request", payload: { phone: bad } });
+      expect(r.statusCode, bad).toBe(400); expect(r.json().error, bad).toBe("bad_operator");
+    }
+    expect((await x.app.inject({ method: "POST", url: "/auth/sms/request", payload: { phone: "xyz" } })).json().error).toBe("bad_phone");
+    expect(sms.sent).toHaveLength(0);
+    expect((await x.app.inject({ method: "POST", url: "/auth/sms/request", payload: { phone: "90 123 45 67" } })).statusCode).toBe(200);
+    expect(sms.sent).toHaveLength(1);
   });
 });
 describe("HTTP + WebSocket (haqiqiy rejim)", () => {

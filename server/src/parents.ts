@@ -3,7 +3,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { Collection, type DocStore } from "./docs";
 import { WriteQueue } from "./persist";
-import { normalizePhone, type SmsSender } from "./auth";
+import { normalizePhone, phoneError, type SmsSender } from "./auth";
 
 export type ConsentKind = "order" | "tournament";
 export interface ConsentRequest { id: string; childId: string; kind: ConsentKind; ref: string; title: string; parentHash: string; parentPhone: string | null; status: "pending" | "approved" | "rejected" | "cancelled" | "expired"; createdAt: number; expiresAt: number; decidedAt?: number }
@@ -34,8 +34,8 @@ export class ParentConsents {
   }
   get(id: string) { const r = this.reqs.get(id); return r ? this.fresh(r) : undefined; }
   /** Yangi so'rov: bitta bola — kuniga ko'pi bilan 5 ta SMS; ota-ona raqami bolaning o'zi bilan bir xil bo'lmasin. */
-  async request(childId: string, childPhoneHash: string | undefined, kind: ConsentKind, ref: string, title: string, parentPhoneRaw: unknown, hashOf: (p: string) => string): Promise<{ ok: true; request: ConsentRequest } | { ok: false; error: "bad_phone" | "same_phone" | "rate_limited" | "sms_failed" | "sms_unavailable" }> {
-    const phone = normalizePhone(parentPhoneRaw); if (!phone) return { ok: false, error: "bad_phone" };
+  async request(childId: string, childPhoneHash: string | undefined, kind: ConsentKind, ref: string, title: string, parentPhoneRaw: unknown, hashOf: (p: string) => string): Promise<{ ok: true; request: ConsentRequest } | { ok: false; error: "bad_phone" | "bad_operator" | "same_phone" | "rate_limited" | "sms_failed" | "sms_unavailable" }> {
+    const phone = normalizePhone(parentPhoneRaw); if (!phone) return { ok: false, error: phoneError(parentPhoneRaw) ?? "bad_phone" };
     const ph = hashOf(phone); if (childPhoneHash && ph === childPhoneHash) return { ok: false, error: "same_phone" };
     if (!this.sms) return { ok: false, error: "sms_unavailable" };
     const t = this.now(); const hist = (this.sentAt.get(childId) ?? []).filter((x) => t - x < 86_400_000);
