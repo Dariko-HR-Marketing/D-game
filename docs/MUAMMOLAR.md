@@ -17,7 +17,7 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 ## 2. O'yin qoidalari
 | # | Muammo | Holat |
 |---|---|---|
-| 2.1 | O'zaro qarz: 3 guvoh (oluvchi tanlaydi, «Xabardor bo'ldim») va beruvchi chegarasi 30 % | 🟡 branchda (`b6c…` dan keyingi commit), `main` ga merge ruxsati kerak |
+| 2.1 | O'zaro qarz: 3 guvoh (oluvchi tanlaydi, «Xabardor bo'ldim») va beruvchi chegarasi 30 % | 🟡 branchda (`e5427f6`), `main` ga merge ruxsati kerak |
 | 2.2 | 3 dan kam mos guvoh qolsa ekranda xabar yo'q; qarz holatini oluvchi ko'rmaydi | ⬜ |
 | 2.3 | Qarz bo'yicha «qo'shimcha topshiriq» (buyurtmachi keyin aytadi) | ⏳ |
 | 2.4 | 6 soatlik vaqt rejimi (qog'oz sinovdan keyin), V katagi, «tasdiq kutilmoqda» qoidalari | ⏳ buyurtmachi |
