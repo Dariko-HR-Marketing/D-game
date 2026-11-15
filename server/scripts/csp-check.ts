@@ -8,7 +8,7 @@ import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
 import { autoProfiles } from "./_seed";
 
-const ROOT = new URL("../../", import.meta.url).pathname, DIST = join(ROOT, "client/dist"), PORT = 8082, WEB = `http://localhost:${PORT}`;
+const ROOT = new URL("../../", import.meta.url).pathname, DIST = join(ROOT, "client/dist");
 const caddy = readFileSync(join(ROOT, "deploy/vps/Caddyfile"), "utf8");
 const m = /header \{\$CSP_HEADER:Content-Security-Policy\} "([^"]+)"/.exec(caddy); if (!m) { console.log("XATO  Caddyfile da APP CSP topilmadi"); process.exit(1); }
 const POLICY = m[1].replaceAll("https://{$API_DOMAIN}", "http://localhost:3000 http://127.0.0.1:3000").replaceAll("wss://{$API_DOMAIN}", "ws://localhost:3000 ws://127.0.0.1:3000");
@@ -17,8 +17,9 @@ const MIME: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js
 const web = createServer((req, res) => {
   const p = join(DIST, decodeURIComponent((req.url ?? "/").split("?")[0])); const f = existsSync(p) && statSync(p).isFile() ? p : join(DIST, "index.html");
   res.writeHead(200, { "content-type": MIME[extname(f)] ?? "application/octet-stream", "content-security-policy": POLICY, "x-content-type-options": "nosniff", "x-frame-options": "DENY" }); res.end(readFileSync(f));
-}).listen(PORT);
-
+});
+await new Promise<void>((r) => web.listen(0, "127.0.0.1", r)); // bo'sh port (CI da boshqa portlar band bo'lishi mumkin)
+const WEB = `http://localhost:${(web.address() as { port: number }).port}`;
 process.env.CORS_ORIGINS = WEB;
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
