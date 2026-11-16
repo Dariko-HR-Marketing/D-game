@@ -119,4 +119,25 @@ describe("homiy turnirlari", () => {
     const board = (await s.req("GET", "a", `/tournaments/${t.id}`)).json().board; expect(board.map((r: any) => r.userId)).toEqual(["a", "b"]); expect(board[0].points).toBeGreaterThan(board[1].points);
     expect(s.x.profiles.stats("a").points).toBe(before);
   });
+  it("korporativ xona: ro'yxatda ko'rinmaydi, kod bilan kiriladi, kod ochiq ko'rinishda chiqmaydi, faqat 16+", async () => {
+    const s = setup(); await s.prof("a", 1990); await s.prof("b", 1990); await s.prof("z", 1990); await s.prof("kid", Y - 13);
+    const t = await mk(s, { corporate: true, sponsor: "Kompaniya X" }); expect(t.corporate).toBe(true); expect(t.joinCode).toMatch(/^[A-Z2-9]{8}$/);
+    expect((await s.req("GET", "a", "/tournaments")).json().tournaments).toHaveLength(0);
+    expect((await s.req("GET", "a", `/tournaments/${t.id}`)).json().error).toBe("not_found");
+    expect((await s.req("POST", "a", `/tournaments/${t.id}/register`)).json().error).toBe("not_found"); // identifikator bilan emas, faqat kod bilan
+    expect((await s.req("POST", "a", "/tournaments/join", { code: "XXXXXXXX" })).json().error).toBe("bad_code");
+    expect((await s.req("POST", "kid", "/tournaments/join", { code: t.joinCode })).json().error).toBe("adults_only");
+    const code = t.joinCode as string; const pretty = `${code.slice(0, 4)}-${code.slice(4).toLowerCase()}`;
+    expect((await s.req("POST", "a", "/tournaments/join", { code: pretty })).json()).toMatchObject({ id: t.id, approved: true });
+    expect((await s.req("POST", "a", "/tournaments/join", { code })).json()).toMatchObject({ id: t.id }); // takroriy — xato emas
+    const list = (await s.req("GET", "a", "/tournaments")).json().tournaments; expect(list).toHaveLength(1); expect(list[0].joinCode).toBeUndefined();
+    expect((await s.req("GET", "a", `/tournaments/${t.id}`)).json().tournament.joinCode).toBeUndefined();
+    expect((await s.req("GET", "b", "/tournaments")).json().tournaments).toHaveLength(0);
+    await s.req("POST", "b", "/tournaments/join", { code }); await s.adm(`/admin/tournaments/${t.id}`, { status: "running" });
+    expect((await s.req("POST", "z", "/tournaments/join", { code })).json()).toMatchObject({ id: t.id }); // o'yin boshlangach ham qo'shiladi
+    expect((await s.req("POST", "z", `/tournaments/${t.id}/room`)).json().code).toBeTruthy();
+    const old = code; const n = (await s.adm(`/admin/tournaments/${t.id}/code`, {})).json().tournament; expect(n.joinCode).not.toBe(old);
+    await s.prof("late", 1990); expect((await s.req("POST", "late", "/tournaments/join", { code: old })).json().error).toBe("bad_code");
+    expect((await s.adm(`/admin/tournaments/${(await mk(s)).id}/code`, {})).json().error).toBe("not_found"); // ommaviy turnirda kod yo'q
+  });
 });
