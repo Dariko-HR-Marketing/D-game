@@ -7,11 +7,14 @@ import { gamePoints, type GameResult } from "./profiles";
 import { MINOR_AGE } from "./edu";
 
 export type TStatus = "draft" | "open" | "running" | "finished";
-export interface Tournament { id: string; title: string; sponsor: string; sponsorUrl?: string; rules: string; format: string; prize: string; status: TStatus; startsAt?: number; endsAt?: number; maxPlayers: number | null; createdAt: number }
+export interface Tournament { id: string; title: string; sponsor: string; sponsorUrl?: string; rules: string; format: string; prize: string; status: TStatus; startsAt?: number; endsAt?: number; maxPlayers: number | null; createdAt: number; /** Korporativ xona: ro'yxatda ko'rinmaydi, faqat kod bilan, faqat 16+ (OPEN_QUESTIONS 179). */ corporate?: boolean; joinCode?: string }
 export interface Registration { userId: string; tournamentId: string; at: number; consentId?: string; approved: boolean }
-export type TErr = "not_found" | "bad_field" | "bad_name" | "closed" | "full" | "already" | "consent_required" | "not_registered" | "bad_status";
+export type TErr = "not_found" | "bad_field" | "bad_name" | "closed" | "full" | "already" | "consent_required" | "not_registered" | "bad_status" | "adults_only" | "bad_code";
 const clean = (s: unknown, max: number) => (typeof s === "string" ? s.replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, max) : "");
 const STATUSES: TStatus[] = ["draft", "open", "running", "finished"];
+const CODE_ABC = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // o'xshash belgilarsiz (0/O, 1/I)
+const newCode = () => Array.from(randomBytes(8), (b) => CODE_ABC[b % CODE_ABC.length]).join("");
+const normCode = (c: unknown) => (typeof c === "string" ? c.replace(/[\s-]/g, "").toUpperCase() : "");
 
 export class Tournaments {
   readonly items: Collection<Tournament>; readonly regs: Collection<Registration>; readonly queue = new WriteQueue();
@@ -29,19 +32,26 @@ export class Tournaments {
     const maxPlayers = b.maxPlayers !== undefined ? (b.maxPlayers === null ? null : Number.isInteger(b.maxPlayers) && (b.maxPlayers as number) > 1 && (b.maxPlayers as number) <= 100_000 ? (b.maxPlayers as number) : NaN) : old?.maxPlayers ?? null;
     if (Number.isNaN(maxPlayers)) return { ok: false, error: "bad_field" };
     let sponsorUrl = b.sponsorUrl !== undefined ? clean(b.sponsorUrl, 300) : old?.sponsorUrl; if (sponsorUrl && !/^https:\/\//i.test(sponsorUrl)) return { ok: false, error: "bad_field" };
-    const t: Tournament = { id: old?.id ?? randomBytes(6).toString("hex"), title, sponsor: b.sponsor !== undefined ? clean(b.sponsor, 120) : old?.sponsor ?? "", sponsorUrl: sponsorUrl || undefined,
+    const corporate = old ? !!old.corporate : b.corporate === true; // turi faqat yaratishda belgilanadi
+    let joinCode = old?.joinCode; if (corporate && !joinCode) { do joinCode = newCode(); while (this.items.values().some((x) => x.joinCode === joinCode)); }
+    const t: Tournament = { id: old?.id ?? randomBytes(6).toString("hex"), corporate: corporate || undefined, joinCode: corporate ? joinCode : undefined, title, sponsor: b.sponsor !== undefined ? clean(b.sponsor, 120) : old?.sponsor ?? "", sponsorUrl: sponsorUrl || undefined,
       rules: b.rules !== undefined ? clean(b.rules, 4000) : old?.rules ?? "", format: b.format !== undefined ? clean(b.format, 300) : old?.format ?? "", prize: b.prize !== undefined ? clean(b.prize, 500) : old?.prize ?? "",
       status, startsAt: startsAt as number | undefined, endsAt: endsAt as number | undefined, maxPlayers: maxPlayers as number | null, createdAt: old?.createdAt ?? this.now() };
     this.items.set(t.id, t); return { ok: true, t };
   }
   remove(id: string) { if (!this.items.get(id)) return false; this.items.delete(id); for (const r of this.regs.values()) if (r.tournamentId === id) this.regs.delete(this.key(id, r.userId)); return true; }
-  visible() { return this.items.values().filter((t) => t.status !== "draft").sort((a, b) => (a.startsAt ?? a.createdAt) - (b.startsAt ?? b.createdAt)); }
+  visible() { return this.items.values().filter((t) => t.status !== "draft" && !t.corporate).sort((a, b) => (a.startsAt ?? a.createdAt) - (b.startsAt ?? b.createdAt)); }
+  /** Foydalanuvchi ko'radigan ro'yxat: ommaviy turnirlar + o'zi ro'yxatdan o'tgan korporativ xonalar. */
+  visibleTo(uid: string) { return this.items.values().filter((t) => t.status !== "draft" && (!t.corporate || !!this.regOf(t.id, uid))).sort((a, b) => (a.startsAt ?? a.createdAt) - (b.startsAt ?? b.createdAt)); }
+  byCode(code: unknown) { const c = normCode(code); if (c.length < 6) return undefined; return this.items.values().find((t) => t.corporate && t.joinCode === c && t.status !== "draft"); }
+  rotateCode(id: string) { const t = this.items.get(id); if (!t?.corporate) return null; let c: string; do c = newCode(); while (this.items.values().some((x) => x.joinCode === c)); const n = { ...t, joinCode: c }; this.items.set(id, n); return n; }
   count(id: string) { return this.regs.values().filter((r) => r.tournamentId === id && r.approved).length; }
   regOf(id: string, uid: string) { return this.regs.get(this.key(id, uid)); }
   /** Ro'yxatdan o'tish. `needsConsent` — 16 yoshgacha: ariza `approved=false` bilan saqlanadi, ota-ona rozilik bergach tasdiqlanadi. */
   register(id: string, uid: string, age: number | null, consentId?: string): { ok: true; reg: Registration } | { ok: false; error: TErr } {
     const t = this.items.get(id); if (!t || t.status === "draft") return { ok: false, error: "not_found" };
-    if (t.status !== "open") return { ok: false, error: "closed" };
+    if (t.status !== "open" && !(t.corporate && t.status === "running")) return { ok: false, error: "closed" }; // korporativ xonaga o'yin boshlangach ham qo'shilish mumkin
+    if (t.corporate && (age === null || age < MINOR_AGE)) return { ok: false, error: "adults_only" };
     if (this.regOf(id, uid)) return { ok: false, error: "already" };
     if (t.maxPlayers !== null && this.count(id) >= t.maxPlayers) return { ok: false, error: "full" };
     const minor = age !== null && age < MINOR_AGE; if (minor && !consentId) return { ok: false, error: "consent_required" };
@@ -57,6 +67,6 @@ export class Tournaments {
     return [...acc].sort((a, b) => b[1].points - a[1].points || b[1].wins - a[1].wins).map(([userId, a], i) => ({ rank: i + 1, userId, name: nameOf(userId) ?? "O'yinchi", ...a }));
   }
   /** Tashqi ko'rinish: 16 yoshgacha uchun homiy brendi yashirin (qo'llanma/§ homiy cheklovi). */
-  view(t: Tournament, age: number | null) { const minor = age !== null && age < MINOR_AGE; return { ...t, sponsor: minor ? "" : t.sponsor, sponsorUrl: minor ? undefined : t.sponsorUrl }; }
+  view(t: Tournament, age: number | null) { const minor = age !== null && age < MINOR_AGE; return { ...t, joinCode: undefined, sponsor: minor ? "" : t.sponsor, sponsorUrl: minor ? undefined : t.sponsorUrl }; }
   eraseUser(uid: string) { for (const r of this.regs.values()) if (r.userId === uid) this.regs.delete(this.key(r.tournamentId, uid)); }
 }

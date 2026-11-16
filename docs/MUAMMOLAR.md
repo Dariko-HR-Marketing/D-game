@@ -47,7 +47,7 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 | # | Muammo | Holat |
 |---|---|---|
 | 5.1 | O'qituvchi paneli (sinf yaratish, natija hisoboti) | ⬜ |
-| 5.2 | Turnir va korporativ xona boshqaruvi | ⬜ |
+| 5.2 | Turnir va korporativ xona boshqaruvi | 🟡 turnir admin boshqaruvi bor edi (yaratish, holat, ishtirokchi, reyting, sovrin, hisobot); korporativ xona (kod bilan, yopiq, 16+) qo'shildi — OPEN_QUESTIONS 179 taxminlari tasdig'i kerak; tashkilotchi roli ⬜ |
 | 5.3 | Birinchi besh daqiqa: o'rgatish, yakka yoki kam odam bilan boshlash | ⬜ |
 | 5.4 | 45 daqiqalik qisqa rejim | ⬜ |
 | 5.5 | Bir gaplik va'da va MVP'dan olib tashlanadigan funksiyalar ro'yxati | ⬜ |

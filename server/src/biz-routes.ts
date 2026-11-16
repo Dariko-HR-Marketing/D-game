@@ -16,7 +16,7 @@ export interface BizDeps {
   secured: (h: (uid: string, req: any, reply: any) => unknown) => (req: any, reply: any) => unknown;
   ageOf: (uid: string) => number | null; nameOf: (uid: string) => string | undefined; hashOf: (p: string) => string; dev: boolean; tournamentsPaused?: () => boolean;
 }
-const STATUS: Record<string, number> = { not_found: 404, no_license: 402, forbidden: 403, bad_code: 404, expired: 410, used: 409, already_teacher: 409, seats_full: 409, already_member: 409, limit: 429, paused: 503, closed: 409, full: 409, already: 409, consent_required: 400, not_allowed: 403, not_teacher: 403, phone_required: 403, profile_required: 409 };
+const STATUS: Record<string, number> = { not_found: 404, no_license: 402, forbidden: 403, bad_code: 404, expired: 410, used: 409, already_teacher: 409, seats_full: 409, already_member: 409, limit: 429, paused: 503, closed: 409, full: 409, already: 409, consent_required: 400, adults_only: 403, not_allowed: 403, not_teacher: 403, phone_required: 403, profile_required: 409 };
 const fail = (reply: any, error: string) => reply.code(STATUS[error] ?? 400).send({ error });
 
 export function registerBiz(d: BizDeps) {
@@ -68,18 +68,28 @@ export function registerBiz(d: BizDeps) {
   }
 
   // --- turnirlar ---
-  const tpub = (uid: string, t: ReturnType<Tournaments["visible"]>[number]) => { const reg = tn.regOf(t.id, uid); return { ...tn.view(t, d.ageOf(uid)), players: tn.count(t.id), registered: !!reg, approved: !!reg?.approved, pendingParent: !!reg && !reg.approved, room: tRoom(t.id) }; };
+  const tpub = (uid: string, t: ReturnType<Tournaments["visibleTo"]>[number]) => { const reg = tn.regOf(t.id, uid); return { ...tn.view(t, d.ageOf(uid)), players: tn.count(t.id), registered: !!reg, approved: !!reg?.approved, pendingParent: !!reg && !reg.approved, room: tRoom(t.id) }; };
   function tRoom(id: string) { for (const r of d.rooms.rooms.values()) if (r.tag?.kind === "tournament" && r.tag.id === id && !r.endedAt && !r.state) return r.code; return null; }
-  app.get("/tournaments", d.secured((uid) => ({ tournaments: tn.visible().map((t) => tpub(uid, t)) })));
+  app.get("/tournaments", d.secured((uid) => ({ tournaments: tn.visibleTo(uid).map((t) => tpub(uid, t)) })));
   app.get("/tournaments/:id", d.secured((uid, req, reply) => {
-    const t = tn.items.get(String(req.params.id)); if (!t || t.status === "draft") return fail(reply, "not_found");
+    const t = tn.items.get(String(req.params.id)); if (!t || t.status === "draft" || (t.corporate && !tn.regOf(t.id, uid))) return fail(reply, "not_found");
     return { tournament: tpub(uid, t), board: tn.board(t.id, profiles.results, d.nameOf).slice(0, 100) };
+  }));
+  /** Korporativ xonaga kod bilan qo'shilish: faqat 16+, telefon tasdiqlangan; ro'yxatda ko'rinmaydi. */
+  app.post("/tournaments/join", d.secured((uid, req, reply) => {
+    if (d.tournamentsPaused?.()) return fail(reply, "paused");
+    const age = d.ageOf(uid); if (age === null) return fail(reply, "profile_required"); if (age < 16) return fail(reply, "adults_only");
+    if (!d.dev && !d.phones.isVerified(uid)) return fail(reply, "phone_required");
+    const t = tn.byCode((req.body as any)?.code); if (!t) return fail(reply, "bad_code");
+    const ex = tn.regOf(t.id, uid); if (ex) return { id: t.id, approved: ex.approved };
+    const r = tn.register(t.id, uid, age); if (!r.ok) return fail(reply, r.error); return { id: t.id, approved: r.reg.approved };
   }));
   app.post("/tournaments/:id/register", d.secured(async (uid, req, reply) => {
     if (d.tournamentsPaused?.()) return fail(reply, "paused");
     const id = String(req.params.id); const age = d.ageOf(uid); if (age === null) return fail(reply, "profile_required");
     if (!d.dev && !d.phones.isVerified(uid) && age >= 16) return fail(reply, "phone_required");
-    const t = tn.items.get(id); if (!t || t.status !== "open") return fail(reply, t ? "closed" : "not_found");
+    const t = tn.items.get(id); if (t?.corporate) return fail(reply, "not_found"); // korporativ xonaga faqat kod bilan
+    if (!t || t.status !== "open") return fail(reply, t ? "closed" : "not_found");
     let consentId: string | undefined;
     if (age < 16) {
       const c = await d.consents.request(uid, d.phones.hashFor(uid), "tournament", id, `«${t.title}» turniri`, (req.body as any)?.parentPhone, d.hashOf);
@@ -106,6 +116,7 @@ export function registerBizAdmin(guard: Guard, app: FastifyInstance, d: { edu: E
   app.post("/admin/edu/orgs/:id/invite", guard("edu.manage", (req) => { const r = d.edu.invite(String(req.params.id)); return r.ok ? { invite: r.invite } : { error: r.error }; }, "edu.invite"));
   app.get("/admin/tournaments", guard("tournaments.manage", () => ({ tournaments: d.tournaments.items.values().map((t) => ({ ...t, players: d.tournaments.count(t.id) })) })));
   app.post("/admin/tournaments", guard("tournaments.manage", (req) => { const r = d.tournaments.upsert(null, (req.body ?? {}) as any); return r.ok ? { tournament: r.t } : { error: r.error }; }, "tournament.create"));
+  app.post("/admin/tournaments/:id/code", guard("tournaments.manage", (req) => { const t = d.tournaments.rotateCode(String(req.params.id)); return t ? { tournament: t } : { error: "not_found" }; }, "tournament.code"));
   app.post("/admin/tournaments/:id", guard("tournaments.manage", (req) => { const r = d.tournaments.upsert(String(req.params.id), (req.body ?? {}) as any); return r.ok ? { tournament: r.t } : { error: r.error }; }, "tournament.update"));
   app.delete("/admin/tournaments/:id", guard("tournaments.manage", (req) => (d.tournaments.remove(String(req.params.id)) ? { ok: true } : { error: "not_found" }), "tournament.delete"));
   app.get("/admin/shop/config", guard("commerce.read", () => ({ config: d.commerce.config() })));

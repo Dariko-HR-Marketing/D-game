@@ -4,7 +4,7 @@ import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { Screen } from "./Screen";
 import { Button } from "./Button";
 import { Banner, Card, Divider, Pill, Row, SectionTitle, Stat } from "./kit";
-import { errText } from "../i18n/uz";
+import { errText, uz } from "../i18n/uz";
 import { color, font, MIN_TAP, radius, space, tone } from "../theme";
 import type { Http } from "../net/http";
 import { HttpError } from "../net/http";
@@ -172,16 +172,20 @@ function TeacherClass({ http, id, onBack, onEnterRoom }: { http: Http; id: strin
 /* ---------------- Homiy turnirlari ---------------- */
 export function TournamentScreen({ http, onBack, onEnterRoom }: { http: Http; onBack: () => void; onEnterRoom: (code: string) => void }) {
   const l = useLoad(() => http.tournaments(), [http]); const [open, setOpen] = useState<string | null>(null);
+  const [cc, setCc] = useState(""); const [cerr, setCerr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const joinCode = async () => { setCerr(null); setBusy(true); try { const r = await http.tJoin(cc); setCc(""); l.reload(); setOpen(r.id); } catch (e) { setCerr(code(e)); } setBusy(false); };
   if (open) return <TournamentDetail http={http} id={open} onBack={() => { setOpen(null); l.reload(); }} onEnterRoom={onEnterRoom} />;
   const st: Record<string, string> = { open: "Ro'yxat ochiq", running: "Davom etmoqda", finished: "Yakunlangan" };
   return (
     <Screen title="Turnirlar" subtitle="Homiylar bilan musobaqalar. Turnir ballari umumiy reytingga ta'sir qilmaydi." onBack={onBack} maxWidth={720}>
       <Msg e={l.err} />
+      <Card label={uz.corp.title}><Text style={s.p}>{uz.corp.hint}</Text><Msg e={cerr} />
+        <View style={s.rowW}><Field label={uz.corp.codeLabel} value={cc} onChange={setCc} max={12} caps /><Button label={uz.corp.join} disabled={busy || cc.replace(/[\s-]/g, "").length < 6} onPress={joinCode} /></View></Card>
       {l.data && l.data.tournaments.length === 0 && <Card><Text style={s.p}>Hozircha faol turnir yo'q.</Text></Card>}
       {(l.data?.tournaments ?? []).map((t: any) => (
         <Pressable key={t.id} accessibilityRole="button" accessibilityLabel={`${t.title}. ${st[t.status] ?? t.status}`} onPress={() => setOpen(t.id)}>
-          <Card><SectionTitle right={<Pill label={st[t.status] ?? t.status} kind={t.status === "running" ? "good" : t.status === "open" ? "info" : "plain"} />}>{t.title}</SectionTitle>
-            {t.sponsor ? <Text style={s.small}>Homiy: {t.sponsor}</Text> : null}<Text style={s.small}>{t.players} ishtirokchi{t.registered ? (t.approved ? " · siz ro'yxatdasiz" : " · ota-ona roziligi kutilmoqda") : ""}</Text></Card></Pressable>))}
+          <Card><SectionTitle right={<Pill label={t.corporate ? uz.corp.badge : (st[t.status] ?? t.status)} kind={t.status === "running" ? "good" : t.status === "open" ? "info" : "plain"} />}>{t.title}</SectionTitle>
+            {t.sponsor ? <Text style={s.small}>{t.corporate ? uz.corp.sponsorLabel : "Homiy"}: {t.sponsor}</Text> : null}<Text style={s.small}>{t.players} ishtirokchi{t.registered ? (t.approved ? " · siz ro'yxatdasiz" : " · ota-ona roziligi kutilmoqda") : ""}</Text></Card></Pressable>))}
     </Screen>
   );
 }
@@ -191,7 +195,7 @@ function TournamentDetail({ http, id, onBack, onEnterRoom }: { http: Http; id: s
   const run = async (fn: () => Promise<any>) => { setErr(null); try { await fn(); } catch (e) { setErr(code(e)); } l.reload(); };
   const t = l.data?.tournament; const minor = !!acc.data && acc.data.age !== null && acc.data.age < 16;
   return (
-    <Screen title={t?.title ?? "Turnir"} subtitle={t?.sponsor ? `Homiy: ${t.sponsor}` : undefined} onBack={onBack} backLabel="Turnirlar" maxWidth={720}>
+    <Screen title={t?.title ?? "Turnir"} subtitle={t?.sponsor ? `${t.corporate ? uz.corp.sponsorLabel : "Homiy"}: ${t.sponsor}` : undefined} onBack={onBack} backLabel="Turnirlar" maxWidth={720}>
       <Msg e={err || l.err} />
       {t && (<>
         <Card label="Turnir haqida"><SectionTitle>Shartlar</SectionTitle>
