@@ -140,4 +140,9 @@ describe("homiy turnirlari", () => {
     await s.prof("late", 1990); expect((await s.req("POST", "late", "/tournaments/join", { code: old })).json().error).toBe("bad_code");
     expect((await s.adm(`/admin/tournaments/${(await mk(s)).id}/code`, {})).json().error).toBe("not_found"); // ommaviy turnirda kod yo'q
   });
+  it("kod taxmin qilish cheklangan: daqiqasiga ~10 urinishdan keyin 429", async () => {
+    const s = setup(); await s.prof("a", 1990); await mk(s, { corporate: true });
+    for (let i = 0; i < 10; i++) expect((await s.req("POST", "a", "/tournaments/join", { code: "ZZZZZZZZ" })).json().error).toBe("bad_code");
+    const r = await s.req("POST", "a", "/tournaments/join", { code: "ZZZZZZZZ" }); expect(r.statusCode).toBe(429); expect(r.json().error).toBe("rate_limited");
+  });
 });

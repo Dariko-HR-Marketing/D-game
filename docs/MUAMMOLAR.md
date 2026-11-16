@@ -50,7 +50,7 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 | 5.2 | Turnir va korporativ xona boshqaruvi | 🟡 turnir admin boshqaruvi bor edi (yaratish, holat, ishtirokchi, reyting, sovrin, hisobot); korporativ xona (kod bilan, yopiq, 16+) qo'shildi — OPEN_QUESTIONS 179 taxminlari tasdig'i kerak; tashkilotchi roli ⬜ |
 | 5.3 | Birinchi besh daqiqa: o'rgatish, yakka yoki kam odam bilan boshlash | ✅ «O'quv o'yini» (1 odam + 2 bot, 15 daqiqa) 8 qadamli yo'l-yo'riq bilan; 0 o'yinli yangi hisobga bosh sahifada ko'rsatiladi; kirish sahifasida «nima bu» bloki. Haqiqiy yangi o'yinchilar bilan kuzatuv seansi — ⏳ buyurtmachi/foydalanuvchi |
 | 5.4 | 45 daqiqalik qisqa rejim | ✅ «Tez» rejim bor (2–6 kishi, 30–45 daqiqa, chiqish 15 000 passiv + 250 000 naqd; SPEC 5.12). 6 soatlik rejim — qog'oz sinovdan keyin (2.4) |
-| 5.5 | Bir gaplik va'da va MVP'dan olib tashlanadigan funksiyalar ro'yxati | ⬜ |
+| 5.5 | Bir gaplik va'da va MVP'dan olib tashlanadigan funksiyalar ro'yxati | ⏳ buyurtmachi qarori (pozitsiya va auditoriya tanlovi); kirish sahifasida hozirgi matn: «nima bu, bepul/pullik, qanday ishlaydi» |
 | 5.6 | Founder paketining qolgani (offer, CFO, marketing, brend, ops, launch, plan) | ⏳ mahsulot tayyor bo'lgach |
 
 ## 6. Texnik qarz
@@ -59,3 +59,12 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 | 6.1 | Brauzer tekshiruvlari (`calc-check` va b.) ba'zan tasodifan yiqiladi | 🟡 `calc-check` to'siqlari va axe animatsiya kutishi tuzatildi (#45); boshqalar kuzatuvda |
 | 6.2 | Guvoh qoidasi uchun brauzer tekshiruvi yozilmagan | ✅ `witness-check.ts` (telefon va kompyuter), CI ga qo'shildi |
 | 6.3 | Eski GitHub branchlari o'chirilmagan (so'ralmaguncha o'chirilmaydi) | ⏳ |
+
+## 7. Xavfsizlik va bog'liqliklar auditi (2026-11-16)
+`pnpm audit --prod`: **36 → 7** zaiflik (11 yuqori → 3). Tranzitiv `fast-uri` (fastify/ajv) va `node-forge` (expo CLI) yamalgan versiyalarga ko'tarildi (`pnpm-workspace.yaml` → `overrides`); server 351 test va typecheck o'tdi. Qolganlar:
+| Paket | Daraja | Holat |
+|---|---|---|
+| `content` (2 ta) | yuqori | ✅ yolg'on ogohlantirish: audit bizning ishchi paket nomimizni (`content`) npm'dagi boshqa paket bilan adashtiradi; bizda bunday bog'liqlik yo'q |
+| `zod` 3.x (`content`, `server`) | yuqori | 🟡 «oversized constrained collections» xotira sarfi; tuzatish zod 4 ga katta o'tishni talab qiladi. Xavf cheklangan: HTTP tanasi ≤ 64 KB, WebSocket xabari ≤ 16 KB (`app.ts`). Zod 4 ga o'tish — alohida, sinovli vazifa (⬜) |
+| `uuid`, `glob`, `minimatch`, `deepmerge` | o'rta/past | ✅ faqat mijoz yig'ish vositasida (expo CLI), productionga tushmaydi |
+Qo'shimcha: kod taxminiga qarshi cheklov (hisob bo'yicha ~10 urinish/daqiqa) sinf, litsenziya va korporativ xona kodlariga qo'yildi (429 `rate_limited`, test bor).
