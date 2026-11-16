@@ -1,0 +1,633 @@
+# Tajriba 24: prototip topshirig'i (yangi Claude chati uchun yagona fayl)
+
+> **Bu faylni claude.ai da yangi chatga biriktiring** va birinchi xabar sifatida quyidagini yozing:
+> «Shu fayldagi topshiriqni bajaring. Avval 6-bo'limdagi ochiq savollarga taklif qilingan javoblar bilan davom eting, so'ng prototipni yaxshilang va natijani **bitta HTML fayl** sifatida bering.»
+
+Natijani (HTML) keyin Claude Code'ga qaytarasiz: u prototipni haqiqiy ilovaga (React Native + veb) kodlaydi.
+
+---
+
+## 1. Loyiha qisqacha
+- **Tajriba 24 onlayn**: stol o'yinining onlayn versiyasi. Moliyaviy savodxonlik, pul oqimi va passiv daromad yaratishni o'rgatadi. DARIKO ekotizimining o'yin brendi. Sayt: tajriba24.uz.
+- **Kimlar uchun:** o'yinchilar (do'stlar bilan), ta'lim muassasalari (o'qituvchi paneli, sinf), banklar va kompaniyalar (korporativ xona).
+- **Platforma:** veb (kompyuter, planshet), iOS, Android; bitta kod bazasi. Hozir **faqat desktop** prototip so'ralyapti; mobilga keyin moslashtiriladi.
+- **Asosiy tamoyil:** asosiy o'yin bepul; pullik qo'shimchalar o'yin natijasiga ta'sir qilmaydi; tasodifiy sandiq (loot box) yo'q. Ballar pulga almashtirilmaydi.
+- **O'yin g'oyasi:** o'yinchi kasb kartasi bilan boshlaydi, kubik tashlab taxta bo'ylab yuradi, kartalar chiqadi (imkoniyat, xarajat, bozor, kutilmagan hodisa). Maqsad: passiv daromadni oshirib, **kichik aylanadan** chiqish, so'ng **katta aylanada** orzuni sotib olish.
+
+## 2. Qat'iy qoidalar (buzilmaydi)
+1. **Hamma matn o'zbek lotin alifbosida.** Apostrof oddiy `'`: o'yin, g'alaba, ro'yxat. Imlo va uslub toza bo'lsin (rus/ingliz so'zlarini keraksiz aralashtirmang).
+2. **Katta summalar to'liq yoziladi:** `1 020 000` (probel bilan, qisqartirish yo'q: «1 mln» yoki «1M» emas).
+3. **O'zingizdan raqam o'ylab topmang.** Faqat shu faylda berilgan raqamlar ishlatiladi. Illyustratsiya uchun namuna kerak bo'lsa, «namuna» deb belgilang. Narxlar (to'lov) yo'q.
+4. **«O'yna va boy bo'l», «boyib ket», «poyga» iboralari taqiqlangan** (boylik va'dasi, eski nom). Hozirgi va'da: «Xatoni o'yinda qiling, tajribani hayotga olib chiqing.»
+5. Karta nomi aynan: **«KUTILMAGAN HODISA!»**.
+6. **16 yoshgacha himoya:** to'lov ota-ona tasdig'i bilan, o'zaro qarz/sheriklik va erkin chat yopiq, reklama yo'q.
+7. **Kirish:** hozir faqat SMS bir martalik kod ishlaydi. Parol, email va Google tugmalari ko'rinishda bor, lekin hali ulanmagan («Tez orada» deb halol belgilanadi).
+8. **Mavjud o'yin qoidalarini o'zgartirmang.** Prototip faqat ko'rinish va tajriba (UX/UI) haqida.
+9. **Foydalanuvchi qiynalmasligi kerak:** ketma-ket sahifalar kam, matn qisqa, bitta ekranda bitta asosiy harakat.
+
+## 3. Dizayn tizimi (mavjud ilova bilan bir xil bo'lsin)
+- **Shrift:** Manrope (400/500/600/700/800). Matn o'lchami: 12 / 13 / 15 / 17 / 20 / 28 / 40 px.
+- **Asosiy ranglar:** navy `#082238`, yashil `#11835A` (matn uchun to'qroq `#0E6B4A`), oltin `#F2B233`, qizil `#9E2A30`, ko'k `#2C6DB5`, fon `#F4F7F8`, chiziq `#DCE3E8`, ikkinchi daraja matn `#4A5B6C`. Yumshoq yuzalar: yaxshi `#E7F4EE`, ma'lumot `#E8F0F8`, diqqat `#FFF6DD`.
+- **Qorong'i mavzu (kirish sahifasi va brend joylari):** fon `#07131C`, panel `#0F1B26`, brend paneli `#0B2620`, matn `#F1F5F9`, ikkinchi daraja `#B4C2CE`, urg'u `#34D399`, tugma `#10B981` (to'q matn `#04130E`), chegara `#5B7388`.
+- **Burchaklar:** tugma 10–12, panel 16, karta 20. **Bo'shliq:** 4 px asosida (4, 8, 12, 16, 24, 32, 48).
+- **Karta turlari rangi:** bozor: ko'k; kichik sarmoya: yashil; katta sarmoya: to'q sariq; xarajat: qizil (sug'urta: ko'k); katta aylana xarajati: g'isht rang; kutilmagan hodisa: qora; karyera va missiya: yashil ramka.
+- **Fishka ranglari (8 ta):** `#11835A #F2B233 #9E2A30 #2C6DB5 #7B4FA3 #E07A2F #0E8FA0 #C44E8A`.
+- **Logotip:** 16 ta rangli katakdan halqa, markazda navy doira ichida oq «T».
+- **Qulaylik:** bosish maydoni ≥ 44 px, kontrast WCAG AA (matn ≥ 4.5:1, chegara ≥ 3:1), klaviatura bilan boshqarish, ko'rinadigan fokus halqasi, harakatli bezak `prefers-reduced-motion` ga bo'ysunsin.
+
+## 4. Buyurtmachi talablari (shu chatda aytilgani)
+**Bosh sahifa dizayni butunlay yangilansin** (hozir sodda ro'yxat ko'rinishida: «O'quv o'yini», «Yangi o'yin», tur, o'yinchilar soni, tezlik, kod bilan qo'shilish, qoidalar, reyting). Faqat desktop ko'rinishi.
+
+1. **O'quv o'yini (15 daqiqa).** Haqiqiy o'yin ketadi, lekin shu 15 daqiqa davomida hamma yangi narsa onboarding bilan tushuntirib boriladi: bu qanday karta, bu qanday holat, bu qanday tushuncha. Yuqoridagi bo'limlar ham (Mening kartalarim, Hisob varag'i, Tarix, Tahlil, Chat, Qoidalar, Moliyaviy holat): ichiga kirganda hammasi tushuntiriladi.
+2. **Yangi o'yin** xona yaratadi.
+3. **O'yin turlari:** Standart, Tez, Reytingli, O'quv va yangi **Korporativ**.
+4. **O'yinchilar soni:** hamma turda **2 dan 8 gacha**.
+5. **Tezlik 2 xil:** Odatiy (karta qarori **30 soniya**) va Sekin (**1 daqiqa**). Hozir sinov uchun turgan **«Mehrojiddin»** (vaqtsiz) qoladi. Standart yoki Tez tanlansa ham tezlik tanlovi bir xil.
+6. **Ro'yxatdan o'tish qisqa va oson:** ism va tug'ilgan yil ro'yxatdan o'tish shaklining o'zida; SMS kod tasdiqlangach to'g'ridan-to'g'ri ichkariga kiriladi (alohida «Ismingizni kiriting» sahifasi yo'q).
+
+## 5. Topshiriq
+Quyidagi prototipni (7-bo'lim) **boshlang'ich nuqta** sifatida oling va yaxshilang. U allaqachon ishlaydi (ikki ko'rinish: bosh sahifa; o'quv o'yini + onboarding). Yaxshilash yo'nalishlari:
+1. **Bosh sahifa:** tartib, ierarxiya, bo'sh joy, o'quv o'yini kartasining jozibasi; xona sozlagichi (tur, o'yinchilar soni, tezlik) eng qulay va tushunarli bo'lsin; Korporativ turni ishonchli ko'rsating.
+2. **Onboarding:** 12 qadam yetarlimi? Matnlar qisqa, aniq va o'zbekcha toza bo'lsin; qadam o'tkazib yuborish, orqaga qaytish, rejadan qayta ko'rish; har bo'limga birinchi kirishda tushuntirish.
+3. **Tuzilma:** o'yin ekranidagi bo'limlar (Mening kartalarim, Hisob varag'i, Tarix, Tahlil, Chat, Qoidalar) uchun tushuntirish panellarini boyiting.
+4. **Qo'shimcha ko'rinishlar** (agar vaqt bo'lsa): o'yin tugagach «Saboq kartasi» (3 qisqa shaxsiy xulosa), xona kutish zali (kod ulashish, kim qo'shildi), ro'yxatdan o'tish (2 ekran).
+5. Hamma narsa **bitta HTML fayl**da bo'lsin: tashqi kutubxonasiz (faqat Google Fonts: Manrope), oddiy HTML/CSS/JS, kompyuterda 1440×900 uchun ishlab chiqilgan va 1180 px gacha buzilmasin.
+6. **Namuna ma'lumotlarni «namuna» deb belgilang.** Mexanikani o'zgartirmang.
+
+## 6. Ochiq savollar va taklif etilgan javoblar (aksi aytilmaguncha shularni qabul qiling)
+1. «0.3 sekund» = **30 soniya** (karta qarori); Sekin = 1 daqiqa. Kubik vaqti: 10 va 20 soniya; Mehrojiddin: vaqtsiz.
+2. **Hamma turda 2–8 o'yinchi** (Tez va Reytingli uchun avvalgi cheklovlar olib tashlanadi; O'quv: siz + botlar).
+3. **Korporativ tur:** tashkilot kodi bilan yopiq xona, faqat 16 yoshdan katta, tashkilotchi natijalarni ko'radi (ishtirokchi buni qo'shilishdan oldin ko'radi).
+4. **Onboarding:** 12 qadam, 15 daqiqa; haqiqiy o'yinda qadamlar voqeaga bog'lanadi (tegishli karta birinchi marta chiqqanda), majburiy ketma-ketlik emas.
+5. Tashkilotchi roli va logotip: keyingi bosqich.
+
+## 7. O'yin tushunchalari (onboarding matnlari uchun manba; shu raqamlardan tashqarisini o'ylab topmang)
+- **Pul oqimi** = daromad − xarajat (oylik). **Passiv daromad** = ishlamasangiz ham keladigan pul (masalan, kichik biznes, ijara).
+- **Kichik aylanadan chiqish sharti (Standart):** passiv daromad **25 000** va naqd **1 000 000**, qarz yo'q. **Tez:** passiv **15 000** va naqd **250 000**.
+- **Rejimlar:** Standart (g'alabagacha), Tez (30–45 daqiqa), Reytingli (120 daqiqa, liga reytingiga ta'sir qiladi), O'quv (15 daqiqa, siz + botlar), Korporativ (yangi).
+- **Vaqt:** kubik 10 soniya, karta qarori 30, birovning biznesi bo'yicha qaror 20, majburiy to'lov qarori 60. Sekin tezlikda hammasi ikki baravar.
+- **Karta turlari:** imkoniyat (biznes sotib olish), aksiya (arzon olib, narxi ko'tarilganda sotish), bozor (narx o'zgarishi, takliflar), xarajat (majburiy: pul yetmasa qarzga yoziladi), kutilmagan hodisa (viktorina yoki inqiroz).
+- **Qarz va kredit:** naqd yetmasa bank krediti (garov bilan), keyin o'zaro qarz va sheriklik. O'zaro qarzda beruvchi naqdining 30 % igacha beradi va 3 guvoh «Xabardor bo'ldim» deydi.
+- **Bo'limlar:** Mening kartalarim (sotib olingan aktivlar), Hisob varag'i (daromad, xarajat, aktiv, qarz jadvali), Tarix (voqealar), Tahlil (qarorlar natijasi, o'yinchilar va bozor), Chat (16 yoshgacha faqat tayyor iboralar), Qoidalar.
+- **Mavjud 7 qadamli o'quv yo'l-yo'rig'i matnlari** (kengaytirish uchun asos): balans (pul oqimi); imkoniyat (kichik biznes passiv daromad beradi); aksiya (arzon olib, narxi ko'tarilganda sotiladi); xarajat (majburiy, pul yetmasa qarzga yoziladi); bozor (aksiya narxi o'zgardi); daromad sektori (1 oy o'tdi, pul oqimi naqdga qo'shildi); maqsad (passiv 25 000, naqd 1 000 000, qarz yo'q).
+
+## 8. Qaytarish
+Tayyor prototipni **bitta HTML fayl** qilib bering va qisqa izoh yozing: nima o'zgargani, qaysi qarorlar qabul qilingani, nima hali aniq emas. Shu faylni Claude Code'ga tashlayman.
+
+---
+
+## Ilova A. Hozirgi prototip (to'liq kod, boshlang'ich nuqta)
+Fayl nomi: `home-desktop.html`. Brauzerda ochsangiz: yuqoridagi tugmalar bilan «1 · Bosh sahifa» va «2 · O'quv o'yini va onboarding» ko'rinishlari almashadi; «Izohlarni ko'rsat» talablarning 1–4 raqamlarini ko'rsatadi.
+
+```html
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tajriba 24 — bosh sahifa va onboarding (desktop prototip)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#082238; --green:#11835A; --green-d:#0E6B4A; --green-l:#E7F4EE; --gold:#F2B233; --red:#9E2A30; --blue:#2C6DB5; --info:#E8F0F8; --warn:#FFF6DD;
+  --bg:#F4F7F8; --line:#DCE3E8; --muted:#4A5B6C; --white:#fff; --night:#0B2620; --night2:#0F1B26; --accent:#34D399;
+  --r:16px; --shadow:0 1px 2px rgba(8,34,56,.06),0 6px 20px rgba(8,34,56,.06);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--navy);min-width:1180px;font-size:15px;line-height:1.45}
+button{font:inherit;color:inherit;cursor:pointer} input{font:inherit}
+:focus-visible{outline:3px solid #2C6DB5;outline-offset:2px;border-radius:8px}
+h1,h2,h3,p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- prototip boshqaruv paneli (ilovaga kirmaydi) ---------- */
+.proto{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 20px;background:#0b1620;color:#cfe0ea;font-size:13px}
+.proto b{color:#fff;letter-spacing:.3px}
+.proto .tabs{display:flex;gap:6px;margin-left:8px}
+.proto button{background:transparent;border:1px solid #2b4153;border-radius:10px;padding:7px 14px;color:#cfe0ea;font-weight:700}
+.proto button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.proto .sp{flex:1}
+.proto label{display:flex;align-items:center;gap:8px;font-weight:600}
+.proto .note{opacity:.75}
+
+/* ---------- ilova qobig'i ---------- */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:calc(100vh - 49px)}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:49px;height:calc(100vh - 49px)}
+.brand{display:flex;align-items:center;gap:12px;padding:0 6px}
+.brand b{font-size:20px;font-weight:800;letter-spacing:.2px}
+.brand small{display:block;font-size:11px;color:var(--green-d);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:var(--muted);font-weight:700;text-decoration:none}
+.nav a svg{width:20px;height:20px;flex:none}
+.nav a[aria-current=page]{background:var(--green-l);color:var(--green-d)}
+.nav a:hover{background:#f0f4f6}
+.me{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center}
+.ava{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.me small{display:block;color:var(--muted);font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800}
+.pill.good{background:var(--green-l);color:var(--green-d)} .pill.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green)}
+main{padding:26px 36px 48px;max-width:1260px;width:100%;margin:0 auto}
+.top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.top h1{font-size:32px;font-weight:800;letter-spacing:-.3px} .top p{color:var(--muted);margin-top:4px}
+.top .right{display:flex;gap:10px;align-items:center}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center}
+
+/* ---------- 1. O'quv o'yini hero ---------- */
+.hero{position:relative;overflow:hidden;border-radius:22px;background:var(--night);color:#fff;padding:28px 32px;display:grid;grid-template-columns:1fr 360px;gap:28px;box-shadow:var(--shadow)}
+.hero::before,.hero::after{content:"";position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(16,185,129,.14);pointer-events:none}
+.hero::before{top:-120px;left:-90px} .hero::after{bottom:-150px;right:380px}
+.hero>*{position:relative;z-index:1}
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.hero h2{font-size:28px;line-height:1.2;font-weight:800;margin:14px 0 8px;max-width:560px}
+.hero p{color:#B4C2CE;max-width:560px}
+.cta{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:14px;background:#10B981;color:#04130E;font-weight:800;font-size:15px;letter-spacing:.2px;padding:15px 24px;min-height:52px}
+.cta:hover{background:#34D399} .cta[disabled]{opacity:.5;cursor:not-allowed}
+.hero .row{display:flex;gap:14px;align-items:center;margin-top:22px}
+.ghostd{border:1px solid #5B7388;background:transparent;color:#fff;border-radius:14px;padding:14px 20px;font-weight:700;min-height:52px}
+.road{background:rgba(255,255,255,.06);border:1px solid #1F2F3D;border-radius:16px;padding:16px 18px}
+.road h3{font-size:13px;color:#B4C2CE;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:12px}
+.road ol{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.road li{display:flex;gap:12px;align-items:center;font-size:14px;font-weight:600}
+.road li i{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800;flex:none}
+.road .more{margin-top:12px;color:#B4C2CE;font-size:13px}
+
+/* ---------- 2–4. Yangi o'yin sozlagichi ---------- */
+.cfg{margin-top:22px;display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.cfg .main{padding:24px 26px;display:grid;gap:26px}
+.sec h3{font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:12px;display:flex;gap:10px;align-items:center}
+.sec h3 em{font-style:normal;background:var(--green-l);color:var(--green-d);border-radius:999px;padding:2px 9px;font-size:11px}
+.types{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.type{position:relative;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px;transition:.15s}
+.type:hover{border-color:#b9c7d1}
+.type[aria-checked=true]{border-color:var(--green);background:var(--green-l);box-shadow:0 0 0 3px rgba(17,131,90,.15)}
+.type svg{width:26px;height:26px;color:var(--green)} .type b{font-size:15px;font-weight:800}
+.type small{color:var(--muted);font-size:12px;line-height:1.35}
+.type .tag{position:absolute;top:10px;right:10px;background:var(--gold);color:#3a2a00;border-radius:999px;font-size:10px;font-weight:800;padding:2px 8px}
+.detail{margin-top:12px;border-radius:14px;background:var(--info);padding:14px 16px;display:grid;gap:6px;font-size:14px}
+.detail strong{font-weight:800} .detail .kv{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-weight:600;font-size:13px}
+.detail .kv span b{color:var(--navy)}
+.corp{margin-top:10px;display:none;gap:10px;align-items:end}
+.corp.on{display:flex}
+.fld{display:grid;gap:6px;flex:1} .fld label{font-weight:800;font-size:13px}
+.inp{min-height:46px;border:1px solid #9FB1BF;border-radius:12px;padding:0 14px;background:#fff;color:var(--navy)}
+.seats{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.seat{width:52px;height:52px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:16px}
+.seat[aria-checked=true]{background:var(--green);border-color:var(--green);color:#fff}
+.seatviz{display:flex;gap:6px;margin-top:12px;align-items:center;color:var(--muted);font-size:13px;font-weight:600;flex-wrap:wrap}
+.sv{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff}
+.sv.you{background:var(--green)} .sv.o{background:#fff;color:var(--muted);border:1.5px dashed #9FB1BF}
+.speeds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.speed{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:4px}
+.speed[aria-checked=true]{border-color:var(--green);background:var(--green-l);box-shadow:0 0 0 3px rgba(17,131,90,.15)}
+.speed b{font-size:15px;font-weight:800;display:flex;justify-content:space-between} .speed b span{color:var(--green-d)}
+.speed small{color:var(--muted);font-size:12px}
+.summary{position:sticky;top:73px;padding:22px;display:grid;gap:14px}
+.summary h3{font-size:18px;font-weight:800}
+.sumrow{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sumrow span{color:var(--muted);font-weight:600} .sumrow b{text-align:right}
+.hint{background:var(--warn);border-radius:12px;padding:10px 12px;font-size:13px;color:#5a3d00;font-weight:600}
+.cta.full{width:100%;justify-content:center;background:var(--green);color:#fff} .cta.full:hover{background:var(--green-d)}
+
+.trio{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tile{padding:18px 20px;display:flex;gap:14px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--shadow)}
+.tile .ico{width:44px;height:44px;border-radius:12px;background:#F0F4F6;display:grid;place-items:center;flex:none} .tile .ico svg{width:22px;height:22px}
+.tile b{display:block;font-size:16px;font-weight:800} .tile small{color:var(--muted);font-size:13px}
+.tile.join{display:grid;gap:10px;align-items:stretch}
+.joinrow{display:flex;gap:8px}
+
+/* izoh belgilari (foydalanuvchi so'rovi 1–4) */
+.pin{display:none;position:absolute;width:26px;height:26px;border-radius:50%;background:#E5322D;color:#fff;font-weight:800;font-size:13px;place-items:center;z-index:7;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+body.pins .pin{display:grid}
+.rel{position:relative}
+
+/* ---------- O'quv o'yini (o'yin ekrani) ---------- */
+.game{display:none;min-height:calc(100vh - 49px);background:var(--bg)}
+.game.on{display:block}
+.gbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 20px;position:sticky;top:49px;z-index:20}
+.gbar .st{display:flex;align-items:center;gap:8px;font-weight:800} .gbar .st small{color:var(--muted);font-weight:600}
+.code{font-family:ui-monospace,Consolas,monospace;background:#eef3f6;border-radius:8px;padding:4px 10px;font-weight:700;letter-spacing:1.5px;font-size:13px}
+.gnav{display:flex;gap:6px;margin:0 auto}
+.gnav button{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-weight:700;font-size:14px;position:relative}
+.gnav button svg{width:18px;height:18px}
+.gnav button:hover{background:#f4f7f8}
+.gnav button .new{position:absolute;top:-6px;right:-6px;background:#E5322D;color:#fff;border-radius:999px;font-size:10px;font-weight:800;padding:1px 6px}
+.gnav button.seen .new{display:none}
+.ob{display:flex;align-items:center;gap:10px;background:var(--night);color:#fff;border-radius:12px;padding:6px 8px 6px 14px;font-weight:700;font-size:13px;border:0}
+.ob .ring{width:26px;height:26px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),#264a40 0);display:grid;place-items:center}
+.ob .ring::after{content:"";width:18px;height:18px;border-radius:50%;background:var(--night)}
+.gbody{display:grid;grid-template-columns:330px 1fr 300px;gap:18px;padding:18px 20px;max-width:1500px;margin:0 auto}
+.panel{padding:18px;display:grid;gap:12px;align-content:start}
+.panel h3{font-size:17px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.big{font-size:34px;font-weight:800;letter-spacing:-.5px} .big.g{color:var(--green-d)}
+.two{display:flex;justify-content:space-between;align-items:flex-end}
+.two small{display:block;color:var(--muted);font-weight:600}
+.kvl{display:grid;gap:8px;font-size:14px} .kvl div{display:flex;justify-content:space-between} .kvl span{color:var(--muted);font-weight:600} .kvl b.neg{color:var(--red)}
+.bar{height:8px;border-radius:99px;background:#e7edf1;overflow:hidden} .bar i{display:block;height:100%;background:var(--gold);border-radius:99px}
+.goal{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.goal .g{font-size:13px;display:grid;gap:4px} .goal .g span{color:var(--muted);font-weight:600;display:flex;justify-content:space-between}
+.chk{color:var(--green-d);font-weight:700;font-size:14px}
+.boardwrap{padding:18px;display:grid;gap:12px}
+.board{position:relative;aspect-ratio:11/7;background:#fff;border-radius:14px}
+.cell{position:absolute;border-radius:7px;display:grid;place-items:center;font-size:9px;font-weight:800;color:#fff}
+.center{position:absolute;inset:15% 11%;display:grid;place-items:center;text-align:center;gap:6px;align-content:center}
+.dice{width:78px;height:78px;border-radius:18px;background:#fff;border:2px solid var(--navy);display:grid;place-items:center;font-size:34px;font-weight:800;box-shadow:0 6px 16px rgba(8,34,56,.18)}
+.turn{font-weight:800;font-size:18px} .timer{display:inline-flex;gap:8px;align-items:center;font-weight:800;color:var(--muted)}
+.btn{border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:800;padding:12px 22px;min-height:46px}
+.btn.o{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.plist{display:grid;gap:10px}
+.pl{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px}
+.pl.me{border:2px solid var(--green)} .pl b{display:block;font-size:14px} .pl small{color:var(--muted)}
+.ev{display:grid;gap:8px;font-size:13px;color:var(--muted)} .ev p{border-left:3px solid var(--line);padding-left:10px}
+.sample{font-size:11px;color:var(--muted);text-align:center}
+
+/* karta qarori oynasi */
+.cardmodal{position:fixed;inset:49px 0 0 0;display:none;place-items:center;z-index:30;background:rgba(8,34,56,.35)}
+.cardmodal.on{display:grid}
+.pc{width:340px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 20px 60px rgba(8,34,56,.35)}
+.pc header{background:var(--green);color:#fff;padding:14px 18px;font-weight:800;letter-spacing:.5px;font-size:13px;text-transform:uppercase}
+.pc .bd{padding:18px;display:grid;gap:10px} .pc .bd h4{margin:0;font-size:22px} .pc .bd .inc{font-size:26px;font-weight:800;color:var(--green-d)}
+.pc .bd small{color:var(--muted)} .pc .acts{display:flex;gap:10px;padding:0 18px 18px}
+.pc .acts .btn{flex:1}
+
+/* ---------- onboarding qatlami ---------- */
+.spot{position:fixed;z-index:60;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,34,56,.62);pointer-events:none;transition:all .25s ease;display:none}
+.spot.on{display:block}
+.coach{position:fixed;z-index:61;width:380px;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(8,34,56,.45);display:none;overflow:hidden}
+.coach.on{display:block}
+.coach .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--night);color:#fff;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.coach .hd span{color:var(--accent)}
+.coach .bd{padding:16px 18px;display:grid;gap:8px} .coach h4{margin:0;font-size:19px;font-weight:800}
+.coach p{color:var(--muted);font-size:14.5px}
+.coach .term{background:var(--green-l);color:var(--green-d);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:700}
+.coach .prog{height:6px;background:#e7edf1} .coach .prog i{display:block;height:100%;background:var(--green);transition:width .25s}
+.coach .ft{display:flex;gap:8px;align-items:center;padding:12px 16px 16px}
+.coach .ft .sp{flex:1} .coach .skip{background:none;border:0;color:var(--muted);font-weight:700;text-decoration:underline;padding:8px}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:12px;color:var(--muted);font-weight:700;margin-top:4px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+
+/* yo'l xaritasi */
+.map{position:fixed;left:20px;bottom:20px;z-index:40;display:none}
+.map.on{display:block}
+.mapbtn{display:flex;gap:10px;align-items:center;background:var(--night);color:#fff;border:0;border-radius:14px;padding:10px 16px;font-weight:800;box-shadow:0 10px 30px rgba(8,34,56,.35)}
+.maplist{display:none;position:absolute;bottom:56px;left:0;width:340px;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(8,34,56,.3);padding:14px;max-height:62vh;overflow:auto}
+.maplist.on{display:block} .maplist h4{margin:2px 4px 10px;font-size:15px}
+.maplist button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:9px 8px;font-weight:700;font-size:14px}
+.maplist button:hover{background:#f0f4f6} .maplist button i{width:22px;height:22px;border-radius:50%;border:2px solid #b9c7d1;display:grid;place-items:center;font-style:normal;font-size:12px;color:#fff;flex:none}
+.maplist button.done i{background:var(--green);border-color:var(--green)}
+
+/* bo'lim tushuntirishi (birinchi kirishda) */
+.drawer{position:fixed;top:49px;right:0;bottom:0;width:460px;background:#fff;z-index:45;border-left:1px solid var(--line);box-shadow:-20px 0 50px rgba(8,34,56,.18);transform:translateX(105%);transition:transform .25s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.drawer .dh{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line)} .drawer .dh h3{font-size:20px}
+.explain{margin:18px 22px 0;border-radius:16px;background:var(--night);color:#fff;padding:18px;display:grid;gap:10px;position:relative;overflow:hidden}
+.explain .tg{color:var(--accent);font-weight:800;font-size:12px;letter-spacing:.6px;text-transform:uppercase}
+.explain p{color:#B4C2CE;font-size:14.5px} .explain ul{margin:0;padding-left:18px;color:#e7eef3;font-size:14px;display:grid;gap:4px}
+.explain .tip{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;font-size:13px;color:#d8e4ec}
+.explain .ok{justify-self:start}
+.dbody{padding:18px 22px;overflow:auto;display:grid;gap:10px;align-content:start}
+.mock{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;font-size:14px} .mock span{color:var(--muted)}
+.mock.bad b{color:var(--red)} .mock.good b{color:var(--green-d)}
+.sec2{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== prototip boshqaruvi (ilovaning qismi emas) ===== -->
+<div class="proto" role="toolbar" aria-label="Prototip boshqaruvi">
+  <b>TAJRIBA 24 · prototip</b><span class="note">Desktop 1440×900 · namuna ma'lumotlar bilan</span>
+  <div class="tabs">
+    <button id="tHome" aria-pressed="true">1 · Bosh sahifa</button>
+    <button id="tGame" aria-pressed="false">2 · O'quv o'yini va onboarding</button>
+  </div>
+  <span class="sp"></span>
+  <label><input type="checkbox" id="pinTog"> Izohlarni ko'rsat (1–4)</label>
+</div>
+
+<!-- ===== 1. BOSH SAHIFA ===== -->
+<div class="app" id="home">
+  <aside class="side">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><g id="ring"></g><circle cx="20" cy="20" r="9.6" fill="#082238"/><text x="20" y="24.2" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="Manrope">T</text></svg>
+      <div><b>Tajriba 24</b><small>Moliyaviy savodxonlik</small></div>
+    </div>
+    <nav class="nav" aria-label="Bo'limlar">
+      <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Bosh sahifa</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Reyting</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.2 13.5 7 22l5-3 5 3-1.2-8.5"/></svg>Turnirlar</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg>Qoidalar</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</a>
+    </nav>
+    <div class="me"><div class="ava">A</div><div><b>Atush</b><small>Yangi boshlovchi</small></div></div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div><h1>Salom, Atush</h1><p>Pul oqimini o'yinda mashq qiling: xatoni bu yerda qiling, tajribani hayotga olib chiqing.</p></div>
+      <div class="right"><span class="pill good dot">Ulangan</span><button class="iconbtn" aria-label="Yordam">?</button></div>
+    </div>
+
+    <!-- 1 -->
+    <section class="hero rel" aria-labelledby="hH">
+      <span class="pin" style="left:-12px;top:-12px">1</span>
+      <div>
+        <span class="badge">Birinchi qadam · yangi o'yinchi uchun</span>
+        <h2 id="hH">O'quv o'yini: 15 daqiqada hammasini o'z qo'lingiz bilan o'rganing</h2>
+        <p>Bu haqiqiy o'yin: siz va 2 ta bot. Davomida har bir karta, holat va bo'lim paydo bo'lganda qisqa tushuntirish chiqadi. Hech narsani oldindan yodlash shart emas.</p>
+        <div class="row">
+          <button class="cta" id="startTut">O'quv o'yinini boshlash <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button class="ghostd" id="skipTut">Keyinroq</button>
+        </div>
+      </div>
+      <div class="road" aria-label="O'quv o'yini rejasi">
+        <h3>Nimalarni o'rganasiz</h3>
+        <ol>
+          <li><i>1</i>Balans va oylik pul oqimi</li>
+          <li><i>2</i>Imkoniyat: biznes va passiv daromad</li>
+          <li><i>3</i>Aksiya va bozor</li>
+          <li><i>4</i>Xarajat va kutilmagan hodisa</li>
+          <li><i>5</i>Hisob varag'i, tarix, tahlil, chat</li>
+          <li><i>6</i>Maqsad: kichik aylanadan chiqish</li>
+        </ol>
+        <div class="more">+ har bir bo'limga birinchi kirishda alohida tushuntirish</div>
+      </div>
+    </section>
+
+    <!-- 2–4 -->
+    <section class="cfg" aria-label="Yangi o'yin">
+      <div class="card main rel">
+        <span class="pin" style="left:-12px;top:-12px">2</span>
+        <div class="sec">
+          <h3>1 · O'yin turi <em>3</em></h3>
+          <div class="types" role="radiogroup" aria-label="O'yin turi" id="types"></div>
+          <div class="detail" id="detail" aria-live="polite"></div>
+          <div class="corp" id="corp">
+            <div class="fld"><label for="corpCode">Tashkilot kodi <span style="color:var(--muted);font-weight:600">(taklif)</span></label><input class="inp" id="corpCode" placeholder="Masalan: K7M2-Q9XA" autocomplete="off"></div>
+          </div>
+        </div>
+        <div class="sec rel">
+          <span class="pin" style="left:-28px;top:-6px">4</span>
+          <h3>2 · O'yinchilar soni <em>hamma turda 2–8</em></h3>
+          <div class="seats" role="radiogroup" aria-label="O'yinchilar soni" id="seats"></div>
+          <div class="seatviz" id="seatviz"></div>
+        </div>
+        <div class="sec">
+          <h3>3 · Tezlik <em>qaror vaqti</em></h3>
+          <div class="speeds" role="radiogroup" aria-label="Tezlik" id="speeds"></div>
+        </div>
+      </div>
+
+      <aside class="card summary" aria-label="Xulosa">
+        <h3>Sizning xonangiz</h3>
+        <div>
+          <div class="sumrow"><span>Tur</span><b id="sT">—</b></div>
+          <div class="sumrow"><span>O'yinchilar</span><b id="sP">—</b></div>
+          <div class="sumrow"><span>Qaror vaqti</span><b id="sS">—</b></div>
+          <div class="sumrow" style="border:0"><span>Taxminiy davomiylik</span><b id="sD">—</b></div>
+        </div>
+        <div class="hint" id="sH">Xona yaratilgach, do'stlaringizga kod yuborasiz. Odam yetmasa, botlar qo'shiladi.</div>
+        <button class="cta full" id="make">Xona yaratish</button>
+      </aside>
+    </section>
+
+    <section class="trio" aria-label="Tezkor amallar">
+      <div class="tile join">
+        <div style="display:flex;gap:14px;align-items:center"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg></div><div><b>Kod bilan qo'shilish</b><small>Do'stingiz yuborgan xona kodi</small></div></div>
+        <div class="joinrow"><input class="inp" style="flex:1" aria-label="Xona kodi" placeholder="Xona kodi" maxlength="8"><button class="btn">Kirish</button></div>
+      </div>
+      <button class="tile"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg></div><div><b>O'yin qoidalari</b><small>Kataklar, bank, lombard, g'alaba sharti</small></div></button>
+      <button class="tile"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/></svg></div><div><b>Reyting</b><small>Eng kuchli o'yinchilar</small></div></button>
+    </section>
+  </main>
+</div>
+
+<!-- ===== 2. O'QUV O'YINI ===== -->
+<div class="game" id="game">
+  <div class="gbar">
+    <div class="st"><span class="pill good dot">Kichik aylana</span><small>1-tur</small><span class="code">7FKDKE</span></div>
+    <nav class="gnav" aria-label="O'yin bo'limlari">
+      <button data-page="cards" id="nCards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="16" rx="2"/><path d="M8 21h10a2 2 0 0 0 2-2V7"/></svg>Mening kartalarim<span class="new">yangi</span></button>
+      <button data-page="sheet" id="nSheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Hisob varag'i<span class="new">yangi</span></button>
+      <button data-page="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Tarix<span class="new">yangi</span></button>
+      <button data-page="analysis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-6"/></svg>Tahlil<span class="new">yangi</span></button>
+      <button data-page="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat<span class="new">yangi</span></button>
+      <button data-page="rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg>Qoidalar<span class="new">yangi</span></button>
+    </nav>
+    <button class="ob" id="obChip" aria-label="Onboarding rejasi"><span>Onboarding</span><span class="ring" id="obRing" style="--p:0"></span><span id="obTime" style="font-variant-numeric:tabular-nums">15:00</span></button>
+  </div>
+
+  <div class="gbody">
+    <section class="card panel" id="pFin" aria-label="Moliyaviy holat">
+      <h3>Moliyaviy holat <span class="pill good">Tergovchi</span></h3>
+      <div class="two"><div><div class="big">100 000</div><small>Naqd</small></div><div style="text-align:right"><div class="big g">+400</div><small>Pul oqimi</small></div></div>
+      <div class="kvl"><div><span>Ish haqi</span><b>1 500</b></div><div><span>Passiv daromad</span><b>0</b></div><div><span>Oylik xarajat</span><b class="neg">1 100</b></div><div><span>Qarz va kreditlar</span><b>0</b></div></div>
+      <div class="goal" id="pGoal">
+        <b>Kichik aylanadan chiqish</b>
+        <div class="g"><span>Naqd ≥ 1 000 000 <em style="font-style:normal">100 000 / 1 000 000</em></span><div class="bar"><i style="width:10%"></i></div></div>
+        <div class="g"><span>Passiv daromad ≥ 25 000 <em style="font-style:normal">0 / 25 000</em></span><div class="bar"><i style="width:0"></i></div></div>
+        <div class="chk">✓ Qarz yo'q &nbsp; ✓ Sheriklik yopilgan</div>
+      </div>
+    </section>
+
+    <section class="card boardwrap" aria-label="O'yin maydoni">
+      <div class="board" id="board"><div class="center">
+        <div class="turn">Navbat: Siz</div>
+        <div class="dice" id="dice" aria-label="Kubik">?</div>
+        <button class="btn" id="roll">Kubik tashlash</button>
+        <div class="timer">⏱ 0:09</div>
+      </div></div>
+      <div class="legend" id="legend"></div>
+      <div class="sample">Prototipdagi raqamlar va kartalar namuna sifatida berilgan.</div>
+    </section>
+
+    <aside class="card panel" aria-label="O'yinchilar">
+      <h3>O'yinchilar</h3>
+      <div class="plist">
+        <div class="pl me"><div class="ava" style="background:#11835A">A</div><div><b>Atush (siz)</b><small>Tergovchi · naqd 100 000</small></div></div>
+        <div class="pl"><div class="ava" style="background:#2C6DB5">Az</div><div><b>Bot Aziz</b><small>Huquqshunos · naqd 100 000</small></div></div>
+        <div class="pl"><div class="ava" style="background:#E07A2F">Ma</div><div><b>Bot Malika</b><small>Veterinar · naqd 100 000</small></div></div>
+      </div>
+      <h3 style="margin-top:6px">So'nggi voqealar</h3>
+      <div class="ev"><p><b style="color:var(--navy)">Atush</b>: kubik bo'yicha birinchi yuradi.</p><p>orzular tanlandi — o'yin boshlandi</p></div>
+    </aside>
+  </div>
+</div>
+
+<!-- karta qarori (onboarding uchun) -->
+<div class="cardmodal" id="cardModal" aria-hidden="true">
+  <div class="pc" id="pcard" role="dialog" aria-label="Karta qarori">
+    <header>Kichik sarmoya · Imkoniyat</header>
+    <div class="bd"><h4>Kichik biznes</h4><div class="inc">+250 <small>oylik, doimiy</small></div><small>Narx: 20 000 (namuna). Ishlamasangiz ham har oy daromad keltiradi.</small></div>
+    <div class="acts"><button class="btn o">O'tkazish</button><button class="btn">Sotib olish</button></div>
+  </div>
+</div>
+
+<!-- onboarding -->
+<div class="spot" id="spot"></div>
+<aside class="coach" id="coach" role="dialog" aria-live="polite" aria-label="Onboarding">
+  <div class="hd"><span id="cStep">1 / 12</span><span id="cLeft" style="color:#fff;font-weight:700">15:00 qoldi</span></div>
+  <div class="prog"><i id="cProg" style="width:0"></i></div>
+  <div class="bd"><h4 id="cTitle"></h4><p id="cText"></p><div class="term" id="cTerm" hidden></div><div id="cExtra"></div></div>
+  <div class="ft"><button class="skip" id="cSkip">O'tkazib yuborish</button><span class="sp"></span><button class="btn o" id="cBack">Orqaga</button><button class="btn" id="cNext">Keyingi</button></div>
+</aside>
+
+<div class="map" id="map">
+  <button class="mapbtn" id="mapBtn" aria-expanded="false">☰ Onboarding rejasi <span id="mapCnt">0/12</span></button>
+  <div class="maplist" id="mapList" role="menu"><h4>Yo'l xaritasi: istalgan qadamni qayta ko'ring</h4><div id="mapItems"></div></div>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="Bo'lim">
+  <div class="dh"><h3 id="dTitle"></h3><button class="iconbtn" id="dClose" aria-label="Yopish">✕</button></div>
+  <div class="explain" id="dExplain"></div>
+  <div class="dbody" id="dBody"></div>
+</aside>
+
+<script>
+/* ---------- umumiy ---------- */
+const $ = (s, r=document) => r.querySelector(s), $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const COLORS = ["#11835A","#F2B233","#9E2A30","#2C6DB5","#7B4FA3","#E07A2F","#0E8FA0","#C44E8A"];
+// logotip halqasi
+(() => { const g = $("#ring"); for (let i=0;i<16;i++){ const a=(i/16)*2*Math.PI-Math.PI/2, x=20+15*Math.cos(a), y=20+15*Math.sin(a); g.insertAdjacentHTML("beforeend", `<rect x="${x-2.6}" y="${y-2.6}" width="5.2" height="5.2" rx="1.5" fill="${COLORS[i%8]}"/>`); } })();
+const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+/* ---------- ko'rinishlar ---------- */
+function show(v){
+  $("#home").style.display = v==="home" ? "" : "none"; $("#game").classList.toggle("on", v==="game");
+  $("#tHome").setAttribute("aria-pressed", v==="home"); $("#tGame").setAttribute("aria-pressed", v==="game");
+  $("#map").classList.toggle("on", v==="game");
+  if (v!=="game") { endCoach(); closeDrawer(); } else { startCoach(0); }
+}
+$("#tHome").onclick = () => show("home"); $("#tGame").onclick = () => show("game");
+$("#startTut").onclick = () => show("game"); $("#skipTut").onclick = () => $(".hero").style.display = "none";
+$("#pinTog").onchange = e => document.body.classList.toggle("pins", e.target.checked);
+
+/* ---------- xona sozlagichi ---------- */
+const TYPES = [
+  { id:"std",  name:"Standart",  ico:"M4 6h16M4 12h16M4 18h10", sub:"Erkin o'yin do'stlar bilan", d:"G'alabagacha o'ynaladi. Chiqish sharti: passiv daromad 25 000 va naqd 1 000 000.", kv:[["Chiqish","25 000 passiv + 1 000 000 naqd"],["Davomiylik","g'alabagacha"]], dur:"g'alabagacha" },
+  { id:"quick",name:"Tez",       ico:"M13 2 4 14h7l-1 8 9-12h-7z", sub:"30–45 daqiqalik o'yin", d:"Qisqa o'yin: chiqish sharti yengillashtirilgan, tanaffussiz.", kv:[["Chiqish","15 000 passiv + 250 000 naqd"],["Davomiylik","30–45 daqiqa"]], dur:"30–45 daqiqa" },
+  { id:"rated",name:"Reytingli", ico:"M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z", sub:"Liga reytingiga ta'sir qiladi", d:"Natijangiz liga reytingiga yoziladi. Faqat asosiy deka bilan o'ynaladi.", kv:[["Reyting","liga reytingiga ta'sir qiladi"],["Davomiylik","120 daqiqa"]], dur:"120 daqiqa" },
+  { id:"tut",  name:"O'quv",     ico:"M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8", sub:"Yo'l-yo'riq bilan, botlar bilan", d:"Real o'yin, lekin har bir yangi karta, holat va bo'lim uchun qisqa tushuntirish chiqadi (15 daqiqa).", kv:[["Kim bilan","siz + botlar"],["Davomiylik","15 daqiqa"]], dur:"15 daqiqa" },
+  { id:"corp", name:"Korporativ",ico:"M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6", sub:"Kompaniya jamoasi uchun", tag:"yangi", d:"Yopiq xona: tashkilot kodi bilan kiriladi, faqat 16 yoshdan katta o'yinchilar, natijalarni tashkilotchi ko'radi.", kv:[["Kirish","tashkilot kodi bilan"],["Yosh","16 yoshdan katta"],["Natija","tashkilotchiga ko'rinadi"]], dur:"jamoa belgilaydi" },
+];
+const SPEEDS = [
+  { id:"norm", name:"Odatiy", t:"30 soniya", s:"Karta qarori 30 soniya, kubik 10 soniya." },
+  { id:"slow", name:"Sekin",  t:"1 daqiqa",  s:"Karta qarori 1 daqiqa, kubik 20 soniya." },
+  { id:"mehr", name:"Mehrojiddin", t:"vaqtsiz", s:"Vaqt cheklovi yo'q: hamma shoshilmay o'ylaydi." },
+];
+const st = { type:"std", n:4, speed:"norm" };
+const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+function renderCfg(){
+  const T = TYPES.find(t=>t.id===st.type), S = SPEEDS.find(s=>s.id===st.speed);
+  $("#types").innerHTML = TYPES.map(t=>`<button class="type" role="radio" aria-checked="${t.id===st.type}" data-id="${t.id}">${t.tag?`<span class="tag">${t.tag}</span>`:""}${svg(t.ico)}<b>${t.name}</b><small>${t.sub}</small></button>`).join("");
+  $("#detail").innerHTML = `<strong>${T.name}</strong><span>${T.d}</span><div class="kv">${T.kv.map(([k,v])=>`<span>${k}: <b>${v}</b></span>`).join("")}</div>`;
+  $("#corp").classList.toggle("on", st.type==="corp");
+  $("#seats").innerHTML = [2,3,4,5,6,7,8].map(n=>`<button class="seat" role="radio" aria-checked="${n===st.n}" data-n="${n}">${n}</button>`).join("");
+  $("#seatviz").innerHTML = Array.from({length:st.n},(_,i)=>`<span class="sv ${i?"o":"you"}">${i?"":"Siz"}</span>`).join("") + `<span>&nbsp;Siz + ${st.n-1} o'rin: do'stlaringiz yoki botlar</span>`;
+  $("#speeds").innerHTML = SPEEDS.map(s=>`<button class="speed" role="radio" aria-checked="${s.id===st.speed}" data-id="${s.id}"><b>${s.name}<span>${s.t}</span></b><small>${s.s}</small></button>`).join("");
+  $("#sT").textContent = T.name; $("#sP").textContent = `${st.n} kishi`; $("#sS").textContent = `${S.name} · ${S.t}`; $("#sD").textContent = T.dur;
+  $("#sH").textContent = st.type==="corp" ? "Korporativ xona faqat tashkilot kodi bilan ochiladi. Kod tashkilotchidan olinadi." : st.type==="tut" ? "O'quv o'yini 15 daqiqa davom etadi; odam yetmasa, botlar qo'shiladi." : "Xona yaratilgach, do'stlaringizga kod yuborasiz. Odam yetmasa, botlar qo'shiladi.";
+  $("#make").textContent = st.type==="tut" ? "O'quv o'yinini boshlash" : st.type==="corp" ? "Korporativ xona yaratish" : "Xona yaratish";
+}
+document.addEventListener("click", e=>{
+  const a=e.target.closest(".type"), b=e.target.closest(".seat"), c=e.target.closest(".speed");
+  if(a){ st.type=a.dataset.id; renderCfg(); $(`.type[data-id="${st.type}"]`).focus(); }
+  if(b){ st.n=+b.dataset.n; renderCfg(); $(`.seat[data-n="${st.n}"]`).focus(); }
+  if(c){ st.speed=c.dataset.id; renderCfg(); $(`.speed[data-id="${st.speed}"]`).focus(); }
+});
+$("#make").onclick = () => { if (st.type==="tut") show("game"); else alert("Prototip: xona yaratildi (kod: 7FKDKE)"); };
+renderCfg();
+
+/* ---------- o'yin maydoni (sxema) ---------- */
+(() => {
+  const B=$("#board"), C=11, R=7, pat=["#11835A","#2C6DB5","#9E2A30","#F2B233","#11835A","#2C6DB5","#E07A2F","#9E2A30"], cells=[];
+  for(let x=0;x<C;x++) cells.push([x,0]); for(let y=1;y<R;y++) cells.push([C-1,y]); for(let x=C-2;x>=0;x--) cells.push([x,R-1]); for(let y=R-2;y>0;y--) cells.push([0,y]);
+  const w=100/C, h=100/R;
+  cells.forEach(([x,y],i)=>{ const c=document.createElement("div"); c.className="cell"; c.style.cssText=`left:${x*w+.4}%;top:${y*h+.5}%;width:${w-.8}%;height:${h-1}%;background:${pat[i%pat.length]}`; if(i===0) c.textContent="START"; B.appendChild(c); });
+  const pawn=(i,col,dx)=>{ const [x,y]=cells[i], p=document.createElement("div"); p.style.cssText=`position:absolute;left:calc(${x*w+w/2}% - 9px + ${dx}px);top:calc(${y*h+h/2}% - 9px);width:18px;height:18px;border-radius:50%;background:${col};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:3`; B.appendChild(p); };
+  pawn(0,"#11835A",-6); pawn(0,"#2C6DB5",0); pawn(0,"#E07A2F",6);
+  $("#legend").innerHTML = [["#11835A","Kichik sarmoya"],["#2C6DB5","Bozor"],["#9E2A30","Xarajat"],["#F2B233","Daromad sektori"],["#E07A2F","Katta sarmoya"],["#082238","Kutilmagan hodisa"]].map(([c,n])=>`<span><i style="background:${c}"></i>${n}</span>`).join("");
+})();
+$("#roll").onclick = () => { const v=1+Math.floor(Math.random()*6); $("#dice").textContent=v; };
+
+/* ---------- onboarding qadamlari ---------- */
+const STEPS = [
+  { t:"Moliyaviy holat: balansingiz", x:"#pFin", p:"r", s:"Bu sizning balansingiz. Maosh minus xarajatlar — oylik pul oqimi: o'yindagi eng muhim raqam. Hozir +400: har oy shuncha qo'shiladi.", term:"Pul oqimi = daromad − xarajat" },
+  { t:"Maqsad: kichik aylanadan chiqish", x:"#pGoal", p:"r", s:"Chiqish uchun passiv daromad 25 000 ga, naqd 1 000 000 ga yetishi va qarz qolmasligi kerak. Chiziqlar sizga qancha qolganini ko'rsatadi.", term:"Passiv daromad = ishlamasangiz ham keladigan pul" },
+  { t:"Kubik va navbat", x:".center", p:"l", s:"Navbat sizda bo'lganda kubikni tashlaysiz va fishka shuncha katak yuradi. Taymer navbatni cho'zmaslik uchun: vaqt tugasa, o'yin o'zi davom etadi." },
+  { t:"Katak ranglari: nima qayerda", x:"#legend", p:"l", s:"Taxtadagi har bir rang karta turini bildiradi. Tushgan katakka qarab sizga imkoniyat, xarajat yoki bozor kartasi chiqadi.", legend:true },
+  { t:"Imkoniyat kartasi", x:"#pcard", p:"l", card:true, s:"Kichik biznes har oy daromad beradi, siz ishlamasangiz ham. Naqdingiz yetsa, sotib olasiz; yetmasa, o'tkazib yuborasiz. Karta qarori vaqti cheklangan.", term:"Daromad +250 oylik = passiv daromadingizga qo'shiladi" },
+  { t:"Aksiya va bozor", x:"#pcard", p:"l", card:true, s:"Aksiya arzon bo'lganda sotib olinadi, bozor narxi ko'tarilganda sotiladi. Bozor kartasi chiqqanda «Moliya amallari» ichidagi takliflar ochiladi." },
+  { t:"Xarajat kartasi majburiy", x:"#pFin", p:"r", s:"Xarajat kartasi majburiy: pul yetmasa, qarzga yoziladi. Shuning uchun naqd pul zaxirasi kerak.", term:"Qarz = to'lanmagan majburiy xarajat" },
+  { t:"Daromad sektori: oy o'tdi", x:"#pFin", p:"r", s:"1 oy o'tdi. Pul oqimingiz naqdingizga qo'shildi: biznes daromad qo'shgani uchun u kattaroq." },
+  { t:"Mening kartalarim", x:"#nCards", p:"b", page:"cards", s:"Sotib olgan biznes, ko'chmas mulk va aksiyalaringiz shu yerda. Har birini sotish mumkin. Bosib ko'ring: bo'lim tushuntirish bilan ochiladi." },
+  { t:"Hisob varag'i", x:"#nSheet", p:"b", page:"sheet", s:"Daromad, xarajat, aktiv va qarzlaringiz bitta jadvalda. Pul oqimi qanday hosil bo'lganini shu yerdan ko'rasiz." },
+  { t:"Tarix, tahlil va chat", x:".gnav", p:"b", s:"Tarixda hamma voqea yoziladi, tahlilda qarorlaringiz natijasi ko'rinadi, chatda o'yinchilar bilan yozishasiz. Har bir bo'limga birinchi kirishda qisqa tushuntirish chiqadi." },
+  { t:"Siz tayyorsiz", x:"#obChip", p:"b", s:"Maqsad: passiv daromad 25 000 ga, naqd 1 000 000 ga yetsin va qarz qolmasin. Tayyor bo'lsangiz, do'stlar bilan yoki reytingli o'yinda o'ynab ko'ring.", term:"Onboarding rejasi pastki chapda: istalgan qadamni qayta ko'ring" },
+];
+let cur = -1, seen = new Set(), left = 900, tick;
+const spot=$("#spot"), coach=$("#coach");
+function place(el){
+  const r=el.getBoundingClientRect(), pad=8;
+  Object.assign(spot.style,{left:r.left-pad+"px",top:r.top-pad+"px",width:r.width+pad*2+"px",height:r.height+pad*2+"px"}); spot.classList.add("on");
+  const cw=coach.offsetWidth||380, ch=coach.offsetHeight||260, vw=innerWidth, vh=innerHeight; let L,T;
+  const pref=STEPS[cur].p;
+  if(pref==="r"&&r.right+cw+24<vw){L=r.right+20;T=r.top} else if(pref==="l"&&r.left-cw-24>0){L=r.left-cw-20;T=r.top} else {L=Math.max(16,Math.min(vw-cw-16,r.left));T=r.bottom+20}
+  T=Math.max(60,Math.min(vh-ch-16,T)); coach.style.left=L+"px"; coach.style.top=T+"px";
+}
+function startCoach(i){ cur=i; coach.classList.add("on"); render(); clearInterval(tick); tick=setInterval(()=>{ left=Math.max(0,left-1); clock(); },1000); buildMap(); }
+function endCoach(){ coach.classList.remove("on"); spot.classList.remove("on"); $("#cardModal").classList.remove("on"); clearInterval(tick); }
+function clock(){ const m=Math.floor(left/60), s=String(left%60).padStart(2,"0"); $("#obTime").textContent=`${m}:${s}`; $("#cLeft").textContent=`${m}:${s} qoldi`; }
+function render(){
+  const S=STEPS[cur]; seen.add(cur);
+  $("#cardModal").classList.toggle("on", !!S.card);
+  $("#cStep").textContent=`${cur+1} / ${STEPS.length}`; $("#cTitle").textContent=S.t; $("#cText").textContent=S.s;
+  $("#cTerm").hidden=!S.term; $("#cTerm").textContent=S.term||"";
+  $("#cExtra").innerHTML=S.legend?`<div class="legend">${$("#legend").innerHTML}</div>`:"";
+  $("#cProg").style.width=((cur+1)/STEPS.length*100)+"%"; $("#obRing").style.setProperty("--p",seen.size/STEPS.length*100);
+  $("#cBack").disabled=cur===0; $("#cNext").textContent=cur===STEPS.length-1?"Tushundim, tugatish":"Keyingi";
+  clock(); mapMark();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const el=$(S.x); if(el) place(el); }));
+}
+$("#cNext").onclick=()=>{ if(cur<STEPS.length-1){cur++;render()} else endCoach(); };
+$("#cBack").onclick=()=>{ if(cur>0){cur--;render()} };
+$("#cSkip").onclick=endCoach; $("#obChip").onclick=()=>{ if(!coach.classList.contains("on")) startCoach(Math.min(cur<0?0:cur,STEPS.length-1)); else endCoach(); };
+addEventListener("keydown",e=>{ if(!coach.classList.contains("on")) return; if(e.key==="Escape") endCoach(); if(e.key==="ArrowRight") $("#cNext").click(); if(e.key==="ArrowLeft") $("#cBack").click(); });
+addEventListener("resize",()=>{ if(coach.classList.contains("on")) render(); });
+
+/* ---------- yo'l xaritasi ---------- */
+function buildMap(){ $("#mapItems").innerHTML=STEPS.map((s,i)=>`<button data-i="${i}"><i>✓</i>${i+1}. ${s.t}</button>`).join(""); mapMark(); }
+function mapMark(){ $$("#mapItems button").forEach((b,i)=>b.classList.toggle("done",seen.has(i))); $("#mapCnt").textContent=`${seen.size}/${STEPS.length}`; }
+$("#mapBtn").onclick=()=>{ const o=$("#mapList").classList.toggle("on"); $("#mapBtn").setAttribute("aria-expanded",o); };
+$("#mapItems").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; $("#mapList").classList.remove("on"); closeDrawer(); startCoach(+b.dataset.i); };
+
+/* ---------- bo'lim tushuntirishi (birinchi kirishda) ---------- */
+const PAGES = {
+  cards:{ t:"Mening kartalarim", tag:"Bu bo'lim nima?", s:"Siz sotib olgan aktivlar shu yerda: kichik biznes, katta biznes, ko'chmas mulk va aksiyalar.", li:["Har kartada oylik daromad va qolgan kredit ko'rinadi","Aktivni o'z navbatingizda sotishingiz mumkin","Bo'sh joy qolmagan bo'lsa, avval birini soting"], tip:"Maslahat: passiv daromad ko'p aktivdan yig'iladi, bittadan emas.",
+    body:[["Kichik biznes","+250 / oy"],["Ko'chmas mulk (yer)","+0 / oy"],["Aksiya × 10","narx o'zgaradi"]] },
+  sheet:{ t:"Hisob varag'i", tag:"Bu bo'lim nima?", s:"Moliyaviy hisobingiz: daromad, xarajat, aktiv va qarzlar bitta jadvalda.", li:["Maosh va passiv daromad yig'indisi","Majburiy xarajatlar va kreditlar","Pul oqimi qanday hosil bo'lgani"], tip:"Maslahat: pul oqimi manfiy bo'lsa, avval xarajatni kamaytiring yoki daromad manbai qo'shing.",
+    body:[["Ish haqi","1 500"],["Passiv daromad","0"],["Oylik xarajat","−1 100"],["Pul oqimi","+400"]] },
+  history:{ t:"Tarix", tag:"Bu bo'lim nima?", s:"O'yindagi hamma voqea: kim qaysi kartani tortdi, kim nima sotib oldi va qanday qaror qildi.", li:["Yangi voqea tepada chiqadi","Qarorlar rangli: qabul, o'tkazdi, rad etdi","O'yin tugagach ham ko'rish mumkin"], tip:"Maslahat: boshqalarning qarorlaridan o'rganing.",
+    body:[["Atush","kubik bo'yicha birinchi yuradi"],["Bot Aziz","kichik biznes sotib oldi"],["Bot Malika","kartani o'tkazdi"]] },
+  analysis:{ t:"Tahlil", tag:"Bu bo'lim nima?", s:"Qarorlaringiz qanday natija berayotganini ko'rsatadi: o'yinchilar taqqoslanadi, bozor holati va ko'rsatkichlar ko'rinadi.", li:["O'yinchilar: kim oldinda va nega","Bozor: narxlar va davrlar","Nazariy matritsalar (masalan, xavf va daromad)"], tip:"Maslahat: o'yin tugagach shaxsiy xulosa ham chiqadi.",
+    body:[["Pul oqimi dinamikasi","o'syapti"],["Xavf va daromad","muvozanatda"]] },
+  chat:{ t:"Chat", tag:"Bu bo'lim nima?", s:"Xonadagi o'yinchilar bilan yozishma. Do'stlar bilan o'ynaganda qarorlarni muhokama qilishingiz mumkin.", li:["Xabarlar shu xona uchun","16 yoshgacha faqat tayyor iboralar","Haqoratli xabarlarga shikoyat qilish mumkin"], tip:"Maslahat: ovozli aloqa ham bor: naushnik bilan gaplashing.",
+    body:[["Bot Aziz","Omad!"],["Siz","Salom hammaga"]] },
+  rules:{ t:"Qoidalar", tag:"Bu bo'lim nima?", s:"O'yin qoidalarining qisqa ko'rinishi: kataklar, bank, lombard va g'alaba sharti.", li:["Kataklar nimani anglatadi","Pul yetmasa nima bo'ladi (bank krediti, lombard)","Kichik va katta aylanadan chiqish shartlari"], tip:"Maslahat: o'yin davomida istalgan paytda ochib ko'ring.",
+    body:[["Kichik aylanadan chiqish","passiv ≥ 25 000 va naqd ≥ 1 000 000"],["Bank krediti","garov bilan"]] },
+};
+const visited = new Set();
+function openPage(k){ const P=PAGES[k]; if(!P) return; $("#dTitle").textContent=P.t; visited.add(k); const b=$(`[data-page="${k}"]`); if(b) b.classList.add("seen");
+  $("#dExplain").innerHTML=`<span class="tg">${P.tag} · 15 daqiqalik onboarding</span><p>${P.s}</p><ul>${P.li.map(x=>`<li>${x}</li>`).join("")}</ul><div class="tip">${P.tip}</div><button class="btn ok" id="dOk" style="background:var(--accent);color:#04130E">Tushundim</button>`;
+  $("#dBody").innerHTML=`<div class="sec2">Namuna ko'rinish</div>`+P.body.map(([a,b])=>`<div class="mock"><span>${a}</span><b>${b}</b></div>`).join("");
+  $("#drawer").classList.add("on"); $("#dOk").onclick=closeDrawer; endCoach(); }
+function closeDrawer(){ $("#drawer").classList.remove("on"); }
+$$(".gnav button").forEach(b=>b.onclick=()=>openPage(b.dataset.page)); $("#dClose").onclick=closeDrawer;
+</script>
+</body>
+</html>
+
+```
