@@ -4,7 +4,7 @@ import type { Guard } from "./admin";
 import type { Ops } from "./ops";
 import type { Commerce } from "./commerce";
 import type { Edu } from "./edu";
-import { reportCsv } from "./edu";
+import { reportCsv, csvCell } from "./edu";
 import type { ParentConsents } from "./parents";
 import type { PhoneLinks } from "./phones";
 import type { ProfileService } from "./profiles";
@@ -78,6 +78,23 @@ export function registerBiz(d: BizDeps) {
   app.get("/tournaments/:id", d.secured((uid, req, reply) => {
     const t = tn.items.get(String(req.params.id)); if (!t || t.status === "draft" || (t.corporate && !tn.regOf(t.id, uid))) return fail(reply, "not_found");
     return { tournament: tpub(uid, t), board: tn.board(t.id, profiles.results, d.nameOf).slice(0, 100) };
+  }));
+  // --- korporativ xona tashkilotchisi (admin tayinlaydi): o'z xonasining kodi, holati, ishtirokchilari va hisoboti ---
+  const mine = (uid: string, id: string) => { const t = tn.items.get(id); return t?.corporate && t.organizerId === uid ? t : null; };
+  const orgPub = (t: ReturnType<Tournaments["organizedBy"]>[number]) => ({ id: t.id, title: t.title, sponsor: t.sponsor, status: t.status, joinCode: t.joinCode, players: tn.count(t.id), rules: t.rules, createdAt: t.createdAt });
+  app.get("/org/rooms", d.secured((uid) => ({ rooms: tn.organizedBy(uid).map(orgPub) })));
+  app.get("/org/rooms/:id", d.secured((uid, req, reply) => {
+    const t = mine(uid, String(req.params.id)); if (!t) return fail(reply, "not_found");
+    return { room: orgPub(t), participants: tn.participants(t.id).map((r) => ({ userId: r.userId, name: d.nameOf(r.userId) ?? "O'yinchi", at: r.at })), board: tn.board(t.id, profiles.results, d.nameOf).slice(0, 100), games: profiles.results.filter((r) => r.tag?.kind === "tournament" && r.tag.id === t.id).length };
+  }));
+  app.post("/org/rooms/:id/status", d.secured((uid, req, reply) => { const t = mine(uid, String(req.params.id)); if (!t) return fail(reply, "not_found"); const r = tn.advance(t.id, (req.body as any)?.status); return r.ok ? { room: orgPub(r.t) } : fail(reply, r.error); }));
+  app.post("/org/rooms/:id/code", d.secured((uid, req, reply) => { const t = mine(uid, String(req.params.id)); if (!t) return fail(reply, "not_found"); const n = tn.rotateCode(t.id); return n ? { room: orgPub(n) } : fail(reply, "not_found"); }));
+  app.post("/org/rooms/:id/participants/:uid/remove", d.secured((uid, req, reply) => { const t = mine(uid, String(req.params.id)); if (!t) return fail(reply, "not_found"); return tn.unregister(t.id, String(req.params.uid)) ? { ok: true } : fail(reply, "not_found"); }));
+  app.get("/org/rooms/:id/report.csv", d.secured((uid, req, reply) => {
+    const t = mine(uid, String(req.params.id)); if (!t) return fail(reply, "not_found");
+    const board = new Map(tn.board(t.id, profiles.results, d.nameOf).map((b) => [b.userId, b])); const head = ["Ishtirokchi", "O'yinlar", "G'alabalar", "Ball", "O'rin"];
+    const rows = tn.participants(t.id).map((r) => { const b = board.get(r.userId); return [d.nameOf(r.userId) ?? "O'yinchi", b?.games ?? 0, b?.wins ?? 0, b?.points ?? 0, b?.rank ?? ""]; });
+    return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="xona-${t.id}.csv"`).send("\ufeff" + [head, ...rows].map((l) => l.map(csvCell).join(";")).join("\n"));
   }));
   /** Korporativ xonaga kod bilan qo'shilish: faqat 16+, telefon tasdiqlangan; ro'yxatda ko'rinmaydi. */
   app.post("/tournaments/join", d.secured((uid, req, reply) => {

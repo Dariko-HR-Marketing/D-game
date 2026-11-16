@@ -140,6 +140,25 @@ describe("homiy turnirlari", () => {
     await s.prof("late", 1990); expect((await s.req("POST", "late", "/tournaments/join", { code: old })).json().error).toBe("bad_code");
     expect((await s.adm(`/admin/tournaments/${(await mk(s)).id}/code`, {})).json().error).toBe("not_found"); // ommaviy turnirda kod yo'q
   });
+  it("tashkilotchi: faqat o'z korporativ xonasini boshqaradi (kod, holat, ishtirokchi, hisobot); boshqalar ko'rmaydi", async () => {
+    const s = setup(); for (const u of ["org", "a", "b", "x"]) await s.prof(u, 1990);
+    expect((await s.adm("/admin/tournaments", { title: "Ommaviy", status: "open", organizerId: "org" })).json().error).toBe("bad_field"); // ommaviy turnirda tashkilotchi yo'q
+    const t = await mk(s, { corporate: true, status: "draft", organizerId: "org", sponsor: "Kompaniya X" }); const code = t.joinCode as string;
+    expect((await s.req("GET", "org", "/org/rooms")).json().rooms.map((r: any) => r.id)).toEqual([t.id]);
+    expect((await s.req("GET", "x", "/org/rooms")).json().rooms).toEqual([]); expect((await s.req("GET", "x", `/org/rooms/${t.id}`)).json().error).toBe("not_found");
+    expect((await s.req("GET", "a", `/tournaments/${t.id}`)).json().error).toBe("not_found"); // tashkilotchi ma'lumoti ishtirokchiga ham chiqmaydi
+    expect((await s.req("POST", "org", `/org/rooms/${t.id}/status`, { status: "draft" })).json().error).toBe("bad_status"); // orqaga qaytmaydi
+    expect((await s.req("POST", "org", `/org/rooms/${t.id}/status`, { status: "open" })).json().room.status).toBe("open");
+    await s.req("POST", "a", "/tournaments/join", { code }); await s.req("POST", "b", "/tournaments/join", { code });
+    const view = (await s.req("GET", "a", `/tournaments/${t.id}`)).json().tournament; expect(view.organizerId).toBeUndefined(); expect(view.joinCode).toBeUndefined();
+    await s.req("POST", "org", `/org/rooms/${t.id}/status`, { status: "running" });
+    s.x.profiles.results.push(result("c1", { kind: "tournament", id: t.id }, [{ id: "a", bot: false, circle: "big", restarts: 0, won: true, place: 1 }, { id: "b", bot: false, circle: "small", restarts: 0, won: false, place: 2 }]));
+    const det = (await s.req("GET", "org", `/org/rooms/${t.id}`)).json(); expect(det.participants).toHaveLength(2); expect(det.board.map((r: any) => r.userId)).toEqual(["a", "b"]); expect(det.games).toBe(1); expect(det.room.joinCode).toBe(code);
+    const csv = await s.req("GET", "org", `/org/rooms/${t.id}/report.csv`); expect(csv.headers["content-type"]).toContain("text/csv"); expect(csv.body).toContain("Ishtirokchi"); expect(csv.body.split("\n")).toHaveLength(3);
+    expect((await s.req("GET", "x", `/org/rooms/${t.id}/report.csv`)).statusCode).toBe(404);
+    const n = (await s.req("POST", "org", `/org/rooms/${t.id}/code`, {})).json().room.joinCode; expect(n).not.toBe(code);
+    expect((await s.req("POST", "org", `/org/rooms/${t.id}/participants/b/remove`, {})).json()).toEqual({ ok: true }); expect((await s.req("GET", "org", `/org/rooms/${t.id}`)).json().participants).toHaveLength(1);
+  });
   it("kod taxmin qilish cheklangan: daqiqasiga ~10 urinishdan keyin 429", async () => {
     const s = setup(); await s.prof("a", 1990); await mk(s, { corporate: true });
     for (let i = 0; i < 10; i++) expect((await s.req("POST", "a", "/tournaments/join", { code: "ZZZZZZZZ" })).json().error).toBe("bad_code");

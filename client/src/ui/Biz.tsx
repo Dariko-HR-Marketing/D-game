@@ -172,13 +172,19 @@ function TeacherClass({ http, id, onBack, onEnterRoom }: { http: Http; id: strin
 /* ---------------- Homiy turnirlari ---------------- */
 export function TournamentScreen({ http, onBack, onEnterRoom }: { http: Http; onBack: () => void; onEnterRoom: (code: string) => void }) {
   const l = useLoad(() => http.tournaments(), [http]); const [open, setOpen] = useState<string | null>(null);
+  const orgs = useLoad(() => http.orgRooms(), [http]); const [orgOpen, setOrgOpen] = useState<string | null>(null);
   const [cc, setCc] = useState(""); const [cerr, setCerr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   const joinCode = async () => { setCerr(null); setBusy(true); try { const r = await http.tJoin(cc); setCc(""); l.reload(); setOpen(r.id); } catch (e) { setCerr(code(e)); } setBusy(false); };
+  if (orgOpen) return <OrganizerRoom http={http} id={orgOpen} onBack={() => { setOrgOpen(null); orgs.reload(); }} />;
   if (open) return <TournamentDetail http={http} id={open} onBack={() => { setOpen(null); l.reload(); }} onEnterRoom={onEnterRoom} />;
   const st: Record<string, string> = { open: "Ro'yxat ochiq", running: "Davom etmoqda", finished: "Yakunlangan" };
   return (
     <Screen title="Turnirlar" subtitle="Homiylar bilan musobaqalar. Turnir ballari umumiy reytingga ta'sir qilmaydi." onBack={onBack} maxWidth={720}>
       <Msg e={l.err} />
+      {(orgs.data?.rooms ?? []).length > 0 && (<Card label={uz.corp.orgTitle}><Text style={s.p}>{uz.corp.orgHint}</Text>
+        {orgs.data.rooms.map((r: any) => (<Pressable key={r.id} accessibilityRole="button" accessibilityLabel={`${r.title}. ${uz.corp.orgStatusName[r.status] ?? r.status}`} onPress={() => setOrgOpen(r.id)} style={s.classRow}>
+          <View style={s.rowB}><Text style={s.itemT}>{r.title}</Text><Pill label={uz.corp.orgStatusName[r.status] ?? r.status} kind={r.status === "running" ? "good" : r.status === "open" ? "info" : "plain"} /></View>
+          <Text style={s.small}>{r.players} {uz.corp.orgPlayers}</Text></Pressable>))}</Card>)}
       <Card label={uz.corp.title}><Text style={s.p}>{uz.corp.hint}</Text><Msg e={cerr} />
         <View style={s.rowW}><Field label={uz.corp.codeLabel} value={cc} onChange={setCc} max={12} caps /><Button label={uz.corp.join} disabled={busy || cc.replace(/[\s-]/g, "").length < 6} onPress={joinCode} /></View></Card>
       {l.data && l.data.tournaments.length === 0 && <Card><Text style={s.p}>Hozircha faol turnir yo'q.</Text></Card>}
@@ -203,6 +209,7 @@ function TournamentDetail({ http, id, onBack, onEnterRoom }: { http: Http; id: s
           <Row l="Ishtirokchilar" v={t.maxPlayers ? `${t.players} / ${t.maxPlayers}` : String(t.players)} />
           {t.rules ? <Text style={s.p}>{t.rules}</Text> : null}</Card>
         <Card label="Ishtirok">
+          {t.corporate && <Text style={s.small}>{uz.corp.organizerSees}</Text>}
           {!t.registered ? (<>
             {t.status === "open" ? (<>{minor && <><Text style={s.p}>16 yoshgacha ishtirok uchun ota-ona roziligi kerak. Unga SMS havola yuboriladi.</Text><Field label="Ota-onangizning telefon raqami" value={pp} onChange={setPp} keyboard="phone-pad" max={20} placeholder="+998 …" /></>}
               <Button label="Ro'yxatdan o'tish" disabled={minor && pp.replace(/\D/g, "").length < 9} onPress={() => run(() => http.tRegister(id, minor ? pp : undefined))} /></>) : <Banner kind="info">Ro'yxatdan o'tish yopiq.</Banner>}</>)
@@ -214,6 +221,29 @@ function TournamentDetail({ http, id, onBack, onEnterRoom }: { http: Http; id: s
         <Card label="Turnir reytingi"><SectionTitle>Reyting</SectionTitle>
           {l.data.board.length === 0 && <Text style={s.p}>Hali o'yin tugamagan.</Text>}
           {l.data.board.map((r: any) => (<View key={r.userId} style={s.rowB}><Text style={s.itemT}>{r.rank}. {r.name}</Text><Text style={s.small}>{r.points} ball · {r.wins} g'alaba · {r.games} o'yin</Text></View>))}</Card>
+      </>)}
+    </Screen>
+  );
+}
+
+function OrganizerRoom({ http, id, onBack }: { http: Http; id: string; onBack: () => void }) {
+  const l = useLoad(() => http.orgRoom(id), [http, id]); const [err, setErr] = useState<string | null>(null);
+  const run = async (fn: () => Promise<any>) => { setErr(null); try { await fn(); } catch (e) { setErr(code(e)); } l.reload(); };
+  const csv = async () => { try { const text = await http.orgCsv(id); const w: any = globalThis; const url = w.URL.createObjectURL(new w.Blob([text], { type: "text/csv;charset=utf-8" })); const a = w.document.createElement("a"); a.href = url; a.download = "xona-hisobot.csv"; a.click(); w.URL.revokeObjectURL(url); } catch (e) { setErr(code(e)); } };
+  const r = l.data?.room; const nextLabel = r ? uz.corp.orgNext[r.status] : undefined; const next: Record<string, string> = { draft: "open", open: "running", running: "finished" };
+  return (
+    <Screen title={r?.title ?? uz.corp.orgTitle} subtitle={r?.sponsor || undefined} onBack={onBack} backLabel={uz.corp.orgBack} maxWidth={720}>
+      <Msg e={err || l.err} />
+      {r && (<>
+        <Card label={uz.corp.orgCode}><Text style={{ fontSize: 28, fontWeight: "800", color: color.navy, letterSpacing: 3 }} selectable accessibilityLabel={`${uz.corp.orgCode}: ${r.joinCode}`}>{r.joinCode}</Text>
+          <Text style={s.small}>{uz.corp.orgNewCodeNote}</Text><Button kind="ghost" label={uz.corp.orgNewCode} onPress={() => run(() => http.orgCode(id))} /></Card>
+        <Card label={uz.corp.orgStatus}><View style={s.rowB}><Pill label={uz.corp.orgStatusName[r.status] ?? r.status} kind={r.status === "running" ? "good" : r.status === "open" ? "info" : "plain"} /><Text style={s.small}>{r.players} {uz.corp.orgPlayers} · {l.data.games} {uz.corp.orgGames}</Text></View>
+          {nextLabel && <Button label={nextLabel} onPress={() => run(() => http.orgStatus(id, next[r.status]))} />}</Card>
+        <Card label={uz.corp.orgPeople}>{l.data.participants.length === 0 && <Text style={s.p}>{uz.corp.orgNone}</Text>}
+          {l.data.participants.map((p: any) => (<View key={p.userId} style={s.rowB}><Text style={s.itemT}>{p.name}</Text><Button kind="ghost" label={uz.corp.orgRemove} onPress={() => run(() => http.orgRemove(id, p.userId))} /></View>))}</Card>
+        <Card label={uz.corp.orgBoard}>{l.data.board.length === 0 && <Text style={s.p}>Hali o'yin tugamagan.</Text>}
+          {l.data.board.map((b: any) => (<View key={b.userId} style={s.rowB}><Text style={s.itemT}>{b.rank}. {b.name}</Text><Text style={s.small}>{b.points} ball · {b.wins} g'alaba · {b.games} o'yin</Text></View>))}
+          <Button kind="ghost" label={uz.corp.orgCsv} onPress={csv} /></Card>
       </>)}
     </Screen>
   );
