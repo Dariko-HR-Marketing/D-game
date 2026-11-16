@@ -9,8 +9,8 @@ import { GenderPicker, type Gender } from "./GenderPicker";
 import { Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
 /** Birinchi kirishda ism majburiy: ismsiz xonaga kirib bo'lmaydi (boshqa o'yinchilar sizni shu ism bilan ko'radi). */
-export function NameGate({ http, onDone }: { http: Http; onDone: () => void }) {
-  const [name, setName] = useState(""); const [year, setYear] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [gender, setGender] = useState<Gender>(null);
+export function NameGate({ http, onDone, initialName = "" }: { http: Http; onDone: () => void; initialName?: string }) {
+  const [name, setName] = useState(initialName.slice(0, 24)); const [year, setYear] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [gender, setGender] = useState<Gender>(null);
   const ok = validName(name) && validYear(year);
   const save = async () => {
     if (!ok || busy) return; setBusy(true); setErr(null);

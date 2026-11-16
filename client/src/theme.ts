@@ -19,3 +19,6 @@ export const shadow = { shadowColor: "#082238", shadowOpacity: 0.08, shadowRadiu
 /** Ma'no ranglari: yaxshi (yashil), yomon (qizil), diqqat (oltin). Matn uchun kontrasti AA bo'lgan variantlar. */
 export const tone = { good: GREEN_TEXT, bad: color.red, warn: "#8A5A00", neutral: color.navy, muted: color.text2 } as const;
 export const surface = { good: "#E7F4EE", bad: "#F8E8E9", warn: "#FFF6DD", info: "#E8F0F8", plain: color.white } as const;
+
+/** Kirish sahifasi (qorong'i ko'rinish, prototip bo'yicha). Matn juftliklari WCAG AA: asosiy ≥ 15:1, ikkinchi darajali ≥ 8:1, chegara ≥ 3:1. */
+export const night = { bg: "#07131C", panel: "#0F1B26", brand: "#0B2620", line: "#5B7388", lineSoft: "#1F2F3D", text: "#F1F5F9", muted: "#B4C2CE", placeholder: "#8FA3B5", accent: "#34D399", ring: "#6EE7B7", glow: "rgba(16,185,129,0.14)" } as const;

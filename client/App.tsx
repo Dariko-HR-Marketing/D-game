@@ -25,7 +25,7 @@ import { Login } from "./src/ui/Login";
 import { Tour } from "./src/ui/Tour";
 import { gameTourId, type TourId } from "./src/tours";
 import { isMyTurn } from "./src/model";
-import { color } from "./src/theme";
+import { color, night } from "./src/theme";
 import { errText, uz } from "./src/i18n/uz";
 import { Button } from "./src/ui/Button";
 import { ClaimSeat } from "./src/ui/ClaimSeat";
@@ -42,6 +42,11 @@ const store = {
   get: (k: string): string | null => { try { return (globalThis as any).localStorage?.getItem(k) ?? null; } catch { return null; } },
   set: (k: string, v: string | null) => { try { v === null ? (globalThis as any).localStorage?.removeItem(k) : (globalThis as any).localStorage?.setItem(k, v); } catch { /* maxfiy rejim */ } },
 };
+// «Meni eslab qol» o'chiq bo'lsa sessiya faqat shu oyna uchun (sessionStorage): umumiy kompyuter va sinf uchun.
+const sstore = {
+  get: (k: string): string | null => { try { return (globalThis as any).sessionStorage?.getItem(k) ?? null; } catch { return null; } },
+  set: (k: string, v: string | null) => { try { v === null ? (globalThis as any).sessionStorage?.removeItem(k) : (globalThis as any).sessionStorage?.setItem(k, v); } catch { /* maxfiy rejim */ } },
+};
 type Sess = { token: string; userId: string };
 
 /** Kirish rejimini aniqlaydi: server SMS yoqqan bo'lsa — kirish ekrani; sinov rejimida — qurilma identifikatori. */
@@ -52,7 +57,7 @@ export default function App() {
   const [loginErr, setLoginErr] = useState(false);
   useEffect(() => {
     let off = false;
-    const saved = store.get("tajriba24-session");
+    const saved = store.get("tajriba24-session") ?? sstore.get("tajriba24-session");
     (async () => {
       try {
         const cfg = await auth.config(); if (off) return;
@@ -69,11 +74,11 @@ export default function App() {
   }, [auth]);
   if (!fontsLoaded || sess === undefined) return null;
   if (!sess) return (
-    <SafeAreaView style={s.root}><StatusBar style="dark" /><View role="main" style={{ flex: 1 }}>
-      <Login auth={auth} onDone={(x) => { store.set("tajriba24-session", JSON.stringify(x)); setSess(x); }} />
-      {loginErr && <Text style={{ color: color.red, textAlign: "center" }} accessibilityRole="alert">{errText("network")}</Text>}
+    <SafeAreaView style={[s.root, { backgroundColor: night.bg }]}><StatusBar style="light" /><View role="main" style={{ flex: 1 }}>
+      <Login auth={auth} onSignupName={(n) => store.set("tajriba24-signup-name", n)} onDone={(x, remember) => { const j = JSON.stringify(x); if (remember) { store.set("tajriba24-session", j); sstore.set("tajriba24-session", null); } else { sstore.set("tajriba24-session", j); store.set("tajriba24-session", null); } setSess(x); }} />
+      {loginErr && <Text style={{ color: "#FCA5A5", textAlign: "center", padding: 8 }} accessibilityRole="alert">{errText("network")}</Text>}
     </View></SafeAreaView>);
-  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("tajriba24-session", null); setSess(null); }} />;
+  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("tajriba24-session", null); sstore.set("tajriba24-session", null); setSess(null); }} />;
 }
 
 function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
@@ -117,7 +122,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
       <StatusBar style="dark" />
       <ConnBanner st={st} />
       <View role="main" style={{ flex: 1 }}><Later>
-      {hasProfile === null && !room ? null : gated ? <NameGate http={http} onDone={() => setHasProfile(true)} />
+      {hasProfile === null && !room ? null : gated ? <NameGate http={http} initialName={store.get("tajriba24-signup-name") ?? ""} onDone={() => { store.set("tajriba24-signup-name", null); setHasProfile(true); }} />
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
