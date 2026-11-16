@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/voice-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource } from "./_seed";
+import { autoProfiles, axeSource, slowTimers } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/voice";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -25,7 +25,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   for (const p of [a, bb, cc, k]) { await p.waitForSelector("text=Orzuingizni tanlang"); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
   for (const p of [a, bb, cc, k]) await p.waitForSelector("text=Naqd", { timeout: 20000 });
-  const room = x.rooms.rooms.get(code)!;
+  const room = x.rooms.rooms.get(code)!; slowTimers(x, room); // uzoq tekshiruv paytida avtopilot kubik tashlab, auksion/kubik oynalari tugmalarni to'smasin
+  // Navbati kelgan o'yinchida «Kubik tashlash» oynasi ochiladi va chat/ovoz tugmalarini to'sadi (o'rinlar tasodifiy: faqat ba'zan «a» ga to'g'ri keladi — beqarorlik sababi). Oyna to'sganda orqa fonni bosib yopamiz.
+  for (const p of [a, bb, cc, k]) { await p.addLocatorHandler(p.getByTestId("roll-backdrop"), async () => { await p.keyboard.press("Escape"); }); await p.addLocatorHandler(p.getByTestId("dice-backdrop"), async () => { await p.keyboard.press("Escape"); }); } // Escape — «Keyinroq»/«Yopish» (DiceModal)
   const people = async (p: any) => { if (!(await p.getByTestId("voice-people").count())) await p.getByTestId("voice-people-toggle").click(); }; // past ekranda ro'yxat yig'iq turadi
   const open = async (p: any) => { if (!(await p.getByRole("dialog", { name: "Chat" }).count())) await p.getByTestId("chat-open").click(); await p.getByRole("dialog", { name: "Chat" }).waitFor(); };
   // 1) Ikki kishi ovozga qo'shiladi
