@@ -13,6 +13,7 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 | 1.6 | Auksion kartalari (`Y381…Y400`, 20 ta) rasmi bor; o'yinga to'liq ulanganligi tekshirilmagan | ✅ jonli (`bankSaleLive`, #45); 7 kartada boshlang'ich narx qadamga karrali emas — OPEN_QUESTIONS 176 |
 | 1.7 | Qisqa matnli kartalarda katta bo'sh joy (masalan, «Qurilish materiallari qimmatlashdi»): dizayn sayqali | ⬜ ixtiyoriy |
 | 1.9 | `client/assets/board.webp` (o'yin maydoni rasmi) ichida eski «POYGA» nomi qolgan; kirish sahifasidan olib tashlandi, boshqa joyda ishlatilsa qayta chizish kerak | ✅ kirish sahifasidan olib tashlandi; hech qayerda ishlatilmaydi (tekshirildi), faylni o'chirish mumkin |
+| 1.10 | Ilova belgilari (icon, splash, favicon, Android adaptive) Expo standart ko'k «A» edi; logotipda eski brend harfi «P» | ✅ yangi belgi (taxta halqasi + «T»), `client/scripts/make-icons.py` bilan hosil qilinadi; `Logo.tsx` da «T» |
 | 1.8 | Eski dizayner rasmlari (`deploy/vps/cards/`) sandbox nusxasida yo'q, faqat serverda; `install-art.sh` generatsiya qilinganlarini ustidan yozadi | ⏳ serverda tekshirish kerak |
 
 ## 2. O'yin qoidalari
@@ -37,6 +38,9 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 | # | Muammo | Holat |
 |---|---|---|
 | 4.1 | Telefon: istalgan to'qqiz raqam kirib ketardi | ✅ O'zbekiston MOBIL operator kodi tekshiriladi (`bad_operator`); chet el raqamlari qabul qilinadi (#44) |
+| 4.8 | Ro'yxatdan o'tish uzun va eski uslubda edi (kirish → kod → alohida «Ismingizni kiriting» sahifasi) | ✅ 2 ekranga qisqartirildi (OPEN_QUESTIONS 183); `screens-login.ts` ro'yxatdan o'tish oqimini tekshiradi |
+| 5.6a | Bosh sahifa va onboarding yangi dizayni (desktop) | 🟡 prototip tayyor (`design/prototypes/`), buyurtmachi tasdig'ini kutadi (OPEN_QUESTIONS 182), keyin kod va mobil |
+| 4.7 | Kirish sahifasi (buyurtmachi prototipi `tajriba24_login.html`, 2026-11-16) | ✅ prototipga to'liq mos (tablar, Google, parol, eslab qol, ro'yxatdan o'tish); ishlaydigan usul — SMS kod; parol/email/Google «tez orada» (OPEN_QUESTIONS 181). Keyingi: parolli kirish qarori, Google client ID, shartlar sahifasi |
 | 4.2 | SMS: Eskiz ulanishi, belgilangan kodni o'chirish | ✅ kod tayyor; buyurtmachi qarori (2026-11-16): sinov rejimida turadi, haqiqiy SMS ommaviy ishga tushirishdan oldin yoqiladi. Yoqish: serverda `SMS_PROVIDER=eskiz`, `NODE_ENV=production`, Eskiz sender va shablon (`deploy/vps/.env.example`). Production'da `fixed`/`console` rad etiladi (#45) — shuning uchun yoqish bir marta, tekshiruvli |
 | 4.3 | Yurist xulosasi: 16 yoshgacha to'lov, ma'lumot joylashuvi | ✅ buyurtmachi (2026-11-16): huquqiy masala aniq, muammo yo'q. Kodda 16 yoshgacha himoyalar (ota-ona roziligi, qarz/sheriklik/chat yopiq) o'zgarmadi; qaysi cheklovni yumshatish kerakligi alohida ko'rsatma bilan (OPEN_QUESTIONS 180) |
 | 4.4 | IP: karta, qoidalar, «Tajriba 24» nomi huquqi yozma tasdiqlanishi | ⏳ buyurtmachi |

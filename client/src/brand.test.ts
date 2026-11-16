@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const FILES = ["src/i18n/uz.ts", "src/i18n/rulesText.ts", "scripts/seo.mjs", "scripts/patch-html.mjs", "app.json"];
+const FILES = ["src/i18n/uz.ts", "src/i18n/rulesText.ts", "src/ui/Login.tsx", "src/ui/Logo.tsx", "scripts/seo.mjs", "scripts/patch-html.mjs", "app.json"];
 const BANNED = [/boy\s*bo['’‘ʻ`]?l/i, /boyib\s*ket/i, /poyga/i, /tez\s+boyi/i, /kafolatli\s+daromad/i];
 
 describe("brend: taqiqlangan so'z va iboralar", () => {
