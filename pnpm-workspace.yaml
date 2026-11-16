@@ -4,3 +4,8 @@ packages:
   - client
   - content
   - admin
+overrides:
+  # Xavfsizlik tuzatishlari (pnpm audit): tranzitiv paketlarni yamalgan versiyalarga ko'taradi
+  "fast-uri@<3.1.9": "^3.1.9"
+  "fast-uri@>=4.0.0 <4.2.3": "^4.2.3"
+  "node-forge@<1.4.3": "^1.4.3"

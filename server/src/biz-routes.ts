@@ -10,18 +10,21 @@ import type { PhoneLinks } from "./phones";
 import type { ProfileService } from "./profiles";
 import type { RoomManager } from "./rooms";
 import type { Tournaments } from "./tournaments";
+import { KeyedLimiter } from "./ratelimit";
 
 export interface BizDeps {
   ops?: Ops; app: FastifyInstance; edu: Edu; tournaments: Tournaments; consents: ParentConsents; phones: PhoneLinks; profiles: ProfileService; rooms: RoomManager;
   secured: (h: (uid: string, req: any, reply: any) => unknown) => (req: any, reply: any) => unknown;
   ageOf: (uid: string) => number | null; nameOf: (uid: string) => string | undefined; hashOf: (p: string) => string; dev: boolean; tournamentsPaused?: () => boolean;
 }
-const STATUS: Record<string, number> = { not_found: 404, no_license: 402, forbidden: 403, bad_code: 404, expired: 410, used: 409, already_teacher: 409, seats_full: 409, already_member: 409, limit: 429, paused: 503, closed: 409, full: 409, already: 409, consent_required: 400, adults_only: 403, not_allowed: 403, not_teacher: 403, phone_required: 403, profile_required: 409 };
+const STATUS: Record<string, number> = { rate_limited: 429, not_found: 404, no_license: 402, forbidden: 403, bad_code: 404, expired: 410, used: 409, already_teacher: 409, seats_full: 409, already_member: 409, limit: 429, paused: 503, closed: 409, full: 409, already: 409, consent_required: 400, adults_only: 403, not_allowed: 403, not_teacher: 403, phone_required: 403, profile_required: 409 };
 const fail = (reply: any, error: string) => reply.code(STATUS[error] ?? 400).send({ error });
 
 export function registerBiz(d: BizDeps) {
   const { app, edu, tournaments: tn, profiles } = d;
   const info = { nameOf: d.nameOf, levelOf: (id: string) => profiles.levelCached(id), ageOf: d.ageOf };
+  /** Kod taxminlariga qarshi: hisob bo'yicha daqiqasiga ~10 urinish (sinf, litsenziya va korporativ xona kodlari). */
+  const codeTries = new KeyedLimiter(10 / 60, 10);
   const teacher = (uid: string, reply: any) => { const c = edu.teacherCtx(uid); if (!c) { fail(reply, "not_teacher"); return null; } return c; };
   const kpub = (k: ReturnType<Edu["classesOf"]>[number]) => ({ id: k.id, name: k.name, joinCode: k.joinCode, students: k.students.length, createdAt: k.createdAt });
 
@@ -34,7 +37,7 @@ export function registerBiz(d: BizDeps) {
     return { teacher: c ? { org: c.org.name, licenseUntil: c.org.licenseUntil, active: c.active, seats: c.org.seats } : null,
       classes: edu.classesAsStudent(uid).map((k) => ({ id: k.id, name: k.name, teacher: d.nameOf(k.teacherId) ?? "O'qituvchi", roomCode: openRoom(k.id)?.code ?? null })) };
   }));
-  app.post("/edu/redeem", d.secured((uid, req, reply) => { const r = edu.redeem(uid, (req.body as any)?.code); return r.ok ? { org: r.org.name } : fail(reply, r.error); }));
+  app.post("/edu/redeem", d.secured((uid, req, reply) => { if (!codeTries.allow(uid)) return fail(reply, "rate_limited"); const r = edu.redeem(uid, (req.body as any)?.code); return r.ok ? { org: r.org.name } : fail(reply, r.error); }));
   app.get("/edu/classes", d.secured((uid, _req, reply) => { if (!teacher(uid, reply)) return; return { classes: edu.classesOf(uid).map(kpub) }; }));
   app.post("/edu/classes", d.secured((uid, req, reply) => { const r = edu.createClass(uid, (req.body as any)?.name); return r.ok ? { class: kpub(r.klass) } : fail(reply, r.error); }));
   app.post("/edu/classes/:id/code", d.secured((uid, req, reply) => { const k = edu.rotateCode(uid, String(req.params.id)); return k ? { class: kpub(k) } : fail(reply, "not_found"); }));
@@ -58,6 +61,7 @@ export function registerBiz(d: BizDeps) {
     const r = d.rooms.create(uid, { kind: "class", id: k.id }); return r.ok ? { code: r.code } : fail(reply, r.error);
   }));
   app.post("/edu/join", d.secured((uid, req, reply) => {
+    if (!codeTries.allow(uid)) return fail(reply, "rate_limited");
     const age = d.ageOf(uid); if (age === null) return fail(reply, "profile_required");
     const r = edu.join(uid, (req.body as any)?.code); return r.ok ? { class: { id: r.klass.id, name: r.klass.name }, org: r.org.name } : fail(reply, r.error);
   }));
@@ -77,6 +81,7 @@ export function registerBiz(d: BizDeps) {
   }));
   /** Korporativ xonaga kod bilan qo'shilish: faqat 16+, telefon tasdiqlangan; ro'yxatda ko'rinmaydi. */
   app.post("/tournaments/join", d.secured((uid, req, reply) => {
+    if (!codeTries.allow(uid)) return fail(reply, "rate_limited");
     if (d.tournamentsPaused?.()) return fail(reply, "paused");
     const age = d.ageOf(uid); if (age === null) return fail(reply, "profile_required"); if (age < 16) return fail(reply, "adults_only");
     if (!d.dev && !d.phones.isVerified(uid)) return fail(reply, "phone_required");
