@@ -29,10 +29,14 @@ for (const [tag, w, h] of SIZES) {
   const wl = [idw, ...others].slice(0, 3); while (wl.length < 3) wl.push(idw + wl.length);
   const prop = { id: s.nextProposal++, kind: "loan", giver: idg, receiver: ida, amount: 500, months: 12, witnesses: wl, confirmed: [] as string[] }; s.proposals.push(prop); const live = (): any => (room.state!.proposals as any[]).find((q) => q.id === prop.id);
   (x.rooms as any).emit(room);
-  const open = async (p: any, _re: RegExp) => {
-    const hdr = p.getByTestId("actions").getByText(/Moliya amallari/).first();
-    if (!(await hdr.count())) { const t = p.getByRole("tab", { name: /Blank/ }).or(p.getByRole("button", { name: /^Blank/ })); if (await t.count()) { await t.first().click().catch(() => {}); await p.waitForTimeout(500); } }
-    if ((await hdr.count()) && (await hdr.innerText()).startsWith("▸")) { await hdr.click(); await p.waitForTimeout(600); }
+  // «Moliya amallari» paneli taklif kelganda o'zi ochiladi; qo'lda bosish bilan poyga bo'lmasligi uchun: avval kutamiz, matn yo'q bo'lsagina bosamiz va qayta tekshiramiz
+  const open = async (p: any, re: RegExp) => {
+    for (let i = 0; i < 5; i++) {
+      await p.waitForTimeout(400); if (await p.getByText(re).count()) return;
+      const hdr = p.getByTestId("actions").getByText(/Moliya amallari/).first();
+      if (!(await hdr.count())) { const t = p.getByRole("tab", { name: /Blank/ }).or(p.getByRole("button", { name: /^Blank/ })); if (await t.count()) await t.first().click().catch(() => {}); continue; }
+      if ((await hdr.innerText()).startsWith("▸")) await hdr.click();
+    }
   };
   await wt.waitForTimeout(600); await open(wt, /Guvoh:/);
   await wt.waitForSelector("text=Guvoh:", { timeout: 8000 }).catch(async (e) => { await wt.screenshot({ path: `${OUT}/${tag}-guvoh-yoq.png` }); throw e; });
