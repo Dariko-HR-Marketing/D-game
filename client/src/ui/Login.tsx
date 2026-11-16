@@ -1,77 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Linking, useWindowDimensions } from "react-native";
 import { Logo } from "./Logo";
+import { Field, Check, Cta, Ghost, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
 import { AUTH_METHODS } from "../authMethods";
 import { font, MIN_TAP, night, radius, space } from "../theme";
-import { validCode, validName, validPhone, HttpError, type makeAuth } from "../net/http";
+import { isUnder16, validCode, validName, validPhone, validYear, HttpError, type makeAuth } from "../net/http";
 
+/** O'zbekiston raqamini yozish paytida chiroyli ko'rsatadi: 90 123 45 67 / +998 90 123 45 67. Boshqa davlat raqamlariga tegmaydi. */
+function fmtPhone(v: string): string {
+  const raw = v.trim(); if (raw.startsWith("+") && !raw.startsWith("+998") && raw.length > 4) return raw;
+  const d = raw.replace(/\D/g, ""); const uz998 = d.startsWith("998");
+  if (!uz998 && d.length > 9) return raw; // 9 raqamdan uzun va +998 emas: chet el raqami
+  const rest = uz998 ? d.slice(3, 12) : d.slice(0, 9); const g = [rest.slice(0, 2), rest.slice(2, 5), rest.slice(5, 7), rest.slice(7, 9)].filter(Boolean).join(" ");
+  return uz998 ? `+998${g ? " " + g : ""}` : g;
+}
 const RESEND_S = 60; // server ham 1 daqiqada bitta SMS ruxsat beradi
 const WIDE = 860; // shundan keng ekranda ikki ustun: chapda brend, o'ngda kirish
 type Tab = "login" | "register";
-type Status = { kind: "info" | "bad"; text: string } | null;
 export type LoginDone = { token: string; userId: string };
-
-/** Qorong'i fonda maydon: fokusda yorqin chegara (WCAG 2.4.7), chegara kontrasti ≥ 3:1 (1.4.11). `soon` — hali ishlamaydigan maydon (o'chiq, «Tez orada» belgisi bilan). */
-function Field({ label, id, soon, right, ...p }: { label: string; id: string; soon?: boolean; right?: React.ReactNode } & React.ComponentProps<typeof TextInput>) {
-  const [focus, setFocus] = useState(false);
-  return (
-    <View style={{ gap: space.xs }}>
-      <View style={s.labelRow}>
-        <Text style={s.label} nativeID={id}>{label}</Text>
-        {soon ? <View style={s.soon}><Text style={s.soonT}>{uz.login.soon}</Text></View> : right}
-      </View>
-      <TextInput accessibilityLabelledBy={id} aria-label={label} placeholderTextColor={night.placeholder} selectionColor={night.accent} editable={!soon} aria-disabled={soon || undefined}
-        onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} {...p}
-        style={[s.input, focus && s.inputOn, soon && s.inputOff, p.style]} />
-    </View>
-  );
-}
-
-/** Belgilash katagi: bosish maydoni ≥ 44 px, holat ekran o'qish dasturiga aytiladi. */
-function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <Pressable role="checkbox" aria-checked={checked} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={label} onPress={() => onChange(!checked)} style={s.checkRow}>
-      <View style={[s.box, checked && s.boxOn]}>{checked && <Text style={s.boxT}>✓</Text>}</View>
-      <Text style={[s.note, { flex: 1 }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-/** Asosiy tugma: prototipdagi yorqin yashil, to'q matn (kontrast ≥ 8:1). */
-function Cta({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.cta, disabled && { opacity: 0.45 }, pressed && { opacity: 0.85 }]}>
-      <Text style={s.ctaT}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Ghost({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.ghost, disabled && { opacity: 0.5 }, pressed && { opacity: 0.8 }]}>
-      <Text style={s.ghostT}>{label}</Text>
-    </Pressable>
-  );
-}
 
 /**
  * Kirish va ro'yxatdan o'tish (buyurtmachi prototipi `tajriba24_login.html` ko'rinishida). Hozir ishlaydigan usul — SMS bir martalik kod (§7);
  * parol, email va Google `AUTH_METHODS` bayroqlari bilan o'chiq turadi va foydalanuvchiga «tez orada» deb aytiladi. Telefon raqami serverda saqlanmaydi.
  */
-export function Login({ auth, onDone, onSignupName }: { auth: ReturnType<typeof makeAuth>; onDone: (s: LoginDone, remember: boolean) => void; onSignupName?: (name: string) => void }) {
+export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<typeof makeAuth>; onDone: (s: LoginDone, remember: boolean) => void; onSignupProfile?: (p: { name: string; year: string }) => void }) {
   const [tab, setTab] = useState<Tab>("login"); const [step, setStep] = useState<"form" | "code">("form");
-  const [ident, setIdent] = useState(""); const [name, setName] = useState(""); const [pass, setPass] = useState(""); const [showPass, setShowPass] = useState(false);
+  const [ident, setIdent] = useState(""); const [name, setName] = useState(""); const [year, setYear] = useState(""); const [pass, setPass] = useState(""); const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(true); const [terms, setTerms] = useState(false); const [code, setCode] = useState("");
   const { width, height } = useWindowDimensions(); const wide = width >= WIDE, tall = height >= 900; // past telefonda ortiqcha matn yig'iladi: kirish bitta ekranga sig'adi
   const [status, setStatus] = useState<Status>(null); const [busy, setBusy] = useState(false); const [cool, setCool] = useState(0);
   useEffect(() => { if (cool <= 0) return; const h = setTimeout(() => setCool(cool - 1), 1000); return () => clearTimeout(h); }, [cool]);
   const emailTyped = ident.includes("@");
   const phoneOk = validPhone(ident);
-  const canSend = !busy && phoneOk && (tab === "login" || (validName(name) && terms));
+  const canSend = !busy && phoneOk && (tab === "login" || (validName(name) && validYear(year) && terms));
   const run = async (f: () => Promise<void>) => { setBusy(true); setStatus(null); try { await f(); } catch (e) { setStatus({ kind: "bad", text: errText(e instanceof HttpError ? e.code : "network") }); } finally { setBusy(false); } };
-  const send = () => run(async () => { await auth.request(ident); if (tab === "register") onSignupName?.(name.trim()); setStep("code"); setCool(RESEND_S); });
-  const verify = () => run(async () => onDone(await auth.verify(ident, code), remember));
+  const send = () => run(async () => { await auth.request(ident); if (tab === "register") onSignupProfile?.({ name: name.trim(), year }); setStep("code"); setCool(RESEND_S); });
+  const verify = (c = code) => run(async () => onDone(await auth.verify(ident, c), remember));
   const switchTab = (t: Tab) => { setTab(t); setStatus(null); };
   const google = () => setStatus(AUTH_METHODS.google ? null : { kind: "info", text: uz.login.googleSoon });
   return (
@@ -118,41 +83,43 @@ export function Login({ auth, onDone, onSignupName }: { auth: ReturnType<typeof 
               </Pressable>
               <View style={s.divider} aria-hidden><View style={s.rule} /><Text style={s.dividerT}>{uz.login.or}</Text><View style={s.rule} /></View>
 
-              {tab === "register" && <Field id="nm" label={uz.login.fullName} value={name} onChangeText={setName} placeholder={uz.login.fullNamePh} maxLength={24} autoComplete="name" textContentType="name" />}
-              <Field id="ph" label={uz.login.identifier} value={ident} onChangeText={setIdent} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder={uz.login.identifierPh} autoFocus={wide}
+              {tab === "register" && <><Field id="nm" label={uz.login.fullName} value={name} onChangeText={setName} placeholder={uz.login.fullNamePh} maxLength={24} autoComplete="nickname" />{!validName(name) && <Text style={k.note}>{uz.login.nameHint}</Text>}</>}
+              <Field id="ph" label={uz.login.identifier} value={ident} onChangeText={(v) => setIdent(fmtPhone(v))} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder={uz.login.identifierPh} autoFocus={wide}
                 onSubmitEditing={() => canSend && send()} returnKeyType="send" />
-              {emailTyped && !AUTH_METHODS.email && <Text style={s.warn} accessibilityLiveRegion="polite">{uz.login.emailSoon}</Text>}
-              <Field id="pw" label={tab === "login" ? uz.login.password : uz.login.passwordNew} soon={!AUTH_METHODS.password} value={pass} onChangeText={setPass} secureTextEntry={!showPass} autoComplete={tab === "login" ? "current-password" : "new-password"}
+              {tab === "register" && <Field id="yr" label={uz.login.year} value={year} onChangeText={(v) => setYear(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="1995" maxLength={4} />}
+              {tab === "register" && (isUnder16(year) ? <Text style={k.warn} accessibilityLiveRegion="polite">{uz.profile.under16}</Text> : <Text style={k.note}>{uz.login.yearHint}</Text>)}
+              {emailTyped && !AUTH_METHODS.email && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.emailSoon}</Text>}
+              {(tab === "login" || AUTH_METHODS.password) && <Field id="pw" label={tab === "login" ? uz.login.password : uz.login.passwordNew} soon={!AUTH_METHODS.password} value={pass} onChangeText={setPass} secureTextEntry={!showPass} autoComplete={tab === "login" ? "current-password" : "new-password"}
                 placeholder={tab === "login" ? uz.login.passwordPh : uz.login.passwordNewPh}
-                right={tab === "login" ? <Pressable accessibilityRole="link" accessibilityLabel={uz.login.forgot} onPress={() => setStatus({ kind: "info", text: uz.login.forgotSoon })} hitSlop={8}><Text style={s.link}>{uz.login.forgot}</Text></Pressable> : undefined} />
+                right={tab === "login" ? <Pressable accessibilityRole="link" accessibilityLabel={uz.login.forgot} onPress={() => setStatus({ kind: "info", text: uz.login.forgotSoon })} hitSlop={8}><Text style={k.link}>{uz.login.forgot}</Text></Pressable> : undefined} />}
               {AUTH_METHODS.password && <Pressable accessibilityRole="button" accessibilityLabel={showPass ? uz.login.hide : uz.login.show} onPress={() => setShowPass(!showPass)} style={s.eye}><Text style={s.eyeT}>{showPass ? uz.login.hide : uz.login.show}</Text></Pressable>}
-              {!AUTH_METHODS.password && <Text style={s.note}>{uz.login.passwordSoon}</Text>}
+              {tab === "login" && !AUTH_METHODS.password && <Text style={k.note}>{uz.login.passwordSoon}</Text>}
 
               {tab === "login" && <Check label={uz.login.remember} checked={remember} onChange={setRemember} />}
               {tab === "register" && <Check label={uz.login.terms} checked={terms} onChange={setTerms} />}
-              {tab === "register" && !terms && validName(name) && phoneOk && <Text style={s.warn} accessibilityLiveRegion="polite">{uz.login.termsNeed}</Text>}
+              {tab === "register" && !terms && validName(name) && phoneOk && validYear(year) && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.termsNeed}</Text>}
               <Cta label={busy ? uz.login.wait : tab === "login" ? uz.login.submitLogin : uz.login.submitRegister} disabled={!canSend} onPress={send} />
             </>) : (<>
               <View style={{ gap: space.sm }}>
                 <Text style={s.h} aria-level={2} accessibilityRole="header">{uz.login.codeTitle}</Text>
-                <Text style={s.note}>{uz.login.sentTo}: {ident}. {uz.login.codeLead}</Text>
+                <Text style={k.note}>{uz.login.sentTo}: {ident}. {uz.login.codeLead}</Text>
               </View>
-              <Field id="cd" label={uz.login.code} value={code} onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" autoComplete={"one-time-code" as any} textContentType="oneTimeCode" maxLength={6} autoFocus
+              <Field id="cd" label={uz.login.code} value={code} onChangeText={(v) => { const c = v.replace(/\D/g, "").slice(0, 6); setCode(c); if (c.length === 6 && !busy) void verify(c); }} keyboardType="number-pad" autoComplete={"one-time-code" as any} textContentType="oneTimeCode" maxLength={6} autoFocus
                 onSubmitEditing={() => validCode(code) && !busy && verify()} placeholder="••••••" style={s.codeInput} />
-              <Cta label={busy ? uz.login.wait : uz.login.confirm} disabled={busy || !validCode(code)} onPress={verify} />
+              <Cta label={busy ? uz.login.wait : uz.login.confirm} disabled={busy || !validCode(code)} onPress={() => verify()} />
               <View style={{ flexDirection: "row", gap: space.sm }}>
                 <View style={{ flex: 1 }}><Ghost label={cool > 0 ? `${uz.login.resendIn} ${cool} s` : uz.login.resend} disabled={busy || cool > 0} onPress={send} /></View>
                 <View style={{ flex: 1 }}><Ghost label={uz.login.back} onPress={() => { setStep("form"); setCode(""); setStatus(null); }} /></View>
               </View>
             </>)}
-            {status && <View style={[s.status, status.kind === "bad" ? s.statusBad : s.statusInfo]} accessibilityRole="alert" role="alert"><Text style={[s.statusT, { color: status.kind === "bad" ? "#FCA5A5" : "#93C5FD" }]}>{status.text}</Text></View>}
+            <StatusBox status={status} />
           </View>
           <View style={s.toggle}>
             {step === "form" && (<View style={s.toggleRow}>
-              <Text style={s.note}>{tab === "login" ? uz.login.noAccount : uz.login.haveAccount}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel={tab === "login" ? uz.login.toRegister : uz.login.toLogin} onPress={() => switchTab(tab === "login" ? "register" : "login")} hitSlop={8}><Text style={s.link}>{tab === "login" ? uz.login.toRegister : uz.login.toLogin}</Text></Pressable>
+              <Text style={k.note}>{tab === "login" ? uz.login.noAccount : uz.login.haveAccount}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={tab === "login" ? uz.login.toRegister : uz.login.toLogin} onPress={() => switchTab(tab === "login" ? "register" : "login")} hitSlop={8}><Text style={k.link}>{tab === "login" ? uz.login.toRegister : uz.login.toLogin}</Text></Pressable>
             </View>)}
-            <Text style={[s.note, { textAlign: "center", fontSize: font.xs }]}>{uz.login.note}</Text>
+            <Text style={[k.note, { textAlign: "center", fontSize: font.xs }]}>{uz.login.note}</Text>
           </View>
         </View>
       </View>
@@ -192,27 +159,10 @@ const s = StyleSheet.create({
   divider: { flexDirection: "row", alignItems: "center", gap: space.md }, rule: { flex: 1, height: 1, backgroundColor: night.lineSoft },
   dividerT: { color: night.muted, fontSize: font.xs, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase" },
   h: { color: night.text, fontSize: font.xl, fontWeight: "800" },
-  note: { color: night.muted, fontSize: font.sm, lineHeight: 20 },
-  warn: { color: "#FCD34D", fontSize: font.sm, lineHeight: 20 },
-  link: { color: night.accent, fontWeight: "700", fontSize: font.sm },
-  labelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 22 },
-  label: { color: night.text, fontWeight: "700", fontSize: font.sm },
-  soon: { paddingHorizontal: space.sm, paddingVertical: 2, borderRadius: radius.pill, borderWidth: 1, borderColor: night.line }, soonT: { color: night.muted, fontSize: font.xs, fontWeight: "700" },
-  input: { minHeight: MIN_TAP + 8, borderWidth: 1, borderColor: night.line, borderRadius: radius.md, paddingHorizontal: space.lg, fontSize: font.md, backgroundColor: night.bg, color: night.text },
-  inputOn: { borderColor: night.ring, borderWidth: 2, paddingHorizontal: space.lg - 1 },
-  inputOff: { opacity: 0.55, borderStyle: "dashed" },
   codeInput: { letterSpacing: 10, textAlign: "center", fontWeight: "800", fontSize: font.xxl },
   eye: { alignSelf: "flex-end", minHeight: MIN_TAP - 8, justifyContent: "center" }, eyeT: { color: night.accent, fontSize: font.sm, fontWeight: "700" },
-  checkRow: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: MIN_TAP },
-  box: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: night.line, alignItems: "center", justifyContent: "center", backgroundColor: night.bg },
-  boxOn: { backgroundColor: "#11835A", borderColor: "#11835A" }, boxT: { color: "#FFFFFF", fontWeight: "800", fontSize: 14, lineHeight: 16 },
-  cta: { minHeight: 54, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: "#10B981", paddingHorizontal: space.lg },
   ctaT: { color: "#04130E", fontWeight: "800", fontSize: font.sm, letterSpacing: 0.8, textTransform: "uppercase" },
-  ghost: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: 10, borderWidth: 1, borderColor: night.line, alignItems: "center", justifyContent: "center" },
   ghostT: { color: night.text, fontWeight: "700", fontSize: font.sm, textAlign: "center" },
-  status: { padding: space.md, borderRadius: radius.md, borderWidth: 1 },
-  statusInfo: { backgroundColor: "rgba(59,130,246,0.10)", borderColor: "rgba(59,130,246,0.35)" }, statusBad: { backgroundColor: "rgba(239,68,68,0.10)", borderColor: "rgba(239,68,68,0.40)" },
-  statusT: { fontSize: font.sm, fontWeight: "600", textAlign: "center", lineHeight: 20 },
   toggle: { gap: space.sm, paddingTop: space.md, borderTopWidth: 1, borderTopColor: night.lineSoft },
   toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm, minHeight: MIN_TAP - 8 },
 });

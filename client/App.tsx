@@ -48,6 +48,8 @@ const sstore = {
   set: (k: string, v: string | null) => { try { v === null ? (globalThis as any).sessionStorage?.removeItem(k) : (globalThis as any).sessionStorage?.setItem(k, v); } catch { /* maxfiy rejim */ } },
 };
 type Sess = { token: string; userId: string };
+/** Ro'yxatdan o'tish shaklida kiritilgan ism va yil: kod tasdiqlangach profil o'zi saqlanadi (qo'shimcha sahifa chiqmaydi). */
+const signupProfile = (): { name: string; year: string } | null => { try { const j = JSON.parse(store.get("tajriba24-signup-profile") ?? "null"); return j && typeof j.name === "string" && typeof j.year === "string" ? j : null; } catch { return null; } };
 
 /** Kirish rejimini aniqlaydi: server SMS yoqqan bo'lsa — kirish ekrani; sinov rejimida — qurilma identifikatori. */
 export default function App() {
@@ -75,10 +77,10 @@ export default function App() {
   if (!fontsLoaded || sess === undefined) return null;
   if (!sess) return (
     <SafeAreaView style={[s.root, { backgroundColor: night.bg }]}><StatusBar style="light" /><View role="main" style={{ flex: 1 }}>
-      <Login auth={auth} onSignupName={(n) => store.set("tajriba24-signup-name", n)} onDone={(x, remember) => { const j = JSON.stringify(x); if (remember) { store.set("tajriba24-session", j); sstore.set("tajriba24-session", null); } else { sstore.set("tajriba24-session", j); store.set("tajriba24-session", null); } setSess(x); }} />
+      <Login auth={auth} onSignupProfile={(p) => store.set("tajriba24-signup-profile", JSON.stringify(p))} onDone={(x, remember) => { const j = JSON.stringify(x); if (remember) { store.set("tajriba24-session", j); sstore.set("tajriba24-session", null); } else { sstore.set("tajriba24-session", j); store.set("tajriba24-session", null); } setSess(x); }} />
       {loginErr && <Text style={{ color: "#FCA5A5", textAlign: "center", padding: 8 }} accessibilityRole="alert">{errText("network")}</Text>}
     </View></SafeAreaView>);
-  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("tajriba24-session", null); sstore.set("tajriba24-session", null); setSess(null); }} />;
+  return <Game_ session={sess} onLogout={() => { if (sess.token !== sess.userId) void fetch(httpBase(SERVER) + "/auth/logout", { method: "POST", headers: { authorization: `Bearer ${sess.token}` } }).catch(() => {}); store.set("tajriba24-session", null); sstore.set("tajriba24-session", null); store.set("tajriba24-signup-profile", null); setSess(null); }} />;
 }
 
 function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
@@ -122,7 +124,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
       <StatusBar style="dark" />
       <ConnBanner st={st} />
       <View role="main" style={{ flex: 1 }}><Later>
-      {hasProfile === null && !room ? null : gated ? <NameGate http={http} initialName={store.get("tajriba24-signup-name") ?? ""} onDone={() => { store.set("tajriba24-signup-name", null); setHasProfile(true); }} />
+      {hasProfile === null && !room ? null : gated ? <NameGate http={http} initial={signupProfile()} onDone={() => { store.set("tajriba24-signup-profile", null); setHasProfile(true); }} />
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />

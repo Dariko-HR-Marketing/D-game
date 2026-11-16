@@ -1,40 +1,55 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
-import { Button } from "./Button";
-import { Banner, Card } from "./kit";
-import { Screen } from "./Screen";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { Logo } from "./Logo";
+import { Field, Cta, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
-import { color, font, MIN_TAP, PLAYER_COLORS, radius, space, tone } from "../theme";
-import { GenderPicker, type Gender } from "./GenderPicker";
+import { font, night, PLAYER_COLORS, radius, space } from "../theme";
 import { Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
-/** Birinchi kirishda ism majburiy: ismsiz xonaga kirib bo'lmaydi (boshqa o'yinchilar sizni shu ism bilan ko'radi). */
-export function NameGate({ http, onDone, initialName = "" }: { http: Http; onDone: () => void; initialName?: string }) {
-  const [name, setName] = useState(initialName.slice(0, 24)); const [year, setYear] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [gender, setGender] = useState<Gender>(null);
+/**
+ * Birinchi kirishda ism va tug'ilgan yil majburiy: ismsiz xonaga kirib bo'lmaydi (boshqa o'yinchilar sizni shu ism bilan ko'radi).
+ * Ro'yxatdan o'tish shaklida ism va yil allaqachon kiritilgan bo'lsa, profil o'zi saqlanadi va bu ekran ko'rinmaydi.
+ * Jins bu yerda so'ralmaydi (ixtiyoriy, profilda o'zgartiriladi) — ketma-ket qadamlar kam bo'lsin.
+ */
+export function NameGate({ http, onDone, initial }: { http: Http; onDone: () => void; initial?: { name: string; year: string } | null }) {
+  const [name, setName] = useState((initial?.name ?? "").slice(0, 24)); const [year, setYear] = useState(initial?.year ?? "");
+  const [status, setStatus] = useState<Status>(null); const [busy, setBusy] = useState(false);
+  const auto = !!initial && validName(initial.name) && validYear(initial.year); const tried = useRef(false); const [autoFailed, setAutoFailed] = useState(false);
   const ok = validName(name) && validYear(year);
-  const save = async () => {
-    if (!ok || busy) return; setBusy(true); setErr(null);
-    try { await http.saveProfile({ name: name.trim(), color: Math.abs([...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % PLAYER_COLORS.length, birthYear: Number(year), ...(gender ? { gender } : {}) }); onDone(); }
-    catch (e) { setErr((e as HttpError).code ?? "network"); }
+  const save = async (n = name, y = year) => {
+    if (busy) return; setBusy(true); setStatus(null);
+    try { await http.saveProfile({ name: n.trim(), color: Math.abs([...n].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % PLAYER_COLORS.length, birthYear: Number(y) }); onDone(); }
+    catch (e) { setStatus({ kind: "bad", text: errText((e as HttpError).code ?? "network") }); setAutoFailed(true); }
     setBusy(false);
   };
+  useEffect(() => { if (auto && !tried.current) { tried.current = true; void save(initial!.name, initial!.year); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const preparing = auto && !autoFailed;
   return (
-    <Screen title={uz.gate.title} maxWidth={520}>
-      <Card style={{ gap: space.md }}>
-        <Text style={s.hint}>{uz.gate.hint}</Text>
-        <Text style={s.l} nativeID="gn">{uz.profile.name}</Text>
-        <TextInput testID="gate-name" accessibilityLabelledBy="gn" aria-label={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} autoComplete="nickname" autoFocus />
-        <Text style={s.l} nativeID="gy">{uz.profile.birthYear}</Text>
-        <TextInput testID="gate-year" accessibilityLabelledBy="gy" aria-label={uz.profile.birthYear} value={year} onChangeText={(t) => setYear(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" style={s.input} />
-        <GenderPicker value={gender} onChange={setGender} />
-        <Text style={s.hint}>{uz.gate.why}</Text>
-        {isUnder16(year) && <Banner kind="warn">{uz.profile.under16}</Banner>}
-        {err && <Banner kind="bad">{errText(err)}</Banner>}
-        <Button label={uz.gate.next} onPress={save} disabled={!ok || busy} />
-      </Card>
-    </Screen>);
+    <ScrollView style={{ backgroundColor: night.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+      <View style={s.card}>
+        <View style={s.logoRow}><Logo size={36} /><Text style={s.brand}>Tajriba<Text style={{ color: night.accent, fontWeight: "800" }}> 24</Text></Text></View>
+        {preparing ? (
+          <View style={{ gap: space.sm, paddingVertical: space.lg }} accessibilityLiveRegion="polite"><Text style={s.h} aria-level={1} accessibilityRole="header">{uz.gate.preparing}</Text></View>
+        ) : (<>
+          <View style={{ gap: space.xs }}>
+            <Text style={s.step}>{uz.gate.last}</Text>
+            <Text style={s.h} aria-level={1} accessibilityRole="header">{uz.gate.title}</Text>
+            <Text style={k.note}>{uz.gate.hint}</Text>
+          </View>
+          <Field id="gn" testID="gate-name" label={uz.profile.name} value={name} onChangeText={setName} maxLength={24} autoComplete="nickname" placeholder={uz.login.fullNamePh} autoFocus returnKeyType="next" />
+          <Field id="gy" testID="gate-year" label={uz.profile.birthYear} value={year} onChangeText={(t) => setYear(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="1995" maxLength={4} onSubmitEditing={() => ok && save()} />
+          {isUnder16(year) ? <Text style={k.warn} accessibilityLiveRegion="polite">{uz.profile.under16}</Text> : <Text style={k.note}>{uz.gate.why}</Text>}
+          <StatusBox status={status} />
+          <Cta label={busy ? uz.login.wait : uz.gate.next} disabled={!ok || busy} onPress={() => save()} />
+        </>)}
+      </View>
+    </ScrollView>
+  );
 }
 const s = StyleSheet.create({
-  hint: { color: tone.muted, fontSize: font.sm, lineHeight: 19 }, l: { color: color.navy, fontWeight: "700", fontSize: font.sm },
-  input: { minHeight: MIN_TAP, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, backgroundColor: color.white, color: color.navy },
+  scroll: { flexGrow: 1, justifyContent: "center", alignItems: "center", padding: space.lg, backgroundColor: night.bg },
+  card: { width: "100%", maxWidth: 460, gap: space.lg, padding: space.xl, borderRadius: radius.xl + 4, borderWidth: 1, borderColor: night.lineSoft, backgroundColor: night.panel },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: space.md }, brand: { color: night.text, fontSize: font.xl, fontWeight: "800", letterSpacing: 0.3 },
+  step: { color: night.accent, fontSize: font.xs, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase" },
+  h: { color: night.text, fontSize: font.xxl - 4, fontWeight: "800", lineHeight: 30 },
 });
