@@ -46,10 +46,10 @@ Holat: ✅ bajarildi · 🟡 branchda, `main` da emas · ⏳ kutmoqda (qaror/rux
 ## 5. Mahsulot (kengash shartlari; Founder paketi pauzada)
 | # | Muammo | Holat |
 |---|---|---|
-| 5.1 | O'qituvchi paneli (sinf yaratish, natija hisoboti) | ⬜ |
+| 5.1 | O'qituvchi paneli (sinf yaratish, natija hisoboti) | ✅ kodda bor (tekshirildi): sinflar, kod bilan qo'shilish, topshiriqlar, hisobot va CSV, sinf xonasi (faqat faol litsenziya bilan); admin tomonda tashkilot va litsenziya |
 | 5.2 | Turnir va korporativ xona boshqaruvi | 🟡 turnir admin boshqaruvi bor edi (yaratish, holat, ishtirokchi, reyting, sovrin, hisobot); korporativ xona (kod bilan, yopiq, 16+) qo'shildi — OPEN_QUESTIONS 179 taxminlari tasdig'i kerak; tashkilotchi roli ⬜ |
-| 5.3 | Birinchi besh daqiqa: o'rgatish, yakka yoki kam odam bilan boshlash | ⬜ |
-| 5.4 | 45 daqiqalik qisqa rejim | ⬜ |
+| 5.3 | Birinchi besh daqiqa: o'rgatish, yakka yoki kam odam bilan boshlash | ✅ «O'quv o'yini» (1 odam + 2 bot, 15 daqiqa) 8 qadamli yo'l-yo'riq bilan; 0 o'yinli yangi hisobga bosh sahifada ko'rsatiladi; kirish sahifasida «nima bu» bloki. Haqiqiy yangi o'yinchilar bilan kuzatuv seansi — ⏳ buyurtmachi/foydalanuvchi |
+| 5.4 | 45 daqiqalik qisqa rejim | ✅ «Tez» rejim bor (2–6 kishi, 30–45 daqiqa, chiqish 15 000 passiv + 250 000 naqd; SPEC 5.12). 6 soatlik rejim — qog'oz sinovdan keyin (2.4) |
 | 5.5 | Bir gaplik va'da va MVP'dan olib tashlanadigan funksiyalar ro'yxati | ⬜ |
 | 5.6 | Founder paketining qolgani (offer, CFO, marketing, brend, ops, launch, plan) | ⏳ mahsulot tayyor bo'lgach |
 
