@@ -319,6 +319,7 @@ export const uz = {
     none: "Qaytarib oladigan o'rin yo'q: hamma o'yinchi onlayn yoki o'yindan chiqqan. Uzilgan o'yinchi bir daqiqadan keyin oflayn bo'ladi — keyinroq qayta urinib ko'ring.",
     failed: "O'yinchilar ro'yxatini olib bo'lmadi", unnamed: "ismsiz o'yinchi",
   },
+  lesson: { title: "Saboq kartasi", badge: "O'quv o'yini yakunlandi", heading: "Zo'r boshlanish, {name}!", lead: "Siz birinchi o'yiningizda pul oqimini mashq qildingiz. Mana shu o'yindan chiqqan shaxsiy saboqlar — ularni haqiqiy hayotga olib chiqing.", cash: "Yakuniy naqd", passive: "Passiv daromad", decisions: "Qabul qilingan qarorlar", empty: "Bu o'yinda saboq chiqarish uchun ma'lumot yetarli emas. Yana bir o'yin o'ynab ko'ring.", start: "Haqiqiy o'yinni boshlash" },
   coach: {
     title: "O'quv o'yini", ok: "Tushundim",
     steps: {

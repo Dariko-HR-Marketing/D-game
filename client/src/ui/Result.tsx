@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { Banner, Card, Pill } from "./kit";
 import { Screen } from "./Screen";
 import { ReportView } from "./ReportView";
+import { LessonCard } from "./LessonCard";
 import { uz } from "../i18n/uz";
 import { color, font, space, tone } from "../theme";
 import type { ReportData } from "../report";
@@ -32,6 +33,7 @@ export function Result({ http, code, onHome }: { http: Http; code: string; onHom
       {!d && !err && <Text style={s.muted} accessibilityLiveRegion="polite">{uz.report.loading}</Text>}
       {err === "plus" && <Banner kind="info">{uz.report.plus}</Banner>}
       {err === "fail" && (<View style={{ gap: space.sm }}><Banner kind="bad">{uz.report.failed}</Banner><Button label={uz.report.retry} kind="ghost" onPress={() => setTries((n) => n + 1)} /></View>)}
+      {d?.meta.mode === "tutorial" && <LessonCard data={d} onStart={onHome} />}
       {d && <ReportView data={d} />}
       {d && <View style={s.actions}>
         <View style={s.actionCell}><Button label={uz.report.csv} kind="ghost" onPress={download} /></View>
