@@ -10,8 +10,8 @@ import { space } from "../theme";
 import type { RoomView } from "../net/connection";
 
 /** O'quv o'yini: kerakli paytda qisqa tushuntirish (har qadam bir marta). Yopilsa qayta chiqmaydi; matn ekran o'qish dasturiga o'qiladi. */
-export function TutorialCoach({ room, userId }: { room: RoomView; userId: string }) {
-  const [seen, setSeen] = useState<Set<string>>(new Set()); const step = useMemo(() => coachStep(room, userId, seen), [room, userId, seen]);
+export function TutorialCoach({ room, userId, tab }: { room: RoomView; userId: string; tab?: string }) {
+  const [seen, setSeen] = useState<Set<string>>(new Set()); const step = useMemo(() => coachStep(room, userId, seen, tab), [room, userId, seen, tab]);
   useEffect(() => { setSeen(new Set()); }, [room.code]);
   if (!step) return null;
   const T = uz.coach, need = MODES.tutorial, n = COACH_ORDER.indexOf(step) + 1;

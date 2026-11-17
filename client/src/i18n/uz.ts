@@ -323,6 +323,8 @@ export const uz = {
     title: "O'quv o'yini", ok: "Tushundim",
     steps: {
       start: "Bu sizning balansingiz: maosh minus xarajatlar — oylik pul oqimi. O'yindagi eng muhim raqam. Kubikni tashlab, yuring.",
+      blank: "«Blank» — shaxsiy hisob varag'ingiz: daromad, xarajat, aktiv va passivlar, pul oqimi. Har qarordan keyin raqamlar shu yerda o'zgaradi.",
+      players: "«O'yinchilar» — hamma o'yinchi holati, o'yin tarixi va tezkor reaksiyalar shu yerda. Boshqalar nima qilayotganini kuzatib turing.",
       opportunity: "Imkoniyat! Kichik biznes har oy daromad beradi, siz ishlamasangiz ham — bu passiv daromad. Naqdingiz yetsa, sotib oling.",
       shares: "Aksiya arzon. Uni hozir olib, bozor narxi ko'tarilganda sotish mumkin. Miqdorni tanlang.",
       expense: "Xarajat kartasi majburiy: pul yetmasa, qarzga yoziladi. Shuning uchun naqd pul zaxirasi kerak.",
