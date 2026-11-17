@@ -67,3 +67,15 @@ describe("vaqtli rejim", () => {
     const left = m3.view(m3.rooms.get(t.code)!).limit!.leftMs; expect(left).toBeGreaterThan(10 * MIN); expect(left).toBeLessThanOrEqual(11 * MIN + 5_000); expect(m3.rooms.get(t.code)!.mode).toBe("tutorial");
   });
 });
+
+describe("kutish zali: 60 soniyadan keyin avto-boshlash", () => {
+  it("o'rinlar botlar bilan to'ldiriladi va o'yin boshlanadi; sinf/turnir (tag) xonasi o'zi boshlanmaydi; qo'lda boshlansa taymer yo'qoladi", async () => {
+    const { c, rm } = mk(); rm.lobbyAutoMs = 60_000;
+    const a = rm.create("h1", undefined, 30, "auto", 4); if (!a.ok) throw 0; expect(rm.view(rm.rooms.get(a.code)!).autoStartAt).toBe(60_000);
+    const t = rm.create("h2", { kind: "class", id: "k" } as any, 30, "auto", 4); if (!t.ok) throw 0; expect(rm.view(rm.rooms.get(t.code)!).autoStartAt).toBeNull();
+    const m = rm.create("h3", undefined, 30, "auto", 3); if (!m.ok) throw 0; await rm.start(m.code, "h3", 1, { dreams: false }); expect(rm.view(rm.rooms.get(m.code)!).autoStartAt).toBeNull();
+    await c.advance(59_000); expect(rm.rooms.get(a.code)!.state).toBeNull();
+    await c.advance(2_000); const r = rm.rooms.get(a.code)!; expect(r.state).not.toBeNull(); expect(r.state!.players).toHaveLength(4); expect(r.members.filter((x) => x.bot)).toHaveLength(3);
+    expect(rm.rooms.get(t.code)!.state).toBeNull();
+  });
+});
