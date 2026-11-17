@@ -43,7 +43,7 @@ import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
-import { color, font, HEADER_H, radius, space, tone } from "../theme";
+import { GREEN_TEXT, color, font, HEADER_H, radius, space, tone } from "../theme";
 import { bankRoom, phaseSeconds, untimed, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
 import { REACTIONS, type ChatMsg, type Reaction, type RoomView } from "../net/connection";
 import { RULES } from "@tajriba24/rules";
@@ -122,6 +122,13 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     return { boardWidth: w, tight: t };
   }, [wide, compact, tablet, tri, width, height, nCells, pad, reserveH, sideW]);
   const sheetOpen = !wide && !!card && mineTurn;
+  const [sheetMin, setSheetMin] = useState(false); useEffect(() => { setSheetMin(false); }, [card?.id]); // telefonda qaror varag'ini yig'ib, blank va maydonni ko'rish mumkin (qaror vaqti ketaveradi)
+  const sheetShown = sheetOpen && !sheetMin;
+  const miniBar = (inline: boolean) => (
+    <Pressable accessibilityRole="button" accessibilityLabel={`${uz.deck.expand}. ${first(card?.text ?? "")}`} onPress={() => setSheetMin(false)} style={[s.miniBar, inline && s.miniInline]} testID="decision-mini">
+      <View style={{ flex: 1 }} aria-hidden><Text style={s.miniK}>{uz.deck.pendingKicker}</Text><Text style={s.miniT} numberOfLines={1}>{first(card?.text ?? "")}</Text></View>
+      <Text style={s.miniA} aria-hidden>{uz.deck.expand} ▲</Text>
+    </Pressable>);
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.loansToWitness.length + pr.partnerToAccept.length;
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
@@ -272,14 +279,15 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
       {header}
       <View style={s.shell}>
-        {card && mineTurn && mine && !deckPick ? (
+        {card && mineTurn && mine && !deckPick && !sheetMin ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={uz.deck.minimize} onPress={() => setSheetMin(true)} style={s.minBtn} testID="decision-minimize"><Text style={s.grabT}>{uz.deck.minimize} ▼</Text></Pressable>
             <CardEnter id={card.id} style={{ flex: 1, minHeight: 0 }}>
               <DecisionCard horizontal={compact} card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} deadline={room.deadline} die={myDie}
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{gate}{sideMain}{tri && reactPanel}{compact && reactRow}{compact && leaveBlock}</ScrollView>}
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}{tri && reactPanel}{compact && reactRow}{compact && leaveBlock}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
@@ -311,7 +319,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
       {header}
-      <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetOpen && { paddingBottom: 420 }]}>
+      <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetShown && { paddingBottom: Math.round(height * 0.62) }, sheetOpen && sheetMin && { paddingBottom: 96 }]}>
         {banners}
         {tab === "field" && (<>
           <TimePanel room={room} userId={userId} settled={settled} />
@@ -329,9 +337,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
       {tab === "field" && canRoll && !promptOpen && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
       {/* §9: telefonda qaror pastki varaqda (bottom sheet) */}
-      {sheetOpen && mine && (
-        <View style={s.sheet} accessibilityViewIsModal>
-          <View style={s.grab} aria-hidden />
+      {sheetOpen && mine && sheetMin && miniBar(false)}
+      {sheetShown && mine && (
+        <View style={[s.sheet, height < 520 && { maxHeight: "58%" as any }]} accessibilityViewIsModal>
+          <Pressable accessibilityRole="button" accessibilityLabel={uz.deck.minimize} onPress={() => setSheetMin(true)} style={s.grabBtn} testID="decision-minimize"><View style={s.grab} aria-hidden /><Text style={s.grabT}>{uz.deck.minimize} ▼</Text></Pressable>
           <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet deadline={room.deadline} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
@@ -340,6 +349,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     </View>
   );
 }
+const first = (t: string, n = 70) => { const x = (t.split(/(?<=[.!?])\s/)[0] ?? t).trim(); return x.length > n ? x.slice(0, n - 1) + "…" : x; };
 const s = StyleSheet.create({
   mwrap: { padding: space.lg, gap: space.md }, mwrapT: { width: "100%", maxWidth: 760, alignSelf: "center" }, // tik planshet: ustun markazda, o'qish uchun qulay kenglikda
   shell: { flex: 1, flexDirection: "row", gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md, minHeight: 0, maxWidth: 1440, width: "100%", alignSelf: "center" },
@@ -360,7 +370,11 @@ const s = StyleSheet.create({
   cta: { width: "100%", maxWidth: 760, alignSelf: "center", paddingHorizontal: space.lg, paddingBottom: space.md, paddingTop: space.sm, backgroundColor: color.white },
   caption: { color: tone.muted, fontSize: font.sm, textAlign: "center", maxWidth: 640 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 62, maxHeight: "80%" as any, backgroundColor: color.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: space.lg, paddingTop: space.sm, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: -6 }, elevation: 12 },
-  grab: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "#D5DEE4", marginBottom: space.md },
+  grab: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "#D5DEE4" },
+  minBtn: { minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.md, borderWidth: 1, borderColor: color.line, backgroundColor: color.white },
+  miniInline: { position: "relative", left: 0, right: 0, bottom: 0 },
+  grabBtn: { minHeight: 44, alignItems: "center", justifyContent: "center", gap: 4, marginBottom: space.xs }, grabT: { color: tone.muted, fontSize: font.sm, fontWeight: "700" },
+  miniBar: { position: "absolute", left: space.md, right: space.md, bottom: 70, minHeight: 56, flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.md, borderRadius: radius.lg, backgroundColor: color.white, borderWidth: 2, borderColor: color.gold, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 10 }, miniK: { color: tone.warn, fontSize: 12, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }, miniT: { color: color.navy, fontWeight: "800", fontSize: font.md }, miniA: { color: GREEN_TEXT, fontWeight: "800", fontSize: font.sm },
   collHead: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }, collTitle: { color: color.navy, fontWeight: "800", fontSize: font.lg },
   muted: { color: tone.muted }, log: { color: tone.muted, fontSize: font.sm, lineHeight: 19 }, cardText: { color: color.navy, fontSize: font.md, lineHeight: 22 },
   reactRow: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" },
