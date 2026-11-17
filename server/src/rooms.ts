@@ -65,7 +65,7 @@ function assetCardOf(ctx: Ctx, code: string, cardId?: string): AssetCard | undef
 /** Mijozga yuboriladigan ta'sir: viktorinaning to'g'ri javobi yashiriladi (faqat server biladi; javobdan keyin `state.lastQuiz` da ochiladi). */
 const publicEffect = (e: any) => (e && e.kind === "quiz" ? { ...e, correct: undefined } : e);
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string; deck?: string; title?: string }
-export interface RoomView { closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string; deck?: string; title?: string } | null }
+export interface RoomView { autoStartAt?: number | null; closed?: string; tag?: RoomTag; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string; deck?: string; title?: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -102,7 +102,7 @@ export class RoomManager {
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color, level: pf.level, photo: pf.photo, ...(pf.gender ? { gender: pf.gender } : {}), cos: pf.cos }; }
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market" || pr.kind === "offer") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: publicEffect(ce.effect) }; }
-    return { closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online, left: m.left, unreliable: m.unreliable, ...(m.autopilot ? { autopilot: true } : {}) })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, timerTotal: r.deadline && r.timerSeconds ? r.timerSeconds : null, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds, mode: r.mode, limit: this.limitView(r),
+    return { autoStartAt: this.lobbyTimers.get(r.code)?.at ?? null, closed: r.closed, tag: r.tag, hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online, left: m.left, unreliable: m.unreliable, ...(m.autopilot ? { autopilot: true } : {}) })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, timerTotal: r.deadline && r.timerSeconds ? r.timerSeconds : null, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds, mode: r.mode, limit: this.limitView(r),
       calc: (() => { const due = r.calcMode === "manual" ? this.dueOf(r) : []; return { mode: r.calcMode, due, ledger: Object.fromEntries(due.map((id) => [id, r.ledger[id]])), stats: r.calcStats }; })(),
       assetCards: r.state ? Object.fromEntries([...new Map(r.state.players.flatMap((p) => p.assets.map((a) => [a.cardId ?? a.code, a] as const))).values()].flatMap((a) => { const x = assetCardOf(r.ctx, a.code, a.cardId); return x ? [[a.cardId ?? a.code, x]] : []; })) : undefined,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: publicEffect(ce.effect), mode: ce.mode, file: ce.file, deck: ce.deck, title: ce.title }; })() : null,
@@ -161,13 +161,27 @@ export class RoomManager {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
     if (!(mode in MODES)) return { ok: false, error: "bad_mode" };
     if (turnSeconds === 0 && mode !== "standard") turnSeconds = 30; // vaqtsiz xona faqat standart rejimda: tez/reytingli/o'quvda taymer majburiy (umumiy vaqt, adolat, yo'l-yo'riq)
-    const [lo, hi] = MODES[mode].seats; if (mode === "tutorial") seats = lo; else if (seats === undefined && lo > MIN_PLAYERS) seats = lo; // rejimning o'z chegarasi: o'quv — 3 (1 odam + 2 bot), reytingli — kamida 4
+    const [lo, hi] = MODES[mode].seats; if (mode === "tutorial" && seats === undefined) seats = 3; else if (seats === undefined && lo > MIN_PLAYERS) seats = lo; // hamma rejimda 2–8 (2026-11-17); o'quvda standart 3 o'rin (1 odam + 2 bot), odam yetmasa botlar to'ldiradi
     if (seats !== undefined && (!Number.isInteger(seats) || seats < Math.max(MIN_PLAYERS, lo) || seats > Math.min(MAX_PLAYERS, hi))) return { ok: false, error: "bad_seats" };
     const code = this.newCode();
     this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, mode, limitLeftMs: null, limitStartedAt: null, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
       ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null, tag });
     this.activeRoomOf.set(hostId, code); this.saveLobby(this.rooms.get(code)!);
+    this.armLobby(code);
     return { ok: true, code };
+  }
+
+  /** Kutish zali: `lobbyAutoMs` (standart 0 = o'chiq; ishlab chiqarishda 60 soniya) o'tgach qolgan o'rinlarni botlar to'ldiradi va o'yin o'zi boshlanadi (buyurtmachi qarori 2026-11-17). Sinf/turnir/korporativ (tag) xonalarida yo'q: ularni tashkilotchi boshqaradi. */
+  lobbyAutoMs = 0; private lobbyTimers = new Map<string, { h: unknown; at: number }>();
+  private armLobby(code: string) {
+    const r = this.rooms.get(code); if (!r || r.tag || this.lobbyAutoMs <= 0) return;
+    const at = this.clock.now() + this.lobbyAutoMs;
+    const h = this.clock.setTimeout(() => {
+      this.lobbyTimers.delete(code); const x = this.rooms.get(code); if (!x || x.state || x.closed) return;
+      const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0;
+      void this.start(code, x.hostId, seed).then((o) => { if (!o.ok) this.emit(x); });
+    }, this.lobbyAutoMs);
+    this.lobbyTimers.set(code, { h, at });
   }
 
   join(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
@@ -190,6 +204,7 @@ export class RoomManager {
     if (!r) return { ok: false, error: "room_not_found" };
     if (r.hostId !== userId) return { ok: false, error: "not_host" };
     if (r.state) return { ok: false, error: "already_started" };
+    { const lt = this.lobbyTimers.get(code); if (lt && r.mode !== "rated") { this.clock.clearTimeout(lt.h); this.lobbyTimers.delete(code); } }
     if (r.mode === "rated" && r.members.filter((m) => !m.bot).length < 2) return { ok: false, error: "not_enough_players" }; // reytingli o'yin: kamida 2 odam
     let b = 1;
     while (r.members.length < (r.seats ?? MIN_PLAYERS)) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });

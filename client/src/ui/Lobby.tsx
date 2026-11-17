@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, Share, StyleSheet } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill } from "./kit";
@@ -16,6 +16,8 @@ const MAX = 6, MIN = 2; // eski xonalar uchun (o'rinlar soni belgilanmagan)
 export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: (events: boolean) => void; onLeave: () => void }) {
   const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false); const [events, setEvents] = useState(true);
   const humans = room.members.length, seats = room.seats ?? MIN, bots = Math.max(0, seats - humans); // bo'sh o'rinlarni boshlanganda botlar egallaydi
+  const [now, setNow] = useState(Date.now()); useEffect(() => { if (!room.autoStartAt) return; const h = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(h); }, [room.autoStartAt]);
+  const autoLeft = room.autoStartAt ? Math.max(0, Math.ceil((room.autoStartAt - now) / 1000)) : null;
   const copy = async () => {
     const text = room.code;
     try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
@@ -53,6 +55,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       {typeof room.turnSeconds === "number" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
       {room.mode && room.mode !== "standard" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-mode"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.home.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[room.mode]}</Text> · {uz.home.modeHints[room.mode]}</Text></View> : null}
       {room.calc ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-calc"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.ledger.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{room.calc.mode === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text></View> : null}
+      {autoLeft !== null && bots > 0 ? <Text style={s.emptyT} testID="lobby-auto" role="status">{uz.lobby.autoStart.replace("{s}", String(autoLeft))}</Text> : null}
       {room.seats ? <Text style={s.emptyT} testID="lobby-seats">{uz.lobby.slotsNote.replace("{n}", String(room.seats))}</Text> : null}
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
       {host && (

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — Bosh sahifa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#082238; --green:#11835A; --green-d:#0E6B4A; --green-l:#E7F4EE; --gold:#F2B233; --red:#9E2A30; --blue:#2C6DB5;
+  --info:#E8F0F8; --warn:#FFF6DD; --bg:#F4F7F8; --line:#DCE3E8; --muted:#4A5B6C; --night:#0B2620; --night2:#0F1B26; --accent:#34D399;
+  --r:16px; --shadow:0 1px 2px rgba(8,34,56,.06),0 6px 20px rgba(8,34,56,.06);
+}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:15px;line-height:1.45;margin:0}
+h1,h2,h3,p{margin:0}
+.app{display:grid;grid-template-columns:248px 1fr;min-width:1180px}
+.side{background:#fff;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px;padding:0 6px}
+.brand b{font-size:20px;font-weight:800}
+.brand small{display:block;font-size:11px;color:var(--green-d);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:var(--muted);font-weight:700;text-decoration:none}
+.nav a svg{width:20px;height:20px;flex:none}
+.nav a.cur{background:var(--green-l);color:var(--green-d)}
+.me{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center}
+.ava{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.me small{display:block;color:var(--muted);font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800}
+.pill.good{background:var(--green-l);color:var(--green-d)}
+.pill.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green)}
+main{padding:28px 40px 56px;max-width:1240px;margin:0 auto}
+.top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+.top h1{font-size:30px;font-weight:800;letter-spacing:-.3px}
+.top p{color:var(--muted);margin-top:4px;max-width:560px}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center}
+
+.hero{position:relative;overflow:hidden;border-radius:22px;background:var(--night);color:#fff;padding:30px 34px;display:grid;grid-template-columns:1fr 360px;gap:30px;box-shadow:var(--shadow)}
+.hero::before,.hero::after{content:"";position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(16,185,129,.14);pointer-events:none}
+.hero::before{top:-120px;left:-90px} .hero::after{bottom:-150px;right:380px}
+.hero>*{position:relative;z-index:1}
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.hero h2{font-size:29px;line-height:1.2;font-weight:800;margin:14px 0 8px;max-width:560px}
+.hero p{color:#B4C2CE;max-width:540px}
+.cta{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:14px;background:#10B981;color:#04130E;font-weight:800;font-size:15px;padding:15px 24px;min-height:52px;cursor:pointer}
+.ghostd{border:1px solid #5B7388;background:transparent;color:#fff;border-radius:14px;padding:14px 20px;font-weight:700;min-height:52px;cursor:pointer}
+.hero .row{display:flex;gap:14px;align-items:center;margin-top:22px}
+.road{background:rgba(255,255,255,.06);border:1px solid #1F2F3D;border-radius:16px;padding:16px 18px}
+.road h3{font-size:12px;color:#B4C2CE;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
+.road ol{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.road li{display:flex;gap:12px;align-items:center;font-size:13.5px;font-weight:600}
+.road li i{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800;flex:none}
+.road .more{margin-top:12px;color:#B4C2CE;font-size:12.5px}
+
+.sec-label{font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin:30px 0 14px;display:flex;align-items:center;gap:10px}
+.sec-label em{font-style:normal;background:var(--green-l);color:var(--green-d);border-radius:999px;padding:2px 9px;font-size:11px}
+
+.cfg{display:grid;grid-template-columns:1fr 330px;gap:22px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.cfg .main{padding:24px 26px;display:grid;gap:26px}
+.sec h3{font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:12px;display:flex;gap:10px;align-items:center}
+.step-n{width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;display:inline-grid;place-items:center;font-weight:800}
+.types{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.type{position:relative;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px}
+.type.sel{border-color:var(--green);background:var(--green-l);box-shadow:0 0 0 3px rgba(17,131,90,.15)}
+.type svg{width:24px;height:24px;color:var(--green)}
+.type b{font-size:14.5px;font-weight:800}
+.type small{color:var(--muted);font-size:11.5px;line-height:1.35}
+.type .tag{position:absolute;top:10px;right:10px;background:var(--gold);color:#3a2a00;border-radius:999px;font-size:10px;font-weight:800;padding:2px 8px}
+.detail{margin-top:12px;border-radius:14px;background:var(--info);padding:14px 16px;display:grid;gap:6px;font-size:14px}
+.detail strong{font-weight:800}
+.detail .kv{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-weight:600;font-size:12.5px}
+.detail .kv b{color:var(--navy)}
+
+.corp-trust{margin-top:12px;border-radius:14px;background:var(--night);color:#fff;padding:16px 18px;display:grid;gap:10px}
+.corp-trust b{font-size:14px}
+.corp-trust ul{margin:0;padding-left:0;list-style:none;display:grid;gap:7px}
+.corp-trust li{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#dbe6ec}
+.corp-trust li svg{width:16px;height:16px;color:var(--accent);flex:none;margin-top:1px}
+.corp-fld{display:grid;gap:6px;margin-top:4px}
+.corp-fld label{font-weight:800;font-size:12.5px;color:#B4C2CE}
+.corp-fld .inp{background:rgba(255,255,255,.08);border:1px solid #2b4153;color:#fff}
+
+.seats{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.seat{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.seat.sel{background:var(--green);border-color:var(--green);color:#fff}
+.seatviz{display:flex;gap:6px;margin-top:12px;align-items:center;color:var(--muted);font-size:12.5px;font-weight:600;flex-wrap:wrap}
+.sv{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff}
+.sv.you{background:var(--green)} .sv.o{background:#fff;color:var(--muted);border:1.5px dashed #9FB1BF}
+
+.speeds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.speed{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:4px}
+.speed.sel{border-color:var(--green);background:var(--green-l);box-shadow:0 0 0 3px rgba(17,131,90,.15)}
+.speed b{font-size:14.5px;font-weight:800;display:flex;justify-content:space-between}
+.speed b span{color:var(--green-d)}
+.speed small{color:var(--muted);font-size:11.5px}
+
+.inp{min-height:46px;border:1px solid #9FB1BF;border-radius:12px;padding:0 14px;background:#fff;color:var(--navy);width:100%}
+
+.summary{position:sticky;top:20px;padding:22px;display:grid;gap:14px}
+.summary h3{font-size:17px;font-weight:800}
+.sumrow{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sumrow span{color:var(--muted);font-weight:600}
+.sumrow b{text-align:right}
+.hint{background:var(--warn);border-radius:12px;padding:10px 12px;font-size:12.5px;color:#5a3d00;font-weight:600}
+.cta.full{width:100%;justify-content:center;background:var(--green);color:#fff}
+
+.trio{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tile{padding:18px 20px;display:flex;gap:14px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--shadow)}
+.tile .ico{width:44px;height:44px;border-radius:12px;background:#F0F4F6;display:grid;place-items:center;flex:none}
+.tile .ico svg{width:22px;height:22px;color:var(--green)}
+.tile b{display:block;font-size:15px;font-weight:800}
+.tile small{color:var(--muted);font-size:12.5px}
+.tile.join{display:grid;gap:10px;align-items:stretch}
+.joinrow{display:flex;gap:8px}
+.btn{border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:800;padding:0 20px;min-height:46px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div style="width:100%;max-width:1440px;min-width:1180px;margin:0 auto;background:var(--bg)">
+  <div class="app">
+    <aside class="side">
+      <div class="brand">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+          <rect x="1" y="1" width="6" height="6" rx="1.5" fill="#11835A"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="#F2B233"/><rect x="17" y="1" width="6" height="6" rx="1.5" fill="#9E2A30"/><rect x="25" y="1" width="6" height="6" rx="1.5" fill="#2C6DB5"/><rect x="33" y="1" width="6" height="6" rx="1.5" fill="#7B4FA3"/>
+          <circle cx="20" cy="20" r="9.6" fill="#082238"/><text x="20" y="24.2" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="Manrope">T</text>
+        </svg>
+        <div><b>Tajriba 24</b><small>Moliyaviy savodxonlik</small></div>
+      </div>
+      <nav class="nav" aria-label="Bo'limlar">
+        <a href="#" class="cur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Bosh sahifa</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Reyting</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="15" r="5"/><path d="M8.2 13.5 7 22l5-3 5 3-1.2-8.5"/></svg>Turnirlar</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg>Qoidalar</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</a>
+      </nav>
+      <div class="me"><div class="ava">A</div><div><b>Atush</b><small>Yangi boshlovchi</small></div></div>
+    </aside>
+
+    <main>
+      <div class="top">
+        <div><h1>Salom, Atush</h1><p>Pul oqimini o'yinda mashq qiling: xatoni o'yinda qiling, tajribani hayotga olib chiqing.</p></div>
+        <div style="display:flex;gap:10px;align-items:center"><span class="pill good dot">Ulangan</span><button class="iconbtn" aria-label="Yordam">?</button></div>
+      </div>
+
+      <section class="hero" aria-labelledby="hH">
+        <div>
+          <span class="badge">Birinchi qadam · yangi o'yinchi uchun</span>
+          <h2 id="hH">O'quv o'yini: 15 daqiqada hammasini o'z qo'lingiz bilan o'rganing</h2>
+          <p>Bu haqiqiy o'yin: siz va 2 ta bot. Davomida har bir karta, holat va bo'lim paydo bo'lganda qisqa tushuntirish chiqadi. Hech narsani oldindan yodlash shart emas.</p>
+          <div class="row">
+            <button class="cta">O'quv o'yinini boshlash <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button class="ghostd">Keyinroq</button>
+          </div>
+        </div>
+        <div class="road" aria-label="O'quv o'yini rejasi">
+          <h3>Nimalarni o'rganasiz</h3>
+          <ol>
+            <li><i>1</i>Balans va oylik pul oqimi</li>
+            <li><i>2</i>Imkoniyat: biznes va passiv daromad</li>
+            <li><i>3</i>Aksiya va bozor</li>
+            <li><i>4</i>Xarajat va kutilmagan hodisa</li>
+            <li><i>5</i>Hisob varag'i, tarix, tahlil, chat</li>
+            <li><i>6</i>Maqsad: kichik aylanadan chiqish</li>
+          </ol>
+          <div class="more">+ har bir bo'limga birinchi kirishda alohida tushuntirish</div>
+        </div>
+      </section>
+
+      <div class="sec-label">Yangi o'yin <em>3 qadam</em></div>
+      <section class="cfg" aria-label="Yangi o'yin">
+        <div class="card main">
+          <div class="sec">
+            <h3><span class="step-n">1</span>O'yin turi</h3>
+            <div class="types" role="radiogroup" aria-label="O'yin turi">
+              <button class="type" role="radio" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><b>Standart</b><small>Erkin o'yin do'stlar bilan</small></button>
+              <button class="type" role="radio" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><b>Tez</b><small>30–45 daqiqalik o'yin</small></button>
+              <button class="type" role="radio" aria-checked="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/></svg><b>Reytingli</b><small>Liga reytingiga ta'sir qiladi</small></button>
+              <button class="type sel" role="radio" aria-checked="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8"/></svg><b>O'quv</b><small>Yo'l-yo'riq bilan, botlar bilan</small></button>
+              <button class="type" role="radio" aria-checked="false"><span class="tag">yangi</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg><b>Korporativ</b><small>Kompaniya jamoasi uchun</small></button>
+            </div>
+            <div class="detail">
+              <strong>O'quv</strong>
+              <span>Real o'yin, lekin har bir yangi karta, holat va bo'lim uchun qisqa tushuntirish chiqadi (15 daqiqa).</span>
+              <div class="kv"><span>Kim bilan: <b>siz + botlar</b></span><span>Davomiylik: <b>15 daqiqa</b></span></div>
+            </div>
+            <div class="corp-trust">
+              <b>Korporativ xona nima uchun ishonchli</b>
+              <ul>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 4 8 8 10 4-2 8-5 8-10V6z"/></svg>Yopiq xona — faqat tashkilot kodi bilan kiriladi</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Faqat 16 yoshdan katta ishtirokchilar</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-6"/></svg>Natijalarni tashkilotchi ko'radi (qo'shilishdan oldin ogohlantiriladi)</li>
+              </ul>
+              <div class="corp-fld">
+                <label for="corpCode">Tashkilot kodi (taklif)</label>
+                <input class="inp" id="corpCode" placeholder="Masalan: K7M2-Q9XA">
+              </div>
+            </div>
+          </div>
+          <div class="sec">
+            <h3><span class="step-n">2</span>O'yinchilar soni <span style="color:var(--muted);font-weight:600;text-transform:none;font-size:12.5px">— hamma turda 2–8</span></h3>
+            <div class="seats" role="radiogroup" aria-label="O'yinchilar soni">
+              <button class="seat" role="radio">2</button><button class="seat" role="radio">3</button><button class="seat sel" role="radio" aria-checked="true">4</button><button class="seat" role="radio">5</button><button class="seat" role="radio">6</button><button class="seat" role="radio">7</button><button class="seat" role="radio">8</button>
+            </div>
+            <div class="seatviz"><span class="sv you">Siz</span><span class="sv o"></span><span class="sv o"></span><span class="sv o"></span><span>&nbsp;Siz + 3 o'rin: do'stlaringiz yoki botlar</span></div>
+          </div>
+          <div class="sec">
+            <h3><span class="step-n">3</span>Tezlik <span style="color:var(--muted);font-weight:600;text-transform:none;font-size:12.5px">— qaror vaqti</span></h3>
+            <div class="speeds" role="radiogroup" aria-label="Tezlik">
+              <button class="speed sel" role="radio" aria-checked="true"><b>Odatiy<span>30 soniya</span></b><small>Karta qarori 30 soniya, kubik 10 soniya.</small></button>
+              <button class="speed" role="radio"><b>Sekin<span>1 daqiqa</span></b><small>Karta qarori 1 daqiqa, kubik 20 soniya.</small></button>
+              <button class="speed" role="radio"><b>Mehrojiddin<span>vaqtsiz</span></b><small>Vaqt cheklovi yo'q: hamma shoshilmay o'ylaydi.</small></button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="card summary" aria-label="Xulosa">
+          <h3>Sizning xonangiz</h3>
+          <div>
+            <div class="sumrow"><span>Tur</span><b>O'quv</b></div>
+            <div class="sumrow"><span>O'yinchilar</span><b>4 kishi</b></div>
+            <div class="sumrow"><span>Qaror vaqti</span><b>Odatiy · 30 soniya</b></div>
+            <div class="sumrow" style="border:0"><span>Taxminiy davomiylik</span><b>15 daqiqa</b></div>
+          </div>
+          <div class="hint">O'quv o'yini 15 daqiqa davom etadi; odam yetmasa, botlar qo'shiladi.</div>
+          <button class="cta full">O'quv o'yinini boshlash</button>
+        </aside>
+      </section>
+
+      <div class="sec-label">Tezkor amallar</div>
+      <section class="trio" aria-label="Tezkor amallar">
+        <div class="tile join">
+          <div style="display:flex;gap:14px;align-items:center"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg></div><div><b>Kod bilan qo'shilish</b><small>Do'stingiz yuborgan xona kodi</small></div></div>
+          <div class="joinrow"><input class="inp" style="flex:1" aria-label="Xona kodi" placeholder="Xona kodi" maxlength="8"><button class="btn">Kirish</button></div>
+        </div>
+        <button class="tile"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg></div><div><b>O'yin qoidalari</b><small>Kataklar, bank, lombard, g'alaba sharti</small></div></button>
+        <button class="tile"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/></svg></div><div><b>Reyting</b><small>Eng kuchli o'yinchilar</small></div></button>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

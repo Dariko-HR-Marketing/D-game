@@ -17,7 +17,7 @@ for (const [tag, w, h, motion] of sizes) {
   const a = await mk("fxa" + tag), c = await mk("fxb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   // Xona vaqti tanlovi: 1 daqiqa
-  await a.getByRole("radio", { name: "Sekin (×2)" }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByRole("radio", { name: "Sekin · 1 daqiqa" }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
   check((await a.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} xona tezligi (Sekin) xonada ko'rinadi`);
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");

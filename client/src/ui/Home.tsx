@@ -24,17 +24,19 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
 export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: GameMode) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
-  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<GameMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false);
+  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<GameMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false); const [corp, setCorp] = useState(false); const [orgCode, setOrgCode] = useState(""); const [orgErr, setOrgErr] = useState<string | null>(null); const [orgBusy, setOrgBusy] = useState(false);
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
   const effTurn: TurnSeconds = turn === 0 && mode !== "standard" ? 30 : turn; // vaqtsiz xona faqat standart rejimda; boshqasida avvalgi tezlik
-  const pickMode = (m: GameMode) => { setMode(m); setModePref(m); setSeats((n) => clampSeats(m, n)); };
+  const pickMode = (m: GameMode) => { setCorp(false); setMode(m); setModePref(m); setSeats((n) => (m === "tutorial" ? 3 : clampSeats(m, n))); };
+  const orgReady = orgCode.length === 8;
+  const orgJoin = async () => { if (!http || !orgReady || orgBusy) return; setOrgBusy(true); setOrgErr(null); try { await http.tJoin(orgCode); onTournaments?.(); } catch (e: any) { setOrgErr(String(e?.message ?? e)); } finally { setOrgBusy(false); } };
   const [me, setMe] = useState<{ name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null>(null);
   useEffect(() => { let off = false; http?.profile().then((r: any) => { if (!off && r?.profile) setMe({ name: r.profile.name, color: r.profile.color, level: r.stats?.level ?? 0, games: r.stats?.games ?? 1, gender: r.profile.gender }); }).catch(() => {}); return () => { off = true; }; }, [http]);
   const [active, setActive] = useState<{ code: string; started: boolean; round: number; players: number } | null>(null);
   useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
-  const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
@@ -45,33 +47,45 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
         <Pressable accessibilityRole="button" accessibilityLabel={uz.profile.title} onPress={onProfile} style={s.avatarBtn}><Avatar name={me?.name ?? "?"} colorIdx={me?.color ?? 0} level={me?.level} gender={me?.gender} size={34} /></Pressable>
       </View>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
-        <View style={[s.wrap, compact && { gap: space.md, padding: space.md }]}>
+        <View style={[s.wrap, compact && { gap: space.md, padding: space.md }, wide && { maxWidth: 1040 }]}>
           {notes.map((n) => <Banner key={n.id} kind={n.kind === "warn" ? "warn" : "info"}>{n.text}</Banner>)}
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
             {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
             {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn === 0 ? 30 : turn, calc, 3, "tutorial")} disabled={!online} />}
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, mode)} disabled={!online} />
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, mode)} disabled={!online || corp} />
             {compact && (
-              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${mode === "tutorial" ? "" : uz.home.seatsOpt.replace("{n}", String(seats)) + ","} ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
-                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {mode === "tutorial" ? "" : `${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
+              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
+                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {`${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
             {(!compact || optsOpen) && (<>
             <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
               <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.modeLabel}</Text>
               {GAME_MODES_UI.map((m) => (
-                <Pressable key={m} role="radio" aria-checked={mode === m} testID={`mode-${m}`} accessibilityLabel={`${uz.home.modes[m]}. ${uz.home.modeHints[m]}`} onPress={() => pickMode(m)} style={[s.seg, mode === m && s.segOn]}>
-                  <Text style={[s.segT, mode === m && { color: color.white }]} aria-hidden>{uz.home.modes[m]}</Text>
+                <Pressable key={m} role="radio" aria-checked={!corp && mode === m} testID={`mode-${m}`} accessibilityLabel={`${uz.home.modes[m]}. ${uz.home.modeHints[m]}`} onPress={() => pickMode(m)} style={[s.seg, !corp && mode === m && s.segOn]}>
+                  <Text style={[s.segT, !corp && mode === m && { color: color.white }]} aria-hidden>{uz.home.modes[m]}</Text>
                 </Pressable>))}
-              <Text style={[s.turnL, { flexBasis: "100%", fontWeight: "600" }]}>{uz.home.modeHints[mode]}</Text>
+              <Pressable role="radio" aria-checked={corp} testID="mode-corporate" accessibilityLabel={`${uz.home.corporate}. ${uz.home.corporateHint}`} onPress={() => setCorp(true)} style={[s.seg, corp && s.segOn]}>
+                <Text style={[s.segT, corp && { color: color.white }]} aria-hidden>{uz.home.corporate}</Text>
+              </Pressable>
+              <Text style={[s.turnL, { flexBasis: "100%", fontWeight: "600" }]}>{corp ? uz.home.corporateHint : uz.home.modeHints[mode]}</Text>
             </View>
-            {mode !== "tutorial" && <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
+            {!corp && <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
               <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.seatsLabel}</Text>
               {seatsFor(mode).map((v) => (
                 <Pressable key={v} role="radio" aria-checked={seats === v} accessibilityLabel={`${uz.home.seatsOpt.replace("{n}", String(v))}. ${uz.home.seatsHint}`} onPress={() => { setSeats(v); setSeatsPref(v); }} style={[s.seg, seats === v && s.segOn, { paddingHorizontal: space.sm, minWidth: MIN_TAP }]} testID={`seats-${v}`}>
                   <Text style={[s.segT, seats === v && { color: color.white }]} aria-hidden>{v}</Text>
                 </Pressable>))}
             </View>}
+            {corp ? (
+              <View style={s.join} testID="home-corp">
+                <Text style={s.label} nativeID="orgCodeLabel">{uz.home.corpCodeLabel}</Text>
+                <View style={s.joinRow}>
+                  <TextInput accessibilityLabelledBy="orgCodeLabel" aria-label={uz.home.corpCode} placeholder="ABCD1234" placeholderTextColor="#6B7C8C" value={orgCode} onChangeText={(t) => { setOrgCode(t.toUpperCase().replace(/[^A-Z0-9]/g, "")); setOrgErr(null); }} autoCapitalize="characters" autoCorrect={false} maxLength={8} onSubmitEditing={orgJoin} returnKeyType="go" style={s.input} testID="corp-code" />
+                  <View style={{ flexShrink: 0 }}><Button label={uz.home.joinShort} onPress={orgJoin} disabled={!online || !orgReady || orgBusy} /></View>
+                </View>
+                {orgErr && <Text style={s.err} accessibilityRole="alert">{errText(orgErr)}</Text>}
+              </View>) : (<>
             <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
               <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
               {(mode === "standard" ? ([30, 60, 0] as const) : ([30, 60] as const)).map((v) => { const name = v === 0 ? uz.home.turn0 : v === 60 ? uz.home.turn60 : uz.home.turn30;
@@ -87,6 +101,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
                   <Text style={[s.segT, calc === v && { color: color.white }]} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text>
                 </Pressable>))}
             </View>}
+            </>)}
             </>)}
             <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
             {joinOpen && (

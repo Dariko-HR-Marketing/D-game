@@ -22,6 +22,7 @@ import { setAvatarBase } from "./src/net/avatarBase";
 import { ConnBanner } from "./src/ui/ConnBanner";
 import { useForeground } from "./src/useForeground";
 import { Login } from "./src/ui/Login";
+import { Landing } from "./src/ui/Landing";
 import { Tour } from "./src/ui/Tour";
 import { gameTourId, type TourId } from "./src/tours";
 import { isMyTurn } from "./src/model";
@@ -57,6 +58,7 @@ export default function App() {
   const auth = useMemo(() => makeAuth(httpBase(SERVER)), []);
   const [sess, setSess] = useState<Sess | null | undefined>(undefined); // undefined: yuklanmoqda
   const [loginErr, setLoginErr] = useState(false);
+  const [landing, setLanding] = useState(() => { try { const l = (globalThis as any).location; return !!l && !/[?&]kirish\b/.test(l.search ?? "") && l.pathname === "/" ? true : false; } catch { return false; } }); // ommaviy sahifa faqat veb'da, kirmagan mehmonga; `?kirish` — to'g'ridan-to'g'ri kirish
   useEffect(() => {
     let off = false;
     const saved = store.get("tajriba24-session") ?? sstore.get("tajriba24-session");
@@ -75,6 +77,7 @@ export default function App() {
     return () => { off = true; };
   }, [auth]);
   if (!fontsLoaded || sess === undefined) return null;
+  if (!sess && landing && (globalThis as any).document) return (<SafeAreaView style={[s.root, { backgroundColor: night.bg }]}><StatusBar style="light" /><View role="main" style={{ flex: 1 }}><Landing onStart={() => setLanding(false)} /></View></SafeAreaView>);
   if (!sess) return (
     <SafeAreaView style={[s.root, { backgroundColor: night.bg }]}><StatusBar style="light" /><View role="main" style={{ flex: 1 }}>
       <Login auth={auth} onSignupProfile={(p) => store.set("tajriba24-signup-profile", JSON.stringify(p))} onDone={(x, remember) => { const j = JSON.stringify(x); if (remember) { store.set("tajriba24-session", j); sstore.set("tajriba24-session", null); } else { sstore.set("tajriba24-session", j); store.set("tajriba24-session", null); } setSess(x); }} />

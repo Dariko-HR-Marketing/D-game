@@ -2,11 +2,11 @@
 // tegishli voqea birinchi marta bo'lganda o'sha qadam matni ko'rsatiladi. Yangi hisob yo'q.
 import { marketOffers, me, isMyTurn } from "./model";
 
-export type CoachStep = "start" | "opportunity" | "shares" | "expense" | "market" | "payday" | "goal";
-export const COACH_ORDER: CoachStep[] = ["start", "opportunity", "shares", "expense", "market", "payday", "goal"];
+export type CoachStep = "start" | "opportunity" | "shares" | "expense" | "market" | "payday" | "goal" | "blank" | "players";
+export const COACH_ORDER: CoachStep[] = ["start", "blank", "players", "opportunity", "shares", "expense", "market", "payday", "goal"];
 
 /** Hozir ko'rsatiladigan qadam (ko'rilmaganlardan birinchisi); `null` — hozir yo'q. */
-export function coachStep(room: any, userId: string, seen: ReadonlySet<string>): CoachStep | null {
+export function coachStep(room: any, userId: string, seen: ReadonlySet<string>, tab?: string): CoachStep | null {
   if (room?.mode !== "tutorial" || !room.state || room.state.winner) return null;
   const st = room.state, mine = me(room, userId); if (!mine) return null;
   const e = room.pendingCard?.effect, mineCard = room.pendingCard && isMyTurn(room, userId);
@@ -14,6 +14,8 @@ export function coachStep(room: any, userId: string, seen: ReadonlySet<string>):
   const months = mine.monthsPlayed ?? 0;
   const cond: Record<CoachStep, boolean> = {
     start: (st.round ?? 1) <= 1 && months === 0 && !(st.lastRoll && st.lastRoll.playerId === userId),
+    blank: tab === "blank",
+    players: tab === "players",
     opportunity: !!mineCard && e?.kind === "buy" && (e.asset === "small_business" || e.asset === "business"),
     shares: !!mineCard && e?.kind === "buyShares",
     expense: last?.kind === "pay",

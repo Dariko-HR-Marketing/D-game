@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — O'yin va onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#082238;--green:#11835A;--green-d:#0E6B4A;--green-l:#E7F4EE;--gold:#F2B233;--red:#9E2A30;--blue:#2C6DB5;--muted:#4A5B6C;--bg:#F4F7F8;--line:#DCE3E8;--night:#0B2620;--accent:#34D399;--r:16px;--shadow:0 1px 2px rgba(8,34,56,.06),0 6px 20px rgba(8,34,56,.06)}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;margin:0;background:var(--bg);color:var(--navy);min-width:1180px;position:relative}
+h1,h2,h3,p{margin:0}
+.gbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 20px}
+.st{display:flex;align-items:center;gap:8px;font-weight:800}
+.st small{color:var(--muted);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800}
+.pill.good{background:var(--green-l);color:var(--green-d)}
+.pill.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green)}
+.code{font-family:ui-monospace,Consolas,monospace;background:#eef3f6;border-radius:8px;padding:4px 10px;font-weight:700;letter-spacing:1.5px;font-size:13px}
+.gnav{display:flex;gap:6px;margin:0 auto}
+.gnav button{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-weight:700;font-size:13.5px;position:relative}
+.gnav button svg{width:17px;height:17px}
+.gnav button.active{border-color:var(--green);background:var(--green-l);color:var(--green-d)}
+.ob{display:flex;align-items:center;gap:10px;background:var(--night);color:#fff;border-radius:12px;padding:6px 8px 6px 14px;font-weight:700;font-size:13px;border:0}
+.ring{width:26px;height:26px;border-radius:50%;background:conic-gradient(var(--accent) 36%,#264a40 0);display:grid;place-items:center}
+.ring::after{content:"";width:18px;height:18px;border-radius:50%;background:var(--night)}
+
+.gbody{display:grid;grid-template-columns:330px 1fr 300px;gap:18px;padding:18px 20px;max-width:1500px;margin:0 auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.panel{padding:18px;display:grid;gap:12px;align-content:start}
+.panel h3{font-size:16.5px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.big{font-size:32px;font-weight:800;letter-spacing:-.5px}
+.big.g{color:var(--green-d)}
+.two{display:flex;justify-content:space-between;align-items:flex-end}
+.two small{display:block;color:var(--muted);font-weight:600}
+.kvl{display:grid;gap:8px;font-size:13.5px}
+.kvl div{display:flex;justify-content:space-between}
+.kvl span{color:var(--muted);font-weight:600}
+.kvl b.neg{color:var(--red)}
+.bar{height:8px;border-radius:99px;background:#e7edf1;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:99px}
+.goal{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.goal .g{font-size:12.5px;display:grid;gap:4px}
+.goal .g span{color:var(--muted);font-weight:600;display:flex;justify-content:space-between}
+.chk{color:var(--green-d);font-weight:700;font-size:13.5px}
+
+.boardwrap{padding:18px;display:grid;gap:12px}
+.board{position:relative;aspect-ratio:11/7;background:#fff;border-radius:14px}
+.cell{position:absolute;border-radius:7px}
+.center{position:absolute;inset:15% 11%;display:grid;place-items:center;text-align:center;gap:6px;align-content:center}
+.dice{width:72px;height:72px;border-radius:18px;background:#fff;border:2px solid var(--navy);display:grid;place-items:center;font-size:30px;font-weight:800;box-shadow:0 6px 16px rgba(8,34,56,.18)}
+.turn{font-weight:800;font-size:17px}
+.timer{display:inline-flex;gap:8px;align-items:center;font-weight:800;color:var(--muted);font-size:13px}
+.btn{border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:800;padding:12px 22px;min-height:46px;cursor:pointer}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:11.5px;color:var(--muted);font-weight:700}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.sample{font-size:10.5px;color:var(--muted);text-align:center}
+
+.plist{display:grid;gap:10px}
+.pl{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px}
+.pl.me{border:2px solid var(--green)}
+.ava{width:36px;height:36px;border-radius:50%;color:#fff;display:grid;place-items:center;font-weight:800;flex:none;font-size:13px}
+.pl b{display:block;font-size:13.5px}
+.pl small{color:var(--muted);font-size:12px}
+.ev{display:grid;gap:8px;font-size:12.5px;color:var(--muted)}
+.ev p{border-left:3px solid var(--line);padding-left:10px}
+
+.dim{position:absolute;inset:60px 0 0 0;background:rgba(8,34,56,.55);z-index:5}
+.spot{position:absolute;z-index:6;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,34,56,.55);pointer-events:none}
+.coach{position:absolute;z-index:7;width:380px;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(8,34,56,.45);overflow:hidden}
+.coach .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--night);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.coach .hd span.left{color:var(--accent)}
+.coach .prog{height:6px;background:#e7edf1}
+.coach .prog i{display:block;height:100%;width:8%;background:var(--green)}
+.coach .bd{padding:16px 18px;display:grid;gap:8px}
+.coach h4{margin:0;font-size:18px;font-weight:800}
+.coach p{color:var(--muted);font-size:14px}
+.coach .term{background:var(--green-l);color:var(--green-d);border-radius:10px;padding:8px 10px;font-size:12.5px;font-weight:700}
+.coach .ft{display:flex;gap:8px;align-items:center;padding:12px 16px 16px}
+.coach .ft .sp{flex:1}
+.coach .skip{background:none;border:0;color:var(--muted);font-weight:700;text-decoration:underline;padding:8px;cursor:pointer}
+.coach .btn.o{background:#fff;color:var(--navy);border:1px solid var(--line)}
+
+.map{position:absolute;left:20px;bottom:20px;z-index:6}
+.mapbtn{display:flex;gap:10px;align-items:center;background:var(--night);color:#fff;border:0;border-radius:14px;padding:10px 16px;font-weight:800;box-shadow:0 10px 30px rgba(8,34,56,.35);cursor:pointer}
+</style>
+</head>
+<body>
+
+<div style="max-width:1440px;min-width:1180px;margin:0 auto;position:relative">
+  <div class="gbar">
+    <div class="st"><span class="pill good dot">Kichik aylana</span><small>1-tur</small><span class="code">7FKDKE</span></div>
+    <nav class="gnav">
+      <button class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Mening kartalarim</button>
+      <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Hisob varag'i</button>
+      <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Tarix</button>
+      <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-6"/></svg>Tahlil</button>
+      <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat</button>
+      <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg>Qoidalar</button>
+    </nav>
+    <button class="ob"><span>Onboarding</span><span class="ring"></span><span>13:24</span></button>
+  </div>
+
+  <div class="gbody">
+    <section class="card panel">
+      <h3>Moliyaviy holat <span class="pill good">Tergovchi</span></h3>
+      <div class="two"><div><div class="big">100 000</div><small>Naqd</small></div><div style="text-align:right"><div class="big g">+400</div><small>Pul oqimi</small></div></div>
+      <div class="kvl"><div><span>Ish haqi</span><b>1 500</b></div><div><span>Passiv daromad</span><b>0</b></div><div><span>Oylik xarajat</span><b class="neg">1 100</b></div><div><span>Qarz va kreditlar</span><b>0</b></div></div>
+      <div class="goal">
+        <b>Kichik aylanadan chiqish</b>
+        <div class="g"><span>Naqd ≥ 1 000 000 <em style="font-style:normal">100 000 / 1 000 000</em></span><div class="bar"><i style="width:10%"></i></div></div>
+        <div class="g"><span>Passiv daromad ≥ 25 000 <em style="font-style:normal">0 / 25 000</em></span><div class="bar"><i style="width:0"></i></div></div>
+        <div class="chk">✓ Qarz yo'q &nbsp; ✓ Sheriklik yopilgan</div>
+      </div>
+    </section>
+
+    <section class="card boardwrap">
+      <div class="board">
+        <div class="center">
+          <div class="turn">Navbat: Siz</div>
+          <div class="dice">?</div>
+          <button class="btn">Kubik tashlash</button>
+          <div class="timer">⏱ 0:09</div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i style="background:#11835A"></i>Kichik sarmoya</span><span><i style="background:#2C6DB5"></i>Bozor</span>
+        <span><i style="background:#9E2A30"></i>Xarajat</span><span><i style="background:#F2B233"></i>Daromad sektori</span>
+        <span><i style="background:#E07A2F"></i>Katta sarmoya</span><span><i style="background:#082238"></i>Kutilmagan hodisa</span>
+      </div>
+      <div class="sample">Prototipdagi raqamlar va kartalar namuna sifatida berilgan.</div>
+    </section>
+
+    <aside class="card panel">
+      <h3>O'yinchilar</h3>
+      <div class="plist">
+        <div class="pl me"><div class="ava" style="background:#11835A">A</div><div><b>Atush (siz)</b><small>Tergovchi · naqd 100 000</small></div></div>
+        <div class="pl"><div class="ava" style="background:#2C6DB5">Az</div><div><b>Bot Aziz</b><small>Huquqshunos · naqd 100 000</small></div></div>
+        <div class="pl"><div class="ava" style="background:#E07A2F">Ma</div><div><b>Bot Malika</b><small>Veterinar · naqd 100 000</small></div></div>
+      </div>
+      <h3 style="margin-top:4px">So'nggi voqealar</h3>
+      <div class="ev"><p><b style="color:var(--navy)">Atush</b>: kubik bo'yicha birinchi yuradi.</p><p>orzular tanlandi — o'yin boshlandi</p></div>
+    </aside>
+  </div>
+
+  <div class="dim"></div>
+  <div class="spot" style="left:20px;top:70px;width:322px;height:290px"></div>
+  <div class="coach" style="left:368px;top:70px">
+    <div class="hd"><span>2 / 12</span><span class="left">13:24 qoldi</span></div>
+    <div class="prog" style="--w:17%"><i style="width:17%"></i></div>
+    <div class="bd">
+      <h4>Maqsad: kichik aylanadan chiqish</h4>
+      <p>Chiqish uchun passiv daromad 25 000 ga, naqd 1 000 000 ga yetishi va qarz qolmasligi kerak. Chiziqlar sizga qancha qolganini ko'rsatadi.</p>
+      <div class="term">Passiv daromad = ishlamasangiz ham keladigan pul</div>
+    </div>
+    <div class="ft"><button class="skip">O'tkazib yuborish</button><span class="sp"></span><button class="btn o">Orqaga</button><button class="btn">Keyingi</button></div>
+  </div>
+
+  <div class="map"><button class="mapbtn">☰ Onboarding rejasi 1/12</button></div>
+</div>
+</body>
+</html>

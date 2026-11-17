@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — Saboq kartasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#082238;--green:#11835A;--green-d:#0E6B4A;--green-l:#E7F4EE;--gold:#F2B233;--red:#9E2A30;--blue:#2C6DB5;--muted:#4A5B6C;--bg:#F4F7F8;--line:#DCE3E8;--night:#0B2620;--accent:#34D399;--r:16px;--shadow:0 1px 2px rgba(8,34,56,.06),0 6px 20px rgba(8,34,56,.06)}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;margin:0;background:var(--night);color:#fff;min-width:1180px}
+h1,h2,h3,p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:56px 40px;display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:800}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+h1.t{font-size:32px;font-weight:800}
+p.sub{color:#B4C2CE;max-width:560px;font-size:15px;line-height:1.55}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;margin-top:6px}
+.lcard{background:#0F1B26;border:1px solid #223240;border-radius:20px;padding:24px;text-align:left;display:grid;gap:14px}
+.lcard .ic{width:44px;height:44px;border-radius:12px;background:rgba(52,211,153,.12);display:grid;place-items:center}
+.lcard .ic svg{width:22px;height:22px;color:var(--accent)}
+.lcard h3{font-size:16.5px;font-weight:800;color:#fff}
+.lcard p{color:#B4C2CE;font-size:13.5px;line-height:1.55}
+.lcard .num{font-size:26px;font-weight:800;color:var(--accent)}
+
+.statrow{display:flex;gap:16px;width:100%;margin-top:4px}
+.stat{flex:1;background:#0F1B26;border:1px solid #223240;border-radius:16px;padding:18px;text-align:left}
+.stat span{display:block;font-size:11.5px;color:#8ba0ad;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.stat b{font-size:22px;font-weight:800}
+
+.actions{display:flex;gap:12px;margin-top:10px}
+.btn{border:0;border-radius:14px;background:#10B981;color:#04130E;font-weight:800;font-size:15px;padding:0 26px;min-height:52px;cursor:pointer}
+.btn.o{background:transparent;border:1px solid #5B7388;color:#fff}
+.sample2{font-size:11.5px;color:#6b7f8d}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <span class="badge">O'quv o'yini yakunlandi · 15 daqiqa</span>
+  <div>
+    <h1 class="t">Zo'r boshlanish, Atush!</h1>
+    <p class="sub">Siz birinchi o'yiningizda pul oqimini mashq qildingiz. Mana shu o'yindan chiqgan 3 shaxsiy saboq — haqiqiy hayotga olib chiqing.</p>
+  </div>
+
+  <div class="statrow">
+    <div class="stat"><span>Yakuniy naqd</span><b>340 000</b></div>
+    <div class="stat"><span>Passiv daromad</span><b>250</b></div>
+    <div class="stat"><span>Qabul qilingan qarorlar</span><b>9</b></div>
+  </div>
+
+  <div class="cards">
+    <div class="lcard">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
+      <div class="num">1</div>
+      <h3>Passiv daromad — eng muhim raqam</h3>
+      <p>Siz 1 ta kichik biznes sotib oldingiz va u ishlamasangiz ham har oy +250 keltirdi. Kichik aylanadan chiqish shu turdagi daromadga bog'liq.</p>
+    </div>
+    <div class="lcard">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM8 8h8M8 12h8"/></svg></div>
+      <div class="num">2</div>
+      <h3>Xarajat majburiy, zaxira — himoya</h3>
+      <p>Bir marta naqdingiz xarajatga yetmay qarzga yozildi. Keyingi safar naqd zaxirasini ko'proq saqlash qarorni osonlashtiradi.</p>
+    </div>
+    <div class="lcard">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/></svg></div>
+      <div class="num">3</div>
+      <h3>Bozor narxi — sabr ham strategiya</h3>
+      <p>Aksiyangiz narxi tushganda sotmaslikni tanladingiz va keyinroq narx ko'tarildi. Shoshilmaslik ko'pincha foyda keltiradi.</p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn">Haqiqiy o'yinni boshlash</button>
+    <button class="btn o">Saboq kartasini saqlash</button>
+  </div>
+  <div class="sample2">Prototipdagi raqamlar va saboqlar namuna sifatida berilgan.</div>
+</div>
+</body>
+</html>

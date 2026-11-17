@@ -5,9 +5,9 @@ import { newGame, reduce, canExitSmallCircle, MODES, modeOf, standings, GameStat
 const blank = (o: object = {}) => ({ cash: 250_000, salary: 500, passiveIncome: 15_000, expenses: 400, bankDebt: 0, otherDebt: 0, openPartnerships: 0, ...o });
 
 describe("o'yin rejimlari", () => {
-  it("chegaralar: standart 2–8, tez 2–6, reytingli 4–6 (120 daq), o'quv 1 odam + 2 bot (15 daq)", () => {
-    expect(MODES.standard).toMatchObject({ seats: [2, 8], minutes: null }); expect(MODES.quick).toMatchObject({ seats: [2, 6], minutes: null });
-    expect(MODES.rated).toMatchObject({ seats: [4, 6], minutes: 120, rated: true }); expect(MODES.tutorial).toMatchObject({ seats: [3, 3], minutes: 15, maxHumans: 1 });
+  it("chegaralar: hamma rejimda 2–8; reytingli 120 daq; o'quv 1 odam + botlar (15 daq)", () => {
+    expect(MODES.standard).toMatchObject({ seats: [2, 8], minutes: null }); expect(MODES.quick).toMatchObject({ seats: [2, 8], minutes: null });
+    expect(MODES.rated).toMatchObject({ seats: [2, 8], minutes: 120, rated: true }); expect(MODES.tutorial).toMatchObject({ seats: [2, 8], minutes: 15, maxHumans: 1 });
     expect(modeOf(undefined)).toBe("standard"); expect(modeOf("zzz" as any)).toBe("standard");
   });
   it("tez o'yin: chiqish 15 000 passiv + 250 000 naqd; standartda hali yetmaydi; qarz bo'lsa chiqmaydi", () => {

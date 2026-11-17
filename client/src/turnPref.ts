@@ -7,7 +7,7 @@ const KEY = "tajriba24-turn-seconds";
 export const getTurnPref = (): TurnSeconds => (tourKV.get(KEY) === "60" ? 60 : tourKV.get(KEY) === "0" ? 0 : 30);
 export const setTurnPref = (v: TurnSeconds) => tourKV.set(KEY, String(v));
 /** Xona tezligi: «Odatiy» — kubik 10, karta 30 soniya; «Sekin» — hammasi ×2 (taymer jadvali: rules RULES). */
-export const turnLabel = (s: number) => (s === 0 ? uz.home.turn0Full : s === 60 ? "Sekin (×2)" : "Odatiy");
+export const turnLabel = (s: number) => (s === 0 ? uz.home.turn0Full : s === 60 ? "Sekin · 1 daqiqa" : "Odatiy · 30 soniya");
 
 /** Hisob rejimi: «Avtomatik» (standart) yoki «O'zim hisoblayman» (o'quv rejimi). Buyurtmachi qarori (2026-10-21): qo'lda hisoblash oddiy o'yinchiga foyda bermadi — standart avtomatik, tanlov tugmasi ko'rinmaydi.
  *  O'quv rejimi (sinf/trener) uchun imkoniyat saqlangan: qurilmada `tajriba24-calc-ui=1` bo'lsa tanlov ko'rinadi. */
