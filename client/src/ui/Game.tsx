@@ -122,7 +122,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     return { boardWidth: w, tight: t };
   }, [wide, compact, tablet, tri, width, height, nCells, pad, reserveH, sideW]);
   const sheetOpen = !wide && !!card && mineTurn;
-  const [sheetMin, setSheetMin] = useState(false); useEffect(() => { setSheetMin(false); }, [card?.id]); // telefonda qaror varag'ini yig'ib, blank va maydonni ko'rish mumkin (qaror vaqti ketaveradi)
+  const [sheetMin, setSheetMin] = useState(false); useEffect(() => { setSheetMin(false); }, [card?.id]); // telefonda qaror varag'ini yig'ib, blankni va maydonni ko'rish mumkin (qaror vaqti ketaveradi)
   const sheetShown = sheetOpen && !sheetMin;
   const miniBar = (inline: boolean) => (
     <Pressable accessibilityRole="button" accessibilityLabel={`${uz.deck.expand}. ${first(card?.text ?? "")}`} onPress={() => setSheetMin(false)} style={[s.miniBar, inline && s.miniInline]} testID="decision-mini">
