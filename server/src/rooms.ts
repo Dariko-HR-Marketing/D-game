@@ -22,7 +22,7 @@ export const CALC_HINT_AFTER = 3;
 /** Xona tezligi: 30 («Odatiy»), 60 («Sekin» ×2) soniya yoki 0 — vaqtsiz xona (buyurtmachi: «Mehrojiddin»): navbat va qarorlarga taymer yo'q (faqat standart rejimda). */
 export const TURN_SECONDS = [30, 60, 0] as const; export type TurnSeconds = (typeof TURN_SECONDS)[number];
 
-export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean; autoStreak?: number; offlineAt?: number } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
+export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean; autoStreak?: number; idleSince?: number; offlineAt?: number } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
   voice?: Set<string>; chat?: ChatMsg[]; chatSeq?: number; lastChat?: Record<string, { text: string; at: number }>; // so'nggi xabarlar (xotirada) va takroriy xabarni to'xtatish
@@ -233,7 +233,7 @@ export class RoomManager {
     let verified = false;
     if (r.calcMode === "manual") { const g = this.calcGate(r, userId, a, calc); if (g && "done" in g) return g.done; verified = !!g?.verified; }
     const out = await this.apply(r, a, null);
-    if (out.ok) { const me = r.members.find((x) => x.userId === userId); if (me) { me.autoStreak = 0; if (me.autopilot) { me.autopilot = false; this.emit(r); } } } // o'zi harakat qildi: avtopilot o'chadi
+    if (out.ok) { const me = r.members.find((x) => x.userId === userId); if (me) { me.autoStreak = 0; me.idleSince = undefined; if (me.autopilot) { me.autopilot = false; this.emit(r); } } } // o'zi harakat qildi: avtopilot o'chadi
     if (out.ok && verified) { const p = r.state!.players.find((x) => x.id === userId); if (p) r.ledger[userId] = snapOf(p); } // to'g'ri hisoblangan o'zgarish daftarga o'tdi
     return out;
   }
@@ -396,7 +396,7 @@ export class RoomManager {
     const rc = r.state.recaps?.[0]; if (rc) return void (await this.apply(r, { type: "ack_restart", playerId: rc.playerId, id: rc.id, auto: true }, "recap")); // bankrot tahlili: vaqt tugadi (yoki bot/avtopilot) — o'yin davom etadi; o'tkazib yuborilgan harakat hisoblanmaydi
     const cur = currentPlayer(r.state);
     const mem = r.members.find((x) => x.userId === cur.id); const bot = mem?.bot;
-    if (mem && !bot) { mem.autoStreak = (mem.autoStreak ?? 0) + 1; if (!mem.autopilot && mem.autoStreak >= RULES.autopilotAfter) mem.autopilot = true; } // ketma-ket vaqt tugashi: 3-sidan keyin avtopilot
+    if (mem && !bot) { mem.autoStreak = (mem.autoStreak ?? 0) + 1; if (mem.autoStreak === 1) mem.idleSince = this.clock.now(); if (!mem.autopilot && (mem.autoStreak >= RULES.autopilotAfter || (mem.idleSince !== undefined && this.clock.now() - mem.idleSince >= RULES.disconnectAutopilotMinutes * 60_000))) mem.autopilot = true; } // 3 marta ketma-ket vaqt tugashi yoki 2 daqiqadan beri harakatsizlik (buyurtmachi qarori 2026-11-17): avtopilot // ketma-ket vaqt tugashi: 3-sidan keyin avtopilot
     if (!r.state.pending) return void (await this.apply(r, bot ? { type: "roll", playerId: cur.id } : { type: "roll", playerId: cur.id, auto: true }, bot ? "bot" : "timeout"));
     // Ixtiyoriy karta vaqt tugasa o'tkaziladi (§5.2). Bot: naqdi yetsa qabul qiladi; qarzda qatnashmaydi (§6.5).
     const e = effectOf(r.ctx, r.state.pending.cardId, r.state.pending).effect;

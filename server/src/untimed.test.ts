@@ -33,7 +33,7 @@ describe("vaqtsiz xona (turnSeconds 0)", () => {
     if (room.state!.pending) expect((await rm.act(code, cur, { type: "decide", playerId: cur, accept: false }, room.seq)).ok).toBe(true);
     expect((rm as any).view(room, cur).turnSeconds).toBe(0); expect(clock.q.every((x) => x.ms >= 0)).toBe(true);
   });
-  it("uzilgan o'yinchi 5 daqiqadan keyin baribir avtopilotga o'tadi (o'yin qotib qolmaydi)", async () => {
+  it("uzilgan o'yinchi 2 daqiqadan keyin baribir avtopilotga o'tadi (o'yin qotib qolmaydi)", async () => {
     const { rm, room, clock } = await setup(0);
     room.state!.turn = room.state!.players.findIndex((p) => p.id === "a"); // navbat odamda
     const a = room.members.find((m) => m.userId === "a")!; room.members.find((m) => m.userId === "b")!.online = true;

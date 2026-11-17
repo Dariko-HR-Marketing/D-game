@@ -137,10 +137,17 @@ describe("taymer jadvali va avtopilot", () => {
     me.autopilot = true; me.autoStreak = 3; await c.advance(40_000); // qaytadan
     const cur = room.state!.players[room.state!.turn % 2].id; if (cur === "b") { await rm.act(code, "b", { type: room.state!.pending ? "decide" : "roll", ...(room.state!.pending ? { accept: false } : {}), playerId: "b" } as any, room.seq); expect(me.autopilot).toBeFalsy(); }
   });
-  it("5 daqiqadan beri uzilgan o'yinchi avtopilotda (o'rni saqlanadi); qaytsa o'chadi", async () => {
+  it("ulangan, lekin 2 daqiqadan beri harakatsiz o'yinchi (ikkinchi vaqt tugashidayoq) avtopilotga o'tadi", async () => {
+    const { rm, c, code, room } = await setup(["a", "b"], 2); const me = room.members.find((m) => m.userId === "b")!;
+    const step = async () => { const cur = room.state!.players[room.state!.turn % 2].id; if (cur === "a") { if (room.state!.pending) await rm.act(code, "a", { type: "decide", accept: false, playerId: "a" } as any, room.seq); else await rm.act(code, "a", { type: "roll", playerId: "a" } as any, room.seq); } else await c.advance(31_000); };
+    for (let k = 0; k < 40 && !me.autoStreak; k++) await step(); expect(me.autoStreak).toBe(1); expect(me.idleSince).toBeDefined(); expect(me.autopilot).toBeFalsy();
+    me.idleSince = c.now() - 121_000; // birinchi vaqt tugashidan 2 daqiqadan oshdi
+    for (let k = 0; k < 40 && !me.autopilot; k++) await step(); expect(me.autopilot).toBe(true); expect(me.autoStreak).toBeGreaterThanOrEqual(2);
+  });
+  it("2 daqiqadan beri uzilgan o'yinchi avtopilotda (o'rni saqlanadi); qaytsa o'chadi", async () => {
     const { rm, c, code, room } = await setup(["a", "b"], 2); const mb = room.members.find((m) => m.userId === "b")!;
     rm.disconnect(code, "b"); expect((rm as any).isAutopilot(mb)).toBe(false);
-    c.t += 4 * 60_000; expect((rm as any).isAutopilot(mb)).toBe(false); // soat to'g'ridan-to'g'ri suriladi: o'yin taymerlari aralashmasin
+    c.t += 60_000; expect((rm as any).isAutopilot(mb)).toBe(false); // soat to'g'ridan-to'g'ri suriladi: o'yin taymerlari aralashmasin
     c.t += 61_000; expect((rm as any).isAutopilot(mb)).toBe(true); expect(mb.left).toBeFalsy();
     expect(rm.join(code, "b")).toEqual({ ok: true }); expect((rm as any).isAutopilot(mb)).toBe(false);
   });
