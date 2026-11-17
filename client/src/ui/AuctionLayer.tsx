@@ -4,10 +4,13 @@ import { canBid, nextMinBid, type Auction } from "@tajriba24/rules";
 import { Button } from "./Button";
 import { money } from "../format";
 import { nameOf } from "../model";
+import { kindLabel } from "../portfolio";
+import { CardFace } from "./CardFace";
 import { color, font, radius, shadow, space, tone } from "../theme";
 import { uz } from "../i18n/uz";
 import type { RoomView } from "../net/connection";
 
+const Fact = ({ l, v, good }: { l: string; v: string; good?: boolean }) => (<View style={s.fact}><Text style={s.factL}>{l}</Text><Text style={[s.factV, good && { color: tone.good }]}>{v}</Text></View>);
 const useLeft = (deadline: number | null) => {
   const calc = () => (deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : null); const [left, setLeft] = useState(calc);
   useEffect(() => { setLeft(calc()); const h = setInterval(() => setLeft(calc()), 500); return () => clearInterval(h); }, [deadline]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -36,12 +39,30 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
           <Text style={s.kicker} aria-level={2} accessibilityRole="header">{kicker}</Text>
           <Text style={s.h}>{title}</Text>
           <View style={s.lot} testID="auction-lot">
-            {a.lot.map((x, i) => (<View key={i} style={s.row}><Text style={s.rowL}>{(room as any).assetCards?.[x.cardId ?? x.code]?.text?.split(/[.!?\n]/)[0] || x.code}</Text><Text style={s.rowV} numberOfLines={1}>{money(x.price)}</Text></View>))}
+            {a.lot.map((x, i) => { const c = (room as any).assetCards?.[x.cardId ?? x.code] ?? (room as any).assetCards?.[x.code]; const title = c?.text?.split(/[.!?\n]/)[0]?.trim() || x.code; const inc = typeof x.income === "number" ? x.income : null;
+              const yearly = inc && x.price > 0 ? Math.round((inc * 12 * 1000) / x.price) / 10 : null, payback = inc && x.price > 0 ? Math.ceil(x.price / inc) : null;
+              return (
+                <View key={i} style={s.item} role="group" accessible aria-label={`${title}. ${kindLabel(x.kind, c?.asset)}. ${uz.auction.d.price} ${money(x.price)}${inc !== null ? `. ${uz.auction.d.income} ${money(inc)}` : ""}`} testID="auction-item">
+                  <View style={s.itemHead} aria-hidden>
+                    {c?.file ? <View style={{ width: 54 }}><CardFace file={c.file} label={title} maxH={72} /></View> : null}
+                    <View style={{ flex: 1, gap: 2 }}><Text style={s.kindT}>{kindLabel(x.kind, c?.asset)}</Text><Text style={s.itemT}>{title}</Text></View>
+                  </View>
+                  {c?.text && c.text.length > title.length + 2 ? <Text style={s.itemD} aria-hidden>{c.text.length > 260 ? c.text.slice(0, 259) + "…" : c.text}</Text> : null}
+                  <View style={s.grid} aria-hidden>
+                    <Fact l={uz.auction.d.price} v={money(x.price)} />
+                    <Fact l={uz.auction.d.income} v={inc !== null ? `+${money(inc)}` : "—"} good={inc !== null && inc > 0} />
+                    <Fact l={uz.auction.d.credit} v={x.credit > 0 ? money(x.credit) : "—"} />
+                    <Fact l={uz.auction.d.yearly} v={yearly !== null ? `${yearly} %` : "—"} />
+                    <Fact l={uz.auction.d.payback} v={payback !== null ? `${payback} ${uz.portfolio.months}` : "—"} />
+                  </View>
+                </View>); })}
           </View>
           <View style={s.rows}>
             {a.due > 0 && <View style={s.row}><Text style={s.rowL}>{uz.auction.due}</Text><Text style={s.rowV} testID="auction-due">{money(a.due)}</Text></View>}
             {a.credits > 0 && <View style={s.row}><Text style={s.rowL}>{uz.auction.credits}</Text><Text style={s.rowV}>{money(a.credits)}</Text></View>}
             <View style={s.row}><Text style={[s.rowL, { fontWeight: "800", color: color.navy }]}>{uz.auction.start}</Text><Text style={[s.rowV, { fontWeight: "800" }]} testID="auction-start">{money(a.start)}</Text></View>
+            {a.phase === "open" && <View style={s.row}><Text style={s.rowL}>{uz.auction.d.minBid}</Text><Text style={s.rowV} testID="auction-min">{money(min)}</Text></View>}
+            <View style={s.row}><Text style={s.rowL}>{uz.auction.d.step}</Text><Text style={s.rowV}>{money(a.step)}</Text></View>
             {a.phase === "open" && <View style={s.row}><Text style={s.rowL}>{uz.auction.best}</Text><Text style={[s.rowV, { color: tone.good }]} testID="auction-best">{a.best ? `${money(a.best.amount)} · ${nameOf(room, a.best.playerId)}` : uz.auction.noBids}</Text></View>}
           </View>
           <Text style={s.note}>{uz.auction.notes[a.format]}</Text>
@@ -70,6 +91,8 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
 }
 
 const s = StyleSheet.create({
+  item: { gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: "#EEF2F4" }, itemHead: { flexDirection: "row", gap: space.md, alignItems: "center" }, kindT: { color: tone.good, fontSize: 12, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }, itemT: { color: color.navy, fontSize: font.md, fontWeight: "800", lineHeight: 21 }, itemD: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm }, fact: { flexGrow: 1, flexBasis: 120, backgroundColor: "#F4F7F8", borderRadius: radius.md, padding: space.sm, gap: 2 }, factL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, factV: { color: color.navy, fontSize: font.md, fontWeight: "800", fontVariant: ["tabular-nums"] },
   layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 125 }, backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,34,56,0.62)" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.md },
   card: { backgroundColor: color.white, borderRadius: radius.lg + 4, borderWidth: 2, borderColor: color.gold, padding: space.lg, gap: space.md, ...shadow, shadowOpacity: 0.3, shadowRadius: 28 },
