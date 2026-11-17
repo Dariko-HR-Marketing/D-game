@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, Share, StyleSheet } from "react-native";
+import { View, Text, Pressable, Share, StyleSheet, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill } from "./kit";
 import { Avatar } from "./Avatar";
@@ -14,6 +14,7 @@ import type { RoomView } from "../net/connection";
 
 const MAX = 6, MIN = 2; // eski xonalar uchun (o'rinlar soni belgilanmagan)
 export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: (events: boolean) => void; onLeave: () => void }) {
+  const { width: winW } = useWindowDimensions(); const wide = winW >= 900;
   const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false); const [events, setEvents] = useState(true);
   const humans = room.members.length, seats = room.seats ?? MIN, bots = Math.max(0, seats - humans); // bo'sh o'rinlarni boshlanganda botlar egallaydi
   const [now, setNow] = useState(Date.now()); useEffect(() => { if (!room.autoStartAt) return; const h = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(h); }, [room.autoStartAt]);
@@ -24,7 +25,9 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
     try { await Share.share({ message: `Tajriba 24: ${text}` }); } catch { /* bekor qilindi */ }
   };
   return (
-    <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={480}>
+    <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={wide ? 1040 : 480}>
+      <View style={wide ? { flexDirection: "row", gap: space.lg, alignItems: "flex-start" } : { gap: space.lg }}>
+      <View style={[{ gap: space.lg }, wide && { flex: 1 }]}>
       <View testID="lobby-code"><Card style={{ alignItems: "center", gap: space.md }}>
         <Text style={s.codeLabel}>{uz.home.code}</Text>
         <Text style={s.code} selectable accessibilityLabel={`${uz.home.code}: ${room.code.split("").join(" ")}`}>{room.code}</Text>
@@ -32,6 +35,11 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
         <View accessibilityLiveRegion="polite"><Text style={s.sr}>{copied ? uz.lobby.copied : ""}</Text></View>
       </Card></View>
 
+      {typeof room.turnSeconds === "number" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
+      {room.mode && room.mode !== "standard" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-mode"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.home.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[room.mode]}</Text> · {uz.home.modeHints[room.mode]}</Text></View> : null}
+      {room.calc ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-calc"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.ledger.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{room.calc.mode === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text></View> : null}
+      </View>
+      <View style={[{ gap: space.lg }, wide && { flex: 1.3 }]}>
       <Card>
         <View style={s.rowHead}><Text style={s.h2} aria-level={2} accessibilityRole="header">{uz.lobby.players}</Text><Pill label={`${humans}/${room.seats ?? MAX}`} kind={humans >= seats ? "good" : "warn"} /></View>
         {room.members.map((m, i) => {
@@ -52,9 +60,6 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
           <View key={`e${i}`} style={[s.player, s.empty]} aria-hidden><View style={[s.dot, { borderStyle: "dashed", borderColor: color.line, backgroundColor: "transparent" }]} /><Text style={s.emptyT}>{uz.lobby.waitingPlayer}</Text></View>))}
       </Card>
 
-      {typeof room.turnSeconds === "number" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
-      {room.mode && room.mode !== "standard" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-mode"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.home.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[room.mode]}</Text> · {uz.home.modeHints[room.mode]}</Text></View> : null}
-      {room.calc ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-calc"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.ledger.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{room.calc.mode === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text></View> : null}
       {autoLeft !== null && bots > 0 ? <Text style={s.emptyT} testID="lobby-auto" role="status">{uz.lobby.autoStart.replace("{s}", String(autoLeft))}</Text> : null}
       {room.seats ? <Text style={s.emptyT} testID="lobby-seats">{uz.lobby.slotsNote.replace("{n}", String(room.seats))}</Text> : null}
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
@@ -68,6 +73,8 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       )}
       {host ? <Button label={uz.lobby.start} onPress={() => onStart(events)} /> : <Banner kind="info">{uz.lobby.wait}</Banner>}
       {error && <Text style={{ color: color.red }} accessibilityRole="alert">{errText(error)}</Text>}
+      </View>
+      </View>
     </Screen>
   );
 }
