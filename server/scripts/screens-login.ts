@@ -17,7 +17,13 @@ let last = ""; const sms: SmsSender = { async send(_p, t) { last = /(\d{6})/.exe
 const x = buildApp({ authSecret: "s".repeat(40), otp: new OtpService({ secret: "s".repeat(40), sms }) }); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number, number][]) {
-  const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("tajriba24-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB);
+  { // ommaviy bosh sahifa: ko'rinadi, "O'yinni boshlash" kirish ekraniga olib boradi, gorizontal aylanish yo'q, axe
+    const c0 = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); const lp = await c0.newPage(); await lp.goto(WEB);
+    await lp.getByRole("button", { name: "O'yinni boshlash" }).first().waitFor({ timeout: 15000 }); await lp.screenshot({ path: `${OUT}/${tag}-landing.png`, fullPage: true }); await scan(lp, `bosh sahifa ${tag}`);
+    { const ov = await lp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); if (ov > 1) { total++; console.log(`GORIZONTAL AYLANISH bosh sahifa ${tag}: ${ov}`); } }
+    await lp.getByRole("button", { name: "O'yinni boshlash" }).first().click(); await lp.getByLabel("Telefon yoki Email").waitFor({ timeout: 8000 }); await c0.close();
+  }
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("tajriba24-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB + "/?kirish=1");
   await p.getByLabel("Telefon yoki Email").waitFor({ timeout: 15000 }); await p.screenshot({ path: `${OUT}/${tag}-login-1.png` }); await scan(p, `kirish ${tag}`);
   { const m = await p.evaluate(() => ({ sh: document.documentElement.scrollHeight, ih: window.innerHeight })); if (m.sh > m.ih + 1) { total++; console.log(`SIG'MAYDI kirish ${tag}: ${m.sh} > ${m.ih}`); } }
   // Google tugmasi (hali ulanmagan: aniq xabar) va ro'yxatdan o'tish tabi
@@ -31,7 +37,7 @@ for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number
   await p.screenshot({ path: `${OUT}/${tag}-login-3-home.png` });
 }
 { // ro'yxatdan o'tish: ism, raqam, yil, rozilik → kod → to'g'ridan-to'g'ri bosh sahifa (profil sahifasi chiqmaydi)
-  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("tajriba24-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB);
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }); await ctx.addInitScript(() => localStorage.setItem("tajriba24-tours-off", "1")); const p = await ctx.newPage(); await p.goto(WEB + "/?kirish=1");
   await p.getByRole("tab", { name: "Ro'yxatdan o'tish" }).click(); await p.getByLabel("Ismingiz").fill("Madina"); await p.getByLabel("Telefon yoki Email").fill("93 456 78 90"); await p.getByLabel("Tug'ilgan yil").fill("1999");
   const cta = p.getByRole("button", { name: "Ro'yxatdan o'tish" }).last(); if (!(await cta.isDisabled())) { total++; console.log("XATO: rozilik bermasdan tugma faol"); }
   await p.getByRole("checkbox", { name: /Foydalanish shartlari/ }).click(); await cta.click();
