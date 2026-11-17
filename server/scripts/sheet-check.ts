@@ -33,10 +33,10 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(t.includes("O'yinchi nomi:") && t.includes("Sizning orzuyingiz:") && !/Sizning orzuyingiz: —/.test(t), `${tag} orzu o'yin davomida ko'rinadi`);
   check(["TAPOiCh", "KCH", "ZA", "UTK", "GZ"].every((k) => t.includes(k)), `${tag} aksiya kodlari`);
   check((await a.getByTestId("sheet-months").innerText()) === "9 oy" && t.includes("Har bir katak — 1 yil"), `${tag} bosib o'tilgan vaqt: 9 oy, kataklar yillar`);
-  check(t.includes("Ikkinchi aylanaga o'tish uchun 1 000 000 sh.b. naqd pul yig'ish va har oylik pul oqimi 25 000 sh.b.ga ega bo'lish kerak."), `${tag} o'tish sharti matni blankdagidek`);
+  check(t.includes("Ikkinchi aylanaga o'tish uchun 1 000 000 so'm naqd pul yig'ish va har oylik pul oqimi 25 000 so'mga ega bo'lish kerak."), `${tag} o'tish sharti matni blankdagidek`);
   await a.screenshot({ path: `${OUT}/${tag}-1-kichik.png` });
   await a.getByTestId("sheet-tab-big").click(); await a.waitForTimeout(300); const t2 = await det.innerText();
-  check(t2.includes("Tajriba 24 | KATTA AYLANA") && t2.includes("BIZNESLARNING HISOBI") && t2.includes("100 000 sh.b.ga yetishi lozim"), `${tag} katta aylana varag'i`);
+  check(t2.includes("Tajriba 24 | KATTA AYLANA") && t2.includes("BIZNESLARNING HISOBI") && t2.includes("100 000 so'mga yetishi lozim"), `${tag} katta aylana varag'i`);
   check((await a.getByTestId("sheet-locked").innerText()) === "—", `${tag} kichik aylanada o'tgandagi pul oqimi «—»`);
   await a.screenshot({ path: `${OUT}/${tag}-2-katta.png` });
   await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ")"))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);

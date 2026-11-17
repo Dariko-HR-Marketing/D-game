@@ -53,7 +53,7 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
     <Head title={`Tajriba 24 | ${uz.sheet.small}`} sub={uz.sheet.smallSub} /><Meta d={d} />
     <View style={[wide && { flexDirection: "row", alignItems: "flex-start" }, { gap: space.md }]}><View style={wide ? { flex: 1 } : undefined}>{left}</View><View style={wide ? { flex: 1 } : undefined}>{right}</View></View>
     <View style={[wide && { flexDirection: "row", alignItems: "flex-start" }, { gap: space.md }]}><View style={wide ? { flex: 1 } : undefined}>{exp}</View><View style={wide ? { flex: 1 } : undefined}>{credits}</View></View>
-    <View style={s.goal}><Text style={s.goalT}>{uz.sheet.exitNote} {money(d.exit.cashGoal)} sh.b. {uz.sheet.exitNote2} {money(d.exit.flowGoal)} sh.b.{uz.sheet.exitNote3}</Text></View>
+    <View style={s.goal}><Text style={s.goalT}>{uz.sheet.exitNote} {money(d.exit.cashGoal)} so'm {uz.sheet.exitNote2} {money(d.exit.flowGoal)} so'm{uz.sheet.exitNote3}</Text></View>
   </View>);
 }
 
@@ -66,7 +66,7 @@ function BigSheet({ d }: { d: SheetBig }) {
       <View style={s.tr}><Text style={[s.th, { flex: 2 }]}>{uz.sheet.bizName}</Text><Text style={s.th}>{uz.sheet.bizValue}</Text><Text style={s.th}>{uz.sheet.bizIncome}</Text></View>
       {rows.map((b, i) => (<View key={i} style={s.tr}><Text style={[s.td, { flex: 2 }]}>{b?.title ?? ""}</Text><Text style={s.td}>{b ? money(b.price) : ""}</Text><Text style={s.td}>{b ? money(b.income) : ""}</Text></View>))}</Box>
     <Box style={{ alignSelf: "center", minWidth: 260 }}><Line tint bold l={uz.sheet.debtBig} v={money(d.debt)} kind={d.debt > 0 ? "bad" : undefined} /></Box>
-    <View style={s.goal}><Text style={s.goalT}>{uz.sheet.bigGoal} {money(d.flowGoal)} sh.b.{uz.sheet.bigGoal2}</Text></View>
+    <View style={s.goal}><Text style={s.goalT}>{uz.sheet.bigGoal} {money(d.flowGoal)} so'm{uz.sheet.bigGoal2}</Text></View>
   </View>);
 }
 
