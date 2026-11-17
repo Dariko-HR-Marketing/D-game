@@ -6,20 +6,20 @@ import { monthsText, splitMonths, MONTHS_PER_YEAR } from "../estimates";
 import { uz } from "../i18n/uz";
 import { color, font, HEADER_H, MIN_TAP, radius, space, tone } from "../theme";
 
-const PAPER = { head: "#1D3A52", fill: "#EAF1F4", line: "#B7C6CF" };
+const PAPER = { head: color.navy, fill: "#F4F7F8", line: "#DCE3E8" }; // prototip (Hisob varag'i): oq kartalar, to'q sarlavha, yengil chiziqlar
 const Head = ({ title, sub }: { title: string; sub: string }) => (<><View style={s.title}><Text style={s.titleT} aria-level={2} accessibilityRole="header">{title}</Text></View><Text style={s.sub}>{sub}</Text></>);
-const Cell = ({ l, v, flex = 1, strong }: { l: string; v?: string; flex?: number; strong?: boolean }) => (<View style={[s.cell, { flex }]}><Text style={[s.cl, strong && { fontWeight: "800" }]}>{l}</Text>{v !== undefined && <Text style={s.cv}>{v}</Text>}</View>);
+const Cell = ({ l, v, flex = 1, strong }: { l: string; v?: string; flex?: number; strong?: boolean }) => (<View style={[s.cell, { flex }]}><Text style={[s.cl, strong ? s.cMeta : null]}>{l}</Text>{v !== undefined && <Text style={[s.cv, strong ? s.cMetaV : null]}>{v}</Text>}</View>);
 const Box = ({ title, children, style }: { title?: string; children: React.ReactNode; style?: object }) => (<View style={[s.box, style]}>{title ? <View style={s.boxH}><Text style={s.boxHT} aria-level={3} accessibilityRole="header">{title}</Text></View> : null}{children}</View>);
 const Line = ({ l, v, bold, tint, kind, sub }: { l: string; v?: string; bold?: boolean; tint?: boolean; kind?: "good" | "bad"; sub?: string }) => (
-  <View style={[s.line, tint && { backgroundColor: PAPER.fill }]}><View style={{ flex: 2 }}><Text style={[s.ll, bold && { fontWeight: "800" }]}>{l}</Text>{sub ? <Text style={s.lsub} numberOfLines={2}>{sub}</Text> : null}</View><Text style={[s.lv, kind && { color: kind === "bad" ? tone.bad : tone.good }]}>{v ?? ""}</Text></View>);
+  <View style={[s.line, tint && { backgroundColor: "#fff" }]}><View style={{ flex: 2 }}><Text style={[s.ll, bold && { fontWeight: "800" }]}>{l}</Text>{sub ? <Text style={s.lsub} numberOfLines={2}>{sub}</Text> : null}</View><Text style={[s.lv, kind && { color: kind === "bad" ? tone.bad : tone.good }]}>{v ?? ""}</Text></View>);
 /** Bo'sh qatorlar ham ko'rinadi (qog'oz blank kabi): kamida `n` qator, ortiq bo'lsa hammasi. */
 function Slots({ label, rows, n }: { label: string; rows: IncomeLine[]; n: number }) {
   const all = Array.from({ length: Math.max(n, rows.length) }, (_, i) => rows[i]);
   return <>{all.map((r, i) => <Line key={i} l={label} sub={r?.title} v={r ? money(r.income) : ""} />)}</>;
 }
 const Meta = ({ d }: { d: { name: string; profession: string; dream: { name: string; price: number } | null } }) => (
-  <Box><View style={s.metaRow}><Cell l={`${uz.sheet.player}: ${d.name}`} flex={1.4} strong /><Cell l={`${uz.sheet.position}: ${d.profession || uz.sheet.none}`} strong /></View>
-    <View style={s.metaRow}><Cell l={`${uz.sheet.dream}: ${d.dream?.name ?? uz.sheet.none}`} flex={1.4} strong /><Cell l={`${uz.sheet.dreamPrice}: ${d.dream ? money(d.dream.price) : uz.sheet.none}`} strong /></View></Box>);
+  <Box><View style={s.metaRow}><Cell l={`${uz.sheet.player}:`} v={d.name} flex={1.4} strong /><Cell l={`${uz.sheet.position}:`} v={d.profession || uz.sheet.none} strong /></View>
+    <View style={s.metaRow}><Cell l={`${uz.sheet.dream}:`} v={d.dream?.name ?? uz.sheet.none} flex={1.4} strong /><Cell l={`${uz.sheet.dreamPrice}:`} v={d.dream ? money(d.dream.price) : uz.sheet.none} strong /></View></Box>);
 
 function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
   const { years, months: inYear } = splitMonths(d.months); const e = d.expenses, left = (
@@ -35,7 +35,7 @@ function SmallSheet({ d, wide }: { d: SheetSmall; wide: boolean }) {
       <View style={s.tr}><Text style={[s.th, { flex: 1.2 }]}>{uz.sheet.code}</Text><Text style={s.th}>{uz.sheet.count}</Text><Text style={[s.th, { flex: 1.4 }]}>{uz.sheet.buyPrice}</Text></View>
       {d.shares.map((r) => (<View key={r.code} style={s.tr}><Text style={[s.td, { flex: 1.2, fontWeight: "800" }]}>{r.code}</Text><Text style={s.td}>{r.count || ""}</Text><Text style={[s.td, { flex: 1.4 }]}>{r.count ? money(r.price) : ""}</Text></View>))}
       <Line tint bold l={uz.sheet.debts} v={money(d.debt)} kind={d.debt > 0 ? "bad" : undefined} /></Box>
-    <Text style={s.note}>{uz.sheet.debtNote}</Text></View>);
+    <View style={s.noteCard}><Text style={s.note}>{uz.sheet.debtNote}</Text></View></View>);
   const exp = (<Box title={uz.sheet.expensesTitle}>
     {e.lines.every((x) => x.value === null) ? <Line l={uz.sheet.baseExp} v={money(e.base)} /> : e.lines.map((x) => <Line key={x.key} l={uz.sheet.exp[x.key]} v={x.value === null ? "" : x.value === 0 ? uz.sheet.none : money(x.value)} />)}
     <Line l={`${uz.sheet.children}: ${e.children}`} v={e.children ? `${money(e.childCost)} × ${e.children} = ${money(e.childTotal)}` : money(0)} />
@@ -96,15 +96,15 @@ const s = StyleSheet.create({
   overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: color.bg, zIndex: 95 },
   bar: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.lg, backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, barT: { color: color.navy, fontWeight: "800", fontSize: font.xl },
   x: { width: MIN_TAP, height: MIN_TAP, alignItems: "center", justifyContent: "center" }, xT: { color: tone.muted, fontSize: font.xl, fontWeight: "800" },
-  tabs: { flexDirection: "row", gap: space.sm, padding: space.md, paddingBottom: 0, justifyContent: "center" },
-  tab: { minHeight: MIN_TAP, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: 1.5, borderColor: color.navy, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, tabOn: { backgroundColor: color.navy }, tabT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
+  tabs: { flexDirection: "row", alignSelf: "center", margin: space.md, marginBottom: 0, borderRadius: radius.pill, borderWidth: 1, borderColor: PAPER.line, backgroundColor: color.white, overflow: "hidden" },
+  tab: { minHeight: MIN_TAP, paddingHorizontal: space.xl, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, tabOn: { backgroundColor: color.navy }, tabT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
   body: { padding: space.lg, gap: space.md, width: "100%", alignSelf: "center", paddingBottom: space.xxl },
-  title: { backgroundColor: PAPER.head, borderRadius: 4, paddingHorizontal: space.lg, paddingVertical: space.md }, titleT: { color: "#fff", fontSize: font.xl, fontWeight: "800", letterSpacing: 0.5 }, sub: { color: color.text2, fontSize: font.sm },
-  box: { borderWidth: 1, borderColor: PAPER.line, backgroundColor: "#fff" }, boxH: { backgroundColor: PAPER.fill, paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: PAPER.line }, boxHT: { color: color.navy, fontWeight: "800", fontSize: font.md },
-  metaRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: PAPER.line }, cell: { padding: space.sm, paddingHorizontal: space.md, borderRightWidth: 1, borderRightColor: PAPER.line, minHeight: 36, justifyContent: "center" }, cl: { color: color.navy, fontSize: font.sm }, cv: { color: color.navy, fontWeight: "800", fontVariant: ["tabular-nums"] },
-  line: { flexDirection: "row", minHeight: 30, alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#DCE5EA" }, ll: { color: color.navy, fontSize: font.sm, paddingHorizontal: space.md, paddingVertical: 4 }, lv: { flex: 1, textAlign: "right", color: color.navy, fontWeight: "800", fontSize: font.sm, paddingHorizontal: space.md, borderLeftWidth: 1, borderLeftColor: PAPER.line, minHeight: 30, textAlignVertical: "center", paddingTop: 5, fontVariant: ["tabular-nums"] },
+  title: { paddingTop: space.xs }, titleT: { color: color.navy, fontSize: font.sm, fontWeight: "800", letterSpacing: 0.6 }, sub: { color: color.text2, fontSize: font.sm },
+  box: { borderWidth: 1, borderColor: PAPER.line, backgroundColor: "#fff", borderRadius: radius.lg, overflow: "hidden" }, boxH: { backgroundColor: PAPER.head, paddingHorizontal: space.md, paddingVertical: space.md }, boxHT: { color: "#fff", fontWeight: "800", fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase" },
+  metaRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: PAPER.line }, cell: { padding: space.md, paddingHorizontal: space.lg, borderRightWidth: 1, borderRightColor: PAPER.line, minHeight: 36, justifyContent: "center", gap: 2 }, cMeta: { fontSize: 12, color: color.text2, fontWeight: "600" }, cMetaV: { fontSize: font.md, fontWeight: "800" }, cl: { color: color.navy, fontSize: font.sm }, cv: { color: color.navy, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  line: { flexDirection: "row", minHeight: 30, alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, ll: { color: color.navy, fontSize: font.sm, paddingHorizontal: space.md, paddingVertical: 4 }, lv: { flex: 1, textAlign: "right", color: color.navy, fontWeight: "800", fontSize: font.sm, paddingHorizontal: space.md, borderLeftWidth: 1, borderLeftColor: PAPER.line, minHeight: 30, textAlignVertical: "center", paddingTop: 5, fontVariant: ["tabular-nums"] },
   lsub: { color: color.text2, fontSize: font.xs, paddingHorizontal: space.md, paddingBottom: 4 },
   tr: { flexDirection: "row", minHeight: 32, alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#DCE5EA" }, th: { flex: 1, backgroundColor: PAPER.fill, color: color.navy, fontWeight: "800", fontSize: font.sm, paddingHorizontal: space.sm, paddingVertical: 6 }, td: { flex: 1, color: color.navy, fontSize: font.sm, paddingHorizontal: space.sm, paddingVertical: 5, fontVariant: ["tabular-nums"] },
-  note: { color: color.text2, fontSize: font.xs, lineHeight: 17 }, months: { color: color.navy, fontSize: font.sm, marginBottom: 4 }, grid: { flexDirection: "row", flexWrap: "wrap", gap: 3 }, mc: { width: 18, height: 18, borderWidth: 1, borderColor: PAPER.line, backgroundColor: "#fff" },
-  goal: { backgroundColor: PAPER.fill, borderWidth: 1, borderColor: PAPER.line, padding: space.md }, goalT: { color: color.navy, fontWeight: "800", fontSize: font.sm, textAlign: "center", lineHeight: 20 }, lockRow: { flexDirection: "row", alignItems: "center", padding: space.md, gap: space.md },
+  note: { color: color.text2, fontSize: font.xs, lineHeight: 17 }, noteCard: { backgroundColor: "#fff", borderWidth: 1, borderColor: PAPER.line, borderRadius: radius.lg, padding: space.md }, months: { color: color.navy, fontSize: font.sm, marginBottom: 4 }, grid: { flexDirection: "row", flexWrap: "wrap", gap: 3 }, mc: { width: 18, height: 18, borderRadius: 4, borderWidth: 1, borderColor: PAPER.line, backgroundColor: "#fff" },
+  goal: { backgroundColor: color.navy, borderRadius: radius.lg, padding: space.lg }, goalT: { color: "#fff", fontWeight: "800", fontSize: font.md, textAlign: "center", lineHeight: 22 }, lockRow: { flexDirection: "row", alignItems: "center", padding: space.md, gap: space.md },
 });
