@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
-import { seatsFor, turnLabel, type GameMode, type TurnSeconds } from "../turnPref";
+import { seatsFor, turnLabel, calcUiEnabled, type CalcMode, type GameMode, type TurnSeconds } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
 import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 
@@ -15,7 +15,7 @@ const MODE_ICON: Record<GameMode, IconName> = { standard: "board", quick: "timer
 export type DesktopProps = {
   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
-  mode: GameMode; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
+  mode: GameMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
   pickMode: (m: GameMode) => void; pickCorp: () => void; pickSeats: (n: number) => void; pickTurn: (v: TurnSeconds) => void; setCode: (c: string) => void; setOrgCode: (c: string) => void;
   create: () => void; startTutorial: () => void; join: (c: string) => void; orgJoin: () => void;
   onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onTournaments?: () => void; onShop?: () => void; onClass?: () => void; resume: (c: string) => void;
@@ -110,6 +110,14 @@ export function HomeDesktop(p: DesktopProps) {
                     <Text style={s.modeH} aria-hidden>{v === 0 ? uz.home.turn0Hint : v === 60 ? uz.home.turn60Hint : uz.home.turn30Hint}</Text></Pressable>))}
               </View>
               {p.effTurn === 0 && <Text style={s.modeH} testID="turn0-hint">{uz.home.turn0Hint}</Text>}
+              {calcUiEnabled() && (<>
+                <StepTitle n={4} t={uz.ledger.modeLabel} />
+                <View style={s.speeds} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
+                  {(["manual", "auto"] as const).map((v) => (
+                    <Pressable key={v} role="radio" aria-checked={p.calc === v} accessibilityLabel={`${v === "manual" ? uz.ledger.manual : uz.ledger.auto}. ${v === "manual" ? uz.ledger.manualHint : uz.ledger.autoHint}`} onPress={() => p.pickCalc(v)} style={[s.speed, p.calc === v && s.speedOn]}>
+                      <Text style={s.modeN} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text><Text style={s.modeH} aria-hidden>{v === "manual" ? uz.ledger.manualHint : uz.ledger.autoHint}</Text></Pressable>))}
+                </View>
+              </>)}
             </>)}
           </View>
 
