@@ -83,7 +83,7 @@ Bu bitta fayl Claude Code'ga Tajriba 24 stol o'yinining onlayn versiyasini profe
 ## 6. Ko'p o'yinchi va real vaqt
 1. Xonalar 2–8 o'yinchi; kod bilan qo'shilish; 8/8 da rad etish va yangi xona taklifi.
 2. Server — holatning yagona manbai. Taymerlar serverda. Harakatlar ketma-ket, takrorlanmas.
-3. Oflayn o'yinchining navbatida taymer (§5.2) tugagach qaror avtomatik, 5 daqiqadan keyin avtopilot; qayta ulanganda holat to'liq tiklanadi; ixtiyoriy chiqish — alohida tasdiq va oqibat ogohlantirishi.
+3. Oflayn o'yinchining navbatida taymer (§5.2) tugagach qaror avtomatik, 2 daqiqadan keyin avtopilot (buyurtmachi qarori 2026-11-17, avval 5); qayta ulanganda holat to'liq tiklanadi; ixtiyoriy chiqish — alohida tasdiq va oqibat ogohlantirishi.
 4. Aylanalar bir-birini ko'rmaydi; butun maydon faqat orzu tanlashda ochiq; bozor kartalari hammaga.
 5. Botlar: odam yetmasa qo'shiladi; qarz va sheriklikda qatnashmaydi.
 6. Kubik va dekani aralashtirish serverda, tekshiriladigan tasodifiy manbadan; o'yin jurnali nizo uchun saqlanadi.

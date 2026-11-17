@@ -41,7 +41,7 @@ export const RULES = {
   // Taymer jadvali («Qoidalar» varag'i, buyurtmachi tasdig'i): qaror turiga qarab alohida; xona «sekin» bo'lsa hammasi ×2
   timerDiceSeconds: 10, timerMarketSeconds: 20, timerRentSeconds: 20, timerForcedPaySeconds: 60,
   autopilotAfter: 3,            // ketma-ket shuncha marta vaqt tugasa — avtopilot (qaytgach o'chadi, o'rin saqlanadi)
-  disconnectAutopilotMinutes: 5, // shuncha vaqt uzilgan o'yinchi avtopilotda (o'rni saqlanadi, qaytsa o'chadi)
+  disconnectAutopilotMinutes: 2, // (buyurtmachi qarori 2026-11-17: 5 → 2) shuncha vaqt uzilgan o'yinchi avtopilotda (o'rni saqlanadi, qaytsa o'chadi)
   dreamSeconds: 60, // orzu tanlash bosqichi (§6.4, N09): SPEC muddat aytmaydi — qaror (OPEN_QUESTIONS #61)
 } as const;
 

@@ -48,7 +48,7 @@ export function HistoryDetail({ http, code, onClose }: { http: Http; code: strin
       <ScrollView tabIndex={0} role="region" aria-label={uz.history.title} contentContainerStyle={[s.body, wide && { maxWidth: 900 }]}>
         <Text style={s.hint}>{uz.history.hint}</Text>
         <View style={s.tools}>
-          {[true, false].map((v) => <Pressable key={String(v)} accessibilityRole="button" aria-pressed={onlyMine === v} onPress={() => setOnlyMine(v)} style={[s.tab, onlyMine === v && s.tabOn]} testID={v ? "history-mine" : "history-all"}><Text style={[s.tabT, onlyMine === v && { color: color.white }]}>{v ? uz.history.mine : uz.history.all}</Text></Pressable>)}
+          <View style={s.seg} role="group">{[true, false].map((v) => <Pressable key={String(v)} accessibilityRole="button" aria-pressed={onlyMine === v} onPress={() => setOnlyMine(v)} style={[s.segB, onlyMine === v && s.tabOn]} testID={v ? "history-mine" : "history-all"}><Text style={[s.tabT, onlyMine === v && { color: color.white }]}>{v ? uz.history.mine : uz.history.all}</Text></Pressable>)}</View>
           <View style={{ flex: 1 }} />
           {h && <Pressable accessibilityRole="button" onPress={download} style={s.tab} testID="history-csv"><Text style={s.tabT}>{uz.history.csv}</Text></Pressable>}
         </View>
@@ -70,8 +70,9 @@ const s = StyleSheet.create({
   body: { padding: space.lg, gap: space.md, width: "100%", alignSelf: "center", paddingBottom: space.xxl },
   hint: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   tools: { flexDirection: "row", gap: space.sm, alignItems: "center", flexWrap: "wrap" },
-  tab: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1.5, borderColor: color.navy, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, tabOn: { backgroundColor: color.navy }, tabT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
-  row: { flexDirection: "row", gap: space.md, backgroundColor: color.white, borderRadius: radius.md, padding: space.md, borderWidth: 1, borderColor: "#E6ECEF" }, mine: { borderColor: color.green, borderWidth: 1.5 },
+  seg: { flexDirection: "row", borderRadius: radius.pill, borderWidth: 1, borderColor: "#DCE3E8", backgroundColor: color.white, overflow: "hidden" }, segB: { minHeight: MIN_TAP, paddingHorizontal: space.lg, alignItems: "center", justifyContent: "center", backgroundColor: color.white },
+  tab: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1, borderColor: "#DCE3E8", alignItems: "center", justifyContent: "center", backgroundColor: color.white }, tabOn: { backgroundColor: color.navy }, tabT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
+  row: { flexDirection: "row", gap: space.md, backgroundColor: color.white, borderRadius: radius.lg, padding: space.md, borderWidth: 1, borderColor: "#DCE3E8" }, mine: { borderColor: "#DCE3E8", backgroundColor: color.white },
   num: { width: 34, height: 34, borderRadius: 17, backgroundColor: surface.info, alignItems: "center", justifyContent: "center" }, numT: { color: color.navy, fontWeight: "800", fontSize: font.xs, fontVariant: ["tabular-nums"] },
   top: { flexDirection: "row", justifyContent: "space-between", gap: space.sm, flexWrap: "wrap" }, who: { color: color.navy, fontWeight: "900", fontSize: font.md }, statusRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 }, meta: { color: tone.muted, fontSize: font.xs },
   title: { color: color.navy, fontWeight: "800", fontSize: font.md }, why: { color: color.text2, fontSize: font.sm, lineHeight: 18 },

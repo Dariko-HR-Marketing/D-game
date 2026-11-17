@@ -131,7 +131,7 @@ export const uz = {
   hud: {
     group: { docs: "Hujjatlar va tarix", talk: "Aloqa va ovoz", help: "Yordam" },
     tabs: { field: "Maydon", blank: "Blank", players: "O'yinchilar", rules: "Qoidalar", nav: "O'yin bo'limlari" },
-    autopilot: { title: "Avtopilot yoqilgan", text: "Ketma-ket 3 marta vaqt tugagani uchun o'yin siz uchun avtomatik davom etmoqda (ixtiyoriy kartalar o'tkaziladi, har safar −2 ball). O'yinni o'zingiz davom ettirish uchun bosing.", back: "Men qaytdim", pill: "Avtopilot", others: "{name} avtopilotda" },
+    autopilot: { title: "Avtopilot yoqilgan", text: "Ketma-ket 3 marta vaqt tugagani yoki 2 daqiqa harakatsiz (yoki aloqasiz) qolganingiz uchun o'yin siz uchun avtomatik davom etmoqda (ixtiyoriy kartalar o'tkaziladi, har safar −2 ball). O'yinni o'zingiz davom ettirish uchun bosing.", back: "Men qaytdim", pill: "Avtopilot", others: "{name} avtopilotda" },
     badge: { myTurn: "navbat sizda: kubik yoki karta qarori kutilmoqda", urgent: "{n} ta javob kutilmoqda", info: "{n} ta yangilik", both: "{u} ta javob kutilmoqda, {i} ta yangilik" },
     smallCircle: "Kichik aylana", bigCircle: "Katta aylana", turnWord: "tur", toWin: "G'alabagacha", flowMonthly: "Oylik pul oqimi",
     hintSmall: "1 kubik · soat yo'nalishida", hintBig: "2 kubik · soat yo'nalishida", rollSmall: "Kubikni tashlash", rollBig: "Kubiklarni tashlash",
