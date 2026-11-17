@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Card } from "./kit";
 import { Button } from "./Button";
@@ -12,6 +12,7 @@ const L = uz.lesson;
 export function LessonCard({ data, onStart }: { data: ReportData; onStart: () => void }) {
   const me = data.me, d = me.decisions, made = d.accepted + d.skipped + d.auto + d.forced;
   const order = { warn: 0, good: 1, info: 2 } as const; // avval ehtiyot, so'ng yutuq, so'ng umumiy
+  const [saved, setSaved] = useState(false);
   const top = [...me.insights].sort((a, b) => order[a.level] - order[b.level]).slice(0, 3);
   return (
     <Card accent="green" label={L.title} style={{ gap: space.md }}>
@@ -25,6 +26,7 @@ export function LessonCard({ data, onStart }: { data: ReportData; onStart: () =>
         {top.length === 0 ? <Text style={s.p}>{L.empty}</Text> : top.map((i, k) => (
           <View key={i.key + k} style={s.lesson} role="listitem"><View style={s.num} aria-hidden><Text style={s.numT}>{k + 1}</Text></View><Text style={[s.p, { flex: 1, color: color.navy }]}>{insightText(i)}</Text></View>))}
         <Button label={L.start} onPress={onStart} />
+        {(globalThis as any).document ? <Button label={saved ? L.saved : L.save} kind="ghost" onPress={() => { const doc = (globalThis as any).document; const text = [L.title, L.heading.replace("{name}", me.name), "", `${L.cash}: ${money(me.final.cash)}`, `${L.passive}: ${money(me.final.passive)}`, `${L.decisions}: ${made}`, "", ...top.map((i, k) => `${k + 1}. ${insightText(i)}`)].join("\n"); const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" })); const a = doc.createElement("a"); a.href = url; a.download = "tajriba24-saboq.txt"; doc.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); setSaved(true); }} /> : null}
       </View>
     </Card>);
 }

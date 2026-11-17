@@ -176,7 +176,7 @@ export const uz = {
     player: "O'yinchi nomi", position: "Mansabi", dream: "Sizning orzuyingiz", dreamPrice: "Uning qiymati", none: "—",
     incomes: "DAROMADLAR", salary: "Ish haqi (aktiv)", realty: "Ko'chmas mulkdan daromad (passiv)", smallBiz: "Kichik biznesdan daromad (passiv)", bigBiz: "Katta biznesdan daromad (passiv)", other: "Boshqa aktivdan daromad (passiv)",
     active: "Aktiv daromad", passive: "Passiv daromad (cash flow)", total: "Umumiy daromad (aktiv + passiv)", expenses: "Umumiy xarajat", flow: "Har oylik pul oqimi",
-    shares: "AKSIYALAR", code: "Kod", count: "Soni", buyPrice: "Sotib olish narxi", debts: "QARZLAR:", debtNote: "Faqat «Xarajatlar» kartochkasi bo'yicha xaridlar qarzga yoziladi. Qarzingiz 10 000 sh.b.dan oshmasligi lozim. Agar qarzingiz bu summadan oshsa, boshqa kasbni tanlab o'yinni boshidan boshlang! Agar qarz va kreditlaringiz bo'lsa, ikkinchi aylanaga o'ta olmaysiz.",
+    shares: "AKSIYALAR", code: "Kod", count: "Soni", buyPrice: "Sotib olish narxi", debts: "QARZLAR:", debtNote: "Faqat «Xarajatlar» kartochkasi bo'yicha xaridlar qarzga yoziladi. Qarzingiz 10 000 so'mdan oshmasligi lozim. Agar qarzingiz bu summadan oshsa, boshqa kasbni tanlab o'yinni boshidan boshlang! Agar qarz va kreditlaringiz bo'lsa, ikkinchi aylanaga o'ta olmaysiz.",
     expensesTitle: "XARAJATLAR", exp: { flat: "Kvartira to'lovi", rent: "Uy ijarasi", flatCredit: "Kvartira uchun kredit", food: "Ovqatlanish xarajatlari", carCredit: "Avtomobil uchun to'lov", study: "O'qish xarajatlari", training: "Trening xarajatlari", phone: "Telefon xarajatlari", clothes: "Kiyim-kechakni yangilash xarajatlari", road: "Yo'l / yoqilg'i xarajatlari", tax: "Soliqni to'lash" } as Record<string, string>, baseExp: "Kasb kartasi bo'yicha xarajatlar", children: "Farzandlar soni", childExp: "Farzandlar xarajati", creditExp: "Kvartira, avtomobil va boshqa kreditlar to'lovi", bankExp: "Bank kreditlari to'lovi", lombExp: "Lombard to'lovi", extraExp: "Faol ta'sirlar (qo'shimcha)", qarExp: "Qarovga ketadigan xarajatlar",
     extraCredits: "Qo'shimcha olingan kreditlar", sumLombard: "Summa (lombard · rahn)", sumBank: "Summa (bank)", pledge: "Garovga mulk (lombard · rahn)", newCredits: "Yangi kreditlar uchun bir martalik haq (ustama)", payLombard: "Oylik to'lov (lombard · rahn)", payBank: "Oylik to'lov (bank)",
     months: "Bosib o'tilgan vaqt", yearCell: "Har bir katak — 1 yil (to'liq o'tgan yillar to'q yashil, joriy yil och yashil).", exitNote: "Ikkinchi aylanaga o'tish uchun", exitNote2: "naqd pul yig'ish va har oylik pul oqimi", exitNote3: "ga ega bo'lish kerak.",
@@ -319,7 +319,7 @@ export const uz = {
     none: "Qaytarib oladigan o'rin yo'q: hamma o'yinchi onlayn yoki o'yindan chiqqan. Uzilgan o'yinchi bir daqiqadan keyin oflayn bo'ladi — keyinroq qayta urinib ko'ring.",
     failed: "O'yinchilar ro'yxatini olib bo'lmadi", unnamed: "ismsiz o'yinchi",
   },
-  lesson: { title: "Saboq kartasi", badge: "O'quv o'yini yakunlandi", heading: "Zo'r boshlanish, {name}!", lead: "Siz birinchi o'yiningizda pul oqimini mashq qildingiz. Mana shu o'yindan chiqqan shaxsiy saboqlar — ularni haqiqiy hayotga olib chiqing.", cash: "Yakuniy naqd", passive: "Passiv daromad", decisions: "Qabul qilingan qarorlar", empty: "Bu o'yinda saboq chiqarish uchun ma'lumot yetarli emas. Yana bir o'yin o'ynab ko'ring.", start: "Haqiqiy o'yinni boshlash" },
+  lesson: { title: "Saboq kartasi", badge: "O'quv o'yini yakunlandi", heading: "Zo'r boshlanish, {name}!", lead: "Siz birinchi o'yiningizda pul oqimini mashq qildingiz. Mana shu o'yindan chiqqan shaxsiy saboqlar — ularni haqiqiy hayotga olib chiqing.", cash: "Yakuniy naqd", passive: "Passiv daromad", decisions: "Qabul qilingan qarorlar", empty: "Bu o'yinda saboq chiqarish uchun ma'lumot yetarli emas. Yana bir o'yin o'ynab ko'ring.", start: "Haqiqiy o'yinni boshlash", save: "Saboq kartasini saqlash", saved: "Saqlandi" },
   landing: {
     signIn: "Kirish", badge: "Moliyaviy savodxonlik o'yini", start: "O'yinni boshlash",
     lead: "Tajriba 24 — har bir yurish, karta va qaror o'yin tarixida qoladigan jamoaviy moliyaviy savodxonlik o'yini. Natijalar haqiqiy pul bilan emas, qarorlar bilan o'lchanadi.",
@@ -334,7 +334,7 @@ export const uz = {
     footer: "© Tajriba 24 · DARIKO ekotizimi o'yin brendi · tajriba24.uz",
   },
   coach: {
-    title: "O'quv o'yini", ok: "Tushundim",
+    title: "O'quv o'yini", ok: "Tushundim", skipAll: "Yo'riqnomani o'tkazib yuborish",
     steps: {
       start: "Bu sizning balansingiz: maosh minus xarajatlar — oylik pul oqimi. O'yindagi eng muhim raqam. Kubikni tashlab, yuring.",
       blank: "«Blank» — shaxsiy hisob varag'ingiz: daromad, xarajat, aktiv va passivlar, pul oqimi. Har qarordan keyin raqamlar shu yerda o'zgaradi.",
