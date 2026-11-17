@@ -344,6 +344,7 @@ export const uz = {
       expense: "Xarajat kartasi majburiy: pul yetmasa, qarzga yoziladi. Shuning uchun naqd pul zaxirasi kerak.",
       market: "Bozor! Aksiya narxi o'zgardi. «Moliya amallari» ichidagi taklifdan sotib, foydani ko'ring.",
       payday: "Daromad sektori — 1 oy o'tdi. Pul oqimingiz naqdingizga qo'shildi: biznes daromad qo'shgani uchun u kattaroq.",
+      panels: "Yuqoridagi bo'limlar: «Mening kartalarim» — aktivlaringiz va ulardan passiv daromad; «Hisob varag'i» — daromad, xarajat va pul oqimi; «Tarix» — har bir qaror va natijasi, xatoni shu yerdan topasiz; «Tahlil» — hamma o'yinchi va bozor holati; «Chat» — hurmat bilan yozishmalar (haqorat va havolalar cheklanadi).",
       goal: "Maqsad: passiv daromad {passive} ga, naqd {cash} ga yetsin va qarz qolmasin. Shunda kichik aylanadan chiqasiz. Tayyor bo'lsangiz — do'stlar bilan yoki reytingli o'yinda o'ynab ko'ring.",
     },
   },

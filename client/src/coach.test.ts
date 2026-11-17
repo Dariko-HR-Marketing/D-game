@@ -22,7 +22,8 @@ describe("o'quv o'yini yo'l-yo'rig'i", () => {
     expect(coachStep(room({ rolled: true, months: 2 }), "me", new Set(["payday"]))).toBe("goal");
     expect(coachStep(room({ rolled: true, months: 2 }), "me", new Set(["payday", "goal"]))).toBeNull();
     expect(coachStep(room(), "me", new Set(["start"]))).toBeNull();
-    expect(COACH_ORDER).toHaveLength(9);
+    expect(COACH_ORDER).toHaveLength(10);
+    expect(coachStep(room({ months: 1 }), "me", new Set(["start", "payday"]), "field")).toBe("panels"); expect(coachStep(room({ months: 1 }), "me", new Set(["start", "payday"]), "blank")).toBe("blank");
     expect(coachStep(room(), "me", new Set(["start"]), "blank")).toBe("blank"); expect(coachStep(room(), "me", new Set(["start", "blank"]), "players")).toBe("players"); expect(coachStep(room(), "me", new Set(["start", "blank"]), "field")).toBeNull();
   });
 });

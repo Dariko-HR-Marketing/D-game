@@ -2,8 +2,8 @@
 // tegishli voqea birinchi marta bo'lganda o'sha qadam matni ko'rsatiladi. Yangi hisob yo'q.
 import { marketOffers, me, isMyTurn } from "./model";
 
-export type CoachStep = "start" | "opportunity" | "shares" | "expense" | "market" | "payday" | "goal" | "blank" | "players";
-export const COACH_ORDER: CoachStep[] = ["start", "blank", "players", "opportunity", "shares", "expense", "market", "payday", "goal"];
+export type CoachStep = "start" | "opportunity" | "shares" | "expense" | "market" | "payday" | "goal" | "blank" | "players" | "panels";
+export const COACH_ORDER: CoachStep[] = ["start", "blank", "players", "opportunity", "shares", "expense", "market", "payday", "panels", "goal"];
 
 /** Hozir ko'rsatiladigan qadam (ko'rilmaganlardan birinchisi); `null` — hozir yo'q. */
 export function coachStep(room: any, userId: string, seen: ReadonlySet<string>, tab?: string): CoachStep | null {
@@ -21,6 +21,7 @@ export function coachStep(room: any, userId: string, seen: ReadonlySet<string>, 
     expense: last?.kind === "pay",
     market: marketOffers(room, userId).length > 0,
     payday: months >= 1,
+    panels: months >= 1 && tab === "field",
     goal: months >= 2,
   };
   for (const k of COACH_ORDER) if (cond[k] && !seen.has(k)) return k;
