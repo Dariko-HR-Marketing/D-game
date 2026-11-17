@@ -123,8 +123,8 @@ export function PortfolioDetail({ room, userId, onClose }: { room: any; userId: 
           <Cell label={uz.portfolio.sumPassive} value={sg(t.passive)} kind="good" /><Cell label={uz.portfolio.sumPayments} value={money(t.payments)} kind={t.payments ? "bad" : "neutral"} />
           <Cell label={uz.portfolio.sumNet} value={sg(t.netPassive)} kind={t.netPassive < 0 ? "bad" : "good"} />
           <Cell label={uz.portfolio.sumDebt} value={money(t.debt)} kind={t.debt ? "bad" : "neutral"} /><Cell label={uz.portfolio.sumLent} value={money(t.lent)} kind={t.lent ? "good" : "neutral"} />
-          <Cell label={uz.portfolio.sumWorth} value={money(t.netWorth)} note={uz.portfolio.worthNote} />
         </View>
+        <View style={[s.cell, s.worth]} role="group" accessible aria-label={`${uz.portfolio.sumWorth}: ${money(t.netWorth)}`} testID="portfolio-worth"><Text style={s.cellL} aria-hidden>{uz.portfolio.sumWorth}</Text><Text style={[s.cellV, { fontSize: 30, color: t.netWorth < 0 ? tone.bad : color.navy }]} aria-hidden>{money(t.netWorth)}</Text><Text style={s.cellN} aria-hidden>{uz.portfolio.worthNote}</Text></View>
 
         <Text style={s.sec} aria-level={2} accessibilityRole="header">{uz.portfolio.assets}</Text>
         {p.assets.length === 0 ? <Text style={s.muted}>{uz.portfolio.empty}</Text> : wide ? (
@@ -206,6 +206,7 @@ const s = StyleSheet.create({
   x: { width: MIN_TAP, height: MIN_TAP, alignItems: "center", justifyContent: "center" }, xT: { color: tone.muted, fontSize: font.xl, fontWeight: "800" },
   body: { padding: space.lg, gap: space.md, width: "100%", alignSelf: "center", paddingBottom: space.xxl },
   cells: { flexDirection: "row", flexWrap: "wrap", gap: space.sm }, cell: { flexGrow: 1, flexBasis: 150, backgroundColor: color.white, borderRadius: radius.md, borderWidth: 1, borderColor: "#E6ECEF", padding: space.md, gap: 2 },
+  worth: { flexGrow: 0, flexBasis: "auto", width: "100%", paddingVertical: space.lg, gap: 4 },
   cellL: { color: tone.muted, fontSize: 12, fontWeight: "700" }, cellV: { fontSize: font.xl, fontWeight: "900", fontVariant: ["tabular-nums"] }, cellN: { color: tone.muted, fontSize: 12, lineHeight: 15 },
   sec: { color: color.navy, fontWeight: "800", fontSize: font.lg, marginTop: space.sm },
   table: { backgroundColor: color.white, borderRadius: radius.md, borderWidth: 1, borderColor: "#E6ECEF", overflow: "hidden" },
