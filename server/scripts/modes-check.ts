@@ -20,7 +20,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("mode-tutorial").click(); check(await a.getByTestId("seats-8").count() === 1 && await a.getByTestId("seats-2").count() === 1, `${tag} o'quv: o'rinlar 2–8 (odatiy 3)`);
   await a.getByTestId("mode-standard").click(); check(await a.getByTestId("seats-8").count() === 1, `${tag} standart: 8 gacha`);
   // 2) Tez o'yin: xona va chiqish shartlari
-  await a.getByTestId("mode-quick").click(); await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByTestId("mode-quick").click(); await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.mode === "quick" && room.seats === 2, `${tag} serverda rejim «tez», o'rin 2`); check(await a.getByTestId("lobby-mode").count() === 1, `${tag} zalda rejim ko'rinadi`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
@@ -31,10 +31,10 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.context().close();
   // 2b) Yangi o'yinchi (o'yini yo'q): bosh sahifada «O'quv o'yini» taklifi
   const nw = await open("mdn" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada O'quv o'yini taklifi`);
-  await nw.getByTestId("home-tutorial").click(); await nw.waitForSelector("text=O'yinchilar"); const nc = (await nw.locator("[aria-label^='Xona kodi']").textContent())!.trim();
+  await nw.getByTestId("home-tutorial").click(); await nw.waitForSelector("[data-testid=lobby-code]"); const nc = (await nw.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   check(x.rooms.rooms.get(nc)?.mode === "tutorial", `${tag} taklif bosilsa o'quv xonasi ochiladi`); await nw.context().close();
   // 3) O'quv o'yini: 1 odam + 2 bot, qolgan vaqt va vaqt tugashi
-  const t = await open("mdt" + tag); await t.getByTestId("mode-tutorial").click(); await t.getByRole("button", { name: /^Yangi o'yin/ }).click(); await t.waitForSelector("text=O'yinchilar");
+  const t = await open("mdt" + tag); await t.getByTestId("mode-tutorial").click(); await t.getByRole("button", { name: /^Yangi o'yin/ }).click(); await t.waitForSelector("[data-testid=lobby-code]");
   const tc = (await t.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const tr = x.rooms.rooms.get(tc)!;
   await t.getByRole("button", { name: "O'yinni boshlash" }).click(); await t.waitForSelector("text=Orzuingizni tanlang"); await t.getByRole("button", { name: "Tanlash" }).first().click(); await t.waitForSelector("text=Naqd");
   check(tr.state!.players.length === 3 && tr.members.filter((m: any) => m.bot).length === 2, `${tag} o'quv: 1 odam + 2 bot`);

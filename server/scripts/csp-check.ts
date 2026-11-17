@@ -32,7 +32,7 @@ const pg = await c.newPage();
 pg.on("console", (msg) => { if (/Content Security Policy|violates the following/i.test(msg.text())) violations.push(msg.text().slice(0, 200)); });
 await pg.goto(WEB);
 await pg.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 }); check(true, "bosh sahifa CSP bilan ochildi (skript, uslub, shrift)");
-await pg.getByRole("button", { name: /^Yangi o'yin/ }).click(); await pg.waitForSelector("text=O'yinchilar", { timeout: 15000 }); check(true, "xona yaratildi (API fetch + WebSocket ruxsat etilgan)");
+await pg.getByRole("button", { name: /^Yangi o'yin/ }).click(); await pg.waitForSelector("[data-testid=lobby-code]", { timeout: 15000 }); check(true, "xona yaratildi (API fetch + WebSocket ruxsat etilgan)");
 await pg.getByRole("button", { name: "O'yinni boshlash" }).click(); await pg.waitForSelector("text=Orzuingizni tanlang", { timeout: 20000 }); check(true, "o'yin boshlandi, orzu tanlash ekrani chiqdi (WS holati)");
 await pg.waitForTimeout(500);
 const dom = await pg.evaluate(() => (window as any).__csp as string[]);

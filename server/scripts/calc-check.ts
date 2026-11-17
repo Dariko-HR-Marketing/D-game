@@ -19,7 +19,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const a = await mk("ca" + tag), c = await mk("cb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   check((await a.getByRole("radio", { name: /^O'zim hisoblayman/ }).getAttribute("aria-checked")) === "true", `${tag} standart rejim — «O'zim hisoblayman»`);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.calcMode === "manual", `${tag} server: xona hisob rejimi manual`); check((await a.getByTestId("lobby-calc").textContent())?.includes("O'zim hisoblayman") ?? false, `${tag} xonada rejim ko'rinadi`);
   await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");

@@ -21,7 +21,7 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   await a.getByRole("button", { name: "Qoidalar", exact: true }).first().click(); await a.waitForSelector("text=O'yin qoidalari"); await shot(a, "02-rules"); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Profil", exact: true }).first().click(); await a.getByLabel("Ism", { exact: true }).waitFor(); await shot(a, "03-profile"); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Reyting", exact: true }).first().click(); await a.waitForSelector("text=Reyting"); await shot(a, "04-board"); await a.getByRole("button", { name: "Orqaga" }).click();
-  await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
   await shot(a, "05-lobby");

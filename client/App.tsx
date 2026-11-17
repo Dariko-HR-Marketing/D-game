@@ -58,7 +58,7 @@ export default function App() {
   const auth = useMemo(() => makeAuth(httpBase(SERVER)), []);
   const [sess, setSess] = useState<Sess | null | undefined>(undefined); // undefined: yuklanmoqda
   const [loginErr, setLoginErr] = useState(false);
-  const [landing, setLanding] = useState(() => { try { const l = (globalThis as any).location; return !!l && !/[?&]kirish\b/.test(l.search ?? "") && l.pathname === "/" ? true : false; } catch { return false; } }); // ommaviy sahifa faqat veb'da, kirmagan mehmonga; `?kirish` — to'g'ridan-to'g'ri kirish
+  const [landing, setLanding] = useState(() => { try { const l = (globalThis as any).location; return !!l && !/[?&](kirish|kod)\b/.test(l.search ?? "") && l.pathname === "/" ? true : false; } catch { return false; } }); // ommaviy sahifa faqat veb'da, kirmagan mehmonga; `?kirish` — to'g'ridan-to'g'ri kirish
   useEffect(() => {
     let off = false;
     const saved = store.get("tajriba24-session") ?? sstore.get("tajriba24-session");
@@ -107,6 +107,9 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   // Sinov rejimi (token = qurilma identifikatori): boshlangan o'yinga kod bilan kirilsa-yu, bu qurilma o'yinchisi emas bo'lsa — o'z o'rnini qaytarib olish
   const devMode = session.token === session.userId; const [joinTry, setJoinTry] = useState<string | null>(null); const [claim, setClaim] = useState<string | null>(null);
   const tryJoin = (c: string) => { setJoinTry(c.trim().toUpperCase()); conn.join(c); };
+  useEffect(() => { // ulashilgan havola: `/?kod=ABC123` — kirgach xonaga o'zi qo'shiladi (bir marta)
+    if (st.status !== "online") return; try { const l = (globalThis as any).location; const m = l && /[?&]kod=([A-Za-z0-9]{6})/.exec(l.search ?? ""); if (!m) return; (globalThis as any).history?.replaceState?.(null, "", l.pathname); tryJoin(m[1]); } catch { /* havola yaroqsiz */ }
+  }, [st.status]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (st.error === "already_started" && devMode && joinTry && !room) setClaim(joinTry); }, [st.error, devMode, joinTry, room]);
   useEffect(() => { if (room) { setClaim(null); setJoinTry(null); } }, [room]);
   const claimSeat = (uid: string) => { store.set("tajriba24-dev-user", uid); store.set("tajriba24-autojoin", claim); (globalThis as any).location?.reload?.(); };

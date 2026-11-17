@@ -41,6 +41,6 @@ for (const [w, h] of [[390, 844], [1440, 900]] as [number, number][]) {
   await q.getByRole("button", { name: /^Sinf\./ }).click(); await q.waitForSelector("text=O'qituvchi paneli"); await scan(q, `o'qituvchi ${tag}`);
   await q.getByRole("button", { name: /^7-A/ }).click(); await q.waitForSelector("text=Sinf xonasi"); await scan(q, `sinf paneli ${tag}`);
   if (w > 600) continue; // xona bir marta ochiladi
-  await q.getByRole("button", { name: "Sinf xonasini ochish" }).click(); await q.waitForSelector("text=O'yinchilar"); await scan(q, `sinf xonasi lobi ${tag}`);
+  await q.getByRole("button", { name: "Sinf xonasini ochish" }).click(); await q.waitForSelector("[data-testid=lobby-code]"); await scan(q, `sinf xonasi lobi ${tag}`);
 }
 console.log(total ? `JAMI MUAMMO: ${total}` : "Hammasi toza"); await b.close(); await x.app.close(); process.exit(total ? 1 : 0);

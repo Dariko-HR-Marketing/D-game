@@ -79,3 +79,11 @@ describe("kutish zali: 60 soniyadan keyin avto-boshlash", () => {
     expect(rm.rooms.get(t.code)!.state).toBeNull();
   });
 });
+
+describe("kutish zali: hamma o'rin to'lsa o'zi boshlanadi", () => {
+  it("odam bilan to'lgach 5 soniyadan keyin boshlanadi; to'lmasa 60 soniyada botlar bilan", async () => {
+    const { c, rm } = mk(); rm.lobbyAutoMs = 60_000;
+    const a = rm.create("h1", undefined, 30, "auto", 2); if (!a.ok) throw 0; expect(rm.join(a.code, "x")).toEqual({ ok: true }); expect(rm.view(rm.rooms.get(a.code)!).autoStartAt).toBe(5_000);
+    await c.advance(6_000); const r = rm.rooms.get(a.code)!; expect(r.state).not.toBeNull(); expect(r.members.filter((m) => m.bot)).toHaveLength(0);
+  });
+});

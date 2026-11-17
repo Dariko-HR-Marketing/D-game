@@ -8,6 +8,7 @@ import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
 import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, type GameMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
+import { HomeDesktop } from "./HomeDesktop";
 import { uz, errText } from "../i18n/uz";
 import { color, font, radius, space, tone, MIN_TAP } from "../theme";
 import type { Http } from "../net/http";
@@ -37,6 +38,9 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
   const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  if (winW >= 1100) return <HomeDesktop me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} code={code} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
+    pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setCode={setCode} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
+    create={() => onCreate(effTurn, calc, seats, mode)} startTutorial={() => onCreate(turn === 0 ? 30 : turn, calc, 3, "tutorial")} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
