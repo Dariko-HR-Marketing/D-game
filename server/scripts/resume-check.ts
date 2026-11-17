@@ -16,11 +16,11 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const a = await c.newPage(); await a.goto(WEB);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   check((await a.getByTestId("home-resume").count()) === 0, `${tag} faol o'yin yo'q: «Davom etayotgan o'yin» ko'rinmaydi`);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await a.reload(); const r = a.getByTestId("home-resume"); await r.waitFor({ timeout: 15000 });
   check((await r.innerText()).includes(code), `${tag} yangilangandan keyin «Davom etayotgan o'yin» + kod ${code}`);
-  await r.click(); await a.waitForSelector("text=O'yinchilar", { timeout: 10000 });
+  await r.click(); await a.waitForSelector("[data-testid=lobby-code]", { timeout: 10000 });
   check((await a.locator("[aria-label^='Xona kodi']").textContent())!.trim() === code, `${tag} xonaga qaytildi`);
   await c.close();
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, Share, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, Share, Linking, StyleSheet, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill } from "./kit";
 import { Avatar } from "./Avatar";
@@ -8,7 +8,7 @@ import { Screen } from "./Screen";
 import { nameOf } from "../model";
 import { turnLabel } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
-import { color, font, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../theme";
+import { color, font, night, PLAYER_COLORS, radius, space, tone, GREEN_TEXT } from "../theme";
 import { readableOn } from "../contrast";
 import type { RoomView } from "../net/connection";
 
@@ -19,6 +19,10 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
   const humans = room.members.length, seats = room.seats ?? MIN, bots = Math.max(0, seats - humans); // bo'sh o'rinlarni boshlanganda botlar egallaydi
   const [now, setNow] = useState(Date.now()); useEffect(() => { if (!room.autoStartAt) return; const h = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(h); }, [room.autoStartAt]);
   const autoLeft = room.autoStartAt ? Math.max(0, Math.ceil((room.autoStartAt - now) / 1000)) : null;
+  const [linkCopied, setLinkCopied] = useState(false);
+  const link = `${(globalThis as any).location?.origin ?? "https://tajriba24.uz"}/?kod=${room.code}`;
+  const copyLink = async () => { try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); return; } } catch { /* pastga */ } try { await Share.share({ message: link }); } catch { /* bekor qilindi */ } };
+  const shareTelegram = () => { const u = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`Tajriba 24: ${uz.home.code} ${room.code}`)}`; const w = (globalThis as any).open; if (typeof w === "function") w(u, "_blank", "noopener"); else void Linking.openURL(u); };
   const copy = async () => {
     const text = room.code;
     try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
@@ -28,13 +32,25 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
     <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={wide ? 1040 : 480}>
       <View style={wide ? { flexDirection: "row", gap: space.lg, alignItems: "flex-start" } : { gap: space.lg }}>
       <View style={[{ gap: space.lg }, wide && { flex: 1 }]}>
-      <View testID="lobby-code"><Card style={{ alignItems: "center", gap: space.md }}>
-        <Text style={s.codeLabel}>{uz.home.code}</Text>
-        <Text style={s.code} selectable accessibilityLabel={`${uz.home.code}: ${room.code.split("").join(" ")}`}>{room.code}</Text>
-        <View style={{ alignSelf: "stretch" }}><Button label={copied ? uz.lobby.copied : uz.lobby.copy} kind="ghost" onPress={copy} /></View>
-        <View accessibilityLiveRegion="polite"><Text style={s.sr}>{copied ? uz.lobby.copied : ""}</Text></View>
-      </Card></View>
+      <View testID="lobby-code" style={s.codeCard}>
+        <Text style={s.codeLabelD}>{uz.home.code}</Text>
+        <View style={s.codeRow}>
+          <View accessible accessibilityLabel={`${uz.home.code}: ${room.code.split("").join(" ")}`} style={{ flexDirection: "row", gap: 14 }}><Text style={s.codeD} selectable>{room.code.slice(0, 4)}</Text>{room.code.length > 4 ? <Text style={s.codeD} selectable>{room.code.slice(4)}</Text> : null}</View>
+          <Pressable accessibilityRole="button" accessibilityLabel={copied ? uz.lobby.copied : uz.lobby.copy} onPress={copy} style={s.chipBtn}><Text style={s.chipBtnT}>{copied ? uz.lobby.copied : uz.lobby.copyShort}</Text></Pressable>
+        </View>
+        <View style={s.shareRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel={uz.lobby.telegram} onPress={shareTelegram} style={s.shareBtn} testID="lobby-telegram"><Icon name="chat" size={16} color={night.text} /><Text style={s.shareT}>{uz.lobby.telegram}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={linkCopied ? uz.lobby.copied : uz.lobby.copyLink} onPress={copyLink} style={s.shareBtn} testID="lobby-link"><Icon name="share" size={16} color={night.text} /><Text style={s.shareT}>{linkCopied ? uz.lobby.copied : uz.lobby.copyLink}</Text></Pressable>
+        </View>
+        <View accessibilityLiveRegion="polite"><Text style={s.sr}>{copied || linkCopied ? uz.lobby.copied : ""}</Text></View>
+      </View>
 
+      <View style={s.sumStrip} testID="lobby-summary">
+        <View><Text style={s.sumK}>{uz.lobby.sumType}</Text><Text style={s.sumV}>{uz.home.modes[room.mode ?? "standard"]}</Text></View>
+        <View><Text style={s.sumK}>{uz.lobby.sumPlayers}</Text><Text style={s.sumV}>{seats} {uz.lobby.sumKishi}</Text></View>
+        {typeof room.turnSeconds === "number" ? <View><Text style={s.sumK}>{uz.lobby.sumSpeed}</Text><Text style={s.sumV}>{turnLabel(room.turnSeconds)}</Text></View> : null}
+        <View><Text style={s.sumK}>{uz.lobby.sumDur}</Text><Text style={s.sumV}>{uz.home.desk.dur[room.mode ?? "standard"]}</Text></View>
+      </View>
       {typeof room.turnSeconds === "number" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-turn"><Icon name="clock" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.lobby.turnBadge}: <Text style={{ color: color.navy, fontWeight: "800" }}>{turnLabel(room.turnSeconds)}</Text></Text></View> : null}
       {room.mode && room.mode !== "standard" ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-mode"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.home.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[room.mode]}</Text> · {uz.home.modeHints[room.mode]}</Text></View> : null}
       {room.calc ? <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }} testID="lobby-calc"><Icon name="chart" size={18} color={tone.muted} /><Text style={s.emptyT}>{uz.ledger.modeLabel}: <Text style={{ color: color.navy, fontWeight: "800" }}>{room.calc.mode === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text></View> : null}
@@ -60,6 +76,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
           <View key={`e${i}`} style={[s.player, s.empty]} aria-hidden><View style={[s.dot, { borderStyle: "dashed", borderColor: color.line, backgroundColor: "transparent" }]} /><Text style={s.emptyT}>{uz.lobby.waitingPlayer}</Text></View>))}
       </Card>
 
+      {autoLeft !== null && bots === 0 ? <Text style={s.emptyT} testID="lobby-full" role="status">{uz.lobby.fullStart.replace("{s}", String(autoLeft))}</Text> : null}
       {autoLeft !== null && bots > 0 ? <Text style={s.emptyT} testID="lobby-auto" role="status">{uz.lobby.autoStart.replace("{s}", String(autoLeft))}</Text> : null}
       {room.seats ? <Text style={s.emptyT} testID="lobby-seats">{uz.lobby.slotsNote.replace("{n}", String(room.seats))}</Text> : null}
       {bots > 0 && <Banner kind="info">{uz.lobby.botsNote.replace("{n}", String(bots))}</Banner>}
@@ -71,7 +88,7 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
           </Pressable>
         </Card>
       )}
-      {host ? <Button label={uz.lobby.start} onPress={() => onStart(events)} /> : <Banner kind="info">{uz.lobby.wait}</Banner>}
+      {host ? <><Button label={uz.lobby.start} onPress={() => onStart(events)} />{bots > 0 ? <Text style={s.emptyT} testID="lobby-start-note">{uz.lobby.startNow.replace("{n}", String(bots))}</Text> : null}<Text style={s.emptyT}>{uz.lobby.startNote}</Text></> : <Banner kind="info">{uz.lobby.wait}</Banner>}
       {error && <Text style={{ color: color.red }} accessibilityRole="alert">{errText(error)}</Text>}
       </View>
       </View>
@@ -79,6 +96,10 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
   );
 }
 const s = StyleSheet.create({
+  codeCard: { backgroundColor: night.brand, borderRadius: radius.lg, padding: space.lg, gap: space.md }, codeLabelD: { color: night.muted, fontWeight: "800", fontSize: 12, letterSpacing: 0.8, textTransform: "uppercase" }, codeRow: { flexDirection: "row", alignItems: "center", gap: space.md, flexWrap: "wrap" },
+  codeD: { fontSize: 44, fontWeight: "800", letterSpacing: 6, color: "#fff" }, chipBtn: { backgroundColor: night.accent, borderRadius: radius.pill, paddingHorizontal: 14, minHeight: 44, justifyContent: "center" }, chipBtnT: { color: night.bg, fontWeight: "800", fontSize: font.sm },
+  shareRow: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" }, shareBtn: { flexGrow: 1, flexBasis: 150, minHeight: 44, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "center", borderRadius: radius.md, borderWidth: 1, borderColor: night.line, backgroundColor: "rgba(255,255,255,0.05)" }, shareT: { color: night.text, fontWeight: "700", fontSize: font.sm },
+  sumStrip: { flexDirection: "row", flexWrap: "wrap", gap: space.lg, backgroundColor: color.white, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", padding: space.lg }, sumK: { color: tone.muted, fontSize: 12, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase" }, sumV: { color: color.navy, fontWeight: "800", fontSize: font.md },
   codeLabel: { color: tone.muted, fontWeight: "700", fontSize: font.sm }, code: { fontSize: 44, fontWeight: "800", letterSpacing: 8, color: GREEN_TEXT }, sr: { height: 0, width: 0, opacity: 0 },
   rowHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, h2: { fontSize: font.lg, fontWeight: "800", color: color.navy },
   player: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48, borderTopWidth: 1, borderTopColor: color.line },

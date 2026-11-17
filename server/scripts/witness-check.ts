@@ -17,7 +17,7 @@ const SIZES: [string, number, number][] = [["tel-tik", 390, 844], ["kmp", 1440, 
 for (const [tag, w, h] of SIZES) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
   const ida = "wa" + tag, idg = "wg" + tag, idw = "ww" + tag; const a = await mk(ida), g = await mk(idg), wt = await mk(idw);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   for (const p of [g, wt]) { await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await p.getByRole("textbox").fill(code); await p.getByRole("button", { name: "Kirish", exact: true }).click(); await p.waitForSelector("text=Xona "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();

@@ -22,6 +22,18 @@ export function Landing({ onStart }: { onStart: () => void }) {
           <View style={s.trust} role="list">{L.trust.map((t) => <Text key={t} style={s.trustT} role="listitem">✓ {t}</Text>)}</View>
         </View>
 
+        <Section title={L.dayTitle} sub={L.daySub}>
+          <View style={s.sample} role="list" aria-label={L.dayTitle}>
+            <Text style={s.sampleTag}>{L.sample}</Text>
+            {L.day.map((r) => <View key={r.m + r.t} style={s.dayRow} role="listitem"><Text style={s.dayM}>{r.m}</Text><Text style={s.dayT}>{r.t}</Text></View>)}
+            <Text style={s.dayEnd}>{L.dayEnd}</Text>
+          </View>
+        </Section>
+
+        <Section title={L.profTitle} sub={L.profSub}>
+          <View style={[s.grid, wide && { flexDirection: "row" }]}>{L.prof.map((c) => <View key={c.t} style={s.tile}><Text style={s.sampleTag}>{L.sample}</Text><Text style={s.tileT} aria-level={3} accessibilityRole="header">{c.t}</Text>{c.rows.map(([k, v]) => <View key={k} style={s.dayRow}><Text style={s.tileD}>{k}</Text><Text style={s.dayT}>{v}</Text></View>)}</View>)}</View>
+        </Section>
+
         <Section title={L.cardsTitle} sub={L.cardsSub}>
           <View style={[s.grid, wide && { flexDirection: "row" }]}>{L.cards.map((c) => <Tile key={c.t} title={c.t} text={c.d} />)}</View>
         </Section>
@@ -53,5 +65,7 @@ const s = StyleSheet.create({
   sec: { gap: space.md }, grid: { gap: space.md }, tile: { flex: 1, gap: space.xs, padding: space.lg, borderRadius: radius.lg, backgroundColor: night.panel, borderWidth: 1, borderColor: night.lineSoft },
   tileT: { color: night.text, fontSize: font.md, fontWeight: "800" }, tileD: { color: night.muted, fontSize: font.sm, lineHeight: 21 },
   steps: { gap: space.md }, step: { flexDirection: "row", gap: space.md, alignItems: "flex-start" }, num: { width: 30, height: 30, borderRadius: 15, backgroundColor: night.accent, alignItems: "center", justifyContent: "center" }, numT: { color: night.bg, fontWeight: "800" },
+  sample: { gap: space.sm, padding: space.lg, borderRadius: radius.lg, backgroundColor: night.panel, borderWidth: 1, borderColor: night.lineSoft }, sampleTag: { color: night.accent, fontSize: 11, fontWeight: "800", letterSpacing: 0.8, textTransform: "uppercase" },
+  dayRow: { flexDirection: "row", justifyContent: "space-between", gap: space.md, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: night.lineSoft }, dayM: { color: night.accent, fontWeight: "800", width: 56 }, dayT: { color: night.text, flex: 1, fontSize: font.sm, lineHeight: 20 }, dayEnd: { color: night.muted, fontSize: font.sm, marginTop: space.xs },
   foot: { color: night.muted, fontSize: font.sm, textAlign: "center" },
 });

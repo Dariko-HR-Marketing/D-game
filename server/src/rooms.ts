@@ -10,6 +10,7 @@ export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => 
 
 export const MAX_PLAYERS = 8, MIN_PLAYERS = 2;
 export const DECISION_MS = RULES.cardDecisionSeconds * 1000;
+const FULL_START_MS = 5000; // hamma o'rin to'lgach o'yin shuncha millisekunddan keyin o'zi boshlanadi (egasi shu orada boshlay olishi mumkin)
 const AUTOPILOT_MS = 1500; // avtopilotdagi o'yinchi navbati: qaytgan o'yinchi «Men qaytdim» ni bosishga ulgursin
 /** Xona egasi xona ochganda tanlaydigan qaror vaqti (buyurtmachi qarori): 30 yoki 60 soniya. Hamkorlik takliflari muddati (§5.6) o'zgarmaydi. */
 /** Hisob daftari (o'quv rejimi): o'yinchi pul o'zgarishini o'zi hisoblab kiritadi, server tekshiradi. «auto» — hisob avtomatik (SPEC: blank «avtomatik» / «o'zim to'ldiraman»). */
@@ -184,6 +185,16 @@ export class RoomManager {
     this.lobbyTimers.set(code, { h, at });
   }
 
+  /** Hamma o'rin odam bilan to'lsa (kutish zali, buyurtmachi prototipi: «hamma qo'shilgach o'zi boshlanadi») — qisqa pauzadan keyin o'yin o'zi boshlanadi. */
+  private armFull(r: Room) {
+    if (r.tag || this.lobbyAutoMs <= 0 || r.seats === undefined || r.state) return;
+    if (r.members.filter((m) => !m.bot).length < r.seats) return;
+    const prev = this.lobbyTimers.get(r.code); if (prev) this.clock.clearTimeout(prev.h);
+    const at = this.clock.now() + FULL_START_MS, code = r.code;
+    const h = this.clock.setTimeout(() => { this.lobbyTimers.delete(code); const x = this.rooms.get(code); if (!x || x.state || x.closed) return; const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; void this.start(code, x.hostId, seed).then((o) => { if (!o.ok) this.emit(x); }); }, FULL_START_MS);
+    this.lobbyTimers.set(code, { h, at });
+  }
+
   join(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
     const r = this.rooms.get(code.toUpperCase());
     if (!r) return { ok: false, error: "room_not_found" };
@@ -194,6 +205,7 @@ export class RoomManager {
     if (r.members.length >= (r.seats ?? MAX_PLAYERS) || r.members.filter((m) => !m.bot).length >= (MODES[r.mode].maxHumans ?? Infinity)) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
     r.members.push({ userId, bot: false, online: true });
     this.activeRoomOf.set(userId, r.code); this.saveLobby(r);
+    this.armFull(r);
     this.emit(r);
     return { ok: true };
   }

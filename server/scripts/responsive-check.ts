@@ -59,7 +59,7 @@ for (const [w, h] of SIZES) {
     for (const [name, wait, shot] of [["Qoidalar", "text=O'yin qoidalari", "02-rules"], ["Profil", "text=Ism", "03-profile"], ["Reyting", "text=Reyting", "04-board"]] as const) {
       const btn = a.getByRole("button", { name, exact: true }).first(); if (!(await btn.count())) continue; await btn.click(); await a.waitForSelector(wait, { timeout: 8000 }).catch(() => {}); await check(a, shot); await a.getByRole("button", { name: "Orqaga" }).click();
     }
-    await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+    await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
     const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
     await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
     await check(a, "05-lobby");

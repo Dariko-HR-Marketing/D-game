@@ -18,7 +18,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     const a = await c.newPage(); await a.goto(WEB); await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
     if (tag === "tel") { const o = a.getByTestId("home-opts"); if (await o.count()) await o.click(); }
     await a.getByTestId(`seats-${seats}`).click(); check((await a.getByTestId(`seats-${seats}`).getAttribute("aria-checked")) === "true", `${tag}/${seats} tanlov belgilandi`);
-    await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
+    await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
     const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
     check(room.seats === seats, `${tag}/${seats} serverda o'rinlar soni ${room.seats}`);
     const lt = await a.locator("body").innerText(); check(lt.includes(`1/${seats}`), `${tag}/${seats} zalda «1/${seats}» ko'rinadi`);
