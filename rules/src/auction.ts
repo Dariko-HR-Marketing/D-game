@@ -138,7 +138,7 @@ export function startAuction(s: GameState) {
     const o = s.players[idx(s, d.pid)]; const ids = lotIdx(o, d.kind, d.loanIdx);
     const l = d.kind === "lombard" ? (o.lombards ?? [])[d.loanIdx] : o.bankLoans[d.loanIdx];
     const due = d.kind === "lombard" ? lombardPayoff(l) : bankLoanPayoff(l);
-    const lot = ids.map((i) => ({ code: o.assets[i].code, kind: o.assets[i].kind, price: o.assets[i].price, cardId: o.assets[i].cardId, credit: o.assets[i].credit }));
+    const lot = ids.map((i) => ({ code: o.assets[i].code, kind: o.assets[i].kind, price: o.assets[i].price, cardId: o.assets[i].cardId, credit: o.assets[i].credit, income: o.assets[i].monthlyIncome }));
     if (lot.length === 0) { // garov topilmadi (kutilmagan): majburiyat egasining qarziga o'tadi
       const oo = { ...o }; const pay = Math.min(Math.max(0, oo.cash), due); oo.cash -= pay; oo.owe = (oo.owe ?? 0) + (due - pay);
       if (d.kind === "lombard") oo.lombards = (oo.lombards ?? []).filter((_, n) => n !== d.loanIdx); else { oo.bankLoans = oo.bankLoans.filter((_, n) => n !== d.loanIdx); oo.bankDebt = oo.bankLoans.reduce((t, x) => t + bankLoanDebt(x), 0); }
@@ -164,7 +164,7 @@ function listOwn(s: GameState, a: Extract<AuctionAction, { type: "auction_list" 
   if ((s.relist?.[relistKey(o.id, x.code, x.price)] ?? 0) > s.round) return { ok: false, error: "relist_wait" };
   const start = Math.ceil((x.price * a.pct) / 100 / RULES.auctionBidStep) * RULES.auctionBidStep;
   const au: Auction = { id: (s.nextAuction = (s.nextAuction ?? 0) + 1), format: "ixtiyoriy", owner: o.id, circle: o.circle, kind: "own", loanIdx: -1,
-    lot: [{ code: x.code, kind: x.kind, price: x.price, cardId: x.cardId, credit: x.credit }], due: 0, credits: x.credit, start, step: RULES.auctionBidStep, phase: "open", best: null, bids: 0, passed: [], checked: true };
+    lot: [{ code: x.code, kind: x.kind, price: x.price, cardId: x.cardId, credit: x.credit, income: (x as { monthlyIncome?: number; income?: number }).monthlyIncome ?? (x as { income?: number }).income }], due: 0, credits: x.credit, start, step: RULES.auctionBidStep, phase: "open", best: null, bids: 0, passed: [], checked: true };
   if (eligibleBidders(s, au) < RULES.auctionMinBidders) { s.nextAuction = (s.nextAuction ?? 1) - 1; return { ok: false, error: "few_bidders" }; }
   s.auction = au; logf(s, `${o.id}: ${x.code} ni ixtiyoriy auksionga qo'ydi (${a.pct} % = ${start})`); return { ok: true };
 }

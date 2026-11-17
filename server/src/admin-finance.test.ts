@@ -65,7 +65,7 @@ describe("katalog, narx tarixi va funksiya bayroqlari", () => {
     expect((await s.j("POST", "/admin/flags", s.A, { salesPaused: true, reason: "provayder ishlamayapti" })).json().flags.salesPaused).toBe(true);
     const o = await s.j("POST", "/shop/order", "u1", { sku: "plus:monthly" }); expect(o.statusCode).toBe(503); expect(o.json().error).toBe("sales_paused");
     await s.j("POST", "/admin/flags", s.A, { salesPaused: false, maintenance: true, maintenanceText: "20:00 da qayta ishga tushadi", reason: "yangilanish" });
-    expect((await s.x.app.inject({ method: "GET", url: "/status" })).json()).toMatchObject({ maintenance: true, text: "20:00 da qayta ishga tushadi" });
+    expect((await s.x.app.inject({ method: "GET", url: "/status" })).json()).toMatchObject({ maintenance: true, text: "20:00 da qayta ishga tushadi", build: expect.any(String) });
     expect((await s.j("GET", "/admin/shop/config-log", s.A)).json().log.some((l: any) => l.what === "flags")).toBe(true);
   });
 });

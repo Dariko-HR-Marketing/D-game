@@ -370,6 +370,7 @@ export const uz = {
       { t: "Chat va qoidalar", d: "Chatda hurmat bilan yozing. Qoidalar bo'limida kataklar, bank va g'alaba sharti bor. Tayyor bo'lsangiz — do'stlar bilan o'ynab ko'ring." },
     ] as { t: string; d: string; hint?: string }[],
   },
+  update: { text: "Yangi versiya chiqdi.", action: "Yangilash", label: "Yangi versiya chiqdi. Yangilash" },
   coach: {
     title: "O'quv o'yini", ok: "Tushundim", skipAll: "Yo'riqnomani o'tkazib yuborish",
     steps: {
@@ -407,6 +408,7 @@ export const uz = {
     market: "Bozor taklifi", sell: "Sotish", sellFor: "Sotish narxi", net: "Kreditdan keyin qoladi", debts: "Hamkorlik qarzlari", repay: "To'lash", sec: "soniya", shares: "Aksiya soni",
   },
   auction: {
+    d: { price: "Narxi", income: "Oylik daromad", credit: "Kredit (qarz qoldig'i)", yearly: "Yillik daromad", payback: "Qoplanish", minBid: "Eng kam taklif", step: "Taklif qadami" },
     formats: { majburiy: "Majburiy auksion", ixtiyoriy: "Ixtiyoriy auksion", bozor: "Bozor auksioni" },
     titleVoluntary: "{name} mulkini auksionga qo'ydi", titleMarket: "{name} kartani ola olmadi: karta bozor auksioniga chiqdi",
     notes: { majburiy: "Boshlang'ich narx — mulkning o'z narxi. Bank faqat o'z qarzini va haqini oladi, ortiqcha summa mulk egasiga qaytariladi.", ixtiyoriy: "Boshlang'ich narxni egasi o'zi belgilagan. Butun summa mulk egasiga tushadi (mulkning o'z krediti bo'lsa, u avval yopiladi).", bozor: "Karta to'liq narxdan sotiladi. Pul bankka ketadi. To'lov faqat naqd." },
