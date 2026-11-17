@@ -50,10 +50,10 @@ export function publicState(st: GameState | null) {
   return { ...rest, deckCounts: Object.fromEntries(Object.entries(decks).map(([k, d]) => [k, { draw: d.draw.length, discard: d.discard.length }])) };
 }
 /** Aktiv kodi → asl karta (matn, rasm, tur): «Mening kartalarim» ro'yxati uchun. Kontekst bo'yicha bir marta quriladi. */
-export interface AssetCard { text: string; file: string; asset?: string }
+export interface AssetCard { text: string; file: string; asset?: string; income?: number }
 const codeIndex = new WeakMap<Ctx, Map<string, AssetCard>>();
 function assetCardOf(ctx: Ctx, code: string, cardId?: string): AssetCard | undefined {
-  const ce = cardId ? ctx.effects[cardId] : undefined; if (ce) { const e: any = ce.effect; if (e?.kind === "buy" || e?.kind === "buyShares" || e?.kind === "gamble") return { text: ce.text ?? "", file: ce.file, asset: e.asset }; } // aniq karta (aktiv shu kartadan sotib olingan)
+  const ce = cardId ? ctx.effects[cardId] : undefined; if (ce) { const e: any = ce.effect; if (e?.kind === "buy" || e?.kind === "buyShares" || e?.kind === "gamble") return { text: ce.text ?? "", file: ce.file, asset: e.asset, ...(typeof e.monthlyIncome === "number" ? { income: e.monthlyIncome } : {}) }; } // aniq karta (aktiv shu kartadan sotib olingan)
   let m = codeIndex.get(ctx);
   if (!m) {
     m = new Map();

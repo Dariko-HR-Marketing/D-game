@@ -40,6 +40,7 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 /** Tasdiqlash so'zi: apostrof variantlari (’ ʻ ʼ ‘ `) va registr farqi hisobga olinmaydi (telefon klaviaturalari) */
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
+const BUILD_ID = process.env.BUILD_ID ?? new Date().toISOString();
 export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments; ops?: Ops; accounts?: AdminAccounts } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
@@ -338,7 +339,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   const ageOf = (uid: string) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; };
   registerBiz({ app, edu, tournaments, ops, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
   app.addHook("onResponse", async (req, rep) => { if (rep.statusCode >= 500) ops.logError(`${req.method} ${req.routeOptions?.url ?? req.url}`, `HTTP ${rep.statusCode}`); });
-  app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "" }; });
+  app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "", build: BUILD_ID }; }); // `build`: server ishga tushgan vaqt (har deploy'da yangilanadi) — ochiq mijoz yangi versiya chiqqanini shundan biladi
   const ready = Promise.all([phones.load(), consents.load(), commerce.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
     for (const b of ops.bans.values()) if (b.until) adminState.banUntil.set(b.id, b.until);
     for (const c of ops.cleared.values()) profiles.cleared.add(c.id);

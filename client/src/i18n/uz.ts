@@ -370,6 +370,7 @@ export const uz = {
       { t: "Chat va qoidalar", d: "Chatda hurmat bilan yozing. Qoidalar bo'limida kataklar, bank va g'alaba sharti bor. Tayyor bo'lsangiz — do'stlar bilan o'ynab ko'ring." },
     ] as { t: string; d: string; hint?: string }[],
   },
+  update: { text: "Yangi versiya chiqdi.", action: "Yangilash", label: "Yangi versiya chiqdi. Yangilash" },
   coach: {
     title: "O'quv o'yini", ok: "Tushundim", skipAll: "Yo'riqnomani o'tkazib yuborish",
     steps: {

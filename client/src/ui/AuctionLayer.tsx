@@ -39,7 +39,7 @@ export function AuctionLayer({ room, userId, onAct }: { room: RoomView; userId: 
           <Text style={s.kicker} aria-level={2} accessibilityRole="header">{kicker}</Text>
           <Text style={s.h}>{title}</Text>
           <View style={s.lot} testID="auction-lot">
-            {a.lot.map((x, i) => { const c = (room as any).assetCards?.[x.cardId ?? x.code] ?? (room as any).assetCards?.[x.code]; const title = c?.text?.split(/[.!?\n]/)[0]?.trim() || x.code; const inc = typeof x.income === "number" ? x.income : null;
+            {a.lot.map((x, i) => { const c = (room as any).assetCards?.[x.cardId ?? x.code] ?? (room as any).assetCards?.[x.code]; const title = c?.text?.split(/[.!?\n]/)[0]?.trim() || x.code; const ownerAsset = st?.players?.find((p: any) => p.id === a.owner)?.assets?.find((as: any) => as.code === x.code && (as.cardId ?? "") === (x.cardId ?? "")); const inc = typeof x.income === "number" ? x.income : typeof ownerAsset?.monthlyIncome === "number" ? ownerAsset.monthlyIncome : typeof c?.income === "number" ? c.income : null; // eski (deploydan oldin boshlangan) auksionlarda lotda daromad yo'q: egasining aktividan yoki kartadan olinadi
               const yearly = inc && x.price > 0 ? Math.round((inc * 12 * 1000) / x.price) / 10 : null, payback = inc && x.price > 0 ? Math.ceil(x.price / inc) : null;
               return (
                 <View key={i} style={s.item} role="group" accessible aria-label={`${title}. ${kindLabel(x.kind, c?.asset)}. ${uz.auction.d.price} ${money(x.price)}${inc !== null ? `. ${uz.auction.d.income} ${money(inc)}` : ""}`} testID="auction-item">

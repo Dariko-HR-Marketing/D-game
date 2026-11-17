@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useFonts, Manrope_400Regular, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
 import { Connection, ConnState } from "./src/net/connection";
@@ -93,6 +93,9 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const http = useMemo(() => { setAvatarBase(httpBase(SERVER)); return makeHttp(httpBase(SERVER), session.token); }, [session.token]);
   const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments">("home");
   const [rulesOpen, setRulesOpen] = useState(false); // o'yin davomida ham ochiladi
+  // Yangi versiya: server har deploy'da yangi `build` beradi; ochiq (o'ynab turgan) mijoz buni ko'rsa «Yangilash» taklif qiladi (o'yin saqlanadi, qayta yuklagach holat tiklanadi)
+  const [stale, setStale] = useState(false);
+  useEffect(() => { let first: string | null = null; let off = false; const tick = () => { http.status().then((r: any) => { if (off || !r?.build) return; if (first === null) first = r.build; else if (r.build !== first) setStale(true); }).catch(() => {}); }; tick(); const h = setInterval(tick, 45_000); return () => { off = true; clearInterval(h); }; }, [http]);
   useEffect(() => { const un = conn.subscribe(paced(setSt)); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
   useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "Tajriba 24"; } }, []);
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
@@ -129,6 +132,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
       <ConnBanner st={st} />
+      {stale && (<Pressable accessibilityRole="button" accessibilityLabel={uz.update.label} onPress={() => { try { (globalThis as any).location.reload(); } catch { /* mahalliy ilova */ } }} style={{ backgroundColor: night.brand, paddingVertical: 10, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 44 }} testID="update-banner"><Text style={{ color: night.text, fontWeight: "800" }}>{uz.update.text}</Text><Text style={{ color: night.accent, fontWeight: "800", textDecorationLine: "underline" }}>{uz.update.action}</Text></Pressable>)}
       <View role="main" style={{ flex: 1 }}><Later>
       {hasProfile === null && !room ? null : gated ? <NameGate http={http} initial={signupProfile()} onDone={() => { store.set("tajriba24-signup-profile", null); setHasProfile(true); }} />
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
