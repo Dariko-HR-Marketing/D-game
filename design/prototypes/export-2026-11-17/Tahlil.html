@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — Jonli tahlil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#082238;--green:#11835A;--green-d:#0E6B4A;--gold:#F2B233;--red:#9E2A30;--blue:#2C6DB5;--purple:#7B4FA3;--muted:#4A5B6C;--bg:#F4F7F8;--line:#DCE3E8}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;margin:0;background:var(--bg);color:var(--navy);min-width:1180px}
+h1,h2,h3,p{margin:0}
+.gbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 24px}
+.gbar b{font-weight:800;font-size:15px}
+.crumb{color:var(--muted);font-size:13px}
+.wrap{max-width:1300px;margin:0 auto;padding:30px 36px 70px}
+h1.t{font-size:26px;font-weight:800;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13.5px;line-height:1.5;max-width:800px}
+
+.statrow{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:20px 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat span{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:5px}
+.stat b{font-size:19px;font-weight:800}
+
+.playerrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
+.pchip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.pchip.me{border:2px solid var(--green)}
+.dotc{width:10px;height:10px;border-radius:50%;flex:none}
+.pchip b{font-size:13.5px;display:block}
+.pchip small{color:var(--muted);font-size:11.5px}
+
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;color:var(--muted)}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.secwrap{border:2px dashed var(--line);border-radius:18px;padding:22px;margin-bottom:28px;background:rgba(255,255,255,.4)}
+.secwrap h2.sh{font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.secwrap h2.sh em{font-style:normal;background:var(--navy);color:#fff;border-radius:999px;font-size:10.5px;padding:3px 10px}
+
+.panels2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.panel h3{font-size:14.5px;font-weight:800;margin-bottom:12px}
+.barrow{display:grid;grid-template-columns:110px 1fr 46px;gap:10px;align-items:center;margin-bottom:9px;font-size:12.5px}
+.barrow .bg{height:8px;border-radius:99px;background:#eef2f4;overflow:hidden}
+.barrow .bg i{display:block;height:100%}
+
+table.mini{width:100%;border-collapse:collapse;font-size:12.5px}
+table.mini th{text-align:left;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.mini td{padding:7px 8px;border-bottom:1px solid var(--line)}
+table.mini tr:last-child td{border-bottom:0}
+.okpill{background:var(--green-l,#E7F4EE);color:var(--green-d);font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 9px}
+.warnpill{background:#FFF6DD;color:#8a6200;font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 9px}
+
+.statrow2{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.statrow2 .stat b{font-size:17px}
+
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.subtabs button{border:1px solid var(--line);background:#f4f7f8;border-radius:10px;padding:7px 13px;font-size:12px;font-weight:700;color:var(--muted)}
+.subtabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.footnote{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+.footnote b{color:var(--navy)}
+</style>
+</head>
+<body>
+
+<div>
+  <div class="gbar"><b>Tajriba 24</b><span class="crumb">O'yin ekrani / Tahlil</span></div>
+  <div class="wrap">
+    <h1 class="t">Jonli tahlil</h1>
+    <p class="sub">O'yin davomida har bir o'yinchi va bozor holati. Hamma o'yinchi ko'ra oladi. Raqamlar o'yin jurnalidan hisoblanadi va har harakatdan keyin yangilanadi. Eslatma: raqamlar namuna sifatida berilgan.</p>
+
+    <div class="statrow">
+      <div class="stat"><span>O'yinchi</span><b>4</b></div>
+      <div class="stat"><span>O'rtacha oylik pul oqimi</span><b>303</b></div>
+      <div class="stat"><span>Katta aylanada</span><b>0 / 4</b></div>
+      <div class="stat"><span>Birinchi o'rin</span><b>Bot 3</b></div>
+      <div class="stat"><span>Bozor holati</span><b>Odatdagi</b></div>
+      <div class="stat"><span>O'yin oylari</span><b>4</b></div>
+    </div>
+
+    <div class="playerrow">
+      <div class="pchip"><span class="dotc" style="background:var(--purple)"></span><div><b>1. Bot 3 <small style="color:var(--muted)">Kichik</small></b><small>Pul oqimi 220</small></div></div>
+      <div class="pchip"><span class="dotc" style="background:var(--green)"></span><div><b>2. Bot 2 <small style="color:var(--muted)">Kichik</small></b><small>Pul oqimi 150</small></div></div>
+      <div class="pchip me"><span class="dotc" style="background:var(--blue)"></span><div><b>3. Hikmatullo (siz) <small style="color:var(--muted)">Kichik</small></b><small>Pul oqimi 440</small></div></div>
+      <div class="pchip"><span class="dotc" style="background:var(--gold)"></span><div><b>4. Bot 1 <small style="color:var(--muted)">Kichik</small></b><small>Pul oqimi 400</small></div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="on">1 · Umumiy</button><button>2 · O'yinchi</button><button>3 · Bozor</button><button>4 · Taqqoslash</button><button>5 · Nazariya</button>
+    </div>
+    <p class="sub" style="margin-bottom:18px">Prototipda barcha 5 bo'lim pastda ketma-ket ko'rsatilgan — haqiqiy ilovada tab bosilganda almashadi.</p>
+
+    <div class="secwrap">
+      <h2 class="sh"><em>1</em>Umumiy</h2>
+      <div class="panels2">
+        <div class="panel">
+          <h3>Sof boylik (oylar bo'yicha)</h3>
+          <svg viewBox="0 0 320 160" width="100%" height="160">
+            <line x1="30" y1="10" x2="30" y2="140" stroke="#DCE3E8"/><line x1="30" y1="140" x2="310" y2="140" stroke="#DCE3E8"/>
+            <text x="4" y="14" font-size="9" fill="#4A5B6C">3000</text><text x="4" y="78" font-size="9" fill="#4A5B6C">1500</text><text x="12" y="144" font-size="9" fill="#4A5B6C">0</text>
+            <polyline fill="none" stroke="#2C6DB5" stroke-width="2" points="30,105 100,90 170,55 240,65 310,10"/>
+            <polyline fill="none" stroke="#F2B233" stroke-width="2" points="30,45 100,55 170,50 240,100 310,140"/>
+            <polyline fill="none" stroke="#11835A" stroke-width="2" points="30,130 100,126 170,122 240,135 310,138"/>
+            <polyline fill="none" stroke="#7B4FA3" stroke-width="2" points="30,135 100,130 170,128 240,110 310,100"/>
+          </svg>
+          <div style="display:flex;gap:16px;font-size:11.5px;color:var(--muted);margin-top:6px;flex-wrap:wrap">
+            <span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2C6DB5;margin-right:5px"></i>Hikmatullo</span>
+            <span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F2B233;margin-right:5px"></i>Bot 1</span>
+            <span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#11835A;margin-right:5px"></i>Bot 2</span>
+            <span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#7B4FA3;margin-right:5px"></i>Bot 3</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Passiv daromad xarajatni qoplashi</h3>
+          <div class="barrow"><span>Bot 3</span><div class="bg"><i style="width:0%;background:var(--green)"></i></div><span>0%</span></div>
+          <div class="barrow"><span>Bot 2</span><div class="bg"><i style="width:0%;background:var(--green)"></i></div><span>0%</span></div>
+          <div class="barrow"><span>Hikmatullo</span><div class="bg"><i style="width:0%;background:var(--green)"></i></div><span>0%</span></div>
+          <div class="barrow"><span>Bot 1</span><div class="bg"><i style="width:0%;background:var(--green)"></i></div><span>0%</span></div>
+          <div class="footnote">100% = passiv daromad xarajatni to'liq qoplaydi (kichik aylanadan chiqish sharti).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="secwrap">
+      <h2 class="sh"><em>2</em>O'yinchi</h2>
+      <div class="panel" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <span class="dotc" style="background:var(--blue)"></span><b>Hikmatullo (siz)</b><span class="okpill">Kichik</span><span class="okpill" style="background:#FFF6DD;color:#8a6200">3-o'rin</span><span class="okpill">Faol xaridor</span><span style="color:var(--muted);font-size:12px">4 oy</span>
+        </div>
+        <div class="statrow2"><div class="stat"><span>Naqd</span><b>0</b></div><div class="stat"><span>Pul oqimi</span><b>440</b></div><div class="stat"><span>Passiv</span><b>0</b></div><div class="stat"><span>Sof boylik</span><b>0</b></div><div class="stat"><span>Viktorina</span><b>—</b></div><div class="stat"><span>Daraja</span><b>1 / 4</b></div></div>
+      </div>
+      <div class="panels2">
+        <div class="panel">
+          <h3>Dinamika — Pul oqimi</h3>
+          <svg viewBox="0 0 320 120" width="100%" height="120">
+            <line x1="30" y1="10" x2="30" y2="100" stroke="#DCE3E8"/><line x1="30" y1="100" x2="310" y2="100" stroke="#DCE3E8"/>
+            <polyline fill="none" stroke="#2C6DB5" stroke-width="2" points="30,70 110,70 190,25 270,25 310,98"/>
+            <circle cx="310" cy="98" r="3" fill="#2C6DB5"/>
+          </svg>
+        </div>
+        <div class="panel">
+          <h3>Nimaga e'tibor beradi: qarorlar</h3>
+          <div class="barrow"><span>Investitsiya</span><div class="bg"><i style="width:50%;background:var(--green)"></i></div><span>2/2</span></div>
+          <div class="barrow"><span>Bozor</span><div class="bg"><i style="width:0%;background:var(--blue)"></i></div><span>4 maj.</span></div>
+          <div class="barrow"><span>Xarajat</span><div class="bg"><i style="width:0%;background:var(--red)"></i></div><span>2 maj.</span></div>
+          <div class="barrow"><span>Hodisa</span><div class="bg"><i style="width:0%;background:var(--navy)"></i></div><span>1 maj.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="secwrap">
+      <h2 class="sh"><em>3</em>Bozor</h2>
+      <div class="panels2">
+        <div class="panel">
+          <h3>Inqirozdagi o'yinchilar ulushi</h3>
+          <svg viewBox="0 0 320 120" width="100%" height="120">
+            <line x1="30" y1="10" x2="30" y2="100" stroke="#DCE3E8"/><line x1="30" y1="100" x2="310" y2="100" stroke="#DCE3E8"/>
+            <text x="4" y="14" font-size="9" fill="#4A5B6C">100</text><text x="10" y="104" font-size="9" fill="#4A5B6C">0</text>
+            <polyline fill="none" stroke="#9E2A30" stroke-width="2" points="30,98 310,98"/>
+          </svg>
+          <div class="footnote">Inqirozda yer, dala-hovli, kvartira va aksiyaning sotish va sotib olish narxi 2 baravar past (o'yin qoidasi).</div>
+        </div>
+        <div class="panel">
+          <h3>Xarid va sotuv hajmi (6 oylik davrlar)</h3>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px"><span>1–6 oy</span><span>2 xarid · 1 sotuv</span></div>
+          <div class="bg" style="display:flex;height:10px"><i style="width:66%;background:var(--green)"></i><i style="width:34%;background:var(--gold)"></i></div>
+        </div>
+      </div>
+      <div class="panels2" style="margin-top:16px">
+        <div class="panel">
+          <h3>Qaysi turdagi aktivlar</h3>
+          <table class="mini"><thead><tr><th>Aktiv</th><th>Xarid</th><th>Ushlab turibdi</th><th>Sotilgan</th></tr></thead>
+            <tbody><tr><td>Aksiyalar</td><td>2</td><td>2</td><td>0</td></tr><tr><td>small_business</td><td>1</td><td>0</td><td>1</td></tr></tbody></table>
+        </div>
+        <div class="panel">
+          <h3>Aktivlar qaysi yo'l bilan olingan</h3>
+          <div class="barrow"><span>Odatiy karta</span><div class="bg"><i style="width:66%;background:var(--navy)"></i></div><span>2</span></div>
+          <div class="barrow"><span>Bozor</span><div class="bg"><i style="width:0%;background:var(--blue)"></i></div><span>0</span></div>
+          <div class="barrow"><span>Auksion</span><div class="bg"><i style="width:33%;background:var(--gold)"></i></div><span>1</span></div>
+          <div class="barrow"><span>Sheriklik</span><div class="bg"><i style="width:0%;background:var(--green)"></i></div><span>0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="secwrap">
+      <h2 class="sh"><em>4</em>Taqqoslash</h2>
+      <div class="panels2">
+        <div class="panel">
+          <h3>Taqqoslash: 5 ko'rsatkich</h3>
+          <svg viewBox="0 0 220 200" width="100%" height="200">
+            <polygon points="110,15 200,80 165,180 55,180 20,80" fill="none" stroke="#DCE3E8"/>
+            <polygon points="110,55 160,90 140,150 80,150 60,90" fill="none" stroke="#DCE3E8"/>
+            <polygon points="105,45 115,100 112,140 95,135 90,95" fill="#2C6DB5" fill-opacity=".25" stroke="#2C6DB5" stroke-width="1.5"/>
+            <text x="100" y="10" font-size="9" fill="#4A5B6C">Passiv/xarajat</text>
+            <text x="165" y="80" font-size="9" fill="#4A5B6C">Qarorni oladi</text>
+            <text x="140" y="196" font-size="9" fill="#4A5B6C">Viktorina</text>
+            <text x="20" y="196" font-size="9" fill="#4A5B6C">Qarz yuki</text>
+            <text x="2" y="80" font-size="9" fill="#4A5B6C">Aktivlar soni</text>
+          </svg>
+        </div>
+        <div class="panel">
+          <h3>O'yin uslublari</h3>
+          <table class="mini"><thead><tr><th>O'yinchi</th><th>Uslub</th><th>Viktorina</th><th>Avtopilot</th><th>Xavf</th></tr></thead>
+            <tbody>
+              <tr><td><b>Hikmatullo</b></td><td>Faol xaridor</td><td>—</td><td>8</td><td><span class="okpill">OK</span></td></tr>
+              <tr><td>Bot 1</td><td>Faol xaridor</td><td>—</td><td>0</td><td><span class="warnpill">2 oy</span></td></tr>
+              <tr><td>Bot 2</td><td>Ehtiyotkor</td><td>—</td><td>0</td><td><span class="okpill">OK</span></td></tr>
+              <tr><td>Bot 3</td><td>Muvozanatli</td><td>0%</td><td>0</td><td><span class="okpill">OK</span></td></tr>
+            </tbody></table>
+          <div class="footnote">Taklif etilgan ko'rsatkichlar (tasdiq kerak): passiv/xarajat, qabul qilingan qarorlar ulushi, viktorina aniqligi — guruhning yuqori va pastki uchdan biri bilan solishtiriladi.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="secwrap">
+      <h2 class="sh"><em>5</em>Nazariya</h2>
+      <div class="subtabs">
+        <button class="on">DuPont</button><button>BCG matritsa</button><button>Xavf-daromad</button><button>Ansoff</button><button>Biznes sikli</button><button>Sotish sabablari</button><button>Muvaffaqiyat</button><button>Voronka</button><button>SWOT</button><button>Savodxonlik darajalari</button><button>Manbalar</button>
+      </div>
+      <div class="panels2">
+        <div class="panel">
+          <h3>DuPont: shaxsiy kapital rentabelligi</h3>
+          <table class="mini"><thead><tr><th>O'yinchi</th><th>Sof marja</th><th>×</th><th>Aktivlar aylanmasi</th><th>×</th><th>Leverage</th><th>=</th><th>Kapital rentabelligi</th></tr></thead>
+            <tbody>
+              <tr><td><b>Hikmatullo</b></td><td>34%</td><td>×</td><td>—</td><td>×</td><td>—</td><td>=</td><td>—</td></tr>
+              <tr><td>Bot 1</td><td>16%</td><td>×</td><td>—</td><td>×</td><td>—</td><td>=</td><td>—</td></tr>
+              <tr><td>Bot 2</td><td>30%</td><td>×</td><td>120.00</td><td>×</td><td>1.00</td><td>=</td><td><b>3600%</b></td></tr>
+              <tr><td>Bot 3</td><td>44%</td><td>×</td><td>6.98</td><td>×</td><td>1.00</td><td>=</td><td><b>307%</b></td></tr>
+            </tbody></table>
+          <div class="footnote"><b>Asos</b> DuPont tahlili rentabellikni sof marja, aktivlar aylanmasi va leverage ko'paytmasiga ajratadi. Moslashtirish: foyda = yillik pul oqimi, daromad = ish haqi + passiv daromad.<br><b>Gipoteza</b> Rentabellik leverage hisobiga oshgan bo'lsa, u xavfliroq: yuqori ko'rsatkich har doim yaxshi emas.</div>
+        </div>
+        <div class="panel">
+          <h3>Sof marja · Leverage</h3>
+          <div class="barrow"><span>Hikmatullo</span><div class="bg"><i style="width:34%;background:var(--blue)"></i></div><span>34%</span></div>
+          <div class="barrow"><span>Bot 1</span><div class="bg"><i style="width:16%;background:var(--gold)"></i></div><span>16%</span></div>
+          <div class="barrow"><span>Bot 2</span><div class="bg"><i style="width:30%;background:var(--green)"></i></div><span>30%</span></div>
+          <div class="barrow"><span>Bot 3</span><div class="bg"><i style="width:44%;background:var(--purple)"></i></div><span>44%</span></div>
+          <div class="footnote">Yillik pul oqimi / yillik daromad · Yillik daromad / aktivlar · Aktivlar / sof boylik</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

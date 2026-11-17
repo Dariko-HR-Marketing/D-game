@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — Hisob varag'i</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#082238;--green:#11835A;--green-d:#0E6B4A;--gold:#F2B233;--red:#9E2A30;--muted:#4A5B6C;--bg:#F4F7F8;--line:#DCE3E8}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;margin:0;background:var(--bg);color:var(--navy);min-width:1180px}
+h1,h2,h3,p{margin:0}
+.gbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 24px}
+.gbar b{font-weight:800;font-size:15px}
+.crumb{color:var(--muted);font-size:13px}
+.wrap{max-width:1300px;margin:0 auto;padding:30px 36px 56px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+h1.t{font-size:26px;font-weight:800}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+.seg button{border:0;background:transparent;padding:9px 20px;font-weight:800;font-size:13px;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff}
+
+.idrow{display:grid;grid-template-columns:1fr 1fr;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.idcell{padding:14px 18px;border-right:1px solid var(--line)}
+.idcell:last-child{border-right:0}
+.idcell span{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:3px}
+.idcell b{font-size:14.5px}
+
+.grid2{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px}
+th{text-align:left;background:var(--navy);color:#fff;font-size:11.5px;letter-spacing:.3px;text-transform:uppercase;font-weight:800;padding:11px 16px}
+th.r,td.r{text-align:right}
+td{padding:10px 16px;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+td.lbl{color:var(--navy)}
+tr.sub td{color:#9fb1bf;font-style:italic;font-size:12px;padding-top:0}
+tr.total td{font-weight:800;color:var(--navy);border-top:2px solid var(--navy)}
+tr.total td.r.neg{color:var(--red)}
+
+.sidecard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.sidecard .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sidecard .row:last-child{border-bottom:0}
+.sidecard .row span{color:var(--muted);font-weight:600}
+.sidecard .row b{font-weight:800}
+.sidecard .row b.g{color:var(--green-d)}
+.sidecard .row b.neg{color:var(--red)}
+.sidecard h3{font-size:13.5px;font-weight:800;margin-bottom:6px}
+
+.progress{display:grid;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.progress .lbl{font-size:13px;font-weight:700;color:var(--muted)}
+.cells{display:flex;gap:4px;flex-wrap:wrap}
+.cells i{width:22px;height:22px;border-radius:5px;background:#fff;border:1px solid var(--line)}
+.cells i.done{background:var(--green);border-color:var(--green)}
+.cells i.cur{background:var(--green-l,#E7F4EE);border-color:var(--green)}
+
+.banner{background:var(--navy);color:#fff;text-align:center;border-radius:14px;padding:16px 20px;font-weight:700;font-size:14px}
+.notebox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:18px}
+.notebox b{color:var(--navy)}
+.empty{color:#b9c7d1}
+</style>
+</head>
+<body>
+
+<div>
+  <div class="gbar"><b>Tajriba 24</b><span class="crumb">O'yin ekrani / Hisob varag'i</span></div>
+  <div class="wrap">
+    <div class="top">
+      <h1 class="t">Hisob varag'i</h1>
+      <div class="seg"><button class="on">Kichik aylana</button><button>Katta aylana</button></div>
+    </div>
+
+    <div class="idrow">
+      <div class="idcell"><span>O'yinchi nomi</span><b>Hikmatullo</b></div>
+      <div class="idcell"><span>Mansabi</span><b>Ma'lumotlar tahlilchisi</b></div>
+      <div class="idcell"><span>Sizning orzuyingiz</span><b>Chiqindidan energiya zavodi</b></div>
+      <div class="idcell"><span>Uning qiymati</span><b>2 100 000</b></div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <table>
+          <thead><tr><th>Daromadlar</th><th class="r">Summa</th></tr></thead>
+          <tbody>
+            <tr><td class="lbl">Ish haqi (aktiv)</td><td class="r">1 300</td></tr>
+            <tr><td class="lbl empty">Ko'chmas mulkdan daromad (passiv)</td><td class="r empty">—</td></tr>
+            <tr><td class="lbl empty">Ko'chmas mulkdan daromad (passiv)</td><td class="r empty">—</td></tr>
+            <tr><td class="lbl">Kichik biznesdan daromad (passiv)<br><span style="color:#9fb1bf;font-size:11.5px;font-weight:400">Kompyuterda uzoq ishlaganingizdan so'ng belingiz og'riydi.</span></td><td class="r">300</td></tr>
+            <tr><td class="lbl">Kichik biznesdan daromad (passiv)<br><span style="color:#9fb1bf;font-size:11.5px;font-weight:400">Qo'lda tayyorlangan sovun va kosmetika.</span></td><td class="r">100</td></tr>
+            <tr><td class="lbl empty">Kichik biznesdan daromad (passiv)</td><td class="r empty">—</td></tr>
+            <tr><td class="lbl empty">Katta biznesdan daromad (passiv)</td><td class="r empty">—</td></tr>
+            <tr><td class="lbl empty">Katta biznesdan daromad (passiv)</td><td class="r empty">—</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <thead><tr><th>Xarajatlar</th><th class="r">Summa</th></tr></thead>
+          <tbody>
+            <tr><td class="lbl">Kasb kartasi bo'yicha xarajatlar</td><td class="r">860</td></tr>
+            <tr><td class="lbl">Farzandlar soni: 1</td><td class="r">80 × 1 = 80</td></tr>
+            <tr><td class="lbl">Kvartira, avtomobil va boshqa kreditlar to'lovi</td><td class="r">0</td></tr>
+            <tr><td class="lbl">Bank kreditlari to'lovi</td><td class="r">0</td></tr>
+            <tr><td class="lbl">Lombard to'lovi</td><td class="r">0</td></tr>
+            <tr><td class="lbl">Qarovga ketadigan xarajatlar</td><td class="r">0</td></tr>
+            <tr class="total"><td>Umumiy xarajat</td><td class="r neg">940</td></tr>
+          </tbody>
+        </table>
+
+        <div class="progress">
+          <div class="lbl">Bosib o'tilgan vaqt: <b style="color:var(--navy)">8 oy</b></div>
+          <div class="cells">
+            <i class="done"></i><i class="cur"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted)">Har bir katak — 1 yil (to'liq o'tgan yillar to'q yashil, joriy yil och yashil).</div>
+        </div>
+
+        <div class="banner">Ikkinchi aylanaga o'tish uchun 1 000 000 so'm naqd pul yig'ish va har oylik pul oqimi 25 000 so'mga ega bo'lish kerak.</div>
+
+        <div class="notebox">Faqat «Xarajatlar» kartochkasi bo'yicha xaridlar qarzga yoziladi. Qarzingiz <b>10 000 so'm</b>dan oshmasligi lozim. Agar qarzingiz bu summadan oshsa, boshqa kasbni tanlab o'yinni boshidan boshlang! Agar qarz va kreditlaringiz bo'lsa, ikkinchi aylanaga o'ta olmaysiz.</div>
+      </div>
+
+      <div>
+        <div class="sidecard">
+          <div class="row"><span>Aktiv daromad</span><b>1 300</b></div>
+          <div class="row"><span>Passiv daromad (cash flow)</span><b class="g">400</b></div>
+          <div class="row"><span>Umumiy daromad (aktiv + passiv)</span><b>1 700</b></div>
+          <div class="row"><span>Umumiy xarajat</span><b class="neg">940</b></div>
+          <div class="row"><span>Har oylik pul oqimi</span><b class="g">+760</b></div>
+        </div>
+
+        <div class="sidecard">
+          <h3>Aksiyalar</h3>
+          <table style="margin:0;border:0">
+            <thead><tr><th style="background:transparent;color:var(--muted);padding:6px 0">Kod</th><th style="background:transparent;color:var(--muted);padding:6px 0">Soni</th><th style="background:transparent;color:var(--muted);padding:6px 0">Sotib olish narxi</th></tr></thead>
+            <tbody>
+              <tr><td class="empty" style="padding:8px 0">TAPOiCh</td><td class="empty" style="padding:8px 0">—</td><td class="empty" style="padding:8px 0">—</td></tr>
+              <tr><td class="empty" style="padding:8px 0">KCH</td><td class="empty" style="padding:8px 0">—</td><td class="empty" style="padding:8px 0">—</td></tr>
+              <tr><td class="empty" style="padding:8px 0">ZA</td><td class="empty" style="padding:8px 0">—</td><td class="empty" style="padding:8px 0">—</td></tr>
+              <tr><td class="empty" style="padding:8px 0">UTK</td><td class="empty" style="padding:8px 0">—</td><td class="empty" style="padding:8px 0">—</td></tr>
+              <tr><td class="empty" style="padding:8px 0">GZ</td><td class="empty" style="padding:8px 0">—</td><td class="empty" style="padding:8px 0">—</td></tr>
+            </tbody>
+          </table>
+          <div class="row" style="margin-top:8px"><span>Qarzlar</span><b>0</b></div>
+        </div>
+
+        <div class="sidecard">
+          <h3>Qo'shimcha olingan kreditlar</h3>
+          <div class="row"><span>Summa (lombard · rahn)</span><b class="empty">—</b></div>
+          <div class="row"><span>Summa (lombard · rahn)</span><b class="empty">—</b></div>
+          <div class="row"><span>Summa (bank)</span><b class="empty">—</b></div>
+          <div class="row"><span>Summa (bank)</span><b class="empty">—</b></div>
+          <div class="row"><span>Garovga mulk (lombard · rahn)</span><b class="empty">—</b></div>
+        </div>
+
+        <div class="sidecard">
+          <h3>Yangi kreditlar uchun bir martalik haq (ustama)</h3>
+          <div class="row"><span>Oylik to'lov (lombard · rahn)</span><b class="empty">—</b></div>
+          <div class="row"><span>Oylik to'lov (lombard · rahn)</span><b class="empty">—</b></div>
+          <div class="row"><span>Oylik to'lov (bank)</span><b class="empty">—</b></div>
+          <div class="row"><span>Oylik to'lov (bank)</span><b class="empty">—</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

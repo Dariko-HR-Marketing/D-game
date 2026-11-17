@@ -161,7 +161,7 @@ export class RoomManager {
     if (this.activeRoomOf.has(hostId)) return { ok: false, error: "already_in_game" };
     if (!(mode in MODES)) return { ok: false, error: "bad_mode" };
     if (turnSeconds === 0 && mode !== "standard") turnSeconds = 30; // vaqtsiz xona faqat standart rejimda: tez/reytingli/o'quvda taymer majburiy (umumiy vaqt, adolat, yo'l-yo'riq)
-    const [lo, hi] = MODES[mode].seats; if (mode === "tutorial") seats = lo; else if (seats === undefined && lo > MIN_PLAYERS) seats = lo; // rejimning o'z chegarasi: o'quv — 3 (1 odam + 2 bot), reytingli — kamida 4
+    const [lo, hi] = MODES[mode].seats; if (mode === "tutorial" && seats === undefined) seats = 3; else if (seats === undefined && lo > MIN_PLAYERS) seats = lo; // hamma rejimda 2–8 (2026-11-17); o'quvda standart 3 o'rin (1 odam + 2 bot), odam yetmasa botlar to'ldiradi
     if (seats !== undefined && (!Number.isInteger(seats) || seats < Math.max(MIN_PLAYERS, lo) || seats > Math.min(MAX_PLAYERS, hi))) return { ok: false, error: "bad_seats" };
     const code = this.newCode();
     this.rooms.set(code, { code, hostId, members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, mode, limitLeftMs: null, limitStartedAt: null, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},

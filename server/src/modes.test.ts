@@ -15,11 +15,11 @@ const mk = () => { const c = new FakeClock(); let k = 0; return { c, rm: new Roo
 describe("rejimlar: xona chegaralari", () => {
   it("o'rinlar: standart 2–8, tez 2–6, reytingli 4–6 (standart 4), o'quv har doim 3", () => {
     const { rm } = mk();
-    expect(rm.create("a1", undefined, 30, "auto", 8, "standard").ok).toBe(true); expect(rm.create("a2", undefined, 30, "auto", 7, "quick")).toEqual({ ok: false, error: "bad_seats" });
+    expect(rm.create("a1", undefined, 30, "auto", 8, "standard").ok).toBe(true); expect(rm.create("a2", undefined, 30, "auto", 7, "quick").ok).toBe(true); expect(rm.create("a2b", undefined, 30, "auto", 9, "quick")).toEqual({ ok: false, error: "bad_seats" });
     expect(rm.create("a3", undefined, 30, "auto", 6, "quick").ok).toBe(true);
-    expect(rm.create("a4", undefined, 30, "auto", 3, "rated")).toEqual({ ok: false, error: "bad_seats" }); expect(rm.create("a5", undefined, 30, "auto", 7, "rated")).toEqual({ ok: false, error: "bad_seats" });
-    const r = rm.create("a6", undefined, 30, "auto", undefined, "rated"); if (!r.ok) throw 0; expect(rm.rooms.get(r.code)!.seats).toBe(4); expect(rm.rooms.get(r.code)!.mode).toBe("rated");
-    const t = rm.create("a7", undefined, 30, "auto", 8, "tutorial"); if (!t.ok) throw 0; expect(rm.rooms.get(t.code)!.seats).toBe(3);
+    expect(rm.create("a4", undefined, 30, "auto", 3, "rated").ok).toBe(true); expect(rm.create("a5", undefined, 30, "auto", 8, "rated").ok).toBe(true); expect(rm.create("a5b", undefined, 30, "auto", 1, "rated")).toEqual({ ok: false, error: "bad_seats" });
+    const r = rm.create("a6", undefined, 30, "auto", undefined, "rated"); if (!r.ok) throw 0; expect(rm.rooms.get(r.code)!.seats).toBeUndefined(); expect(rm.rooms.get(r.code)!.mode).toBe("rated");
+    const t = rm.create("a7", undefined, 30, "auto", 8, "tutorial"); if (!t.ok) throw 0; expect(rm.rooms.get(t.code)!.seats).toBe(8); const t3 = rm.create("a7b", undefined, 30, "auto", undefined, "tutorial"); if (!t3.ok) throw 0; expect(rm.rooms.get(t3.code)!.seats).toBe(3);
     expect(rm.create("a8", undefined, 30, "auto", 4, "zzz" as any)).toEqual({ ok: false, error: "bad_mode" });
   });
   it("o'quv xonasiga ikkinchi odam qo'shila olmaydi; reytingli o'yinni 1 odam boshlay olmaydi", async () => {
@@ -28,7 +28,7 @@ describe("rejimlar: xona chegaralari", () => {
     expect(rm.join(t.code, "x")).toEqual({ ok: false, error: "room_full" });
     expect((await rm.start(t.code, "h", 3, { dreams: false })).ok).toBe(true); expect(rm.rooms.get(t.code)!.state!.players).toHaveLength(3);
     expect(rm.rooms.get(t.code)!.state!.mode).toBe("tutorial");
-    const r = rm.create("g", undefined, 30, "auto", undefined, "rated"); if (!r.ok) throw 0;
+    const r = rm.create("g", undefined, 30, "auto", 4, "rated"); if (!r.ok) throw 0;
     expect(await rm.start(r.code, "g", 3, { dreams: false })).toEqual({ ok: false, error: "not_enough_players" });
     rm.join(r.code, "g2"); expect((await rm.start(r.code, "g", 3, { dreams: false })).ok).toBe(true); expect(rm.rooms.get(r.code)!.state!.players).toHaveLength(4);
   });

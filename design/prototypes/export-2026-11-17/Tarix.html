@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — Tarix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#082238;--green:#11835A;--green-d:#0E6B4A;--red:#9E2A30;--blue:#2C6DB5;--muted:#4A5B6C;--bg:#F4F7F8;--line:#DCE3E8}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;margin:0;background:var(--bg);color:var(--navy);min-width:1180px}
+h1,h2,h3,p{margin:0}
+.gbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 24px}
+.gbar b{font-weight:800;font-size:15px}
+.crumb{color:var(--muted);font-size:13px}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 36px 56px}
+h1.t{font-size:26px;font-weight:800;margin-bottom:6px}
+.sub{color:var(--muted);font-size:14px;line-height:1.5;max-width:720px}
+.toprow{display:flex;justify-content:space-between;align-items:center;margin:22px 0 16px}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+.seg button{border:0;background:transparent;padding:9px 20px;font-weight:800;font-size:13px;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff}
+.csv{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 18px;font-weight:800;font-size:13px;cursor:pointer}
+.count{color:var(--muted);font-size:13px;margin-bottom:14px}
+
+.ev{border:1px solid var(--line);border-radius:14px;background:#fff;padding:16px 18px;display:grid;gap:8px;margin-bottom:12px}
+.ev .hd{display:flex;gap:10px;align-items:center}
+.ev .n{width:30px;height:30px;border-radius:50%;background:#eef3f6;display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--muted);flex:none}
+.ev b{font-size:14.5px;font-weight:800}
+.chip{background:#eef3f6;color:var(--navy);font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px}
+.evtime{margin-left:auto;color:var(--muted);font-size:12px}
+.evli{margin:0;padding-left:0;list-style:none;display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.evli li::before{content:"• ";}
+.tag{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div>
+  <div class="gbar"><b>Tajriba 24</b><span class="crumb">O'yin ekrani / Tarix</span></div>
+  <div class="wrap">
+    <h1 class="t">O'yin tarixi</h1>
+    <p class="sub">Har bir amal: qaysi katakdan qayerga yurildi, qaysi karta chiqdi, nima qaror qilindi va pul qanday o'zgardi.</p>
+
+    <div class="toprow">
+      <div class="seg"><button class="on">Mening amallarim</button><button>Hammasi</button></div>
+      <button class="csv">CSV yuklab olish</button>
+    </div>
+    <div class="count">46 ta amal · Yangi voqealar tepada</div>
+
+    <div class="ev">
+      <div class="hd"><div class="n">193</div><b>Siz</b><span class="chip">Yurdi: 5 → 8</span><span class="chip">Kubik tashladi</span><span class="evtime">Tur 33 · 8 oy</span></div>
+      <ul class="evli">
+        <li>Vaqt tugadi — avtomatik bajarildi</li>
+        <li>Kubik: 3</li>
+        <li>Tushgan katak: Imkoniyat (sarmoya kartasi)</li>
+        <li>Karta chiqdi: Muddatli depozit (mudoraba, 6 aylana). Uzoq muddatga joylashtirdingiz.</li>
+      </ul>
+    </div>
+
+    <div class="ev">
+      <div class="hd"><div class="n">186</div><b>Siz</b><span class="chip">Yurdi: 3 → 5</span><span class="chip">Kubik tashladi</span><span class="evtime">Tur 33 · 8 oy</span></div>
+      <ul class="evli">
+        <li>Vaqt tugadi — avtomatik bajarildi</li>
+        <li>Kubik: 2</li>
+        <li>Tushgan katak: Xarajat</li>
+        <li>Karta darhol qo'llandi: Salonga borish payti keldi.</li>
+      </ul>
+      <span class="tag">Naqd −30</span>
+    </div>
+
+    <div class="ev">
+      <div class="hd"><div class="n">180</div><b>Siz</b><span class="chip">Yurdi: 48 → 3</span><span class="chip">Kubik tashladi</span><span class="evtime">Tur 32 · 8 oy</span></div>
+      <ul class="evli">
+        <li>Vaqt tugadi — avtomatik bajarildi</li>
+        <li>Kubik: 3</li>
+        <li>Tushgan katak: Xarajat</li>
+        <li>Karta darhol qo'llandi: Uyingizga o'rnatma shkaf yasattiring.</li>
+      </ul>
+      <span class="tag">Naqd −300</span>
+    </div>
+
+    <div class="ev" style="opacity:.55">
+      <div class="hd"><div class="n">173</div><b>Bot 3</b><span class="chip">Yurdi: 41 → 48</span><span class="chip">Kubik tashladi</span><span class="evtime">Tur 32 · 8 oy</span></div>
+      <ul class="evli"><li>Tushgan katak: Bozor — taklif o'tkazib yuborildi</li></ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -117,9 +117,9 @@ export type GameMode = "standard" | "quick" | "rated" | "tutorial";
 export const GAME_MODES: readonly GameMode[] = ["standard", "quick", "rated", "tutorial"];
 export const MODES: Record<GameMode, { seats: [number, number]; exitCash: number; exitPassive: number; minutes: number | null; rated: boolean; maxHumans?: number }> = {
   standard: { seats: [2, 8], exitCash: RULES.exitCash, exitPassive: RULES.exitPassiveFlow, minutes: null, rated: false },
-  quick: { seats: [2, 6], exitCash: 250_000, exitPassive: 15_000, minutes: null, rated: false }, // «Tez o'yin»: 30–45 daqiqa; chiqish sharti yengil
-  rated: { seats: [4, 6], exitCash: RULES.exitCash, exitPassive: RULES.exitPassiveFlow, minutes: 120, rated: true }, // «Reytingli»: 4–6 kishi, 120 daqiqa, liga reytingiga ta'sir qiladi
-  tutorial: { seats: [3, 3], exitCash: 250_000, exitPassive: 15_000, minutes: 15, rated: false, maxHumans: 1 }, // «O'quv o'yini»: 1 odam + 2 bot, 15 daqiqa
+  quick: { seats: [2, 8], exitCash: 250_000, exitPassive: 15_000, minutes: null, rated: false }, // «Tez o'yin»: 30–45 daqiqa; chiqish sharti yengil
+  rated: { seats: [2, 8], exitCash: RULES.exitCash, exitPassive: RULES.exitPassiveFlow, minutes: 120, rated: true }, // «Reytingli»: 2–8 kishi (2026-11-17), 120 daqiqa, liga reytingiga ta'sir qiladi
+  tutorial: { seats: [2, 8], exitCash: 250_000, exitPassive: 15_000, minutes: 15, rated: false, maxHumans: 1 }, // «O'quv o'yini»: 1 odam + botlar (standart 3 o'rin), 15 daqiqa
 };
 export const modeOf = (m?: GameMode | null): GameMode => (m && m in MODES ? m : "standard");
 

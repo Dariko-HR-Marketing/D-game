@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Tajriba 24 — Landing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#082238;--green:#11835A;--green-d:#0E6B4A;--green-l:#E7F4EE;--gold:#F2B233;--red:#9E2A30;--blue:#2C6DB5;--muted:#4A5B6C;--bg:#F4F7F8;--line:#DCE3E8;--night:#07131C;--night2:#0F1B26;--accent:#34D399}
+*{box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;margin:0;color:var(--navy);min-width:1180px}
+h1,h2,h3,p{margin:0}
+.page{max-width:1440px;min-width:1180px;margin:0 auto}
+
+.topnav{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:16px 56px;background:rgba(7,19,28,.86);backdrop-filter:blur(6px)}
+.topnav .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:800;font-size:16px}
+.topnav nav{display:flex;gap:28px}
+.topnav nav a{color:#B4C2CE;font-weight:700;font-size:13.5px;text-decoration:none}
+.topnav .cta{border:0;border-radius:12px;background:#10B981;color:#04130E;font-weight:800;font-size:13.5px;padding:11px 20px;cursor:pointer}
+
+section{padding:88px 56px;position:relative}
+.sectag{position:absolute;top:28px;left:28px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8ba0ad}
+.btn{border:0;border-radius:14px;background:#10B981;color:#04130E;font-weight:800;font-size:15.5px;padding:0 26px;min-height:54px;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+.btn.ghost{background:transparent;border:1px solid #5B7388;color:#fff}
+.btn.navybtn{background:var(--navy);color:#fff}
+.btn.light{background:#fff;color:var(--navy);border:1px solid var(--line)}
+
+.s1{background:var(--night);color:#fff;min-height:780px;display:flex;align-items:center}
+.s1-in{display:grid;grid-template-columns:560px 1fr;gap:64px;align-items:center;width:100%}
+.diary{background:#0F1B26;border:1px solid #223240;border-radius:20px;padding:0;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.diary-top{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #223240}
+.diary-top b{font-size:12.5px;color:#B4C2CE;font-weight:800}
+.dot-row{display:flex;gap:6px}
+.dot-row span{width:8px;height:8px;border-radius:50%;background:#2a3b47}
+.diary-body{padding:20px;display:grid;gap:14px}
+.dline{display:flex;gap:12px;align-items:flex-start}
+.dline .tm{font-size:11px;color:#6d8393;font-weight:800;width:44px;flex-shrink:0;padding-top:2px}
+.dline .txt{font-size:13px;color:#E3EAEE;line-height:1.5;background:#142432;border-radius:10px;padding:10px 12px;flex:1}
+.dline .txt b{color:var(--accent)}
+.dline.event .txt{border:1px solid rgba(242,178,51,.3);background:rgba(242,178,51,.08)}
+.dline.event .txt b{color:var(--gold)}
+
+.s1-right h1{font-size:42px;line-height:1.16;font-weight:800;max-width:600px}
+.s1-right p.lead{color:#B4C2CE;font-size:16px;line-height:1.6;max-width:540px;margin-top:16px}
+.herorow{display:flex;gap:14px;margin-top:30px}
+.trustrow{display:flex;gap:22px;margin-top:38px;color:#8ba0ad;font-size:12px;font-weight:700;flex-wrap:wrap}
+.trustrow span{display:flex;align-items:center;gap:7px}
+.trustrow svg{width:14px;height:14px;color:var(--accent)}
+
+.s2{background:var(--bg)}
+.s2h{max-width:680px;margin:0 auto 46px}
+.s2h span.k{font-size:11.5px;font-weight:800;color:var(--green-d);text-transform:uppercase;letter-spacing:.3px}
+.s2h h2{font-size:30px;font-weight:800;margin-top:10px}
+.s2h p{color:var(--muted);margin-top:10px;font-size:15px;line-height:1.6}
+.profrow{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1240px;margin:0 auto}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:10px}
+.pcard .tagn{display:inline-block;font-size:10px;font-weight:800;color:#fff;background:var(--navy);border-radius:999px;padding:3px 9px;width:fit-content}
+.pcard h4{font-size:14.5px;font-weight:800;margin-top:4px}
+.pcard .row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.pcard .row b{color:var(--navy)}
+.pcard .note{font-size:10.5px;color:#9aa8b2;font-style:italic}
+
+.s3{background:#fff}
+.cardflow{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.flowcard{border-radius:18px;padding:24px;display:grid;gap:12px;position:relative;border:1px solid var(--line)}
+.flowcard.op{background:var(--green-l);border-color:#bfe3d3}
+.flowcard.exp{background:#FCEFEF;border-color:#eccccd}
+.flowcard.event{background:#082238;color:#fff;border-color:#082238}
+.flowcard .lbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.flowcard.op .lbl{color:var(--green-d)}
+.flowcard.exp .lbl{color:var(--red)}
+.flowcard.event .lbl{color:var(--gold)}
+.flowcard h4{font-size:16px;font-weight:800}
+.flowcard p{font-size:13px;line-height:1.55}
+.flowcard.op p,.flowcard.exp p{color:var(--muted)}
+.flowcard.event p{color:#B4C2CE}
+.flowcard .amt{font-size:22px;font-weight:800;margin-top:4px}
+.flowcard.op .amt{color:var(--green-d)}
+.flowcard.exp .amt{color:var(--red)}
+.flowcard.event .amt{color:var(--gold)}
+
+.s4{background:var(--night2);color:#fff}
+.vpath{max-width:720px;margin:0 auto;position:relative;padding-left:40px}
+.vpath::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:#223240}
+.vstep{position:relative;padding-bottom:40px}
+.vstep:last-child{padding-bottom:0}
+.vstep .dot{position:absolute;left:-40px;top:2px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#04130E;font-weight:800;font-size:12px;display:grid;place-items:center}
+.vstep h4{font-size:16.5px;font-weight:800}
+.vstep p{color:#B4C2CE;font-size:13.5px;line-height:1.6;margin-top:6px;max-width:560px}
+
+.s5{background:var(--bg)}
+.pathgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1240px;margin:0 auto 54px}
+.pathcard{border-radius:20px;padding:34px;display:grid;gap:14px}
+.pathcard.a{background:var(--navy);color:#fff}
+.pathcard.b{background:#fff;border:1px solid var(--line)}
+.pathcard .tag3{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.pathcard.a .tag3{color:var(--accent)}
+.pathcard.b .tag3{color:var(--green-d)}
+.pathcard h3{font-size:21px;font-weight:800}
+.pathcard.a p{color:#B4C2CE}
+.pathcard.b p{color:var(--muted)}
+.pathcard p{font-size:14px;line-height:1.6}
+.pathcard ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.pathcard li{font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.pathcard.a li{color:#dbe6ea}
+.pathcard.b li{color:var(--navy)}
+.pathcard li svg{width:14px;height:14px;flex-shrink:0;margin-top:2px}
+.pathcard.a li svg{color:var(--accent)}
+.pathcard.b li svg{color:var(--green-d)}
+footer{padding:30px 56px;text-align:center;color:var(--muted);font-size:12px;background:var(--bg)}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="topnav">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="#11835A"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="#F2B233"/><rect x="17" y="1" width="6" height="6" rx="1.5" fill="#9E2A30"/><rect x="25" y="1" width="6" height="6" rx="1.5" fill="#2C6DB5"/><rect x="33" y="1" width="6" height="6" rx="1.5" fill="#7B4FA3"/><circle cx="20" cy="20" r="9.6" fill="#07131C"/><text x="20" y="24.2" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="Manrope">T</text></svg>
+      Tajriba 24
+    </div>
+    <nav>
+      <a href="#">Kasblar</a><a href="#">Kartalar</a><a href="#">Yo'l</a><a href="#">Boshlash</a>
+    </nav>
+    <button class="cta">Kirish</button>
+  </div>
+
+  <section class="s1">
+    <span class="sectag" style="color:#8ba0ad">1 / 5 · Bir o'yin kuni</span>
+    <div class="s1-in">
+      <div class="diary">
+        <div class="diary-top"><b>Bitta o'yin kuni · jurnal, namuna</b><div class="dot-row"><span></span><span></span><span></span></div></div>
+        <div class="diary-body">
+          <div class="dline"><span class="tm">8 oy</span><span class="txt">Hikmatullo kubik tashladi: <b>5 → 8</b>. Tur raqami 33.</span></div>
+          <div class="dline event"><span class="tm">8 oy</span><span class="txt"><b>Imkoniyat kartasi:</b> "Muddatli depozit (mudoraba, 6 aylana)" — qarorga 3 000 so'm kerak.</span></div>
+          <div class="dline"><span class="tm">4 oy</span><span class="txt">Xarajat kartasi: "Salonga borish payti keldi" — naqd −30.</span></div>
+          <div class="dline"><span class="tm">3 oy</span><span class="txt">Katalog: naqd <b>1 870 → −1 130</b>, aktiv sotib olindi, passiv daromad +100.</span></div>
+          <div class="dline event"><span class="tm">yakun</span><span class="txt">15 daqiqa, 4 o'yinchi, o'rtacha oylik pul oqimi <b>303</b>.</span></div>
+        </div>
+      </div>
+      <div class="s1-right">
+        <h1>Siz kubik tashlaysiz. O'yin esa qarorlaringizni ko'rsatadi.</h1>
+        <p class="lead">Tajriba 24 — har bir yurish, har bir karta va har bir qaror o'yin tarixida qoladigan jamoaviy moliyaviy savodxonlik o'yini. Natijalar haqiqiy pul bilan emas, qarorlar bilan o'lchanadi.</p>
+        <div class="herorow">
+          <button class="btn">O'yinni boshlash <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button class="btn ghost">Jurnalni ko'rish</button>
+        </div>
+        <div class="trustrow">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 4 8 8 10 4-2 8-5 8-10V6z"/></svg>Pullik qo'shimchalar natijaga ta'sir qilmaydi</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>16 yoshgacha himoya</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Har bir amal jurnalda saqlanadi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="s2">
+    <span class="sectag">2 / 5 · Boshlanish nuqtasi</span>
+    <div class="s2h">
+      <span class="k">Kasb kartasi</span>
+      <h2>Har bir o'yinchi boshqa kasb, boshqa raqamlar bilan boshlaydi</h2>
+      <p>O'yin tasodifiy taqsimlagan kasb kartasi ish haqi, xarajat va boshlang'ich holatni belgilaydi — hamma bir xil sharoitdan boshlamaydi.</p>
+    </div>
+    <div class="profrow">
+      <div class="pcard"><span class="tagn">Namuna</span><h4>Ma'lumotlar tahlilchisi</h4><div class="row"><span>Ish haqi</span><b>1 300</b></div><div class="row"><span>Kasb kartasi</span><b>860</b></div><span class="note">Orzu: Chiqindidan energiya zavodi, qiymati 2 100 000</span></div>
+      <div class="pcard"><span class="tagn">Namuna</span><h4>Umumiy daromad</h4><div class="row"><span>Aktiv daromad</span><b>1 300</b></div><div class="row"><span>Passiv daromad</span><b>400</b></div><span class="note">Har oylik pul oqimi: +760</span></div>
+      <div class="pcard"><span class="tagn">Namuna</span><h4>Farzandlar xarajati</h4><div class="row"><span>Farzandlar soni</span><b>1</b></div><div class="row"><span>Har biriga</span><b>80</b></div><span class="note">Umumiy xarajat: 940</span></div>
+      <div class="pcard"><span class="tagn">Namuna</span><h4>Aylanadan chiqish shart</h4><div class="row"><span>Naqd pul</span><b>1 000 000</b></div><div class="row"><span>Pul oqimi</span><b>25 000</b></div><span class="note">Ikkinchi aylanaga o'tish talabi</span></div>
+    </div>
+  </section>
+
+  <section class="s3">
+    <span class="sectag">3 / 5 · Har yurishda</span>
+    <div class="s2h"><span class="k">Taxta kartalari</span><h2>Har kubikdan keyin uch xil karta sizni kutadi</h2></div>
+    <div class="cardflow">
+      <div class="flowcard op"><span class="lbl">Imkoniyat</span><h4>Muddatli depozit</h4><p>Mudoraba, 6 aylana davomida. Qarorni qabul qilish ixtiyoriy.</p><span class="amt">3 000 so'm</span></div>
+      <div class="flowcard exp"><span class="lbl">Xarajat</span><h4>Uyingizga o'rnatma shkaf</h4><p>Kutilmagan, lekin majburiy xarajat — naqddan yechiladi.</p><span class="amt">−300 so'm</span></div>
+      <div class="flowcard event"><span class="lbl">Kutilmagan hodisa</span><h4>KUTILMAGAN HODISA!</h4><p>Bozor yoki shaxsiy holatga bog'liq o'zgarish — barcha o'yinchilarga yoki bittasiga ta'sir qiladi.</p><span class="amt">O'zgaruvchan</span></div>
+    </div>
+  </section>
+
+  <section class="s4">
+    <span class="sectag" style="color:#8ba0ad">4 / 5 · Birinchi o'yiningiz</span>
+    <div class="s2h"><span class="k" style="color:var(--accent)">Boshlash yo'li</span><h2 style="color:#fff">Ro'yxatdan saboqgacha — bitta uzilmas yo'l</h2></div>
+    <div class="vpath">
+      <div class="vstep"><div class="dot">1</div><h4>Telefon raqami bilan kiring</h4><p>SMS orqali bir martalik kod — parol yoki email talab qilinmaydi.</p></div>
+      <div class="vstep"><div class="dot">2</div><h4>Xona yarating yoki kodni kiriting</h4><p>Tur, o'yinchilar soni va tezlikni belgilaysiz; do'stlar kod bilan qo'shiladi.</p></div>
+      <div class="vstep"><div class="dot">3</div><h4>Kasb kartasi bilan boshlang</h4><p>O'quv rejimi har bir ekranni — hisob varag'i, tarix, tahlil — birma-bir tushuntiradi.</p></div>
+      <div class="vstep"><div class="dot">4</div><h4>Kubik tashlang, qaror qiling</h4><p>Har yurish jurnalga tushadi; jonli tahlil pul oqimini real vaqtda ko'rsatadi.</p></div>
+      <div class="vstep"><div class="dot">5</div><h4>Saboq kartasi bilan yakunlang</h4><p>15 daqiqadan so'ng shaxsiy xulosa va asosiy saboqlar ekranga chiqadi.</p></div>
+    </div>
+  </section>
+
+  <section class="s5">
+    <span class="sectag">5 / 5 · Sizga mos yo'l</span>
+    <div class="s2h"><h2>Qaysi yo'ldan boshlaysiz?</h2></div>
+    <div class="pathgrid">
+      <div class="pathcard a">
+        <span class="tag3">O'quv rejimi</span>
+        <h3>Birinchi marta o'ynayman</h3>
+        <p>12 qadamli onboarding bilan, har bir ekran tushuntirilgan holda — 15 daqiqa.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Coach-maslahatlar har qadamda</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Yakunida saboq kartasi</li>
+        </ul>
+        <button class="btn" style="margin-top:6px">O'quv o'yinini boshlash</button>
+      </div>
+      <div class="pathcard b">
+        <span class="tag3">To'g'ridan-to'g'ri</span>
+        <h3>Qoidalarni bilaman</h3>
+        <p>Xona yarating, do'stlaringizni kod bilan taklif qiling va darhol o'ynang.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>2–8 o'yinchi, 4 tur tezlik</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Korporativ xona — tashkilot kodi bilan</li>
+        </ul>
+        <button class="btn light" style="margin-top:6px">Xona yaratish</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>© Tajriba 24 · DARIKO ekotizimi ichidagi o'yin brendi · tajriba24.uz</footer>
+</div>
+</body>
+</html>
