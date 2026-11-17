@@ -15,9 +15,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const open = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); } return p; };
   // 1) Tanlov va o'rinlar chegarasi
   const a = await open("mda" + tag);
-  await a.getByTestId("mode-quick").click(); check(await a.getByTestId("seats-7").count() === 0 && await a.getByTestId("seats-6").count() === 1, `${tag} tez o'yin: o'rinlar 2–6`);
-  await a.getByTestId("mode-rated").click(); check(await a.getByTestId("seats-3").count() === 0 && await a.getByTestId("seats-4").count() === 1, `${tag} reytingli: o'rinlar 4–6`);
-  await a.getByTestId("mode-tutorial").click(); check(await a.getByTestId("home-seats").count() === 0, `${tag} o'quv: o'rinlar tanlovi yo'q (1 odam + 2 bot)`);
+  await a.getByTestId("mode-quick").click(); check(await a.getByTestId("seats-7").count() === 1 && await a.getByTestId("seats-8").count() === 1, `${tag} tez o'yin: o'rinlar 2–8`);
+  await a.getByTestId("mode-rated").click(); check(await a.getByTestId("seats-3").count() === 1 && await a.getByTestId("seats-2").count() === 1, `${tag} reytingli: o'rinlar 2–8`);
+  await a.getByTestId("mode-tutorial").click(); check(await a.getByTestId("seats-8").count() === 1 && await a.getByTestId("seats-2").count() === 1, `${tag} o'quv: o'rinlar 2–8 (odatiy 3)`);
   await a.getByTestId("mode-standard").click(); check(await a.getByTestId("seats-8").count() === 1, `${tag} standart: 8 gacha`);
   // 2) Tez o'yin: xona va chiqish shartlari
   await a.getByTestId("mode-quick").click(); await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("text=O'yinchilar");
