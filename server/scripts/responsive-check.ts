@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 // `OUT=papka [ONLY=390x844,1440x900] pnpm tsx scripts/responsive-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode } from "./_seed";
 import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/resp";
@@ -61,7 +61,7 @@ for (const [w, h] of SIZES) {
     }
     await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
     const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-    await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
+    await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
     await check(a, "05-lobby");
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await check(a, "06-dreams");
     await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });

@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, dismissReq } from "./_seed";
+import { autoProfiles, axeSource, dismissReq, joinByCode } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/badges";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -17,7 +17,7 @@ const mk = async (uid: string) => { const c = await b.newContext({ viewport: { w
 const a = await mk("bga"), c = await mk("bgb");
 await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
+await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
 const room = x.rooms.rooms.get(code)!; const st = room.state!;

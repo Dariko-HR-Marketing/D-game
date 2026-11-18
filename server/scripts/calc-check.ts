@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { applyEffect, crisisAdjusted, currentPlayer, passiveIncome, playerCashflow } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode } from "./_seed";
 
 process.env.CALC_MANUAL = "1"; // o'quv rejimi yashirin sozlama (`tajriba24-calc-ui`) bilan yoqiladi
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/calc";
@@ -22,7 +22,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.calcMode === "manual", `${tag} server: xona hisob rejimi manual`); check((await a.getByTestId("lobby-calc").textContent())?.includes("O'zim hisoblayman") ?? false, `${tag} xonada rejim ko'rinadi`);
-  await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   slowTimers(x, room); // server o'zi kubik tashlab yubormasin (taymer ×10)

@@ -32,3 +32,14 @@ export async function dismissReq(p: any): Promise<void> {
   const b = p.getByTestId("request-modal").getByRole("button", { name: "Keyinroq" });
   if (await b.count()) await b.first().click().catch(() => {}); await p.waitForTimeout(150);
 }
+
+/** Do'stining xona kodi bilan qo'shilish: «Kod bilan qo'shilish» faqat Korporativ tanlanganda ko'rinadi (buyurtmachi qarori 2026-11-18). Sahifa bir marta yuklanadi (ikkinchi ulanish yo'q). */
+export async function joinByCode(p: any, code: string): Promise<void> {
+  await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
+  if (!(await p.getByTestId("mode-corporate").count())) { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); }
+  await p.getByTestId("mode-corporate").click();
+  const input = p.locator('input[maxlength="6"]');
+  if (!(await input.count())) await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click();
+  await input.fill(code);
+  await p.getByRole("button", { name: "Kirish", exact: true }).last().click();
+}

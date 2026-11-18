@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/chat-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource } from "./_seed";
+import { autoProfiles, axeSource, joinByCode } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/chat";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -20,7 +20,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   const a = await mk(A), k = await mk(K);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await k.goto(`${WEB}/?kod=${code}`); await k.waitForSelector("text=Xona egasi");
+  await joinByCode(k, code); await k.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await k.waitForSelector("text=Orzuingizni tanlang"); await k.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   await k.waitForSelector("text=Naqd", { timeout: 60000 });

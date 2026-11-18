@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Animatsiya tekshiruvi (harakat kamaytirilmagan holda): kubik 3D aylanadi va natija yuzida to'xtaydi; fishka har bir katak ustidan yuradi;
 // karta fishka yetib kelgachgina chiqadi; tovush tugmasi ishlaydi. `OUT=papka pnpm tsx scripts/motion-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, joinByCode } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -16,7 +16,7 @@ const mk = async (uid: string) => { const c = await b.newContext({ viewport: { w
 const a = await mk("ma"), c = await mk("mb");
 await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("[data-testid=lobby-code]");
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
+await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
 await a.waitForSelector("text=Naqd", { timeout: 60000 }); for (const p of [a, c]) { const s = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await s.count()) await s.click(); }

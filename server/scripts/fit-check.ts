@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // O'yin ekrani (kompyuter/planshet) bitta ko'rinishga sig'adimi: `OUT=papka pnpm tsx scripts/fit-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Sahifa aylanishi (scrollHeight > innerHeight) — xato.
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, joinByCode } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -18,7 +18,7 @@ for (const [w, h] of sizes) {
   const tag = `${w}x${h}`, a = await mk("fa" + tag), c = await mk("fb" + tag);
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
   await a.waitForSelector("text=Naqd", { timeout: 60000 }); const skip = a.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
