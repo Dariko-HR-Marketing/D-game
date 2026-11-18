@@ -16,7 +16,7 @@ for (const [tag, w, h] of [["tik", 390, 844], ["yotiq", 844, 390]] as [string, n
   const a = await mk("ma" + tag), c = await mk("mb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room); const s: any = room.state!; const idx = s.players.findIndex((p: any) => p.id === "ma" + tag); s.turn = idx; s.players[idx].circle = "small"; s.players[idx].cash = 500;

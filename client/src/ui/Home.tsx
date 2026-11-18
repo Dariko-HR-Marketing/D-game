@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
-import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, type GameMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
+import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, serverMode, type UiMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
 import { HomeDesktop } from "./HomeDesktop";
 import { uz, errText } from "../i18n/uz";
@@ -24,11 +24,11 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
 }
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
-export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: GameMode) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
-  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<GameMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false); const [corp, setCorp] = useState(false); const [orgCode, setOrgCode] = useState(""); const [orgErr, setOrgErr] = useState<string | null>(null); const [orgBusy, setOrgBusy] = useState(false);
+export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: "standard" | "quick" | "rated" | "tutorial") => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void }) {
+  const [code, setCode] = useState(""); const [joinOpen, setJoinOpen] = useState(false); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<UiMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false); const [corp, setCorp] = useState(false); const [orgCode, setOrgCode] = useState(""); const [orgErr, setOrgErr] = useState<string | null>(null); const [orgBusy, setOrgBusy] = useState(false);
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
-  const effTurn: TurnSeconds = turn === 0 && mode !== "standard" ? 30 : turn; // vaqtsiz xona faqat standart rejimda; boshqasida avvalgi tezlik
-  const pickMode = (m: GameMode) => { setCorp(false); setMode(m); setModePref(m); setSeats((n) => (m === "tutorial" ? 3 : clampSeats(m, n))); };
+  const effTurn: TurnSeconds = turn; // Standart va Student: barcha tezlik, jumladan vaqtsiz
+  const pickMode = (m: UiMode) => { setCorp(false); setMode(m); setModePref(m); setSeats((n) => clampSeats(m, n)); };
   const orgReady = orgCode.length === 8;
   const orgJoin = async () => { if (!http || !orgReady || orgBusy) return; setOrgBusy(true); setOrgErr(null); try { await http.tJoin(orgCode); onTournaments?.(); } catch (e: any) { setOrgErr(String(e?.message ?? e)); } finally { setOrgBusy(false); } };
   const [me, setMe] = useState<{ name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null>(null);
@@ -40,7 +40,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   if (winW >= 1100) return <HomeDesktop me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} code={code} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
     pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setCode={setCode} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
-    create={() => onCreate(effTurn, calc, seats, mode)} startTutorial={() => onCreate(turn === 0 ? 30 : turn, calc, 3, "tutorial")} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
+    create={() => onCreate(effTurn, calc, seats, serverMode(mode))} startTutorial={() => onCreate(turn === 0 ? 60 : turn, calc, 3, "tutorial")} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
@@ -56,8 +56,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
             {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
-            {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn === 0 ? 30 : turn, calc, 3, "tutorial")} disabled={!online} />}
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, mode)} disabled={!online || corp} />
+            {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn === 0 ? 60 : turn, calc, 3, "tutorial")} disabled={!online} />}
+            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode))} disabled={!online || corp} />
             {compact && (
               <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
                 <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {`${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
@@ -92,7 +92,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
               </View>) : (<>
             <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
               <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
-              {(mode === "standard" ? ([30, 60, 0] as const) : ([30, 60] as const)).map((v) => { const name = v === 0 ? uz.home.turn0 : v === 60 ? uz.home.turn60 : uz.home.turn30;
+              {([60, 120, 0] as const).map((v) => { const name = v === 0 ? uz.home.turn0 : v === 120 ? uz.home.turn60 : uz.home.turn30;
                 return (<Pressable key={v} role="radio" aria-checked={effTurn === v} accessibilityLabel={v === 0 ? uz.home.turn0Full : name} onPress={() => pickTurn(v)} style={[s.seg, effTurn === v && s.segOn]} testID={`turn-${v}`}>
                   <Text style={[s.segT, effTurn === v && { color: color.white }]} aria-hidden>{name}</Text>
                 </Pressable>); })}
@@ -107,8 +107,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
             </View>}
             </>)}
             </>)}
-            <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />
-            {joinOpen && (
+            {corp && <Row compact={compact} icon="people" title={uz.home.joinByCode} sub={uz.home.joinSub} onPress={() => setJoinOpen((v) => !v)} />}
+            {corp && joinOpen && (
               <View style={s.join}>
                 <Text style={s.label} nativeID="codeLabel">{uz.home.codeLabel}</Text>
                 <View style={s.joinRow}>

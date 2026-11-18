@@ -6,17 +6,17 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
-import { seatsFor, turnLabel, calcUiEnabled, type CalcMode, type GameMode, type TurnSeconds } from "../turnPref";
+import { seatsFor, turnLabel, calcUiEnabled, type CalcMode, type UiMode, GAME_MODES_UI, type TurnSeconds } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
 import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 
 const D = uz.home.desk;
-const MODE_ICON: Record<GameMode, IconName> = { standard: "board", quick: "timer", rated: "trophy", tutorial: "book" };
+const MODE_ICON: Record<UiMode, IconName> = { standard: "board", student: "book" };
 export type DesktopProps = {
   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
-  mode: GameMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
-  pickMode: (m: GameMode) => void; pickCorp: () => void; pickSeats: (n: number) => void; pickTurn: (v: TurnSeconds) => void; setCode: (c: string) => void; setOrgCode: (c: string) => void;
+  mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
+  pickMode: (m: UiMode) => void; pickCorp: () => void; pickSeats: (n: number) => void; pickTurn: (v: TurnSeconds) => void; setCode: (c: string) => void; setOrgCode: (c: string) => void;
   create: () => void; startTutorial: () => void; join: (c: string) => void; orgJoin: () => void;
   onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onTournaments?: () => void; onShop?: () => void; onClass?: () => void; resume: (c: string) => void;
 };
@@ -24,9 +24,9 @@ export type DesktopProps = {
 /** Bosh sahifa — kompyuter ko'rinishi (prototip `Main.html`): chap menyu, o'quv bloki, 3 qadamli sozlash, «Sizning xonangiz» xulosasi, tezkor amallar. */
 export function HomeDesktop(p: DesktopProps) {
   const { me, online } = p; const first = !!me && me.games === 0; const modeName = p.corp ? uz.home.corporate : uz.home.modes[p.mode];
-  const dur = p.corp ? D.durCorp : p.mode === "tutorial" || p.mode === "quick" || p.mode === "rated" ? D.dur[p.mode] : D.dur.standard;
+  const dur = p.corp ? D.durCorp : D.dur.standard;
   const speed = turnLabel(p.effTurn);
-  const startLabel = p.corp ? uz.home.corpEnter : p.mode === "tutorial" ? D.startTutorial : D.start;
+  const startLabel = p.corp ? uz.home.corpEnter : D.start;
   const bots = Math.max(0, p.seats - 1);
   const nav: { k: string; label: string; icon: IconName; on?: () => void; cur?: boolean }[] = [
     { k: "home", label: uz.home.tabHome, icon: "home", cur: true }, { k: "board", label: uz.profile.leaderboard, icon: "trophy", on: p.onLeaderboard },
@@ -76,14 +76,14 @@ export function HomeDesktop(p: DesktopProps) {
           <View style={s.card}>
             <StepTitle n={1} t={D.stepMode} />
             <View style={s.modes} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
-              {(["standard", "quick", "rated", "tutorial"] as GameMode[]).map((m) => { const on = !p.corp && p.mode === m; return (
+              {(GAME_MODES_UI as readonly UiMode[]).map((m) => { const on = !p.corp && p.mode === m; return (
                 <Pressable key={m} role="radio" aria-checked={on} testID={`mode-${m}`} accessibilityLabel={`${uz.home.modes[m]}. ${uz.home.modeHints[m]}`} onPress={() => p.pickMode(m)} style={[s.mode, on && s.modeOn]}>
                   <Icon name={MODE_ICON[m]} size={22} color={on ? "#0E6B4A" : tone.muted} /><Text style={s.modeN} aria-hidden>{uz.home.modes[m]}</Text><Text style={s.modeH} aria-hidden>{D.modeShort[m]}</Text></Pressable>); })}
               <Pressable role="radio" aria-checked={p.corp} testID="mode-corporate" accessibilityLabel={`${uz.home.corporate}. ${uz.home.corporateHint}`} onPress={p.pickCorp} style={[s.mode, p.corp && s.modeOn]}>
                 <View style={s.newB} aria-hidden><Text style={s.newBT}>{D.newBadge}</Text></View><Icon name="house" size={22} color={p.corp ? "#0E6B4A" : tone.muted} /><Text style={s.modeN} aria-hidden>{uz.home.corporate}</Text><Text style={s.modeH} aria-hidden>{D.corpShort}</Text></Pressable>
             </View>
 
-            {!p.corp && <View style={s.info}><Text style={s.infoH}>{uz.home.modes[p.mode]}</Text><Text style={s.infoP}>{D.modeInfo[p.mode]}</Text><Text style={s.infoM}>{D.with}: <Text style={s.b}>{p.mode === "tutorial" ? D.withBots : D.withFriends}</Text>   {D.duration}: <Text style={s.b}>{dur}</Text></Text></View>}
+            {!p.corp && <View style={s.info}><Text style={s.infoH}>{uz.home.modes[p.mode]}</Text><Text style={s.infoP}>{D.modeInfo[p.mode]}</Text><Text style={s.infoM}>{D.with}: <Text style={s.b}>{D.withFriends}</Text>   {D.duration}: <Text style={s.b}>{dur}</Text></Text></View>}
             {p.corp && (
               <View style={s.corp} testID="home-corp">
                 <Text style={s.corpH}>{D.corpWhy}</Text>
@@ -104,10 +104,10 @@ export function HomeDesktop(p: DesktopProps) {
 
               <StepTitle n={3} t={D.stepSpeed} sub={D.speedSub} />
               <View style={s.speeds} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
-                {(p.mode === "standard" ? ([30, 60, 0] as const) : ([30, 60] as const)).map((v) => (
-                  <Pressable key={v} role="radio" aria-checked={p.effTurn === v} testID={`turn-${v}`} accessibilityLabel={v === 0 ? uz.home.turn0Full : v === 60 ? uz.home.turn60 : uz.home.turn30} onPress={() => p.pickTurn(v)} style={[s.speed, p.effTurn === v && s.speedOn]}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }} aria-hidden><Text style={s.modeN}>{v === 0 ? uz.home.turn0 : v === 60 ? D.slow : D.usual}</Text><Text style={s.speedV}>{v === 0 ? D.speed0 : v === 60 ? D.speed60 : D.speed30}</Text></View>
-                    <Text style={s.modeH} aria-hidden>{v === 0 ? uz.home.turn0Hint : v === 60 ? uz.home.turn60Hint : uz.home.turn30Hint}</Text></Pressable>))}
+                {([60, 120, 0] as const).map((v) => (
+                  <Pressable key={v} role="radio" aria-checked={p.effTurn === v} testID={`turn-${v}`} accessibilityLabel={v === 0 ? uz.home.turn0Full : v === 120 ? uz.home.turn60 : uz.home.turn30} onPress={() => p.pickTurn(v)} style={[s.speed, p.effTurn === v && s.speedOn]}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }} aria-hidden><Text style={s.modeN}>{v === 0 ? uz.home.turn0 : v === 120 ? D.slow : D.usual}</Text><Text style={s.speedV}>{v === 0 ? D.speed0 : v === 120 ? D.speed60 : D.speed30}</Text></View>
+                    <Text style={s.modeH} aria-hidden>{v === 0 ? uz.home.turn0Hint : v === 120 ? uz.home.turn60Hint : uz.home.turn30Hint}</Text></Pressable>))}
               </View>
               {p.effTurn === 0 && <Text style={s.modeH} testID="turn0-hint">{uz.home.turn0Hint}</Text>}
               {calcUiEnabled() && (<>
@@ -124,7 +124,7 @@ export function HomeDesktop(p: DesktopProps) {
           <View style={s.sum}>
             <Text style={s.sumH} aria-level={2} accessibilityRole="header">{D.yourRoom}</Text>
             {[[D.rowType, modeName], [D.rowPlayers, p.corp ? D.corpPlayers : `${p.seats} ${D.kishi}`], [D.rowSpeed, p.corp ? "—" : speed], [D.rowDuration, dur]].map(([k, v]) => <View key={k} style={s.sumRow}><Text style={s.sumK}>{k}</Text><Text style={s.sumV}>{v}</Text></View>)}
-            <View style={s.sumNote}><Text style={s.sumNoteT}>{p.corp ? uz.home.corporateHint : p.mode === "tutorial" ? D.sumTutorial : D.sumBots}</Text></View>
+            <View style={s.sumNote}><Text style={s.sumNoteT}>{p.corp ? uz.home.corporateHint : D.sumBots}</Text></View>
             <Pressable testID="home-new" role="button" accessibilityLabel={`${uz.home.newGame}: ${startLabel}`} accessibilityState={{ disabled: !online || (p.corp && p.orgCode.length !== 8) }} disabled={!online || (p.corp && p.orgCode.length !== 8)} onPress={p.corp ? p.orgJoin : p.create} style={[s.go, (!online || (p.corp && p.orgCode.length !== 8)) && { opacity: 0.45 }]}><Text style={s.goT}>{startLabel}</Text></Pressable>
             {p.error && <Text style={{ color: color.red, textAlign: "center" }} accessibilityRole="alert">{errText(p.error)}</Text>}
           </View>
@@ -132,13 +132,13 @@ export function HomeDesktop(p: DesktopProps) {
 
         <Text style={[s.eyebrow, { marginTop: space.lg }]}>{D.quick}</Text>
         <View style={s.cols}>
-          <View style={[s.card, { flex: 1.2 }]}>
+          {p.corp && <View style={[s.card, { flex: 1.2 }]}>
             <Pressable accessibilityRole="button" accessibilityLabel={`${uz.home.joinByCode}. ${uz.home.joinSub}`} style={s.qHead}><View style={s.qIco}><Icon name="people" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.home.joinByCode}</Text><Text style={s.qS}>{uz.home.joinSub}</Text></View></Pressable>
             <View style={{ flexDirection: "row", gap: space.sm, alignItems: "stretch" }}>
               <TextInput aria-label={uz.home.code} placeholder="ABC123" placeholderTextColor="#6B7C8C" value={p.code} onChangeText={(t) => p.setCode(t.toUpperCase().replace(/[^A-Z0-9]/g, ""))} autoCapitalize="characters" autoCorrect={false} maxLength={6} onSubmitEditing={() => p.code.length === 6 && online && p.join(p.code)} returnKeyType="go" style={s.codeIn} />
               <View style={{ flexShrink: 0 }}><Button label={uz.home.joinShort} onPress={() => p.join(p.code)} disabled={!online || p.code.length !== 6} /></View>
             </View>
-          </View>
+          </View>}
           <Pressable accessibilityRole="button" accessibilityLabel={`${uz.home.rulesRow}. ${uz.home.rulesSub}`} onPress={p.onRules} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="book" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.home.rulesRow}</Text><Text style={s.qS}>{uz.home.rulesSub}</Text></View></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`${uz.profile.leaderboard}. ${uz.home.boardSub}`} onPress={p.onLeaderboard} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="trophy" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.profile.leaderboard}</Text><Text style={s.qS}>{uz.home.boardSub}</Text></View></Pressable>
         </View>

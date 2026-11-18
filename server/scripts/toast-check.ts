@@ -16,7 +16,7 @@ const mk = async (uid: string) => { const c = await b.newContext({ viewport: { w
 const a = await mk("xa"), c = await mk("xb");
 await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
 await a.waitForSelector("text=Naqd");

@@ -16,7 +16,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
   const a = await mk("da" + tag), c = await mk("db" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   const n = await a.getByRole("button", { name: "Tanlash" }).count(); check(n === 40, `${tag}: 40 ta orzu tanlash tugmasi bilan (${n})`);
   const txt = await a.locator("body").innerText();

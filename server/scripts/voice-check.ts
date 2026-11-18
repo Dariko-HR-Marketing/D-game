@@ -21,7 +21,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const a = await mk(A), bb = await mk(B), cc = await mk(C, true), k = await mk(K);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  for (const p of [bb, cc, k]) { await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await p.getByRole("textbox").fill(code); await p.getByRole("button", { name: "Kirish", exact: true }).click(); await p.waitForSelector("text=Xona egasi"); }
+  for (const p of [bb, cc, k]) { await p.goto(`${WEB}/?kod=${code}`); await p.waitForSelector("text=Xona egasi"); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   for (const p of [a, bb, cc, k]) { await p.waitForSelector("text=Orzuingizni tanlang"); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
   for (const p of [a, bb, cc, k]) await p.waitForSelector("text=Naqd", { timeout: 20000 });

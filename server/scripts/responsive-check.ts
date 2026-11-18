@@ -61,7 +61,7 @@ for (const [w, h] of SIZES) {
     }
     await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
     const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-    await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+    await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
     await check(a, "05-lobby");
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await check(a, "06-dreams");
     await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");

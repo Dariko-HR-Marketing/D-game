@@ -39,7 +39,7 @@ await a.screenshot({ path: `${OUT}/2-profile.png` });
 await a.getByRole("button", { name: "Orqaga" }).first().click().catch(() => {}); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
 const c = await mk("zed"); await c.getByTestId("gate-name").fill("Madina"); await c.getByTestId("gate-year").fill("1999"); await c.getByRole("button", { name: "Davom etish" }).click();
-await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
 const lob = await c.locator("body").innerText(); check(lob.includes("Sardor") && lob.includes("Madina") && !/O'yinchi \d/.test(lob), "xonada ikkala o'yinchi ismi ko'rinadi, «O'yinchi N» yo'q");
 check((await c.locator("img[src*='/avatar/ida']").count()) > 0, "ikkinchi o'yinchi birinchisining rasmini ko'radi");
 await c.screenshot({ path: `${OUT}/3-lobby.png` });

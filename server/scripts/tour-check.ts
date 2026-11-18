@@ -32,7 +32,7 @@ for (const [tag, w, h] of sizes) {
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await dlg(a).waitFor(); check((await title(a)) === "Xona kodi", `${tag} xona: yo'riqnoma`); await shot(a, "02-lobby-1"); await fits(a, "lobby 1"); await next(a); await shot(a, "02-lobby-2"); await next(a);
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await dlg(c).waitFor({ timeout: 15000 }); await c.keyboard.press("Escape"); await c.waitForTimeout(150); // yangi foydalanuvchi: o'z bosh sahifa yo'riqnomasini ko'radi, Esc bilan yopadi
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await dlg(c).first().waitFor(); const homeC = await title(c); check(homeC === "Xona kodi" || homeC.length > 0, `${tag} ikkinchi o'yinchi ham sahifa yo'riqnomasini ko'radi: «${homeC}»`); await c.keyboard.press("Escape");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
   // 3) Orzu tanlash

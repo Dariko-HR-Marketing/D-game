@@ -19,7 +19,7 @@ for (const [tag, w, h] of SIZES) {
   const ida = "wa" + tag, idg = "wg" + tag, idw = "ww" + tag; const a = await mk(ida), g = await mk(idg), wt = await mk(idw);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  for (const p of [g, wt]) { await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await p.getByRole("textbox").fill(code); await p.getByRole("button", { name: "Kirish", exact: true }).click(); await p.waitForSelector("text=Xona "); }
+  for (const p of [g, wt]) { await p.goto(`${WEB}/?kod=${code}`); await p.waitForSelector("text=Xona "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
   for (const [i, p] of [a, g, wt].entries()) { await p.waitForSelector("text=Orzuingizni tanlang", { timeout: 10000 }).catch(async (e) => { await p.screenshot({ path: `${OUT}/${tag}-orzu${i}.png` }); console.log(await p.locator("body").innerText()); throw e; }); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
