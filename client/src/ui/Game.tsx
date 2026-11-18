@@ -241,7 +241,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const ui: HUi = { flat, labels, ib, tiny };
   const reqLayers = (<>
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
-    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} />}
+    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} onHelp={width < 360 ? replayTour : undefined} />}
   </>);
   const header = (
     <View style={[s.header, flat && { gap: 2, paddingHorizontal: space.md }]} onLayout={(e) => setHdrW(e.nativeEvent.layout.width)}>
@@ -266,7 +266,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       </Seg>
       <Seg ui={ui} label={uz.hud.group.help}>
         {wide && <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />}{/* tik telefon/planshetda «Qoidalar» pastki menyuda bor: sarlavhada takrorlanmaydi (sarlavha qirqilmasin) */}
-        <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />
+        {!tiny && <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />}
       </Seg>
       {!state.winner && <HBtn ui={ui} icon="person" label={uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} tid="profile-menu-open" />}
     </View>
