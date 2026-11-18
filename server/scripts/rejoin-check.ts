@@ -41,7 +41,8 @@ const d = await openKeep("rjd"); const enter = async (p: any) => { await p.getBy
 await enter(d); await d.getByText("Qaysi o'yinchi edingiz?").waitFor({ timeout: 8000 }).catch(() => {});
 check(await d.getByText("Qaysi o'yinchi edingiz?").count() > 0 && !room.members.some((m: any) => m.userId === "rjd"), "begona qurilma: o'yinga kirmadi, «Qaysi o'yinchi edingiz?» ko'rsatildi");
 check(await d.getByTestId("claim-seats").getByRole("button").count() === 0 && await d.getByText(/hamma o'yinchi onlayn/).count() > 0, "hamma onlayn: qaytarib olinadigan o'rin yo'q");
-await ctxOf(a).close(); await new Promise((r) => setTimeout(r, 800));
+await ctxOf(a).close(); for (let i = 0; i < 80 && room.members.find((m: any) => m.userId === "rja")!.online !== false; i++) await new Promise((r) => setTimeout(r, 100)); // server uzilishni sezguncha (CI sekin bo'lishi mumkin)
+await new Promise((r) => setTimeout(r, 800));
 await d.getByRole("button", { name: "Bekor qilish" }).click(); await enter(d); await d.getByText("Qaysi o'yinchi edingiz?").waitFor({ timeout: 8000 });
 const claimBtn = d.getByTestId("claim-seats").getByRole("button"); await claimBtn.first().waitFor({ timeout: 8000 });
 check(await claimBtn.count() === 1 && /Bu menman/.test(await claimBtn.first().innerText()), "oflayn o'yinchi (a) ro'yxatda: yagona «Bu menman»");
