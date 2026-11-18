@@ -12,7 +12,7 @@ const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
-const open = async (uid: string, w = 390, h = 844) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
+const open = async (uid: string, w = 390, h = 844, path = "") => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB + path); return p; };
 const a0 = await open("rja"), b0 = await open("rjb"), c0 = await open("rjc");
 await a0.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a0.getByTestId("seats-4").click(); await a0.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a0.waitForSelector("[data-testid=lobby-code]");
 const code = (await a0.locator("[aria-label^='Xona kodi']").textContent())!.trim();
@@ -29,9 +29,9 @@ for (let i = 1; i <= 5; i++) {
   check(room.members.find((m: any) => m.userId === "rja")!.online === false && !room.members.find((m: any) => m.userId === "rja")!.left, `${i}-uzilish: o'yinchi oflayn, lekin chiqmagan`);
   // boshqalar o'ynashda davom etadi (navbat «a» ga kelsa taymer o'tkazadi)
   for (let k = 0; k < 3; k++) { const cur = room.state!.players[room.state!.turn % room.state!.players.length].id; if (room.state!.pending) await x.rooms.act(code, cur, { type: "decide", accept: false, playerId: cur } as any, room.seq).catch(() => {}); else await x.rooms.act(code, cur, { type: "roll", playerId: cur } as any, room.seq).catch(() => {}); }
-  a = await open("rja");
+  a = await open("rja", 390, 844, i % 2 === 1 ? "" : `/?kod=${code}`);
   if (i % 2 === 1) { const r = a.getByTestId("home-resume"); await r.waitFor({ timeout: 15000 }); await r.click(); }
-  else { await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.goto(`${WEB}/?kod=${code}`); }
+  else { await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); }
   check(await inGame(a), `${i}-qaytish (${i % 2 ? "«Davom etayotgan o'yin»" : "kod bilan"}): o'yinga qaytdi`);
   check(room.members.find((m: any) => m.userId === "rja")!.online === true, `${i}-qaytish: serverda onlayn`);
 }
@@ -53,6 +53,6 @@ check(room.members.find((m: any) => m.userId === "rja")!.online === true && !roo
 x.rooms.leave(code, "rjb"); await ctxOf(b0).close(); const b1 = await open("rjb");
 await b1.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
 check(await b1.getByTestId("home-resume").count() === 0, "ixtiyoriy chiqqan: «Davom etayotgan o'yin» chiqmaydi");
-await b1.goto(`${WEB}/?kod=${code}`); await b1.waitForTimeout(1500);
-check(await b1.getByText(/chiqqansiz/).count() > 0, "ixtiyoriy chiqqan kod bilan ham qaytolmaydi (xabar ko'rsatiladi)");
+await b1.context().close(); const b2 = await open("rjb", 390, 844, `/?kod=${code}`); await b2.getByText(/chiqqansiz/).first().waitFor({ timeout: 10000 }).catch(() => {});
+check(await b2.getByText(/chiqqansiz/).count() > 0, "ixtiyoriy chiqqan kod bilan ham qaytolmaydi (xabar ko'rsatiladi)");
 await b.close(); await x.app.close(); console.log(failed ? `REJOIN: ${failed} ta xato` : "REJOIN: hammasi to'g'ri"); process.exit(failed ? 1 : 0);
