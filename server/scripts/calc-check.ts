@@ -45,7 +45,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const fill = async (v: { cash: number; passive: number; flow: number }) => { await gate.getByTestId("led-cash").fill(String(v.cash)); await gate.getByTestId("led-passive").fill(String(v.passive)); await gate.getByTestId("led-flow").fill(String(Math.abs(v.flow))); if (v.flow < 0) await gate.getByRole("button", { name: /Oylik pul oqimi: minus/ }).click(); };
   const submit = gate.getByRole("button", { name: "Tasdiqlash" });
   check(await submit.isDisabled(), `${tag} maydonlar bo'sh: «Tasdiqlash» o'chiq`);
-  for (let t = 1; t <= 3; t++) { await fill({ cash: s.cash + t, passive: s.passive, flow: s.flow }); await submit.click(); await a.waitForTimeout(350); }
+  const noAuction = async () => { for (let k = 0; k < 6; k++) { const au = (room.state as any).auction; if (!au) return; await (x.rooms as any).apply(room, au.phase === "owner" ? { type: "auction_decline", playerId: au.owner } : { type: "auction_close", playerId: "server" }, "test"); await a.waitForTimeout(300); } }; // tasodifiy auksion oynasi tugmani to'sib qo'ymasin
+  for (let t = 1; t <= 3; t++) { await noAuction(); await fill({ cash: s.cash + t, passive: s.passive, flow: s.flow }); await noAuction(); await submit.click(); await a.waitForTimeout(350); }
   check(((await gate.innerText()) ?? "").includes("To'g'ri javob"), `${tag} 3 xatodan keyin to'g'ri javob ko'rsatiladi`);
   await a.screenshot({ path: `${OUT}/${tag}-2-xato.png` });
   await fill(s); await submit.click();
