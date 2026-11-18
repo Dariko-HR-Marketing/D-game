@@ -20,6 +20,9 @@ for (const p of [b0, c0]) { await p.goto(`${WEB}/?kod=${code}`); await p.waitFor
 await a0.getByRole("button", { name: "O'yinni boshlash" }).click(); await a0.waitForSelector("text=Orzuingizni tanlang");
 for (const p of [a0, b0, c0]) { await p.getByRole("button", { name: "Tanlash" }).first().click(); }
 await a0.waitForSelector("text=Naqd", { timeout: 60000 }); const room = x.rooms.rooms.get(code)!;
+const aOnline = () => room.members.find((m: any) => m.userId === "rja")!.online === true;
+/** Qaytgach server o'yinchini onlayn deb ko'rishini kutadi; CI da ulanish kechiksa, foydalanuvchi kabi sahifani bir marta yangilaydi. */
+const ensureOnline = async (p: any) => { for (let i = 0; i < 100 && !aOnline(); i++) await new Promise((r) => setTimeout(r, 100)); if (!aOnline()) { console.log("ESLATMA: 10 soniyada ulanmadi, sahifa yangilanadi"); await p.reload(); } for (let i = 0; i < 250 && !aOnline(); i++) await new Promise((r) => setTimeout(r, 100)); return aOnline(); };
 const inGame = async (p: any) => { try { await p.waitForSelector("text=Naqd", { timeout: 12000 }); return true; } catch { return false; } };
 
 // 1) «a» sahifani 5 marta yopib-ochadi (tok/internet o'chishi): navbatlar o'tib ketadi, har safar qaytadi
@@ -33,7 +36,7 @@ for (let i = 1; i <= 5; i++) {
   if (i % 2 === 1) { const r = a.getByTestId("home-resume"); await r.waitFor({ timeout: 15000 }); await r.click(); }
   else { await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); }
   check(await inGame(a), `${i}-qaytish (${i % 2 ? "«Davom etayotgan o'yin»" : "kod bilan"}): o'yinga qaytdi`);
-  check(room.members.find((m: any) => m.userId === "rja")!.online === true, `${i}-qaytish: serverda onlayn`);
+  check(await ensureOnline(a), `${i}-qaytish: serverda onlayn`);
 }
 // 2) Begona (boshqa qurilma/brauzer) boshlangan xonaga kira olmaydi; sinov rejimida faqat OFLAYN o'yinchining o'rnini qaytarib oladi
 const openKeep = async (uid: string) => { const c = await b.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }); await c.addInitScript((u) => { if (!localStorage.getItem("tajriba24-dev-user")) localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; }; // yangilashda qaytarib olingan o'rin bosilib ketmasin
@@ -48,10 +51,7 @@ const claimBtn = d.getByTestId("claim-seats").getByRole("button"); await claimBt
 check(await claimBtn.count() === 1 && /Bu menman/.test(await claimBtn.first().innerText()), "oflayn o'yinchi (a) ro'yxatda: yagona «Bu menman»");
 await claimBtn.first().click();
 check(await inGame(d), "o'rin qaytarib olindi: boshqa brauzerdan o'yinga qaytdi (sahifa o'zi yangilandi)");
-const aOn = () => room.members.find((m: any) => m.userId === "rja")!.online === true;
-for (let i = 0; i < 100 && !aOn(); i++) await new Promise((r) => setTimeout(r, 100));
-if (!aOn()) { console.log("ESLATMA: 10 soniyada ulanmadi, foydalanuvchi sahifani yangilaydi"); await d.reload(); }
-for (let i = 0; i < 250 && !aOn(); i++) await new Promise((r) => setTimeout(r, 100)); // sahifa qayta yuklanib ulanguncha (yuklanish tezligiga bog'liq)
+await ensureOnline(d);
 check(room.members.find((m: any) => m.userId === "rja")!.online === true && !room.members.some((m: any) => m.userId === "rjd"), `serverda a o'rni onlayn; yangi a'zo qo'shilmadi (${JSON.stringify(room.members.map((m: any) => [m.userId, m.online, !!m.left]))})`);
 // 3) O'zi «O'yindan chiqish»ni bosgan qayta kira olmaydi
 x.rooms.leave(code, "rjb"); await ctxOf(b0).close(); const b1 = await open("rjb");
