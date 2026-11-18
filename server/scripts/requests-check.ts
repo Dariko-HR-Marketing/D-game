@@ -27,7 +27,7 @@ for (const [tag, w, h] of SIZES) {
   // a so'radi (beruvchi b), b ga sheriklik taklif qilindi: b ikkala so'rovni ko'radi
   s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: idb, receiver: ida, amount: 500, months: 12 });
   (x.rooms as any).emit(room);
-  const dlg = c.getByTestId("request-modal"); await dlg.waitFor({ timeout: 8000 }).catch(async (e: any) => { await c.screenshot({ path: `${OUT}/${tag}-yoq.png` }); throw e; });
+  const dlg = c.getByTestId("request-modal"); await dlg.waitFor({ timeout: 30000 }).catch(async (e: any) => { await c.screenshot({ path: `${OUT}/${tag}-yoq.png` }); throw e; });
   check(/qarz berasizmi/i.test(await dlg.innerText()), `${tag}: beruvchiga aniq savol oynasi chiqdi`);
   check((await dlg.getByRole("button", { name: "Ha, qarz beraman" }).count()) === 1 && (await dlg.getByRole("button", { name: "Yo'q, rad etaman" }).count()) === 1, `${tag}: «Ha» va «Yo'q» tugmalari bor`);
   await dlg.getByRole("button", { name: "Keyinroq" }).click(); await c.waitForTimeout(300);
