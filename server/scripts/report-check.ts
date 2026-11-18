@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 // `OUT=papka pnpm tsx scripts/report-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, axeSource } from "./_seed";
+import { autoProfiles, slowTimers, axeSource, joinByCode } from "./_seed";
 import { currentPlayer, effectOf, slotBlocked } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/report";
@@ -20,9 +20,9 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["pln", 768, 10
   const ida = "ra" + tag, idc = "rb" + tag; const a = await mk(ida), c = await mk(idc);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   // Haqiqiy o'yin: yetarlicha navbat (aktivlar, xarajatlar, qarorlar) — keyin o'yin tugaydi
   for (let i = 0; i < Number(process.env.TURNS ?? 160) && !room.state!.winner; i++) {

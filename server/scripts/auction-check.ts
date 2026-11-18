@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { RULES, startAuction, takeLombard, tickLoans } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/auction";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -19,10 +19,10 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   if (three) x.rooms.rooms.get(code)!.seats = 3; // uchinchi o'yinchi uchun joy
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
-  if (d) { await d.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await d.getByRole("textbox").fill(code); await d.getByRole("button", { name: "Kirish", exact: true }).click(); await d.waitForSelector("text=Xona egasi"); }
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
+  if (d) { await joinByCode(d, code); await d.waitForSelector("text=Xona egasi"); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); if (d) { await d.waitForSelector("text=Orzuingizni tanlang"); await d.getByRole("button", { name: "Tanlash" }).first().click(); } await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); if (d) { await d.waitForSelector("text=Orzuingizni tanlang"); await d.getByRole("button", { name: "Tanlash" }).first().click(); } await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   // Holat: a — lombardi muddati o'tgan (garov 20 000 lik biznes), b da pul bor
   const s: any = room.state!; s.halalFin = true;

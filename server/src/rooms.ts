@@ -21,7 +21,7 @@ const sameSnap = (a: Snap, b: Snap) => a.cash === b.cash && a.passive === b.pass
 /** Necha marta xato qilingandan keyin to'g'ri javob ko'rsatiladi (qotib qolmaslik uchun). */
 export const CALC_HINT_AFTER = 3;
 /** Xona tezligi: 30 («Odatiy»), 60 («Sekin» ×2) soniya yoki 0 — vaqtsiz xona (buyurtmachi: «Mehrojiddin»): navbat va qarorlarga taymer yo'q (faqat standart rejimda). */
-export const TURN_SECONDS = [30, 60, 0] as const; export type TurnSeconds = (typeof TURN_SECONDS)[number];
+export const TURN_SECONDS = [30, 60, 120, 0] as const; export type TurnSeconds = (typeof TURN_SECONDS)[number];
 
 export interface Member { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean; autoStreak?: number; idleSince?: number; offlineAt?: number } // left: o'yindan ixtiyoriy chiqqan — qaytib kira olmaydi (§6.3)
 export interface Room {
@@ -81,7 +81,7 @@ export class RoomManager {
 
   constructor(private content: Ctx | ContentRegistry, private store: Store, private clock: Clock = realClock, private rand: () => number = Math.random,
     private hooks: { restricted?: (ids: string[]) => string[]; chatRestricted?: (ids: string[]) => string[]; onEnd?: (code: string, r: Room) => void; profile?: (id: string) => { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } } | undefined;
-      canJoin?: (tag: RoomTag, userId: string) => boolean; onStart?: (code: string, r: Room) => void; onAbandon?: (code: string) => void; onError?: (where: string, e: unknown) => void; onApply?: (type: string, ok: boolean, ms: number, error?: string) => void } = {}) {}
+      canJoin?: (tag: RoomTag, userId: string) => boolean; noBots?: (tag: RoomTag) => boolean; onStart?: (code: string, r: Room) => void; onAbandon?: (code: string) => void; onError?: (where: string, e: unknown) => void; onApply?: (type: string, ok: boolean, ms: number, error?: string) => void } = {}) {}
   private activeCtx(): { version: number | null; ctx: Ctx } {
     return "active" in this.content ? this.content.active() : { version: null, ctx: this.content };
   }
@@ -129,7 +129,7 @@ export class RoomManager {
       else ctx = this.content;
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
       const r: Room = { tag: a.meta.tag, code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable, online: false })), state: a.state, seq: a.meta.seq,
-        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : a.meta.turnSeconds === 0 && modeOf(a.meta.mode) === "standard" ? 0 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", mode: modeOf(a.meta.mode), limitLeftMs: a.meta.limitLeftMs ?? null, limitStartedAt: null, ...(a.meta.seats !== undefined ? { seats: a.meta.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
+        timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : a.meta.turnSeconds === 120 ? 120 : a.meta.turnSeconds === 0 && modeOf(a.meta.mode) === "standard" ? 0 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", mode: modeOf(a.meta.mode), limitLeftMs: a.meta.limitLeftMs ?? null, limitStartedAt: null, ...(a.meta.seats !== undefined ? { seats: a.meta.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.ledgerSync(r); this.armProposals(r); this.arm(r); n++;
@@ -218,8 +218,10 @@ export class RoomManager {
     if (r.state) return { ok: false, error: "already_started" };
     { const lt = this.lobbyTimers.get(code); if (lt && r.mode !== "rated") { this.clock.clearTimeout(lt.h); this.lobbyTimers.delete(code); } }
     if (r.mode === "rated" && r.members.filter((m) => !m.bot).length < 2) return { ok: false, error: "not_enough_players" }; // reytingli o'yin: kamida 2 odam
+    const noBots = !!(r.tag && this.hooks.noBots?.(r.tag)); // korporativ xona: faqat xodimlarning o'zi, bot yo'q (buyurtmachi qarori 2026-11-18)
+    if (noBots && r.members.filter((m) => !m.bot).length < 2) return { ok: false, error: "not_enough_players" };
     let b = 1;
-    while (r.members.length < (r.seats ?? MIN_PLAYERS)) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
+    while (!noBots && r.members.length < (r.seats ?? MIN_PLAYERS)) r.members.push({ userId: `bot-${b++}`, bot: true, online: true });
     const c = this.activeCtx(); r.ctx = c.ctx; r.contentVersion = c.version; // versiya shu yerda qulflanadi
     let s = newGame(r.ctx, r.members.map((m) => m.userId), seed, r.members.filter((m) => m.bot).map((m) => m.userId), this.hooks.restricted?.(r.members.filter((m) => !m.bot).map((m) => m.userId)) ?? [], { dreamPhase: opts.dreams !== false, events: opts.events !== false, openingDice: opts.dreams !== false && opts.opening !== false, mode: r.mode, recapPause: opts.recap ?? opts.dreams !== false, halalFin: true, witnessLoans: true }); // orzularni o'yinchilar tanlaydi (§6.4); muddat tugasa server o'zi tanlaydi
     if (opts.dreams === false) s.players.forEach((p, i) => (s = chooseDream(s, p.id, i % r.ctx.dreams.length))); // testlar uchun: bosqichsiz

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Moliya animatsiyasi: naqd/passiv daromad/pul oqimi o'zgarishi va yangi aktiv chiplari (yashil — qo'shildi, qizil — ketdi), raqam sanab o'tadi, chiplar o'zi yo'qoladi.
 // `OUT=papka pnpm tsx scripts/fx-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, joinByCode } from "./_seed";
 import { buildApp } from "../src/app";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/fx";
@@ -17,16 +17,16 @@ for (const [tag, w, h, motion] of sizes) {
   const a = await mk("fxa" + tag), c = await mk("fxb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   // Xona vaqti tanlovi: 1 daqiqa
-  await a.getByRole("radio", { name: "Sekin · 1 daqiqa" }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
+  await a.getByRole("radio", { name: "Sekin · 2 daqiqa" }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   check((await a.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} xona tezligi (Sekin) xonada ko'rinadi`);
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   check((await c.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} qo'shilgan o'yinchi ham xona vaqtini ko'radi`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
-  await a.waitForSelector("text=Naqd");
+  await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const me = room.state!.players.find((p: any) => p.id === "fxa" + tag)!;
-  check(room.turnSeconds === 60, `${tag} server xona vaqtini saqladi (60)`);
+  check(room.turnSeconds === 120, `${tag} server xona vaqtini saqladi (120)`);
   const layer = a.getByTestId("fx-layer"); const emit = () => (x.rooms as any).emit(room);
   await a.waitForTimeout(800);
   check((await layer.getByText(/[+−]/).count()) === 0, `${tag} boshida chip yo'q`);

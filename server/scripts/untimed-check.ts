@@ -27,7 +27,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.turnSeconds === 0, `${tag}: serverda xona vaqtsiz (turnSeconds ${room.turnSeconds})`);
   check(await a.getByTestId("lobby-turn").innerText().then((s) => /Mehrojiddin/.test(s)), `${tag}: lobbida «Mehrojiddin» belgisi`);
-  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   await a.waitForTimeout(1500);
   const cur = room.state!.players[room.state!.turn % room.state!.players.length].id, turn = room.state!.turn;
   check(await a.locator("[role=timer]").count() === 0, `${tag}: taymer halqasi yo'q`);

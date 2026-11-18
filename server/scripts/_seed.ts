@@ -26,3 +26,20 @@ export function axeSource(): string {
   const src = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf-8");
   return src + `;(function(){const run=axe.run.bind(axe);axe.run=async function(...a){for(let i=0;i<50;i++){const an=document.getAnimations?document.getAnimations().filter(function(x){return x.playState==="running"&&x.effect&&x.effect.getTiming().iterations!==Infinity}):[];if(!an.length)break;await new Promise(function(r){setTimeout(r,100)})}await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});return run.apply(null,a)}})();`;
 }
+
+/** Javob kutayotgan so'rovlar oynasi (request-modal) oldinda turib, panel tugmalarini to'sib qo'yadi: «Keyinroq» bilan yopiladi. */
+export async function dismissReq(p: any): Promise<void> {
+  const b = p.getByTestId("request-modal").getByRole("button", { name: "Keyinroq" });
+  if (await b.count()) await b.first().click().catch(() => {}); await p.waitForTimeout(150);
+}
+
+/** Do'stining xona kodi bilan qo'shilish: «Kod bilan qo'shilish» faqat Korporativ tanlanganda ko'rinadi (buyurtmachi qarori 2026-11-18). Sahifa bir marta yuklanadi (ikkinchi ulanish yo'q). */
+export async function joinByCode(p: any, code: string): Promise<void> {
+  await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
+  if (!(await p.getByTestId("mode-corporate").count())) { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); }
+  await p.getByTestId("mode-corporate").click();
+  const input = p.locator('input[maxlength="6"]');
+  if (!(await input.count())) await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click();
+  await input.fill(code);
+  await p.getByRole("button", { name: "Kirish", exact: true }).last().click();
+}

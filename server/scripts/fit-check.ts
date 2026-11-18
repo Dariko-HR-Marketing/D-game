@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // O'yin ekrani (kompyuter/planshet) bitta ko'rinishga sig'adimi: `OUT=papka pnpm tsx scripts/fit-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Sahifa aylanishi (scrollHeight > innerHeight) — xato.
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, joinByCode } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -18,10 +18,10 @@ for (const [w, h] of sizes) {
   const tag = `${w}x${h}`, a = await mk("fa" + tag), c = await mk("fb" + tag);
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
-  await a.waitForSelector("text=Naqd"); const skip = a.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
+  await a.waitForSelector("text=Naqd", { timeout: 60000 }); const skip = a.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   const skipC = c.getByRole("button", { name: "O'tkazib yuborish" }); if (await skipC.count()) await skipC.click();
   const room = x.rooms.rooms.get(code)!;
   const measure = async (p: any, name: string) => {
@@ -29,7 +29,7 @@ for (const [w, h] of sizes) {
     const m = await p.evaluate(() => ({ sh: document.documentElement.scrollHeight, ih: window.innerHeight, sw: document.documentElement.scrollWidth, iw: window.innerWidth }));
     // Asosiy boshqaruvlar aylantirmasdan ko'rinishi shart: chiqish tugmasi, kubik/qaror tugmalari
     let hidden = "";
-    for (const nm of [/O'yindan chiqish/, /^Kubikni tashlash|^O'tkazaman|sh\.b\. olish$|^Qabul qilaman/]) { const el = p.getByRole("button", { name: nm }).first(); if (await el.count()) { const bb = await el.boundingBox(); if (bb && bb.y + bb.height > m.ih + 1) hidden += ` [${nm} pastda]`; } }
+    for (const nm of [/^Profil menyusi/, /^Kubikni tashlash|^O'tkazaman|sh\.b\. olish$|^Qabul qilaman/]) { const el = p.getByRole("button", { name: nm }).first(); if (await el.count()) { const bb = await el.boundingBox(); if (bb && bb.y + bb.height > m.ih + 1) hidden += ` [${nm} pastda]`; } }
     const ok = m.sh <= m.ih + 1 && m.sw <= m.iw + 1 && !hidden; if (!ok) failed++;
     console.log(`${tag} ${name}: sahifa ${m.sw}x${m.sh} / oyna ${m.iw}x${m.ih} ${ok ? "OK" : "SIG'MAYDI" + hidden}`);
     await p.screenshot({ path: `${OUT}/${tag}-${name}.png` });

@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/witness-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, dismissReq, joinByCode } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/witness";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -19,7 +19,7 @@ for (const [tag, w, h] of SIZES) {
   const ida = "wa" + tag, idg = "wg" + tag, idw = "ww" + tag; const a = await mk(ida), g = await mk(idg), wt = await mk(idw);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  for (const p of [g, wt]) { await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await p.getByRole("textbox").fill(code); await p.getByRole("button", { name: "Kirish", exact: true }).click(); await p.waitForSelector("text=Xona "); }
+  for (const p of [g, wt]) { await joinByCode(p, code); await p.waitForSelector("text=Xona "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
   for (const [i, p] of [a, g, wt].entries()) { await p.waitForSelector("text=Orzuingizni tanlang", { timeout: 10000 }).catch(async (e) => { await p.screenshot({ path: `${OUT}/${tag}-orzu${i}.png` }); console.log(await p.locator("body").innerText()); throw e; }); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
@@ -32,17 +32,19 @@ for (const [tag, w, h] of SIZES) {
   // «Moliya amallari» paneli taklif kelganda o'zi ochiladi; qo'lda bosish bilan poyga bo'lmasligi uchun: avval kutamiz, matn yo'q bo'lsagina bosamiz va qayta tekshiramiz
   const open = async (p: any, re: RegExp) => {
     for (let i = 0; i < 5; i++) {
-      await p.waitForTimeout(400); if (await p.getByText(re).count()) return;
+      await p.waitForTimeout(400); await dismissReq(p); if (await p.getByText(re).count()) return;
       const hdr = p.getByTestId("actions").getByText(/Moliya amallari/).first();
       if (!(await hdr.count())) { const t = p.getByRole("tab", { name: /Blank/ }).or(p.getByRole("button", { name: /^Blank/ })); if (await t.count()) await t.first().click().catch(() => {}); continue; }
       if ((await hdr.innerText()).startsWith("▸")) await hdr.click();
     }
   };
-  await wt.waitForTimeout(600); await open(wt, /Guvoh:/);
-  await wt.waitForSelector("text=Guvoh:", { timeout: 8000 }).catch(async (e) => { await wt.screenshot({ path: `${OUT}/${tag}-guvoh-yoq.png` }); throw e; });
-  const yes = wt.getByRole("button", { name: "Xabardor bo'ldim" }); check((await yes.count()) === 1, `${tag}: guvohda «Xabardor bo'ldim» tugmasi bor`);
-  await yes.scrollIntoViewIfNeeded(); const r = (await yes.boundingBox())!; check(r.x >= -1 && r.x + r.width <= w + 1 && r.height >= 40, `${tag}: guvoh tugmasi ekran ichida va ≥ 40 px (${Math.round(r.width)}×${Math.round(r.height)})`);
+  await wt.waitForTimeout(600);
+  const dlg = wt.getByTestId("request-modal"); await dlg.waitFor({ timeout: 8000 }).catch(async (e: any) => { await wt.screenshot({ path: `${OUT}/${tag}-guvoh-yoq.png` }); throw e; });
+  check(/guvoh bo'lasizmi/.test(await dlg.innerText()), `${tag}: guvohga aniq savol oynasi chiqdi («guvoh bo'lasizmi?»)`);
+  const yes = dlg.getByRole("button", { name: "Ha, guvoh bo'laman" }); check((await yes.count()) === 1, `${tag}: oynada «Ha, guvoh bo'laman» tugmasi bor`);
+  const r = (await yes.boundingBox())!; check(r.x >= -1 && r.x + r.width <= w + 1 && r.height >= 40, `${tag}: guvoh tugmasi ekran ichida va ≥ 40 px (${Math.round(r.width)}×${Math.round(r.height)})`);
   await wt.screenshot({ path: `${OUT}/${tag}-guvoh.png` });
+  check((await wt.getByTestId("requests-open").count()) === 1, `${tag}: sarlavhada so'rovlar qo'ng'iroqchasi bor`);
   await g.waitForTimeout(400); await open(g, /Qabul qilish/);
   await g.waitForSelector("text=Qabul qilish", { timeout: 8000 });
   check(await g.getByRole("button", { name: "Qabul qilish" }).first().isDisabled(), `${tag}: guvohlar xabardor bo'lmaguncha beruvchida «Qabul qilish» o'chiq`);

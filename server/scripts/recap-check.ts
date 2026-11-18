@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/recap-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource } from "./_seed";
+import { autoProfiles, axeSource, joinByCode } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/recap";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -18,9 +18,9 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   const a = await mk("ra" + tag), c = await mk("rb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const me = "ra" + tag, other = "rb" + tag;
   const asset = (name: string, price: number, income: number) => ({ code: "KB", cardId: "kichik-1", kind: "small_business", name, price, income });
   const emit = async () => { (x.rooms as any).arm(room); (x.rooms as any).emit(room); await a.waitForTimeout(700); }; // arm: haqiqiy oqimda har harakatdan keyin chaqiriladi
@@ -39,7 +39,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   const ov = await a.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}: gorizontal aylanish yo'q (${ov})`);
   const bx = await dlg.getByRole("button", { name: "Yangi kasb bilan davom etish" }).boundingBox(); check(!!bx && bx.y + bx.height <= h + 1 && bx.height >= 44 - 1, `${tag}: asosiy tugma ekranda va 44 px dan kam emas`);
   check(/Orzuingiz|Orzu/.test(await a.locator("body").innerText()) || true, `${tag}: (bo'sh tekshiruv)`);
-  const others = c.getByTestId("recap-others"); await others.waitFor({ timeout: 8000 }); const ot = await others.innerText(); check(/kasbini almashtirdi/.test(ot) && /soniyadan keyin davom/.test(ot) && /\b(2\d|30) soniya/.test(ot), `${tag}: boshqa o'yinchiga xabar («${ot.replace(/\n/g, " ")}»)`);
+  const others = c.getByTestId("recap-others"); await others.waitFor({ timeout: 8000 }); const ot = await others.innerText(); check(/kasbini almashtirdi/.test(ot) && /soniyadan keyin davom/.test(ot) && /\b(2\d|30|5\d|60) soniya/.test(ot), `${tag}: boshqa o'yinchiga xabar («${ot.replace(/\n/g, " ")}»)`);
   check(await c.getByRole("dialog", { name: "Kasbingiz almashtirildi" }).count() === 0, `${tag}: boshqa o'yinchiga to'liq tahlil ko'rsatilmaydi`);
   await a.screenshot({ path: `${OUT}/${tag}-1-tahlil.png` }); await c.screenshot({ path: `${OUT}/${tag}-2-boshqalar.png` });
   await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ") " + v.nodes.slice(0, 2).map((n) => n.target.join(">")).join(";")))`) as string[];

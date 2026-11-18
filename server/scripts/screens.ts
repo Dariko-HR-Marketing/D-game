@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 // Ekran rasmlari (UX/UI ko'rik uchun): `OUT=papka pnpm screens` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, joinByCode } from "./_seed";
 import { mkdirSync } from "node:fs";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
@@ -23,10 +23,10 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   await a.getByRole("button", { name: "Reyting", exact: true }).first().click(); await a.waitForSelector("text=Reyting"); await shot(a, "04-board"); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await shot(a, "05-lobby");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await shot(a, "06-dreams");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await shot(a, "06b-onboarding"); await onboard(a); await c.waitForSelector("text=Naqd"); await onboard(c);
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 }); await shot(a, "06b-onboarding"); await onboard(a); await c.waitForSelector("text=Naqd", { timeout: 60000 }); await onboard(c);
   const room = x.rooms.rooms.get(code)!;
   await shot(a, "07-game-start");
   const tabBlank = a.getByRole("button", { name: "Blank", exact: true }); if (await tabBlank.count()) { await tabBlank.click(); await a.waitForTimeout(300); await shot(a, "07c-blank"); }

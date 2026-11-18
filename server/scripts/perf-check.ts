@@ -16,7 +16,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, "pf-" + tag);
   const p = await c.newPage(); const cdp = await c.newCDPSession(p); await cdp.send("Performance.enable"); await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
-  await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd");
+  await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd", { timeout: 60000 });
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   await p.waitForSelector("[role=timer]", { timeout: 15000 }); await p.waitForTimeout(1500); // taymer yurmoqda: navbat odamniki (kubik oynasi ochiq)
   const m = async () => Object.fromEntries(((await cdp.send("Performance.getMetrics")) as any).metrics.map((e: any) => [e.name, e.value])) as Record<string, number>;

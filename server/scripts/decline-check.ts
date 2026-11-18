@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/decline-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, dismissReq, joinByCode } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/decline";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -18,7 +18,7 @@ for (const [tag, w, h] of SIZES) {
   const ida = "da" + tag, idb = "db" + tag; const a = await mk(ida), c = await mk(idb);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await c.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click(); await c.getByRole("textbox").fill(code); await c.getByRole("button", { name: "Kirish", exact: true }).click(); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
@@ -28,7 +28,7 @@ for (const [tag, w, h] of SIZES) {
   const cid: string = room.ctx.deckIds.katta.find((i: string) => { const e: any = room.ctx.effects[i].effect; return e.kind === "buy" && e.asset === "business"; }); s.pending = { type: "card", playerId: ida, cardId: cid, deck: "katta" }; // taklif faqat karta egasida hal bo'lmagan paytda amal qiladi
   s.proposals.push({ id: s.nextProposal++, kind: "partner", owner: ida, partner: idb, cardId: cid, half: 1000 });
   (x.rooms as any).emit(room);
-  await c.waitForTimeout(600); if (!(await c.getByRole("button", { name: "Rad etish" }).count())) { const tab = c.getByRole("tab", { name: /Blank/ }).or(c.getByRole("button", { name: /^Blank/ })); if (await tab.count()) await tab.first().click(); }
+  await c.waitForTimeout(600); await dismissReq(c); if (!(await c.getByRole("button", { name: "Rad etish" }).count())) { const tab = c.getByRole("tab", { name: /Blank/ }).or(c.getByRole("button", { name: /^Blank/ })); if (await tab.count()) await tab.first().click(); }
   await c.waitForSelector("text=Rad etish", { timeout: 8000 }).catch(async (e) => { await c.screenshot({ path: `${OUT}/${tag}-yoq.png` }); throw e; });
   const decl = c.getByRole("button", { name: "Rad etish" }), acc = c.getByRole("button", { name: "Qabul qilish" });
   check((await decl.count()) === 2 && (await acc.count()) === 2, `${tag}: har bir so'rovda «Qabul qilish» va «Rad etish» bor`);
