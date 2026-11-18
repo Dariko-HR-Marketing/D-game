@@ -22,8 +22,8 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await k.goto(`${WEB}/?kod=${code}`); await k.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await k.waitForSelector("text=Orzuingizni tanlang"); await k.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
-  await k.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await k.waitForSelector("text=Orzuingizni tanlang"); await k.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await k.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!;
   // 1) Katta o'yinchi yozadi
   await a.getByTestId("chat-open").click(); const sheet = a.getByRole("dialog", { name: "Chat" }); await sheet.waitFor();

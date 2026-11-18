@@ -19,7 +19,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   const turn = () => { const id = currentPlayer(room.state!).id; return { id, page: id === ida ? a : c, p: room.state!.players.find((p: any) => p.id === id)! }; };
   const push = async (pg: any) => { (x.rooms as any).emit(room); await pg.waitForTimeout(700); };

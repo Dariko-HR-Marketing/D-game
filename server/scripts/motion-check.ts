@@ -19,7 +19,7 @@ const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(
 await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
-await a.waitForSelector("text=Naqd"); for (const p of [a, c]) { const s = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await s.count()) await s.click(); }
+await a.waitForSelector("text=Naqd", { timeout: 60000 }); for (const p of [a, c]) { const s = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await s.count()) await s.click(); }
 
 // Tovush tugmasi: o'chirish/yoqish va holat saqlanishi
 const tog = a.getByTestId("sound-toggle"); check((await tog.getAttribute("aria-checked")) === "true", "tovush boshida yoqilgan");

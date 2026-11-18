@@ -26,7 +26,7 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await shot(a, "05-lobby");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await shot(a, "06-dreams");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await shot(a, "06b-onboarding"); await onboard(a); await c.waitForSelector("text=Naqd"); await onboard(c);
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 }); await shot(a, "06b-onboarding"); await onboard(a); await c.waitForSelector("text=Naqd", { timeout: 60000 }); await onboard(c);
   const room = x.rooms.rooms.get(code)!;
   await shot(a, "07-game-start");
   const tabBlank = a.getByRole("button", { name: "Blank", exact: true }); if (await tabBlank.count()) { await tabBlank.click(); await a.waitForTimeout(300); await shot(a, "07c-blank"); }

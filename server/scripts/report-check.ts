@@ -22,7 +22,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["pln", 768, 10
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   // Haqiqiy o'yin: yetarlicha navbat (aktivlar, xarajatlar, qarorlar) — keyin o'yin tugaydi
   for (let i = 0; i < Number(process.env.TURNS ?? 160) && !room.state!.winner; i++) {

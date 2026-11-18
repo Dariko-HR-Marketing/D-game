@@ -22,7 +22,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   if (d) { await d.goto(`${WEB}/?kod=${code}`); await d.waitForSelector("text=Xona egasi"); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); if (d) { await d.waitForSelector("text=Orzuingizni tanlang"); await d.getByRole("button", { name: "Tanlash" }).first().click(); } await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); if (d) { await d.waitForSelector("text=Orzuingizni tanlang"); await d.getByRole("button", { name: "Tanlash" }).first().click(); } await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   // Holat: a — lombardi muddati o'tgan (garov 20 000 lik biznes), b da pul bor
   const s: any = room.state!; s.halalFin = true;

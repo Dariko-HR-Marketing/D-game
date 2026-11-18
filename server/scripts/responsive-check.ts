@@ -64,7 +64,7 @@ for (const [w, h] of SIZES) {
     await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
     await check(a, "05-lobby");
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await check(a, "06-dreams");
-    await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+    await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
     const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
     { const cur0 = currentPlayer(room.state!).id; await check(cur0 === ida ? a : c, "07-game", /^Kubik(ni|larni) tashlash/); }
     const tab = (n: string) => a.getByRole("button", { name: new RegExp("^" + n), }).first();

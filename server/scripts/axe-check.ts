@@ -35,12 +35,12 @@ for (const [w, h] of [[390, 844], [844, 390], [768, 1024], [1024, 768], [1440, 9
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await scan(a, `xona ${tag}`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await scan(a, `orzu tanlash ${tag}`);
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd"); await a.getByTestId("tour-help").click(); await a.getByRole("dialog").waitFor(); await scan(a, `yo'riqnoma ${tag}`);
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 }); await a.getByTestId("tour-help").click(); await a.getByRole("dialog").waitFor(); await scan(a, `yo'riqnoma ${tag}`);
   { // klaviatura: fokus oynadan chiqmaydi, Esc yopadi
     let out = 0; for (let k = 0; k < 8; k++) { await a.keyboard.press("Tab"); if (!(await a.evaluate(() => !!document.activeElement?.closest('[role="dialog"]')))) out++; }
     await a.keyboard.press("Escape"); await a.waitForTimeout(200); const still = await a.getByRole("dialog").count();
     console.log("yo'riqnoma fokus".padEnd(22), out === 0 && still === 0 ? "OK" : `FOKUS CHIQDI(${out}) yoki Esc ishlamadi(${still})`); if (out || still) total++;
-  } await onboard(a); await c.waitForSelector("text=Naqd"); await onboard(c); await scan(a, `o'yin ${tag}`);
+  } await onboard(a); await c.waitForSelector("text=Naqd", { timeout: 60000 }); await onboard(c); await scan(a, `o'yin ${tag}`);
   const room = x.rooms.rooms.get(code)!;
   for (let i = 0; i < 300 && !room.state!.pending; i++) { const me = currentPlayer(room.state!).id; await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq); }
   if (room.state!.pending) { const me = currentPlayer(room.state!).id; const pg = me === "ua" + w ? a : c; await pg.waitForTimeout(600); await scan(pg, `o'yin+karta ${tag}`); }

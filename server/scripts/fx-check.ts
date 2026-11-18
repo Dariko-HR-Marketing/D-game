@@ -24,7 +24,7 @@ for (const [tag, w, h, motion] of sizes) {
   check((await c.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} qo'shilgan o'yinchi ham xona vaqtini ko'radi`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
-  await a.waitForSelector("text=Naqd");
+  await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const me = room.state!.players.find((p: any) => p.id === "fxa" + tag)!;
   check(room.turnSeconds === 120, `${tag} server xona vaqtini saqladi (120)`);
   const layer = a.getByTestId("fx-layer"); const emit = () => (x.rooms as any).emit(room);

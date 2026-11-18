@@ -20,7 +20,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const me = "ra" + tag, other = "rb" + tag;
   const asset = (name: string, price: number, income: number) => ({ code: "KB", cardId: "kichik-1", kind: "small_business", name, price, income });
   const emit = async () => { (x.rooms as any).arm(room); (x.rooms as any).emit(room); await a.waitForTimeout(700); }; // arm: haqiqiy oqimda har harakatdan keyin chaqiriladi

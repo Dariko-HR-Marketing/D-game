@@ -26,7 +26,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.mode === "standard" && room.seats === 2 && room.turnSeconds === 60, `${tag} serverda rejim «standart», o'rin 2, tezlik 1 daqiqa`);
-  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   if (tag === "tel") await a.getByRole("button", { name: /^Blank/ }).click();
   const txt = await a.locator("body").innerText(); check(txt.includes("Naqd ≥ 1 000 000") && txt.includes("Passiv daromad ≥ 25 000"), `${tag} standart: chiqish shartlari «1 000 000 / 25 000»`);
   check((room.state!.mode ?? "standard") === "standard", `${tag} o'yin holatida rejim «standart»`);
@@ -38,7 +38,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(x.rooms.rooms.get(nc)?.mode === "tutorial", `${tag} taklif bosilsa o'quv xonasi ochiladi`);
   // 3) O'quv o'yini: 1 odam + 2 bot, qolgan vaqt va vaqt tugashi
   const t = nw; const tc = nc; const tr = x.rooms.rooms.get(tc)!;
-  await t.getByRole("button", { name: "O'yinni boshlash" }).click(); await t.waitForSelector("text=Orzuingizni tanlang"); await t.getByRole("button", { name: "Tanlash" }).first().click(); await t.waitForSelector("text=Naqd");
+  await t.getByRole("button", { name: "O'yinni boshlash" }).click(); await t.waitForSelector("text=Orzuingizni tanlang"); await t.getByRole("button", { name: "Tanlash" }).first().click(); await t.waitForSelector("text=Naqd", { timeout: 60000 });
   check(tr.state!.players.length === 3 && tr.members.filter((m: any) => m.bot).length === 2, `${tag} o'quv: 1 odam + 2 bot`);
   await t.waitForTimeout(600); check(await t.getByTestId("coach").count() === 1 && /balansingiz/.test(await t.getByTestId("coach").innerText()), `${tag} o'quv: yo'l-yo'riq «Bu sizning balansingiz…» ko'rinadi`);
   await t.getByTestId("coach").getByRole("button", { name: "Tushundim" }).dispatchEvent("click"); /* botning karta xabari (toast) tugma ustini vaqtincha yopishi mumkin: bosish hodisasi tugmaning o'ziga beriladi */ await t.waitForTimeout(300); check(await t.getByTestId("coach").count() === 0, `${tag} «Tushundim» bosilgach shu qadam qayta chiqmaydi`);

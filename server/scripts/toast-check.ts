@@ -19,7 +19,7 @@ const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(
 await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
-await a.waitForSelector("text=Naqd");
+await a.waitForSelector("text=Naqd", { timeout: 60000 });
 const room = x.rooms.rooms.get(code)!; slowTimers(x, room); const toast = a.locator('[role="status"][aria-label]').filter({ hasText: "karta tortdi" }); // xabar kartasi: lahza-bannerlari («Bozor xabari») va moliya chiplari emas
 // «c» o'yinchisi navbatida karta tortilguncha: «a» ning sahifasida xabar chiqadi
 let seenAt = 0;

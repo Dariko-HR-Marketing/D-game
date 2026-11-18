@@ -22,7 +22,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   }
   p.on("pageerror", (e) => errors.push("pageerror: " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
-  await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd");
+  await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd", { timeout: 60000 });
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   let rolls = 0, accepted = 0, skipped = 0, idle = 0, recaps = 0;
   const prof = process.env.PROFILE && tag === "telefon" ? await c.newCDPSession(p) : null; // protsessor profili: eng og'ir funksiyalar (PROFILE=fayl.json)

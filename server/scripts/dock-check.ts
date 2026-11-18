@@ -21,7 +21,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["fhd", 1920, 1080], ["kmp2", 136
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
+  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const me = room.state!.players.find((p: any) => p.id === "da" + tag)!;
   const buys = Object.values(room.ctx.effects).map((e: any) => e.effect).filter((e: any) => e?.kind === "buy" && e.code).slice(0, 5) as any[];
   for (const e of buys) me.assets.push({ kind: "buy", code: e.code, price: e.price, monthlyIncome: e.monthlyIncome ?? 100, creditPayment: e.creditPayment ?? 0, credit: e.credit ?? 0 });

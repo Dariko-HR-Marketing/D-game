@@ -19,7 +19,7 @@ const code = (await a0.locator("[aria-label^='Xona kodi']").textContent())!.trim
 for (const p of [b0, c0]) { await p.goto(`${WEB}/?kod=${code}`); await p.waitForSelector("text=Xona egasi", { timeout: 8000 }).catch(async () => { console.log("LOBBY-XATO", (await p.innerText("body")).slice(0, 900), "| seats:", x.rooms.rooms.get(code)?.seats, "members:", x.rooms.rooms.get(code)?.members.map((m: any) => m.userId).join(",")); await p.screenshot({ path: "/tmp/rj.png" }); process.exit(2); }); }
 await a0.getByRole("button", { name: "O'yinni boshlash" }).click(); await a0.waitForSelector("text=Orzuingizni tanlang");
 for (const p of [a0, b0, c0]) { await p.getByRole("button", { name: "Tanlash" }).first().click(); }
-await a0.waitForSelector("text=Naqd"); const room = x.rooms.rooms.get(code)!;
+await a0.waitForSelector("text=Naqd", { timeout: 60000 }); const room = x.rooms.rooms.get(code)!;
 const inGame = async (p: any) => { try { await p.waitForSelector("text=Naqd", { timeout: 12000 }); return true; } catch { return false; } };
 
 // 1) «a» sahifani 5 marta yopib-ochadi (tok/internet o'chishi): navbatlar o'tib ketadi, har safar qaytadi

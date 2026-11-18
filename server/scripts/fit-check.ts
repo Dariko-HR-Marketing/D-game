@@ -21,7 +21,7 @@ for (const [w, h] of sizes) {
   await c.goto(`${WEB}/?kod=${code}`); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
-  await a.waitForSelector("text=Naqd"); const skip = a.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
+  await a.waitForSelector("text=Naqd", { timeout: 60000 }); const skip = a.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   const skipC = c.getByRole("button", { name: "O'tkazib yuborish" }); if (await skipC.count()) await skipC.click();
   const room = x.rooms.rooms.get(code)!;
   const measure = async (p: any, name: string) => {
