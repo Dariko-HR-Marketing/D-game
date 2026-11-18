@@ -33,7 +33,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(await a.getByTestId("coach").count() === 0, `${tag} standart o'yinda yo'l-yo'riq yo'q`);
   await a.context().close();
   // 2b) Yangi o'yinchi (o'yini yo'q): bosh sahifada «O'quv o'yini» taklifi
-  const nw = await open("mdn" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada O'quv o'yini taklifi`);
+  const nw = await open("newmd" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada O'quv o'yini taklifi`);
+  check(await nw.getByTestId("home-new").count() === 0 && await nw.getByTestId("mode-standard").count() === 0 && await nw.getByTestId("mode-corporate").count() === 0, `${tag} yangi o'yinchi: oddiy o'yin va tur tanlovi yopiq (majburiy o'quv)`);
+  check(await nw.getByText(/Avval o'quv o'yini/).count() > 0, `${tag} yangi o'yinchi: «Avval o'quv o'yini» tushuntirishi bor`);
   await nw.getByTestId("home-tutorial").click(); await nw.waitForSelector("[data-testid=lobby-code]"); const nc = (await nw.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   check(x.rooms.rooms.get(nc)?.mode === "tutorial", `${tag} taklif bosilsa o'quv xonasi ochiladi`);
   // 3) O'quv o'yini: 1 odam + 2 bot, qolgan vaqt va vaqt tugashi
@@ -48,6 +50,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await t.waitForSelector("text=O'yin natijasi", { timeout: 15000 }).catch(() => {});
   check(tr.state!.endReason === "time" && !!tr.state!.winner, `${tag} vaqt tugadi: g'olib belgilandi (sabab «vaqt»)`);
   check(await t.getByText(/Vaqt tugadi/).count() > 0, `${tag} natija ekranida «Vaqt tugadi»`);
+  check(await t.evaluate(() => localStorage.getItem("tajriba24-tutorial-done")) === "1", `${tag} o'quv o'yini tugagach qurilmada «o'tildi» belgisi qo'yildi`);
   await t.context().close();
 }
 await b.close(); await x.app.close(); console.log(failed ? `MODES: ${failed} ta xato` : "MODES: hammasi to'g'ri"); process.exit(failed ? 1 : 0);

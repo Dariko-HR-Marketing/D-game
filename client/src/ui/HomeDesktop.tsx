@@ -13,7 +13,7 @@ import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 const D = uz.home.desk;
 const MODE_ICON: Record<UiMode, IconName> = { standard: "board", student: "book" };
 export type DesktopProps = {
-  me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
+  gated: boolean;   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
   mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
   pickMode: (m: UiMode) => void; pickCorp: () => void; pickSeats: (n: number) => void; pickTurn: (v: TurnSeconds) => void; setCode: (c: string) => void; setOrgCode: (c: string) => void;
@@ -23,7 +23,7 @@ export type DesktopProps = {
 
 /** Bosh sahifa — kompyuter ko'rinishi (prototip `Main.html`): chap menyu, o'quv bloki, 3 qadamli sozlash, «Sizning xonangiz» xulosasi, tezkor amallar. */
 export function HomeDesktop(p: DesktopProps) {
-  const { me, online } = p; const first = !!me && me.games === 0; const modeName = p.corp ? uz.home.corporate : uz.home.modes[p.mode];
+  const { me, online } = p; const first = p.gated; const modeName = p.corp ? uz.home.corporate : uz.home.modes[p.mode];
   const dur = p.corp ? D.durCorp : D.dur.standard;
   const speed = turnLabel(p.effTurn);
   const startLabel = p.corp ? uz.home.corpEnter : D.start;
@@ -71,6 +71,7 @@ export function HomeDesktop(p: DesktopProps) {
             </View>
           </View>)}
 
+        {p.gated ? <View style={s.sumNote}><Text style={s.sumNoteT}><Text style={{ fontWeight: "800" }}>{uz.home.gateTitle}. </Text>{uz.home.gateText}</Text></View> : (<>
         <View style={s.stepHead}><Text style={s.eyebrow}>{D.newGame}</Text><View style={s.tag}><Text style={s.tagT}>{D.steps}</Text></View></View>
         <View style={s.cols}>
           <View style={s.card}>
@@ -130,6 +131,8 @@ export function HomeDesktop(p: DesktopProps) {
           </View>
         </View>
 
+        </>)}
+
         <Text style={[s.eyebrow, { marginTop: space.lg }]}>{D.quick}</Text>
         <View style={s.cols}>
           {p.corp && <View style={[s.card, { flex: 1.2 }]}>
@@ -149,7 +152,7 @@ export function HomeDesktop(p: DesktopProps) {
       </ScrollView>
     </View>);
 }
-const StepTitle = ({ n, t, sub }: { n: number; t: string; sub?: string }) => (<View style={s.stepT}><View style={s.stepN} aria-hidden><Text style={s.stepNT}>{n}</Text></View><Text style={s.stepL} aria-level={3} accessibilityRole="header">{t}</Text>{sub ? <Text style={s.stepS}>— {sub}</Text> : null}</View>);
+const StepTitle = ({ n, t, sub }: { n: number; t: string; sub?: string }) => (<View style={s.stepT}><View style={s.stepN} aria-hidden><Text style={s.stepNT}>{n}</Text></View><Text style={s.stepL} aria-level={2} accessibilityRole="header">{t}</Text>{sub ? <Text style={s.stepS}>— {sub}</Text> : null}</View>);
 
 const s = StyleSheet.create({
   side: { width: 248, backgroundColor: color.white, borderRightWidth: 1, borderRightColor: "#E6ECEF", padding: space.md, gap: 2 }, brand: { flexDirection: "row", alignItems: "center", gap: space.sm, padding: space.sm }, brandT: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, brandS: { color: tone.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.6 },

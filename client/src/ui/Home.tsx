@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { replayTour } from "./tourStore";
+import { needsTutorial } from "../onboarding";
 import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, serverMode, type UiMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
 import { HomeDesktop } from "./HomeDesktop";
@@ -37,8 +38,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
-  const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
-  if (winW >= 1100) return <HomeDesktop me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} code={code} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
+  const gated = needsTutorial(me); const online = status === "online", ready = code.length === 6; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  if (winW >= 1100) return <HomeDesktop gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} code={code} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
     pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setCode={setCode} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
     create={() => onCreate(effTurn, calc, seats, serverMode(mode))} startTutorial={() => onCreate(turn === 0 ? 60 : turn, calc, 3, "tutorial")} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
@@ -56,13 +57,18 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {height >= 600 ? <Text style={s.h1} aria-level={1} accessibilityRole="header">{me ? `${uz.home.hello}, ${me.name}` : uz.home.hello}</Text> : <Text style={s.sr} aria-level={1} accessibilityRole="header">{uz.home.hello}</Text>}
           <View>
             {active && <Row compact={compact} testID="home-resume" icon="clock" primary title={uz.home.resume} sub={`${active.started ? `${active.round}-${uz.hud.turnWord}` : uz.home.resumeLobby} · ${active.code}`} onPress={() => onJoin(active.code)} disabled={!online} />}
-            {me && me.games === 0 && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn === 0 ? 60 : turn, calc, 3, "tutorial")} disabled={!online} />}
-            <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode))} disabled={!online || corp} />
-            {compact && (
+            {gated && <Banner kind="info"><Text style={{ fontWeight: "800" }}>{uz.home.gateTitle}. </Text>{uz.home.gateText}</Banner>}
+            {gated && !compact && (<View style={s.learn} role="list" aria-label={uz.home.desk.learnTitle} testID="home-learn">
+              <Text style={s.learnH}>{uz.home.desk.learnTitle}</Text>
+              {uz.home.desk.learn.map((t: string, i: number) => <View key={t} style={s.learnRow} role="listitem"><View style={s.learnNum} aria-hidden><Text style={s.learnNumT}>{i + 1}</Text></View><Text style={s.learnT}>{t}</Text></View>)}
+            </View>)}
+            {gated && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => onCreate(turn === 0 ? 60 : turn, calc, 3, "tutorial")} disabled={!online} />}
+            {!gated && <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode))} disabled={!online || corp} />}
+            {!gated && compact && (
               <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
                 <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {`${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
-            {(!compact || optsOpen) && (<>
+            {!gated && (!compact || optsOpen) && (<>
             <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
               <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.modeLabel}</Text>
               {GAME_MODES_UI.map((m) => (
@@ -132,6 +138,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   );
 }
 const s = StyleSheet.create({
+  learn: { backgroundColor: "#F3F7FA", borderRadius: radius.md, padding: space.md, gap: space.sm, marginVertical: space.sm }, learnH: { color: color.navy, fontWeight: "800", fontSize: font.md },
+  learnRow: { flexDirection: "row", gap: space.sm, alignItems: "flex-start" }, learnNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: color.navy, alignItems: "center", justifyContent: "center" }, learnNumT: { color: color.white, fontWeight: "800", fontSize: font.xs }, learnT: { flex: 1, color: color.navy, fontSize: font.sm, lineHeight: 19 },
   header: { height: 56, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
   brand: { flexDirection: "row", alignItems: "center", gap: space.sm }, logoT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 0.3 }, avatarBtn: { minWidth: MIN_TAP, minHeight: MIN_TAP, alignItems: "center", justifyContent: "center" },
   scroll: { flexGrow: 1 }, wrap: { gap: space.lg, padding: space.lg, maxWidth: 560, width: "100%", alignSelf: "center" },
