@@ -32,6 +32,9 @@ import { Button } from "./src/ui/Button";
 import { ClaimSeat } from "./src/ui/ClaimSeat";
 import { installTypography } from "./src/typography";
 import { lazyNamed, Later } from "./src/lazy";
+import { markTutorialDone } from "./src/onboarding";
+/** O'quv o'yini natijasi ochilganda qurilmada «o'tildi» belgisi qo'yiladi (Home dagi majburiy o'quv to'sig'i ochiladi). */
+function TutorialDoneMark({ tutorial, children }: { tutorial: boolean; children: React.ReactNode }) { React.useEffect(() => { if (tutorial) markTutorialDone(); }, [tutorial]); return <>{children}</>; }
 
 installTypography();
 
@@ -146,7 +149,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
-        : room.state.winner ? <Result http={http} code={room.code} onHome={() => conn.leave()} />
+        : room.state.winner ? <TutorialDoneMark tutorial={room.mode === "tutorial"}><Result http={http} code={room.code} onHome={() => conn.leave()} /></TutorialDoneMark>
         : <Game http={http} room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} onResume={() => conn.resumePlay()} onBreak={() => conn.breakPlay()} chat={st.chat} onChat={(m) => conn.sendChat(m)} voice={voice} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} calcFb={st.calcFb} />}
       </Later></View>
       <Tour id={tourId} defer={(!!room?.state && (tourId === "game-small" || tourId === "game-big") && isMyTurn(room, userId))} onRules={() => setRulesOpen(true)} />

@@ -3,7 +3,7 @@ export const uz = {
   dice: { title: "Kubik tashlandi", rolling: "Kubik tashlanmoqda…", sum: "Yig'indi", by: "{name} kubik tashladi", you: "Siz kubik tashladingiz", close: "Yopish", hint: "Yopish uchun bosing", yourTurn: "Sizning navbatingiz", later: "Avval hisobni ko'raman", sending: "Tashlanmoqda…", disable: "Bu oynani o'chirish (oddiy tugma)", oneDie: "1 kubik", twoDice: "2 kubik · yig'indisi bo'yicha yuriladi" },
   app: { name: "Tajriba 24" },
   sound: { label: "Tovush", on: "Tovushni yoqish", off: "Tovushni o'chirish" },
-  home: { tutorialOffer: "O'quv o'yini (15 daqiqa)", tutorialSub: "Birinchi marta o'ynayapsizmi? Bot bilan, yo'l-yo'riq bilan", modeLabel: "O'yin turi", corpEnter: "Korporativ xonaga kirish", desk: {
+  home: { gateTitle: "Avval o'quv o'yini", gateText: "Birinchi o'yinni o'quv rejimida o'ting: har bir element o'z joyida ko'rsatiladi, o'qib o'tirish shart emas. Tugagach oddiy o'yinlar ochiladi.", tutorialOffer: "O'quv o'yini (15 daqiqa)", tutorialSub: "Birinchi marta o'ynayapsizmi? Bot bilan, yo'l-yo'riq bilan", modeLabel: "O'yin turi", corpEnter: "Korporativ xonaga kirish", desk: {
       brandSub: "MOLIYAVIY SAVODXONLIK", newbie: "Yangi boshlovchi", tournaments: "Turnirlar",
       heroBadge: "Birinchi qadam · yangi o'yinchi uchun", heroTitle: "O'quv o'yini: 15 daqiqada hammasini o'z qo'lingiz bilan o'rganing",
       heroText: "Bu haqiqiy o'yin: siz va 2 ta bot. Davomida har bir karta, holat va bo'lim paydo bo'lganda qisqa tushuntirish chiqadi. Hech narsani oldindan yodlash shart emas.", startTutorial: "O'quv o'yinini boshlash",

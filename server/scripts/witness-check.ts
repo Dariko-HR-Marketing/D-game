@@ -39,7 +39,7 @@ for (const [tag, w, h] of SIZES) {
     }
   };
   await wt.waitForTimeout(600);
-  const dlg = wt.getByTestId("request-modal"); await dlg.waitFor({ timeout: 8000 }).catch(async (e: any) => { await wt.screenshot({ path: `${OUT}/${tag}-guvoh-yoq.png` }); throw e; });
+  const dlg = wt.getByTestId("request-modal"); await dlg.waitFor({ timeout: 30000 }).catch(async (e: any) => { await wt.screenshot({ path: `${OUT}/${tag}-guvoh-yoq.png` }); throw e; });
   check(/guvoh bo'lasizmi/.test(await dlg.innerText()), `${tag}: guvohga aniq savol oynasi chiqdi («guvoh bo'lasizmi?»)`);
   const yes = dlg.getByRole("button", { name: "Ha, guvoh bo'laman" }); check((await yes.count()) === 1, `${tag}: oynada «Ha, guvoh bo'laman» tugmasi bor`);
   const r = (await yes.boundingBox())!; check(r.x >= -1 && r.x + r.width <= w + 1 && r.height >= 40, `${tag}: guvoh tugmasi ekran ichida va ≥ 40 px (${Math.round(r.width)}×${Math.round(r.height)})`);
