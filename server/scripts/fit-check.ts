@@ -29,7 +29,7 @@ for (const [w, h] of sizes) {
     const m = await p.evaluate(() => ({ sh: document.documentElement.scrollHeight, ih: window.innerHeight, sw: document.documentElement.scrollWidth, iw: window.innerWidth }));
     // Asosiy boshqaruvlar aylantirmasdan ko'rinishi shart: chiqish tugmasi, kubik/qaror tugmalari
     let hidden = "";
-    for (const nm of [/O'yindan chiqish/, /^Kubikni tashlash|^O'tkazaman|sh\.b\. olish$|^Qabul qilaman/]) { const el = p.getByRole("button", { name: nm }).first(); if (await el.count()) { const bb = await el.boundingBox(); if (bb && bb.y + bb.height > m.ih + 1) hidden += ` [${nm} pastda]`; } }
+    for (const nm of [/^Profil menyusi/, /^Kubikni tashlash|^O'tkazaman|sh\.b\. olish$|^Qabul qilaman/]) { const el = p.getByRole("button", { name: nm }).first(); if (await el.count()) { const bb = await el.boundingBox(); if (bb && bb.y + bb.height > m.ih + 1) hidden += ` [${nm} pastda]`; } }
     const ok = m.sh <= m.ih + 1 && m.sw <= m.iw + 1 && !hidden; if (!ok) failed++;
     console.log(`${tag} ${name}: sahifa ${m.sw}x${m.sh} / oyna ${m.iw}x${m.ih} ${ok ? "OK" : "SIG'MAYDI" + hidden}`);
     await p.screenshot({ path: `${OUT}/${tag}-${name}.png` });

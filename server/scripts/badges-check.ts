@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource } from "./_seed";
+import { autoProfiles, axeSource, dismissReq } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/badges";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -23,7 +23,7 @@ await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitFo
 const room = x.rooms.rooms.get(code)!; const st = room.state!;
 const me = st.players.find((p: any) => p.id === "bga")!, other = st.players.find((p: any) => p.id === "bgb")!;
 const turnOf = (p: any) => { st.turn = st.players.indexOf(p); };
-const sync = async () => { (x.rooms as any).emit(room); await a.waitForTimeout(700); };
+const sync = async () => { (x.rooms as any).emit(room); await a.waitForTimeout(700); await dismissReq(a); };
 const nav = a.getByTestId("game-nav").or(a.locator("[role=navigation][aria-label='O\\'yin bo\\'limlari']"));
 const badge = (tab: string) => nav.getByRole("button", { name: new RegExp(`^${tab}`) });
 const dots = (tab: string, tone: string) => badge(tab).getByTestId(`nav-badge-${tone}`);

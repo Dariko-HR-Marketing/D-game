@@ -246,6 +246,14 @@ export const uz = {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
     warn: "Chiqsangiz, siz qaytib kira olmaysiz: o'rningizni bot egallaydi va o'yin sizsiz davom etadi. Bu amalni qaytarib bo'lmaydi.",
   },
+  req: {
+    bell: "So'rovlar", bellN: "So'rovlar: {n} ta kutmoqda", title: "Sizdan javob kutilmoqda", count: "{i} / {n}", later: "Keyinroq",
+    witnessQ: "{a} {b} dan {s} so'm qarz so'rayapti. Siz bu qarzga guvoh bo'lasizmi?", witnessYes: "Ha, guvoh bo'laman",
+    loanQ: "{a} sizdan {s} so'm qarz so'rayapti ({m} oy). Qarz berasizmi?", loanYes: "Ha, qarz beraman", loanNo: "Yo'q, rad etaman",
+    partnerQ: "{a} sizga sheriklik taklif qilmoqda. Sherik bo'lasizmi?", partnerYes: "Ha, sherik bo'laman", partnerNo: "Yo'q, rad etaman",
+    witnessNote: "Guvoh bo'lish — qarz haqida xabardor ekaningizni tasdiqlash. Pul sizdan o'tmaydi.", empty: "Hozircha kutayotgan so'rov yo'q",
+  },
+  profMenu: { menu: "Profil menyusi", me: "Mening profilim" },
   react: { label: "Reaksiya", title: "Reaksiyalar", from: "dan" },
   result: {
     fewData: "Grafik uchun ma'lumot hali kam", chartRange: "oraliq", chartX: "aylanalar bo'yicha pul oqimi →", youWon: "Tabriklaymiz, g'alaba sizniki!", timeUp: "Vaqt tugadi. O'rinlar shunday belgilandi: avval kichik aylanadan chiqqanlar, so'ng passiv daromad, so'ng naqd bo'yicha.", noWinner: "O'yin g'olibsiz tugadi.",

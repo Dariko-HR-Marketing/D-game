@@ -41,6 +41,7 @@ import { TutorialCoach } from "./TutorialCoach";
 import { OnboardingPlan } from "./OnboardingPlan";
 import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
+import { ProfileMenu, RequestModal, useRequestModal, useRequests } from "./RequestCenter";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { GREEN_TEXT, color, font, HEADER_H, radius, space, tone } from "../theme";
@@ -88,7 +89,7 @@ function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; labe
 }
 
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
-  const [confirmLeave, setConfirmLeave] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [liveOpen, setLiveOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [liveOpen, setLiveOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
   useEffect(() => { if (chatOpen) setSeenChat(lastChat); }, [chatOpen, lastChat]);
@@ -131,6 +132,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     </Pressable>);
   const pr = myProposals(room, userId);
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.loansToWitness.length + pr.partnerToAccept.length;
+  const reqs = useRequests(room, userId); const reqModal = useRequestModal(reqs);
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
   const log: string[] = state.log.slice(-8).reverse(); // yangisi tepada; LogLine ismlarni qalin qilib chiqaradi
   const bank = mine ? bankRoom(mine) : 0;
@@ -201,11 +203,6 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <View accessibilityLiveRegion="polite">{reactions.map((r) => <Text key={r.id} style={s.log}>{r.from === userId ? uz.result.you : nameOf(room, r.from)}: {r.emoji}</Text>)}</View>
     </Card>);
   const reactRow = (<View style={s.reactRow} role="group" aria-label={uz.react.label}>{REACTIONS.map((e2) => <View key={e2} style={{ minWidth: 56 }}><Button label={e2} kind="ghost" onPress={() => onReact(e2)} /></View>)}</View>);
-  const leaveBlock = !state.winner && (!confirmLeave ? <Button label={uz.leave.button} kind="ghost" onPress={() => setConfirmLeave(true)} /> : (
-    <Card accent="red" raised={false} label={uz.leave.title}>
-      <Pill label={uz.leave.title} kind="bad" /><Text style={s.cardText}>{uz.leave.warn}</Text>
-      <Button label={uz.leave.confirm} onPress={onLeave} /><Button label={uz.leave.cancel} kind="ghost" onPress={() => setConfirmLeave(false)} />
-    </Card>));
   // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
   const sideMain = (
     <View style={{ gap: space.md }}>
@@ -222,7 +219,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   );
   // Telefon: hammasi bitta ustunda
   const side = ( // telefonda voqealar va reaksiyalar «O'yinchilar» bo'limida (pastki menyudagi belgi shu yerdagi yangiliklarni ko'rsatadi)
-    <View style={{ gap: space.md, flex: 1 }}>{sideMain}{leaveBlock}</View>
+    <View style={{ gap: space.md, flex: 1 }}>{sideMain}</View>
   );
   const reactPanel = (<Card label={uz.react.title}><SectionTitle>{uz.react.title}</SectionTitle>{reactRow}</Card>);
   const rightCol = (
@@ -230,7 +227,6 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <TimePanel room={room} userId={userId} settled={settled} />
       {eventsCard(6)}
       <PlayerList room={room} userId={userId} />
-      {leaveBlock}
     </ScrollView>);
   const autoMe = !!room.members.find((m) => m.userId === userId)?.autopilot;
   const banners = (<>
@@ -243,6 +239,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const roomy = wide && !compact; // keng ekran: tugmalar guruhlarga yig'iladi; juda keng bo'lsa yozuvlar ham chiqadi, aks holda faqat belgi (sarlavha hech qachon qirqilmasin)
   const labels = roomy && hdrW >= 1180, ib = tiny ? 20 : 22, flat = !roomy;
   const ui: HUi = { flat, labels, ib, tiny };
+  const reqLayers = (<>
+    {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
+    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} />}
+  </>);
   const header = (
     <View style={[s.header, flat && { gap: 2, paddingHorizontal: space.md }]} onLayout={(e) => setHdrW(e.nativeEvent.layout.width)}>
       <View style={[s.dotC, { backgroundColor: viewCircle === "big" ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
@@ -258,6 +258,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         {http && <HBtn ui={ui} icon="clock" label={uz.history.title} text={uz.history.open} onPress={() => setHistoryOpen(true)} tid="history-open" />}
         {http && <HBtn ui={ui} icon="people" label={uz.live.title} text={uz.live.open} onPress={() => setLiveOpen(true)} tid="live-open" />}
       </Seg>
+      {reqs.length > 0 && <HBtn ui={ui} icon="bell" label={uz.req.bellN.replace("{n}", String(reqs.length))} onPress={reqModal.show} tid="requests-open"><View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{reqs.length}</Text></View></HBtn>}
       <Seg ui={ui} label={uz.hud.group.talk}>
         {onChat && <HBtn ui={ui} icon="chat" label={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} text={uz.chat.title} onPress={() => setChatOpen(true)} tid="chat-open">{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</HBtn>}
         {voice && vs && vs.status === "on" && vs.hasMic && <HBtn ui={ui} icon={vs.muted ? "micOff" : "mic"} label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} role="switch" checked={!vs.muted} onPress={() => voice.setMuted(!vs.muted)} tid="voice-header-mic" active={!vs.muted && vs.speaking ? "#E3F5EA" : undefined} />}
@@ -267,6 +268,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         {wide && <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />}{/* tik telefon/planshetda «Qoidalar» pastki menyuda bor: sarlavhada takrorlanmaydi (sarlavha qirqilmasin) */}
         <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />
       </Seg>
+      {!state.winner && <HBtn ui={ui} icon="person" label={uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} tid="profile-menu-open" />}
     </View>
   );
 
@@ -277,7 +279,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {room.mode === "tutorial" && !state.winner && <OnboardingPlan />}{portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
-      {header}
+      {header}{reqLayers}
       <View style={s.shell}>
         {card && mineTurn && mine && !deckPick && !sheetMin ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
@@ -287,7 +289,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}{tri && reactPanel}{compact && reactRow}{compact && leaveBlock}</ScrollView>}
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}{tri && reactPanel}{compact && reactRow}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
@@ -303,7 +305,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             </View>)}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
             {!short && <View style={{ flex: 1 }}>{eventsCard(3)}</View>}
-            <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}<View style={short ? { flex: 1, maxWidth: 260 } : undefined}>{leaveBlock}</View></View>
+            <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}</View>
           </View>}
         </ScrollView>
         {tri && rightCol}
@@ -318,7 +320,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {room.mode === "tutorial" && !state.winner && <OnboardingPlan />}{portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
-      {header}
+      {header}{reqLayers}
       <ScrollView contentContainerStyle={[s.mwrap, tablet && s.mwrapT, sheetShown && { paddingBottom: Math.round(height * 0.62) }, sheetOpen && sheetMin && { paddingBottom: 96 }]}>
         {banners}
         {tab === "field" && (<>

@@ -26,6 +26,7 @@ const ICONS: Record<string, P> = {
   lock: [["rect", { x: 5, y: 11, width: 14, height: 9, rx: 2 }], "M8 11V8a4 4 0 0 1 8 0v3"],
   heart: ["M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.2 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"],
   flag: ["M6 21V4", "M6 4h11l-2 4 2 4H6"],
+  bell: ["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.7 21a2 2 0 0 1-3.4 0"],
   alert: [["circle", { cx: 12, cy: 12, r: 9 }], "M12 7.5v5.5", "M12 16.4v.2"],
   bank: ["M3 10h18L12 4z", "M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"],
   share: [["circle", { cx: 18, cy: 5, r: 3 }], ["circle", { cx: 6, cy: 12, r: 3 }], ["circle", { cx: 18, cy: 19, r: 3 }], "M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"],
