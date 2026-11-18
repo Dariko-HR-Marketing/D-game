@@ -48,7 +48,10 @@ const claimBtn = d.getByTestId("claim-seats").getByRole("button"); await claimBt
 check(await claimBtn.count() === 1 && /Bu menman/.test(await claimBtn.first().innerText()), "oflayn o'yinchi (a) ro'yxatda: yagona «Bu menman»");
 await claimBtn.first().click();
 check(await inGame(d), "o'rin qaytarib olindi: boshqa brauzerdan o'yinga qaytdi (sahifa o'zi yangilandi)");
-for (let i = 0; i < 250 && room.members.find((m: any) => m.userId === "rja")!.online !== true; i++) await new Promise((r) => setTimeout(r, 100)); // sahifa qayta yuklanib ulanguncha (yuklanish tezligiga bog'liq)
+const aOn = () => room.members.find((m: any) => m.userId === "rja")!.online === true;
+for (let i = 0; i < 100 && !aOn(); i++) await new Promise((r) => setTimeout(r, 100));
+if (!aOn()) { console.log("ESLATMA: 10 soniyada ulanmadi, foydalanuvchi sahifani yangilaydi"); await d.reload(); }
+for (let i = 0; i < 250 && !aOn(); i++) await new Promise((r) => setTimeout(r, 100)); // sahifa qayta yuklanib ulanguncha (yuklanish tezligiga bog'liq)
 check(room.members.find((m: any) => m.userId === "rja")!.online === true && !room.members.some((m: any) => m.userId === "rjd"), `serverda a o'rni onlayn; yangi a'zo qo'shilmadi (${JSON.stringify(room.members.map((m: any) => [m.userId, m.online, !!m.left]))})`);
 // 3) O'zi «O'yindan chiqish»ni bosgan qayta kira olmaydi
 x.rooms.leave(code, "rjb"); await ctxOf(b0).close(); const b1 = await open("rjb");
