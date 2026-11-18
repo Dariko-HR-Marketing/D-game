@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-// Taymer jadvali va avtopilot: kubik 10 s (maslahat va halqa), avtopilot bannerini ko'rsatish va «Men qaytdim». `pnpm tsx scripts/timers-check.ts`
+// Taymer jadvali va avtopilot: kubik 20 s (Odatiy tezlik 1 daqiqa) (maslahat va halqa), avtopilot bannerini ko'rsatish va «Men qaytdim». `pnpm tsx scripts/timers-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
@@ -21,9 +21,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd");
   const room = x.rooms.rooms.get(code)!; const st = room.state!; const me = room.members.find((m) => m.userId === "tma" + tag)!, other = st.players.find((p: any) => p.id !== "tma" + tag)!;
   // 1) Kubik uchun taymer 10 s
-  check(x.rooms.view(room).timerTotal === 10, `${tag} kubik taymeri serverda 10 soniya`);
+  check(x.rooms.view(room).timerTotal === 20, `${tag} kubik taymeri serverda 20 soniya (Odatiy = 60 → ×2)`);
   const turnIsMine = st.players[st.turn % st.players.length].id === "tma" + tag;
-  if (turnIsMine && tag === "tel") check(await a.getByText(/10 soniyada kubik tashlanmasa/).count() > 0, `${tag} maslahat: «10 soniyada kubik tashlanmasa…»`);
+  if (turnIsMine && tag === "tel") check(await a.getByText(/20 soniyada kubik tashlanmasa/).count() > 0, `${tag} maslahat: «20 soniyada kubik tashlanmasa…»`);
   // 2) Avtopilot: o'zimniki — banner va «Men qaytdim»
   me.autopilot = true; me.autoStreak = 3; (x.rooms as any).emit(room); await a.waitForTimeout(900);
   if (tag === "tel") await a.getByRole("button", { name: /^Maydon/ }).click().catch(() => {});
