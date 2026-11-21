@@ -372,6 +372,28 @@ export const uz = {
       { t: "G'alaba yo'li", d: "Kichik aylanadan chiqqach katta aylanaga o'tasiz. G'alaba: oylik pul oqimi 100 000, orzu katagiga tushish va naqd orzu qiymatidan kam emas. Orzuni o'yin boshida tanlaysiz." },
     ] as { t: string; d: string }[],
   },
+  openRooms: {
+    title: "Ochiq o'yinlar", empty: "Hozir ochiq xona yo'q. O'zingiz yangisini oching yoki do'stingizning kodini kiriting.", loading: "Yuklanmoqda…", join: "Qo'shilish", locked: "Qulf · kod", full: "To'lgan", codeFor: "Xona kodi", enter: "Kirish", all: "Hammasi", live: "Ro'yxat real vaqtda yangilanadi", err: "Ro'yxatni yuklab bo'lmadi",
+    row: "{host} · {mode} · {speed} · {n}/{max}", lockedLabel: "Qulfli xona: kod kerak",
+    vis: "Ko'rinish", visHint: { open: "Ro'yxatda, hamma bosib qo'shiladi.", locked: "Ro'yxatda qulfcha bilan, faqat kod bilan kiriladi.", hidden: "Ro'yxatda yo'q, faqat kod bilan kiriladi." } as Record<string, string>,
+    visName: { open: "Ochiq", locked: "Qulfli", hidden: "Yashirin" } as Record<string, string>,
+    start: "Boshlash usuli", startName: { host: "Men o'zim boshlayman", full: "To'lganda boshlansin", bots: "Botlar bilan avtomatik" } as Record<string, string>,
+  },
+  packs: {
+    title: "Paketlar", back: "Orqaga", lead: "Asosiy o'yin hamma uchun bepul. Pullik paketlar o'yin natijasiga ta'sir qilmaydi.", priceTbd: "Narx aniqlanadi", buy: "Sotib olish", current: "Hozirgi paket", soon: "Tez orada", pay: "Payme, Click, Humo va Uzcard kartalari · korporativ karta ham mumkin",
+    groups: { personal: "Yakka o'yinchi", group: "Do'stlar guruhi", edu: "Ta'lim", corp: "Korporativ" } as Record<string, string>,
+    plans: {
+      free: { t: "Bepul", d: "Kuniga {rooms} ta yangi xona, oxirgi {games} o'yin tarixi, natija va qoidaviy hisobot. Boshqa xonalarga qo'shilish cheklanmagan." },
+      plus: { t: "Plus", d: "Xona va tarix cheklovi yo'q, har o'yin tahlili, AI tahlil, oyiga bitta fishka yoki ramka. Oylik yoki yillik." },
+      hostDay: { t: "Bugunlik host-pass", d: "{hours} soat, {tables} tagacha stol, {guests} mehmon. Xona egasi to'laydi, mehmonlar bepul." },
+      hostEvent: { t: "Tadbir passi", d: "{days} kunlik oyna, {tables} tagacha stol, {guests} mehmon, umumiy reyting va hisobot." },
+      eduClass: { t: "Sinf paketi", d: "Bitta o'qituvchi, bir sinf ({students} tagacha o'quvchi), o'quv yili. O'quvchi to'lamaydi." },
+      corpEvent: { t: "Tadbir uchun o'rinlar", d: "Korporativ trening yoki turnir uchun ishtirokchi o'rinlari paketi." },
+      corpTeam: { t: "Yillik jamoa", d: "Doimiy foydalanish uchun pog'onalar: {tiers} o'rin; o'rinlar jamoa ichida umumiy." },
+    } as Record<string, { t: string; d: string }>,
+    paywall: { title: "Bugungi {n} ta xona tugadi", text: "Boshqa xonalarga qo'shilish cheklanmagan. Yangi xona uchun variantni tanlang:", plus: "Plus: cheksiz xona", host: "Bugunlik host-pass", later: "Ertaga davom etaman", note: "Narx «Sotib olish» bosilganda aniq ko'rsatiladi." },
+    checkout: { title: "To'lov", order: "Buyurtma", total: "Jami", method: "To'lash usuli", payme: "Payme", click: "Click", pay: "To'lash", cardNote: "Karta ma'lumoti faqat to'lov provayderida kiritiladi: Tajriba 24 uni ko'rmaydi va saqlamaydi.", minorNote: "16 yoshgacha: ota-onaga tasdiq so'rovi yuboriladi.", unavailable: "To'lov hali ulanmagan." },
+  },
   plan: {
     pill: "Onboarding rejasi", close: "Yopish", skip: "O'tkazib yuborish", back: "Orqaga", next: "Keyingi", done: "Tushunarli",
     steps: [

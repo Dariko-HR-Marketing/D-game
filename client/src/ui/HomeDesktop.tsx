@@ -13,6 +13,7 @@ import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 const D = uz.home.desk;
 const MODE_ICON: Record<UiMode, IconName> = { standard: "board", student: "book" };
 export type DesktopProps = {
+  roomsNode?: React.ReactNode; optsNode?: React.ReactNode; onPacks?: () => void;
   gated: boolean;   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
   mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
@@ -111,6 +112,7 @@ export function HomeDesktop(p: DesktopProps) {
                     <Text style={s.modeH} aria-hidden>{v === 0 ? uz.home.turn0Hint : v === 120 ? uz.home.turn60Hint : uz.home.turn30Hint}</Text></Pressable>))}
               </View>
               {p.effTurn === 0 && <Text style={s.modeH} testID="turn0-hint">{uz.home.turn0Hint}</Text>}
+              {p.optsNode}
               {calcUiEnabled() && (<>
                 <StepTitle n={4} t={uz.ledger.modeLabel} />
                 <View style={s.speeds} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
@@ -133,9 +135,10 @@ export function HomeDesktop(p: DesktopProps) {
 
         </>)}
 
+        {!p.gated && p.roomsNode ? <View style={{ marginTop: space.lg }}>{p.roomsNode}</View> : null}
         <Text style={[s.eyebrow, { marginTop: space.lg }]}>{D.quick}</Text>
         <View style={s.cols}>
-          {p.corp && <View style={[s.card, { flex: 1.2 }]}>
+          {!p.gated && <View style={[s.card, { flex: 1.2 }]}>
             <Pressable accessibilityRole="button" accessibilityLabel={`${uz.home.joinByCode}. ${uz.home.joinSub}`} style={s.qHead}><View style={s.qIco}><Icon name="people" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.home.joinByCode}</Text><Text style={s.qS}>{uz.home.joinSub}</Text></View></Pressable>
             <View style={{ flexDirection: "row", gap: space.sm, alignItems: "stretch" }}>
               <TextInput aria-label={uz.home.code} placeholder="ABC123" placeholderTextColor="#6B7C8C" value={p.code} onChangeText={(t) => p.setCode(t.toUpperCase().replace(/[^A-Z0-9]/g, ""))} autoCapitalize="characters" autoCorrect={false} maxLength={6} onSubmitEditing={() => p.code.length === 6 && online && p.join(p.code)} returnKeyType="go" style={s.codeIn} />
@@ -145,9 +148,10 @@ export function HomeDesktop(p: DesktopProps) {
           <Pressable accessibilityRole="button" accessibilityLabel={`${uz.home.rulesRow}. ${uz.home.rulesSub}`} onPress={p.onRules} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="book" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.home.rulesRow}</Text><Text style={s.qS}>{uz.home.rulesSub}</Text></View></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`${uz.profile.leaderboard}. ${uz.home.boardSub}`} onPress={p.onLeaderboard} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="trophy" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.profile.leaderboard}</Text><Text style={s.qS}>{uz.home.boardSub}</Text></View></Pressable>
         </View>
-        {(p.onClass || p.onShop) && <View style={[s.cols, { marginTop: space.md }]}>
+        {(p.onClass || p.onShop || p.onPacks) && <View style={[s.cols, { marginTop: space.md }]}>
           {p.onClass && <Pressable accessibilityRole="button" accessibilityLabel={D.classTitle} onPress={p.onClass} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="house" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{D.classTitle}</Text><Text style={s.qS}>{D.classSub}</Text></View></Pressable>}
           {p.onShop && <Pressable accessibilityRole="button" accessibilityLabel={D.shopTitle} onPress={p.onShop} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="star" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{D.shopTitle}</Text><Text style={s.qS}>{D.shopSub}</Text></View></Pressable>}
+          {p.onPacks && <Pressable testID="home-packs" accessibilityRole="button" accessibilityLabel={uz.packs.title} onPress={p.onPacks} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="trophy" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.packs.title}</Text><Text style={s.qS}>{uz.packs.lead}</Text></View></Pressable>}
         </View>}
       </ScrollView>
     </View>);
