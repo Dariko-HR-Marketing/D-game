@@ -13,7 +13,7 @@ export interface ShopDeps {
   secured: (h: (uid: string, req: any, reply: any) => unknown) => (req: any, reply: any) => unknown;
   ageOf: (uid: string) => number | null; nameOf: (uid: string) => string | undefined; limited: (scope: string) => void;
 }
-const STATUS: Record<string, number> = { price_unset: 409, unavailable: 409, already_owned: 409, phone_required: 403, profile_required: 409, parent_phone_required: 400, payments_unavailable: 503, bad_phone: 400, same_phone: 400, rate_limited: 429, sms_failed: 502, sms_unavailable: 503, not_found: 404, not_pending: 409, bad_sku: 400, bad_item: 400, not_owned: 403, not_plus: 403, already_claimed: 409, amount_mismatch: 400, plus_already_long: 409, sales_paused: 503 };
+const STATUS: Record<string, number> = { price_unset: 409, unavailable: 409, already_owned: 409, phone_required: 403, profile_required: 409, parent_phone_required: 400, payments_unavailable: 503, bad_provider: 400, bad_phone: 400, same_phone: 400, rate_limited: 429, sms_failed: 502, sms_unavailable: 503, not_found: 404, not_pending: 409, bad_sku: 400, bad_item: 400, not_owned: 403, not_plus: 403, already_claimed: 409, amount_mismatch: 400, plus_already_long: 409, sales_paused: 503 };
 const fail = (reply: any, error: string) => reply.code(STATUS[error] ?? 400).send({ error });
 
 export function registerShop(d: ShopDeps) {
@@ -25,9 +25,9 @@ export function registerShop(d: ShopDeps) {
   app.post("/shop/order", d.secured(async (uid, req, reply) => {
     if (!orderLimit.allow(uid)) { d.limited("order"); return fail(reply, "rate_limited"); }
     if (d.salesPaused?.()) return fail(reply, "sales_paused");
-    const b = (req.body ?? {}) as { sku?: unknown; channel?: unknown; parentPhone?: unknown };
+    const b = (req.body ?? {}) as { sku?: unknown; channel?: unknown; parentPhone?: unknown; provider?: unknown };
     if (typeof b.sku !== "string" || b.sku.length > 64) return fail(reply, "bad_sku");
-    const r = await commerce.order(uid, b.sku, b.channel === "store" ? "store" : "web", b.parentPhone);
+    const r = await commerce.order(uid, b.sku, b.channel === "store" ? "store" : "web", b.parentPhone, typeof b.provider === "string" && /^[a-z]{2,12}$/.test(b.provider) ? b.provider : undefined);
     return r.ok ? { order: pub(r.order), parentRequired: r.parentRequired } : fail(reply, r.error);
   }));
   app.get("/shop/orders", d.secured((uid) => ({ orders: commerce.ordersOf(uid).map(pub) })));

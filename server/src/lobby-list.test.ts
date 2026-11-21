@@ -58,9 +58,18 @@ describe("ro'yxatdagi zalni yopish", () => {
     const c = mk("a", { visibility: "open" }); rm.join(c, "b"); rm.disconnect(c, "a"); rm.rooms.get(c)!; clock.t += 4 * 60_000; await rm.sweep(10 * 60_000); expect(rm.openRooms().length).toBe(1);
     clock.t += 2 * 60_000; await rm.sweep(10 * 60_000); expect(rm.openRooms().length).toBe(0);
   });
-  it("faqat egasi 30 daqiqa turib qolsa yopiladi; ikkinchi odam bo'lsa qoladi", async () => {
+  it("faqat egasi 30 daqiqa turib qolsa avval «Davom etasizmi?» so'raladi; javob bo'lmasa 60 soniyadan keyin yopiladi; ikkinchi odam bo'lsa qoladi", async () => {
     const solo = mk("a", { visibility: "open" }), two = mk("b", { visibility: "open" }); rm.join(two, "c");
-    clock.t += 31 * 60_000; await rm.sweep(10 * 60_000); const hosts = rm.openRooms().map((x) => x.host); expect(hosts).toEqual(["Bobur"]); expect(rm.rooms.get(solo)!.endedAt).not.toBeNull();
+    clock.t += 31 * 60_000; await rm.sweep(10 * 60_000);
+    expect(rm.openRooms().map((x) => x.host).sort()).toEqual(["Aziz", "Bobur"]); expect(rm.view(rm.rooms.get(solo)!).idleAskUntil).toBe(clock.t + 60_000); expect(rm.view(rm.rooms.get(two)!).idleAskUntil).toBeNull();
+    clock.t += 30_000; await rm.sweep(10 * 60_000); expect(rm.rooms.get(solo)!.endedAt).toBeNull();
+    clock.t += 31_000; await rm.sweep(10 * 60_000); expect(rm.rooms.get(solo)!.endedAt).not.toBeNull(); expect(rm.openRooms().map((x) => x.host)).toEqual(["Bobur"]);
+  });
+  it("«Davom etasizmi?» ga «ha» — zal yana 30 daqiqa saqlanadi; faqat egasi javob bera oladi; kimdir qo'shilsa so'rov bekor", async () => {
+    const c = mk("a", { visibility: "open" }); clock.t += 31 * 60_000; await rm.sweep(10 * 60_000); expect(rm.view(rm.rooms.get(c)!).idleAskUntil).not.toBeNull();
+    expect(rm.stay(c, "b")).toEqual({ ok: false, error: "not_host" }); expect(rm.stay(c, "a").ok).toBe(true); expect(rm.view(rm.rooms.get(c)!).idleAskUntil).toBeNull();
+    clock.t += 29 * 60_000; await rm.sweep(10 * 60_000); expect(rm.view(rm.rooms.get(c)!).idleAskUntil).toBeNull(); // hali 30 daqiqa o'tmadi
+    clock.t += 2 * 60_000; await rm.sweep(10 * 60_000); expect(rm.view(rm.rooms.get(c)!).idleAskUntil).not.toBeNull(); rm.join(c, "d"); expect(rm.view(rm.rooms.get(c)!).idleAskUntil).toBeNull();
   });
 });
 

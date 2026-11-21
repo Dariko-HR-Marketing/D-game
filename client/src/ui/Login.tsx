@@ -6,7 +6,7 @@ import { uz, errText } from "../i18n/uz";
 import { AUTH_METHODS } from "../authMethods";
 import { GOOGLE_CLIENT_ID, loadGis, googleEnabled } from "../googleSignIn";
 import { font, MIN_TAP, night, radius, space } from "../theme";
-import { isUnder16, validCode, validName, validPhone, validYear, HttpError, type makeAuth } from "../net/http";
+import { isUnder16, validCode, validName, validPhone, validEmail, validYear, HttpError, type makeAuth } from "../net/http";
 
 /** O'zbekiston raqamini yozish paytida chiroyli ko'rsatadi: 90 123 45 67 / +998 90 123 45 67. Boshqa davlat raqamlariga tegmaydi. */
 function fmtPhone(v: string): string {
@@ -32,20 +32,21 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
   const { width, height } = useWindowDimensions(); const wide = width >= WIDE, tall = height >= 900; // past telefonda ortiqcha matn yig'iladi: kirish bitta ekranga sig'adi
   const [status, setStatus] = useState<Status>(null); const [busy, setBusy] = useState(false); const [cool, setCool] = useState(0);
   useEffect(() => { if (cool <= 0) return; const h = setTimeout(() => setCool(cool - 1), 1000); return () => clearTimeout(h); }, [cool]);
+  const [emailOn, setEmailOn] = useState(false); useEffect(() => { let off = false; auth.config().then((c) => { if (!off) setEmailOn(!!c.email); }).catch(() => {}); return () => { off = true; }; }, [auth]);
   const emailTyped = ident.includes("@");
-  const phoneOk = validPhone(ident);
+  const phoneOk = emailTyped ? emailOn && validEmail(ident) : validPhone(ident); // telefon yoki (server yoqqan bo'lsa) email
   const canSend = !busy && phoneOk && (tab === "login" || (validName(name) && validYear(year) && terms));
   const run = async (f: () => Promise<void>) => { setBusy(true); setStatus(null); try { await f(); } catch (e) { setStatus({ kind: "bad", text: errText(e instanceof HttpError ? e.code : "network") }); } finally { setBusy(false); } };
-  const send = () => run(async () => { await auth.request(ident); if (tab === "register") onSignupProfile?.({ name: name.trim(), year }); setStep("code"); setCool(RESEND_S); });
-  const verify = (c = code) => run(async () => onDone(await auth.verify(ident, c), remember));
+  const send = () => run(async () => { await (emailTyped ? auth.emailRequest(ident.trim()) : auth.request(ident)); if (tab === "register") onSignupProfile?.({ name: name.trim(), year }); setStep("code"); setCool(RESEND_S); });
+  const verify = (c = code) => run(async () => onDone(await (emailTyped ? auth.emailVerify(ident.trim(), c) : auth.verify(ident, c)), remember));
   const switchTab = (t: Tab) => { setTab(t); setStatus(null); };
-  const [gOn, setGOn] = useState(false); const gRef = useRef<any>(null);
+  const [gOn, setGOn] = useState(false); const gRef = useRef<any>(null); const [gKey, setGKey] = useState(0);
   useEffect(() => { let off = false; if (!GOOGLE_CLIENT_ID) return; auth.config().then((c) => { if (!off) setGOn(googleEnabled(c.google)); }).catch(() => {}); return () => { off = true; }; }, [auth]);
-  useEffect(() => { // Google tugmasi: rasmiy tugma shu joyga chiziladi; token serverga yuboriladi, server tekshiradi
+  useEffect(() => { // Google tugmasi: rasmiy tugma shu joyga chiziladi. Har chizishda serverdan bir martalik nonce olinadi (replay himoyasi); token + nonce serverga yuboriladi, server tekshiradi
     if (!gOn || !gRef.current) return; let off = false;
-    loadGis().then((g) => { if (off || !gRef.current) return; g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: (r: { credential?: string }) => { if (r?.credential) run(async () => onDone(await auth.google(r.credential!), remember)); } }); g.accounts.id.renderButton(gRef.current, { theme: "filled_black", size: "large", width: 320, text: tab === "login" ? "signin_with" : "signup_with" }); }).catch(() => setStatus({ kind: "bad", text: uz.login.googleSoon }));
+    Promise.all([loadGis(), auth.nonce()]).then(([g, nonce]) => { if (off || !gRef.current) return; g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, nonce, callback: (r: { credential?: string }) => { if (r?.credential) run(async () => { try { onDone(await auth.google(r.credential!, nonce), remember); } catch (e) { if (e instanceof HttpError && e.code === "bad_nonce") setGKey((k) => k + 1); throw e; } }); } }); g.accounts.id.renderButton(gRef.current, { theme: "filled_black", size: "large", width: 320, text: tab === "login" ? "signin_with" : "signup_with" }); }).catch(() => setStatus({ kind: "bad", text: uz.login.googleSoon }));
     return () => { off = true; };
-  }, [gOn, tab, remember]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [gOn, tab, remember, gKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const google = () => setStatus(AUTH_METHODS.google ? null : { kind: "info", text: uz.login.googleSoon });
   return (
     <ScrollView style={{ backgroundColor: night.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" bounces={false}>
@@ -93,11 +94,11 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
               <View style={s.divider} aria-hidden><View style={s.rule} /><Text style={s.dividerT}>{uz.login.or}</Text><View style={s.rule} /></View>
 
               {tab === "register" && <><Field id="nm" label={uz.login.fullName} value={name} onChangeText={setName} placeholder={uz.login.fullNamePh} maxLength={24} autoComplete="nickname" />{!validName(name) && <Text style={k.note}>{uz.login.nameHint}</Text>}</>}
-              <Field id="ph" label={uz.login.identifier} value={ident} onChangeText={(v) => setIdent(fmtPhone(v))} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder={uz.login.identifierPh} autoFocus={wide}
+              <Field id="ph" label={uz.login.identifier} value={ident} onChangeText={(v) => setIdent(/[@A-Za-z]/.test(v) ? v : fmtPhone(v))} keyboardType="default" autoCapitalize="none" autoCorrect={false} autoComplete="username" placeholder={uz.login.identifierPh} autoFocus={wide}
                 onSubmitEditing={() => canSend && send()} returnKeyType="send" />
               {tab === "register" && <Field id="yr" label={uz.login.year} value={year} onChangeText={(v) => setYear(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="1995" maxLength={4} />}
               {tab === "register" && (isUnder16(year) ? <Text style={k.warn} accessibilityLiveRegion="polite">{uz.profile.under16}</Text> : <Text style={k.note}>{uz.login.yearHint}</Text>)}
-              {emailTyped && !AUTH_METHODS.email && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.emailSoon}</Text>}
+              {emailTyped && !emailOn && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.emailSoon}</Text>}
               {(tab === "login" || AUTH_METHODS.password) && <Field id="pw" label={tab === "login" ? uz.login.password : uz.login.passwordNew} soon={!AUTH_METHODS.password} value={pass} onChangeText={setPass} secureTextEntry={!showPass} autoComplete={tab === "login" ? "current-password" : "new-password"}
                 placeholder={tab === "login" ? uz.login.passwordPh : uz.login.passwordNewPh}
                 right={tab === "login" ? <Pressable accessibilityRole="link" accessibilityLabel={uz.login.forgot} onPress={() => setStatus({ kind: "info", text: uz.login.forgotSoon })} hitSlop={8}><Text style={k.link}>{uz.login.forgot}</Text></Pressable> : undefined} />}

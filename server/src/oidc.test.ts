@@ -52,12 +52,26 @@ describe("HTTP: /auth/google", () => {
   it("token almashinuvi; yoqilmagan provayder 404; yomon token 401", async () => {
     const k = mkKey("k1"); const g = new OidcVerifier(GOOGLE(["client-1"]), async () => ({ keys: [k.jwk as any] }), () => Date.now());
     const x = buildApp({ authSecret: SECRET, oidc: { google: g } });
-    expect((await x.app.inject({ url: "/auth/config" })).json()).toEqual({ sms: false, google: true, apple: false, dev: false });
-    const now = Date.now() / 1000; const idToken = sign(k, { ...good, exp: now + 600, iat: now });
-    const r = (await x.app.inject({ method: "POST", url: "/auth/google", payload: { idToken } })).json();
+    expect((await x.app.inject({ url: "/auth/config" })).json()).toEqual({ sms: false, email: false, google: true, apple: false, dev: false });
+    const now = Date.now() / 1000; const nonce = async () => (await x.app.inject({ url: "/auth/nonce" })).json().nonce as string;
+    const tok = (n?: string) => sign(k, { ...good, exp: now + 600, iat: now, ...(n ? { nonce: n } : {}) }); const post = (idToken: string, n?: string) => x.app.inject({ method: "POST", url: "/auth/google", payload: { idToken, ...(n ? { nonce: n } : {}) } });
+    const n1 = await nonce(); const r = (await post(tok(n1), n1)).json();
     expect(r.userId).toMatch(/^g[0-9a-f]{20}$/); expect(verifyToken(SECRET, r.token)).toBe(r.userId);
+    expect((await post(tok(n1), n1)).statusCode).toBe(401); // replay: bir xil nonce ikkinchi marta o'tmaydi
+    const n2 = await nonce(); expect((await post(tok())).json().error).toBe("bad_nonce"); // nonce'siz token
+    expect((await post(tok(n2), "boshqa")).statusCode).toBe(401); expect((await post(tok("o'zim.yasadim.nonce"), "o'zim.yasadim.nonce")).statusCode).toBe(401); // bizdan olinmagan nonce
+    expect((await post(tok(n2), n2)).statusCode).toBe(200);
     expect((await x.app.inject({ method: "POST", url: "/auth/google", payload: { idToken: "x.y.z" } })).statusCode).toBe(401);
-    expect((await x.app.inject({ method: "POST", url: "/auth/apple", payload: { idToken } })).statusCode).toBe(404);
+    expect((await x.app.inject({ method: "POST", url: "/auth/apple", payload: { idToken: tok(n2) } })).statusCode).toBe(404);
     expect((await x.app.inject({ method: "POST", url: "/auth/sms/request", payload: { phone: "901234567" } })).statusCode).toBe(404);
+  });
+});
+
+describe("NonceStore", () => {
+  it("imzo, muddat va bir martalik ishlatish", async () => {
+    const { NonceStore } = await import("./oidc"); let t = 1_000_000; const ns = new NonceStore("s".repeat(32), () => t);
+    const n = ns.issue(); expect(ns.consume(n)).toBe(true); expect(ns.consume(n)).toBe(false);
+    const m = ns.issue(); t += 5 * 60_000 + 1; expect(ns.consume(m)).toBe(false); // muddati o'tgan
+    t += 1; const k = ns.issue(); expect(ns.consume(k.slice(0, -2) + "xx")).toBe(false); expect(ns.consume(5)).toBe(false); expect(new NonceStore("boshqa-kalit-" + "x".repeat(20), () => t).consume(k)).toBe(false);
   });
 });

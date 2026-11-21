@@ -1,6 +1,7 @@
 import { iceServersFrom, turnServerFor } from "./voice";
 import { OtpService, type SmsSender, normalizePhone, phoneError, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
-import type { OidcVerifier } from "./oidc";
+import { NonceStore, type OidcVerifier } from "./oidc";
+import { normalizeEmail, type EmailOtp } from "./email-auth";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import { ContentRegistry } from "./registry";
@@ -17,6 +18,7 @@ import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
 import { Commerce, DevProvider, type PaymentProvider } from "./commerce";
+import { PayLedger, PaymeMerchant, ClickMerchant, PaymeProvider, ClickProvider } from "./payments";
 import { ParentConsents } from "./parents";
 import { PhoneLinks } from "./phones";
 import { registerShop } from "./shop-routes";
@@ -41,7 +43,7 @@ export const devAuth: Authenticate = (t) => (t && /^[\w-]{1,64}$/.test(t) ? t : 
 export const normalizeWord = (v: unknown) => String(v ?? "").normalize("NFKC").replace(/[’ʻʼ‘`´]/g, "'").trim().toUpperCase();
 
 const BUILD_ID = process.env.BUILD_ID ?? new Date().toISOString();
-export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments; ops?: Ops; accounts?: AdminAccounts } = {}) {
+export function buildApp(opts: { emailOtp?: EmailOtp; requireProfile?: boolean; store?: Store; auth?: Authenticate; adminAuth?: AdminAuth; registry?: ContentRegistry; adminState?: AdminState; profiles?: ProfileService; analysis?: AnalysisService; logger?: boolean | { level?: string; stream?: { write(s: string): void } }; metricsToken?: string; otp?: OtpService; authSecret?: string; oidc?: Partial<Record<"google" | "apple", OidcVerifier>>; docs?: DocStore; sms?: SmsSender; providers?: PaymentProvider[]; publicUrl?: string; webhookSecret?: string; phones?: PhoneLinks; consents?: ParentConsents; commerce?: Commerce; edu?: Edu; tournaments?: Tournaments; ops?: Ops; accounts?: AdminAccounts } = {}) {
   // Ishlab chiqarishda sinov autentifikatsiyasi taqiqlanadi: haqiqiy `auth` (SMS/Google/Apple) berilishi shart.
   if (process.env.NODE_ENV === "production" && !opts.auth && !opts.authSecret) throw new Error("production: haqiqiy autentifikatsiya (opts.auth) kerak; devAuth o'chirilgan");
   // Tuzilgan JSON jurnal (§11). Maxfiylik: token va so'rov parametrlari (?token=…) jurnalga yozilmaydi, IP saqlanmaydi.
@@ -72,7 +74,9 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   const photoUrl = (id: string) => { const v = profiles.photoVersion(id); return v === undefined ? undefined : `/avatar/${encodeURIComponent(id)}?v=${v}&s=${photoSig(id, v)}`; };
   const phones = opts.phones ?? new PhoneLinks(secret, opts.docs);
   const consents = opts.consents ?? new ParentConsents(secret, opts.sms, opts.publicUrl ?? process.env.PUBLIC_URL ?? "http://localhost:3000", opts.docs);
-  const commerce = opts.commerce ?? new Commerce({ docs: opts.docs, providers: opts.providers ?? (process.env.NODE_ENV === "production" ? [] : [new DevProvider()]), consents,
+  const payRet = process.env.PAY_RETURN_URL ?? (opts.publicUrl ?? process.env.PUBLIC_URL ?? "http://localhost:3000"); const env = process.env;
+  const payProviders: PaymentProvider[] = [...(env.PAYME_MERCHANT_ID && env.PAYME_KEY ? [new PaymeProvider(env.PAYME_MERCHANT_ID, { returnUrl: payRet })] : []), ...(env.CLICK_SERVICE_ID && env.CLICK_MERCHANT_ID && env.CLICK_SECRET_KEY ? [new ClickProvider(env.CLICK_SERVICE_ID, env.CLICK_MERCHANT_ID, { returnUrl: payRet })] : [])]; // karta to'lovi (Humo, Uzcard, korporativ karta): kalitlar berilmaguncha yo'q
+  const commerce = opts.commerce ?? new Commerce({ docs: opts.docs, providers: opts.providers ?? (payProviders.length ? payProviders : process.env.NODE_ENV === "production" ? [] : [new DevProvider()]), consents,
     phoneOk: (uid) => dev || phones.isVerified(uid), ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; },
     achievements: (uid) => profiles.stats(uid).achievements, phoneHashOf: (uid) => phones.hashFor(uid), hashOf: (p) => phones.hashOf(p) });
   const ops = opts.ops ?? new Ops(opts.docs); const accounts = opts.accounts ?? new AdminAccounts(opts.docs);
@@ -152,17 +156,35 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
   });
   // --- kirish (SMS bir martalik kod) ---
   const authLimit = new KeyedLimiter(10 / 60, 10); // IP bo'yicha ~10 so'rov/daqiqa
-  app.get("/auth/config", async () => ({ sms: !!opts.otp, google: !!opts.oidc?.google, apple: !!opts.oidc?.apple, dev: !opts.otp && !opts.authSecret && !opts.oidc }));
+  app.get("/auth/config", async () => ({ sms: !!opts.otp, email: !!opts.emailOtp, google: !!opts.oidc?.google, apple: !!opts.oidc?.apple, dev: !opts.otp && !opts.emailOtp && !opts.authSecret && !opts.oidc }));
+  const nonces = new NonceStore(opts.authSecret ?? randomBytes(16).toString("hex"));
+  app.get("/auth/nonce", async (req, reply) => { if (!opts.oidc?.google) return reply.code(404).send({ error: "not_enabled" }); if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); } return { nonce: nonces.issue() }; });
   for (const prov of ["google", "apple"] as const) app.post(`/auth/${prov}`, async (req, reply) => {
     const v = opts.oidc?.[prov]; if (!v || !opts.authSecret) return reply.code(404).send({ error: "not_enabled" });
     if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
     const r = await v.verify((req.body as any)?.idToken); if (!r) return reply.code(401).send({ error: "bad_token" });
+    if (prov === "google" && (!r.nonce || r.nonce !== (req.body as any)?.nonce || !nonces.consume(r.nonce))) return reply.code(401).send({ error: "bad_nonce" }); // replay himoyasi: token faqat bizdan olingan bir martalik nonce bilan
     return issueSession(opts.authSecret, userIdOfSub(opts.authSecret, prov, r.sub));
   });
   app.post("/auth/logout", async (req, reply) => { // sessiyani serverda bekor qiladi (shu vaqtgacha berilgan barcha tokenlar)
     if (!opts.authSecret) return reply.code(404).send({ error: "not_enabled" });
     const t = parseToken(opts.authSecret, (req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined); if (!t) return reply.code(401).send({ error: "unauthorized" });
     revocations.revoke(t.userId); return { ok: true };
+  });
+  // Email bir martalik kod (SMS kabi himoya; manzil saqlanmaydi). Yuboruvchi sozlanmagan bo'lsa 404.
+  app.post("/auth/email/request", async (req, reply) => {
+    if (!opts.emailOtp) return reply.code(404).send({ error: "not_enabled" });
+    if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    const email = normalizeEmail((req.body as any)?.email); if (!email) return reply.code(400).send({ error: "bad_email" });
+    const r = await opts.emailOtp.request(email); if (!r.ok) return reply.code(r.error === "rate_limited" ? 429 : 502).send({ error: r.error === "sms_failed" ? "email_failed" : r.error });
+    return { ok: true };
+  });
+  app.post("/auth/email/verify", async (req, reply) => {
+    if (!opts.emailOtp) return reply.code(404).send({ error: "not_enabled" });
+    if (!authLimit.allow(ipKey(req.ip))) { cLimited({ scope: "auth" }); return reply.code(429).send({ error: "rate_limited" }); }
+    const email = normalizeEmail((req.body as any)?.email); if (!email) return reply.code(400).send({ error: "bad_email" });
+    const r = opts.emailOtp.verify(email, (req.body as any)?.code); if (!r.ok) return reply.code(401).send({ error: r.error });
+    return { token: r.token, userId: r.userId };
   });
   app.post("/auth/sms/request", async (req, reply) => {
     if (!opts.otp) return reply.code(404).send({ error: "not_enabled" });
@@ -207,6 +229,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); reply({ type: "chat_log", msgs: rooms.chatLog(c) }); return reply({ type: "voice_state", members: rooms.voiceMembers(c) }); }
+          case "stay": { if (!code) return reply({ type: "error", error: "no_room" }); const r = rooms.stay(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "start": { if (!code) return reply({ type: "error", error: "no_room" });
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
             const r = await rooms.start(code, userId, seed, { events: (m as { events?: boolean }).events }); if (!r.ok) reply({ type: "error", error: r.error }); return; }
@@ -339,15 +362,19 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     return adminState.addComplaint({ from: uid, against, room, text: b.text, at: Date.now() });
   });
   registerShop({ app, commerce, phones, consents, otp: opts.otp, dev, webhookSecret: opts.webhookSecret ?? process.env.PAYMENT_WEBHOOK_SECRET, onTournamentConsent: (id, ok) => tournaments.onConsent(id, ok), salesPaused: () => ops.flags().salesPaused || ops.flags().maintenance, payEvent: (o, a, ok, e) => ops.payEvent(o, a, ok, e), devPay: dev && process.env.NODE_ENV !== "production", secured, ageOf: (uid) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; }, nameOf: (id) => profiles.get(id)?.name, limited: (scope) => cLimited({ scope }) });
+  // Karta to'lovi provayderlari: provayder serveri chaqiradi (autentifikatsiya — provayder imzosi/kaliti). Kalitlar berilmasa marshrutlar yo'q (404).
+  const payLedger = new PayLedger(opts.docs);
+  if (env.PAYME_KEY && env.PAYME_MERCHANT_ID) { const pm = new PaymeMerchant(commerce, payLedger, env.PAYME_KEY); app.post("/pay/payme", async (req) => pm.handle(req.headers.authorization, req.body)); }
+  if (env.CLICK_SECRET_KEY && env.CLICK_SERVICE_ID) { const ck = new ClickMerchant(commerce, payLedger, env.CLICK_SERVICE_ID, env.CLICK_SECRET_KEY); for (const u of ["/pay/click", "/pay/click/prepare", "/pay/click/complete"]) app.post(u, async (req) => ck.handle(req.body)); }
   const ageOf = (uid: string) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; };
   registerBiz({ app, edu, tournaments, ops, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
   app.addHook("onResponse", async (req, rep) => { if (rep.statusCode >= 500) ops.logError(`${req.method} ${req.routeOptions?.url ?? req.url}`, `HTTP ${rep.statusCode}`); });
   app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "", build: BUILD_ID }; }); // `build`: server ishga tushgan vaqt (har deploy'da yangilanadi) — ochiq mijoz yangi versiya chiqqanini shundan biladi
-  const ready = Promise.all([phones.load(), consents.load(), commerce.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
+  const ready = Promise.all([phones.load(), consents.load(), commerce.load(), payLedger.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
     for (const b of ops.bans.values()) if (b.until) adminState.banUntil.set(b.id, b.until);
     for (const c of ops.cleared.values()) profiles.cleared.add(c.id);
     accounts.bootstrap(process.env.ADMIN_BOOTSTRAP_LOGIN, process.env.ADMIN_BOOTSTRAP_PASSWORD);
   }); // docs jadvalidan tiklash
   const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush(), accounts.queue.flush(), ops.queue.flush()]);
-  return { app, rooms, store, registry, adminState, profiles, analysis, commerce, phones, consents, edu, tournaments, accounts, ops, ready, flush };
+  return { app, rooms, store, registry, adminState, profiles, analysis, commerce, payLedger, phones, consents, edu, tournaments, accounts, ops, ready, flush };
 }

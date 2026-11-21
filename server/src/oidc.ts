@@ -1,6 +1,6 @@
 // Google / Apple orqali kirish: provayder bergan ID token (JWT, RS256) ni tekshiradi. Tashqi kutubxonasiz (node:crypto).
 // Client ID (audience) provayder konsolidan olinadi: GOOGLE_CLIENT_IDS (vergul bilan), APPLE_CLIENT_ID.
-import { createPublicKey, createVerify, type JsonWebKey } from "node:crypto";
+import { createPublicKey, createVerify, type JsonWebKey, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 export interface OidcProvider { name: "google" | "apple"; issuers: string[]; jwksUrl: string; audiences: string[] }
 export const GOOGLE = (audiences: string[]): OidcProvider => ({ name: "google", issuers: ["https://accounts.google.com", "accounts.google.com"], jwksUrl: "https://www.googleapis.com/oauth2/v3/certs", audiences });
@@ -27,7 +27,7 @@ export class OidcVerifier {
     return this.inflight;
   }
   /** Muvaffaqiyatda foydalanuvchining barqaror `sub` qiymati; aks holda null. Imzo, muddat, emitent va auditoriya tekshiriladi. */
-  async verify(idToken: unknown): Promise<{ sub: string } | null> {
+  async verify(idToken: unknown): Promise<{ sub: string; nonce?: string } | null> {
     if (typeof idToken !== "string" || idToken.length > 4096) return null;
     const parts = idToken.split("."); if (parts.length !== 3) return null;
     let header: any, claims: any;
@@ -48,6 +48,24 @@ export class OidcVerifier {
     if (typeof claims.exp !== "number" || claims.exp <= t - 30) return null;
     if (typeof claims.iat === "number" && claims.iat > t + 300) return null;
     if (typeof claims.sub !== "string" || !claims.sub || claims.sub.length > 255) return null;
-    return { sub: claims.sub };
+    return { sub: claims.sub, ...(typeof claims.nonce === "string" ? { nonce: claims.nonce } : {}) };
+  }
+}
+
+
+/** Bir martalik «nonce»: mijoz Google'ga beradi, ID token ichida qaytadi; shu bilan token qayta ishlatilishi (replay) to'xtatiladi.
+ *  Holatsiz imzolangan qiymat `vaqt.tasodif.imzo` (5 daqiqa amal qiladi) + bir marta ishlatiladigan xotira ro'yxati. */
+export class NonceStore {
+  private used = new Map<string, number>();
+  constructor(private secret: string, private now: () => number = Date.now, private ttlMs = 5 * 60_000) {}
+  private sig(body: string) { return createHmac("sha256", this.secret).update("nonce:" + body).digest("base64url").slice(0, 22); }
+  issue(): string { const body = `${this.now().toString(36)}.${randomBytes(12).toString("base64url")}`; return `${body}.${this.sig(body)}`; }
+  /** To'g'ri imzo, muddat ichida va hali ishlatilmagan bo'lsa `true` (va ishlatilgan deb belgilanadi). */
+  consume(nonce: unknown): boolean {
+    if (typeof nonce !== "string" || nonce.length > 80) return false; const parts = nonce.split("."); if (parts.length !== 3) return false;
+    const body = `${parts[0]}.${parts[1]}`, want = this.sig(body); const a = Buffer.from(parts[2]), b = Buffer.from(want); if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
+    const t = parseInt(parts[0], 36), n = this.now(); if (!Number.isFinite(t) || n - t > this.ttlMs || t - n > 60_000) return false;
+    for (const [k, at] of this.used) if (n - at > this.ttlMs) this.used.delete(k); // eskirganlarni tozalash
+    if (this.used.has(nonce)) return false; this.used.set(nonce, n); return true;
   }
 }

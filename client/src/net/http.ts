@@ -24,7 +24,7 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     gameLogCsv: async (code: string) => { const r = await f(base + `/me/games/${code}/log?format=csv`, { headers: { authorization: `Bearer ${token}` } }); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.text(); }, leaderboard: () => call("GET", "/leaderboard"), exportData: () => call("GET", "/me/export"),
     announcements: () => call("GET", "/me/announcements"), status: () => call("GET", "/status"),
     account: () => call("GET", "/me/account"), phoneRequest: (phone: string) => call("POST", "/me/phone/request", { phone }), phoneVerify: (phone: string, code: string) => call("POST", "/me/phone/verify", { phone, code }),
-    shop: () => call("GET", "/shop"), order: (sku: string, parentPhone?: string) => call("POST", "/shop/order", { sku, channel: "web", ...(parentPhone ? { parentPhone } : {}) }), orderGet: (id: string) => call("GET", `/shop/orders/${id}`),
+    shop: () => call("GET", "/shop"), order: (sku: string, parentPhone?: string, provider?: string) => call("POST", "/shop/order", { sku, channel: "web", ...(parentPhone ? { parentPhone } : {}), ...(provider ? { provider } : {}) }), orderGet: (id: string) => call("GET", `/shop/orders/${id}`),
     orderCancel: (id: string) => call("POST", `/shop/orders/${id}/cancel`, {}), orderResend: (id: string) => call("POST", `/shop/orders/${id}/resend`, {}), devPay: (id: string) => call("POST", `/dev/pay/${id}`, {}),
     equip: (kind: string, itemId: string | null) => call("POST", "/shop/equip", { kind, itemId }), claimMonthly: (itemId: string) => call("POST", "/shop/plus/claim", { itemId }), cancelPlus: () => call("POST", "/shop/plus/cancel", {}), restore: () => call("POST", "/shop/restore", {}),
     eduMe: () => call("GET", "/edu/me"), eduRedeem: (code: string) => call("POST", "/edu/redeem", { code }), eduJoin: (code: string) => call("POST", "/edu/join", { code }), eduLeave: (id: string) => call("POST", `/edu/classes/${id}/leave`, {}),
@@ -51,13 +51,18 @@ export function makeAuth(base: string, f: typeof fetch = fetch) {
     return j as any;
   };
   return {
-    config: async (): Promise<{ sms: boolean; dev: boolean; google?: boolean }> => { const r = await f(base + "/auth/config"); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.json(); },
+    config: async (): Promise<{ sms: boolean; dev: boolean; google?: boolean; email?: boolean }> => { const r = await f(base + "/auth/config"); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.json(); },
     request: (phone: string) => post("/auth/sms/request", { phone }),
     verify: (phone: string, code: string): Promise<{ token: string; userId: string }> => post("/auth/sms/verify", { phone, code }),
-    google: (idToken: string): Promise<{ token: string; userId: string }> => post("/auth/google", { idToken }),
+    emailRequest: (email: string) => post("/auth/email/request", { email }),
+    emailVerify: (email: string, code: string): Promise<{ token: string; userId: string }> => post("/auth/email/verify", { email, code }),
+    nonce: async (): Promise<string> => { const r = await f(base + "/auth/nonce"); if (!r.ok) throw new HttpError(r.status, "unknown"); return (await r.json()).nonce; },
+    google: (idToken: string, nonce: string): Promise<{ token: string; userId: string }> => post("/auth/google", { idToken, nonce }),
   };
 }
 export const validPhone = (v: string) => /^\+?\d{9,15}$/.test(v.replace(/[\s()-]/g, ""));
+/** Email manzili (server ham tekshiradi). */
+export const validEmail = (v: string) => /^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,24}$/.test(v.trim()) && v.trim().length <= 254;
 export const validCode = (v: string) => /^\d{6}$/.test(v.trim());
 
 export const DELETE_WORD = "O'CHIRISH";

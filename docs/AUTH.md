@@ -39,3 +39,8 @@
 - Google/Apple **mijoz tomoni** (tugmalar): `expo-auth-session` / Apple Sign In uchun provayder konsolida ilova yaratilib client ID'lar olinishi kerak. Server tayyor, mijozga faqat `idToken` olib `/auth/google` ga yuborish qoladi.
 - Sessiyani bekor qilish ro'yxati (hozircha `AUTH_SECRET` almashtirish hamma sessiyani bekor qiladi).
 - Telefon raqami egaligi uchun SMS xarajati/spam monitoringi: `tajriba24_rate_limited_total{scope="auth"}` ko'rsatkichi bor.
+
+## Google nonce va email kodi (2026-11-21)
+- **Google nonce:** `GET /auth/nonce` bir martalik imzolangan qiymat beradi (5 daqiqa); mijoz uni Google'ga beradi, ID token ichida qaytadi; `POST /auth/google {idToken, nonce}` faqat nonce mos kelsa va birinchi marta ishlatilsa qabul qilinadi (`bad_nonce`). Token qayta ishlatilishi (replay) shu bilan to'xtatiladi. Mijoz tugmasi `EXPO_PUBLIC_GOOGLE_CLIENT_ID` (Docker: `GOOGLE_CLIENT_ID`) bilan yoqiladi; server `GOOGLE_CLIENT_IDS` da shu ID bo'lishi shart.
+- **Email kodi:** `POST /auth/email/request {email}` va `/auth/email/verify {email, code}`: SMS bilan bir xil himoya (1 daqiqada 1 ta, soatiga 5 ta, 5 xatodan keyin 15 daqiqa blok, kod faqat xesh). Manzil saqlanmaydi (ID HMAC). Yuboruvchi: `EMAIL_HTTP_URL` + `EMAIL_HTTP_TOKEN` (JSON `{to, subject, text}`) yoki dasturlashda `EMAIL_PROVIDER=console`. Sozlanmasa 404 va kirish sahifasi emailni «tez orada» deydi. `/auth/config` da `email` bayrog'i.
+- Google va email bilan kirgan hisob telefon bilan avtomatik bog'lanmaydi (alohida ID); hisoblarni bog'lash ochiq masala.

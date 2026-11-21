@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, Share, Linking, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, Share, Linking, Modal, StyleSheet, useWindowDimensions } from "react-native";
 import { Button } from "./Button";
 import { Banner, Card, Pill } from "./kit";
 import { Avatar } from "./Avatar";
@@ -13,7 +13,7 @@ import { readableOn } from "../contrast";
 import type { RoomView } from "../net/connection";
 
 const MAX = 6, MIN = 2; // eski xonalar uchun (o'rinlar soni belgilanmagan)
-export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomView; userId: string; error: string | null; onStart: (events: boolean) => void; onLeave: () => void }) {
+export function Lobby({ room, userId, error, onStart, onLeave, onStay }: { room: RoomView; userId: string; error: string | null; onStart: (events: boolean) => void; onLeave: () => void; onStay?: () => void }) {
   const { width: winW } = useWindowDimensions(); const wide = winW >= 900;
   const host = (room.hostId ?? room.members[0]?.userId) === userId; const [copied, setCopied] = useState(false); const [events, setEvents] = useState(true);
   const humans = room.members.length, seats = room.seats ?? MIN, bots = Math.max(0, seats - humans); // bo'sh o'rinlarni boshlanganda botlar egallaydi
@@ -28,6 +28,8 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
     try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
     try { await Share.share({ message: `Tajriba 24: ${text}` }); } catch { /* bekor qilindi */ }
   };
+  const ask = host && !!room.idleAskUntil; const [askNow, setAskNow] = useState(Date.now()); useEffect(() => { if (!ask) return; setAskNow(Date.now()); const h = setInterval(() => setAskNow(Date.now()), 1000); return () => clearInterval(h); }, [ask]);
+  const askLeft = room.idleAskUntil ? Math.max(0, Math.ceil((room.idleAskUntil - askNow) / 1000)) : 0;
   return (
     <Screen title={uz.lobby.title} subtitle={uz.lobby.share} onBack={onLeave} backLabel={uz.lobby.leave} maxWidth={wide ? 1040 : 480}>
       <View style={wide ? { flexDirection: "row", gap: space.lg, alignItems: "flex-start" } : { gap: space.lg }}>
@@ -92,6 +94,16 @@ export function Lobby({ room, userId, error, onStart, onLeave }: { room: RoomVie
       {error && <Text style={{ color: color.red }} accessibilityRole="alert">{errText(error)}</Text>}
       </View>
       </View>
+    {ask && <Modal transparent animationType="fade" onRequestClose={() => onStay?.()}>
+        <View style={{ flex: 1, backgroundColor: "rgba(8,34,56,0.55)", alignItems: "center", justifyContent: "center", padding: space.lg }}>
+          <View role="alertdialog" aria-label={uz.openRooms.stayTitle} testID="idle-ask" style={{ width: "100%", maxWidth: 420, gap: space.md, padding: space.xl, borderRadius: 16, backgroundColor: "#fff" }}>
+            <Text style={{ color: "#082238", fontSize: 20, fontWeight: "800" }} aria-level={2} accessibilityRole="header">{uz.openRooms.stayTitle}</Text>
+            <Text style={{ color: "#4A5B6C", fontSize: 15, lineHeight: 22 }}>{uz.openRooms.stayText.replace("{s}", String(askLeft))}</Text>
+            <Button label={uz.openRooms.stayYes} onPress={() => onStay?.()} />
+            <Button label={uz.openRooms.stayNo} kind="ghost" onPress={onLeave} />
+          </View>
+        </View>
+      </Modal>}
     </Screen>
   );
 }

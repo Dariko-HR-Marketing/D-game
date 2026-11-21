@@ -5,7 +5,7 @@ import { stepMs } from "../motionConfig";
 import { SMALL_BOARD } from "@tajriba24/rules";
 import { color, font, PLAYER_COLORS, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
-import { pathIndex, squareRing, type Tile } from "../boardLayout";
+import { pathIndex, squareRing, labelSize, type Tile } from "../boardLayout";
 import { BIG_CELLS } from "../bigBoard";
 import { Icon, type IconName } from "./Icon";
 import { nameOf, exitProgress } from "../model";
@@ -48,7 +48,7 @@ export const cellLabel = (circle: "small" | "big", i: number) => (circle === "sm
 
 /** Yozuv o'lchami: eng uzun so'z katakka sig'adigan eng katta o'lcham (so'z o'rtasidan bo'linmasin). */
 /** Katakka sig'adigan eng katta o'lcham; 8 dan kichik bo'lsa yozuv ko'rsatilmaydi (ikonka + rang + «Katak turlari» izohi qoladi). */
-const labelSize = (label: string, w: number) => { const longest = Math.max(...label.split(" ").map((x) => x.length), 4); return Math.min(10, Math.floor(((w - 8) / (longest * 0.78)) * 2) / 2); };
+// labelSize: ../boardLayout
 
 /** Fishka o'lchami va taxta atrofidagi bo'sh joy (fishka ramka bo'ylab, katak chetida yuradi — chetdan tashqariga chiqadi). */
 export const pawnSize = (wide: boolean) => (wide ? 30 : 24);
@@ -66,7 +66,7 @@ export function boardGeometry(width: number, wide: boolean, n: number, tight = f
 
 /** Bitta katak: faqat o'z xossalari o'zgarganda qayta chiziladi (har holat yangilanishida 48–53 katak qayta chizilmasin). */
 const Tile = React.memo(function Tile({ i, x, y, w, h, corner, L, here, dream, small, wide, oN, oHue, oKind, oName, label, onPress }: { i: number; x: number; y: number; w: number; h: number; corner: boolean; L: Look; here: boolean; dream: boolean; small: boolean; wide: boolean; oN: number; oHue: string; oKind: "" | BigOwner["kind"]; oName: string; label: string; onPress: (i: number) => void }) {
-  const ls = labelSize(L.label, w), bs = Math.max(13, Math.min(18, Math.min(w, h) - 4)); // egasi belgisi o'lchami: kichik kataklarga ham sig'adi
+  const ls = labelSize(L.label, w, h, wide), bs = Math.max(13, Math.min(18, Math.min(w, h) - 4)); // egasi belgisi o'lchami: kichik kataklarga ham sig'adi
   const fg = oHue ? readableOn(oHue) : "#fff";
   return (
     <Pressable role="button" aria-label={label} {...({ title: oName || label, tabIndex: -1, dataSet: { dense: "1" } } as any)} onPress={() => onPress(i)} testID={`tile-${i}`}
@@ -131,15 +131,15 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
         {/* Markaz paneli (ichida tugma bor — taxta tasviridan tashqarida) */}
         <View style={{ position: "absolute", left: c + 10, top: c + 10, width: W - 2 * c - 20, height: H - 2 * c - 20, alignItems: "center", justifyContent: "center", gap: space.sm, zIndex: 10, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: "#E6ECEF" }}>{children}</View>
       </View>
-      <Legend circle={circle} />
+      <Legend circle={circle} wide={wide} />
       {info && <CellSheet info={info} names={(id) => nameOf(room, id)} onClose={() => setSel(null)} />}
     </View>
   );
 }
 
 /** Katak turlari izohi: ikonka + nom + qoida. Har doim ko'rinadi (maket: taxta tagida). */
-function Legend({ circle }: { circle: "small" | "big" }) {
-  const [open, setOpen] = useState(false);
+function Legend({ circle, wide }: { circle: "small" | "big"; wide?: boolean }) {
+  const [open, setOpen] = useState(!!wide); // kompyuterda katak yozuvlari sig'maydi: «Katak turlari» izohi boshidanoq ochiq
   const keys = circle === "small" ? (["S", "I", "H", "B", "D", "O", "K", "Q"] as const) : (["T", "V", "O", "Y", "X"] as const);
   return (
     <View style={{ marginTop: space.sm }}>

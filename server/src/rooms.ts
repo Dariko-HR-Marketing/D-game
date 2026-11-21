@@ -45,6 +45,7 @@ export interface Room {
   tag?: RoomTag;
   /** Ko'rinish (Ochiq / Qulfli / Yashirin) va boshlash usuli. `undefined` — eski xonalar: yashirin, botlar bilan avtoboshlash (oldingi xatti-harakat). */
   visibility?: RoomVisibility; startMode?: RoomStart; kind?: RoomKind;
+  idleBase?: number; idleAskAt?: number | null; // ro'yxatdagi zal: faollik boshlanishi va «Davom etasizmi?» so'rovi vaqti
   closed?: string; // administrator majburan yopgan (sabab xona a'zolariga ko'rinadi)
 }
 /** §6.7: reaksiyalar ochiq. Ruxsat etilgan to'plam kichik va neytral (SPEC to'plamni aytmaydi — OPEN_QUESTIONS #52). */
@@ -73,7 +74,7 @@ function assetCardOf(ctx: Ctx, code: string, cardId?: string): AssetCard | undef
 /** Mijozga yuboriladigan ta'sir: viktorinaning to'g'ri javobi yashiriladi (faqat server biladi; javobdan keyin `state.lastQuiz` da ochiladi). */
 const publicEffect = (e: any) => (e && e.kind === "quiz" ? { ...e, correct: undefined } : e);
 export interface PendingCardView { id: string; text: string; mode: string; effect: unknown; file: string; deck?: string; title?: string }
-export interface RoomView { autoStartAt?: number | null; closed?: string; tag?: RoomTag; visibility?: RoomVisibility; startMode?: RoomStart; kind?: RoomKind; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string; deck?: string; title?: string } | null }
+export interface RoomView { autoStartAt?: number | null; closed?: string; tag?: RoomTag; visibility?: RoomVisibility; startMode?: RoomStart; kind?: RoomKind; idleAskUntil?: number | null; marketCards: Record<number, { text: string; effect: unknown }>; names: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: Pick<Member, "userId" | "bot" | "online" | "left" | "unreliable" | "autopilot">[]; state: ReturnType<typeof publicState>; seq: number; deadline: number | null; timerTotal: number | null; mode: GameMode; limit: { leftMs: number; deadline: number | null } | null; seats?: number; turnSeconds?: number; calc?: { mode: CalcMode; due: string[]; ledger: Record<string, Snap>; stats: Record<string, { firstTry: number; retried: number }> }; assetCards?: Record<string, AssetCard>; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; professionExp?: Record<string, number[]>; lastCard?: { text: string; effect: unknown; mode: string; file: string; deck?: string; title?: string } | null }
 
 export type Err =
   | "room_not_found" | "room_full" | "already_in_game" | "not_host" | "not_enough_players" | "already_started"
@@ -110,7 +111,7 @@ export class RoomManager {
     for (const m of r.members) { const pf = this.hooks.profile?.(m.userId); if (pf) names[m.userId] = { name: pf.name, color: pf.color, level: pf.level, photo: pf.photo, ...(pf.gender ? { gender: pf.gender } : {}), cos: pf.cos }; }
     const marketCards: Record<number, { text: string; effect: unknown }> = {};
     for (const pr of r.state?.proposals ?? []) if (pr.kind === "market" || pr.kind === "offer") { const ce = effectOf(r.ctx, pr.cardId); marketCards[pr.id] = { text: ce.text ?? "", effect: publicEffect(ce.effect) }; }
-    return { autoStartAt: this.lobbyTimers.get(r.code)?.at ?? null, closed: r.closed, tag: r.tag, ...(r.visibility ? { visibility: r.visibility, startMode: r.startMode, kind: r.kind } : {}), hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online, left: m.left, unreliable: m.unreliable, ...(m.autopilot ? { autopilot: true } : {}) })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, timerTotal: r.deadline && r.timerSeconds ? r.timerSeconds : null, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds, mode: r.mode, limit: this.limitView(r),
+    return { autoStartAt: this.lobbyTimers.get(r.code)?.at ?? null, closed: r.closed, tag: r.tag, ...(r.visibility ? { visibility: r.visibility, startMode: r.startMode, kind: r.kind, idleAskUntil: r.idleAskAt ? r.idleAskAt + this.lobbyRules.askMs : null } : {}), hostId: r.hostId, marketCards, names, code: r.code, members: r.members.map((m) => ({ userId: m.userId, bot: m.bot, online: m.online, left: m.left, unreliable: m.unreliable, ...(m.autopilot ? { autopilot: true } : {}) })), state: publicState(r.state), seq: r.seq, deadline: r.deadline, timerTotal: r.deadline && r.timerSeconds ? r.timerSeconds : null, ...(r.seats !== undefined ? { seats: r.seats } : {}), turnSeconds: r.turnSeconds, mode: r.mode, limit: this.limitView(r),
       calc: (() => { const due = r.calcMode === "manual" ? this.dueOf(r) : []; return { mode: r.calcMode, due, ledger: Object.fromEntries(due.map((id) => [id, r.ledger[id]])), stats: r.calcStats }; })(),
       assetCards: r.state ? Object.fromEntries([...new Map([...r.state.players.flatMap((p) => p.assets.map((a) => [a.cardId ?? a.code, a] as const)), ...(r.state.auction?.lot ?? []).map((l) => [l.cardId ?? l.code, l as any] as const)]).values()].flatMap((a) => { const x = assetCardOf(r.ctx, a.code, a.cardId); return x ? [[a.cardId ?? a.code, x]] : []; })) : undefined,
       lastCard: r.state?.lastCard ? (() => { const ce = effectOf(r.ctx, r.state!.lastCard!.cardId); return { text: ce.text ?? "", effect: publicEffect(ce.effect), mode: ce.mode, file: ce.file, deck: ce.deck, title: ce.title }; })() : null,
@@ -217,7 +218,7 @@ export class RoomManager {
     if (r.state) return { ok: false, error: "already_started" };
     if (r.tag && this.hooks.canJoin && !this.hooks.canJoin(r.tag, userId)) return { ok: false, error: "not_allowed" }; // sinf/turnir xonasi: faqat a'zolar
     if (r.members.length >= (r.seats ?? MAX_PLAYERS) || r.members.filter((m) => !m.bot).length >= (MODES[r.mode].maxHumans ?? Infinity)) return { ok: false, error: "room_full" }; // §6.1: mijoz yangi xona taklif qiladi
-    r.members.push({ userId, bot: false, online: true });
+    r.members.push({ userId, bot: false, online: true }); r.idleAskAt = null;
     this.activeRoomOf.set(userId, r.code); this.saveLobby(r);
     this.armFull(r);
     this.emit(r);
@@ -537,8 +538,13 @@ export class RoomManager {
     if (!anyOnline && r.offlineSince === null) r.offlineSince = this.clock.now(); else if (anyOnline) r.offlineSince = null;
   }
 
+  /** «Davom etasizmi?» — egasi «ha» desa zal yana shuncha muddat saqlanadi. */
+  stay(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
+    const r = this.rooms.get(code.toUpperCase()); if (!r) return { ok: false, error: "room_not_found" }; if (r.hostId !== userId) return { ok: false, error: "not_host" }; if (r.state) return { ok: false, error: "already_started" };
+    r.idleBase = this.clock.now(); r.idleAskAt = null; this.emit(r); return { ok: true };
+  }
   /** Ochiq o'yinlar ro'yxati qoidalari (taklif qiymatlari, tasdiq kutilmoqda): egasi shuncha oflayn bo'lsa yoki xonada faqat egasi shuncha turib qolsa, ro'yxatdagi zal yopiladi. */
-  lobbyRules = { hostOfflineMs: 5 * 60_000, soloMaxMs: 30 * 60_000 };
+  lobbyRules = { hostOfflineMs: 5 * 60_000, soloMaxMs: 30 * 60_000, askMs: 60_000 };
   private listSalt = randomBytes(16).toString("hex");
   private rowId(code: string) { return createHash("sha256").update(this.listSalt + code).digest("hex").slice(0, 10); }
   /** Kutish zalidagi Ochiq va Qulfli xonalar (sinf/turnir va yashirin xonalar chiqmaydi). Qulfli xonaning kodi qaytarilmaydi. */
@@ -561,7 +567,12 @@ export class RoomManager {
       const limit = r.state && r.members.some((m) => !m.bot && !m.left) ? Math.max(idleMs, startedIdleMs) : idleMs;
       const listed = !r.state && !r.tag && (r.visibility === "open" || r.visibility === "locked");
       const host = r.members.find((m) => m.userId === r.hostId);
-      const stale = listed && ((!!host && !host.online && host.offlineAt !== undefined && now - host.offlineAt >= this.lobbyRules.hostOfflineMs) || (r.members.filter((m) => !m.bot).length <= 1 && now - r.createdAt >= this.lobbyRules.soloMaxMs));
+      const hostGone = listed && !!host && !host.online && host.offlineAt !== undefined && now - host.offlineAt >= this.lobbyRules.hostOfflineMs;
+      const solo = listed && r.members.filter((m) => !m.bot).length <= 1;
+      let askExpired = false;
+      if (solo && !r.idleAskAt && now - (r.idleBase ?? r.createdAt) >= this.lobbyRules.soloMaxMs) { r.idleAskAt = now; this.emit(r); } // faqat egasi uzoq turib qoldi: avval so'raymiz («Davom etasizmi?»)
+      else if (solo && r.idleAskAt && now - r.idleAskAt >= this.lobbyRules.askMs) askExpired = true;
+      const stale = hostGone || askExpired;
       if (r.endedAt || (!stale && (r.offlineSince === null || now - r.offlineSince < limit))) continue;
       if (r.timer) this.clock.clearTimeout(r.timer);
       for (const [k, h] of this.proposalTimers) if (k.startsWith(`${code}:`)) { this.clock.clearTimeout(h); this.proposalTimers.delete(k); }

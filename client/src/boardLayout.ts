@@ -20,3 +20,6 @@ export function squareRing(n: number, cols: number, W: number, H: number, c: num
 }
 /** Katak indeksi → yo'l indeksi. `offset`: 0-katak (START) yo'lning qaysi o'rnida turishi. */
 export const pathIndex = (cell: number, n: number, offset: number) => (((cell + offset) % n) + n) % n;
+
+/** Katak yozuvi o'lchami: eng uzun so'z katakka sig'adigan eng katta o'lcham (so'z o'rtasidan bo'linmasin); kompyuterda (kengroq katak) 13 px gacha, telefonda 10 px; ikki qator ikonka bilan katak balandligiga sig'adi. 8 dan kichik bo'lsa yozuv ko'rsatilmaydi (ikonka + rang qoladi). */
+export const labelSize = (label: string, w: number, h: number = 999, wide = false) => { const longest = Math.max(...label.split(" ").map((x) => x.length), 4); const fitW = ((w - 8) / (longest * 0.78)), fitH = (h - 26) / 2.4; return Math.floor(Math.min(wide ? 13 : 10, fitW, fitH) * 2) / 2; };
