@@ -33,24 +33,30 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(await a.getByTestId("coach").count() === 0, `${tag} standart o'yinda yo'l-yo'riq yo'q`);
   await a.context().close();
   // 2b) Yangi o'yinchi (o'yini yo'q): bosh sahifada «O'quv o'yini» taklifi
-  const nw = await open("newmd" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada O'quv o'yini taklifi`);
+  const nw = await open("newmd" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada «Birinchi tanishuv» taklifi`);
   check(await nw.getByTestId("home-new").count() === 0 && await nw.getByTestId("mode-standard").count() === 0 && await nw.getByTestId("mode-corporate").count() === 0, `${tag} yangi o'yinchi: oddiy o'yin va tur tanlovi yopiq (majburiy o'quv)`);
-  check(await nw.getByText(/Avval o'quv o'yini/).count() > 0, `${tag} yangi o'yinchi: «Avval o'quv o'yini» tushuntirishi bor`);
-  await nw.getByTestId("home-tutorial").click(); await nw.waitForSelector("[data-testid=lobby-code]"); const nc = (await nw.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  check(x.rooms.rooms.get(nc)?.mode === "tutorial", `${tag} taklif bosilsa o'quv xonasi ochiladi`);
-  // 3) O'quv o'yini: 1 odam + 2 bot, qolgan vaqt va vaqt tugashi
-  const t = nw; const tc = nc; const tr = x.rooms.rooms.get(tc)!;
-  await t.getByRole("button", { name: "O'yinni boshlash" }).click(); await t.waitForSelector("text=Orzuingizni tanlang"); await t.getByRole("button", { name: "Tanlash" }).first().click(); await t.waitForSelector("text=Naqd", { timeout: 60000 });
-  check(tr.state!.players.length === 3 && tr.members.filter((m: any) => m.bot).length === 2, `${tag} o'quv: 1 odam + 2 bot`);
-  await t.waitForTimeout(600); check(await t.getByTestId("coach").count() === 1 && /balansingiz/.test(await t.getByTestId("coach").innerText()), `${tag} o'quv: yo'l-yo'riq «Bu sizning balansingiz…» ko'rinadi`);
-  await t.getByTestId("coach").getByRole("button", { name: "Tushundim" }).dispatchEvent("click"); /* botning karta xabari (toast) tugma ustini vaqtincha yopishi mumkin: bosish hodisasi tugmaning o'ziga beriladi */ await t.waitForTimeout(300); check(await t.getByTestId("coach").count() === 0, `${tag} «Tushundim» bosilgach shu qadam qayta chiqmaydi`);
-  if (tag === "tel") await t.getByRole("button", { name: /^Maydon/ }).click().catch(() => {});
-  await t.waitForTimeout(600); const lim = t.getByTestId("limit-left"); check(await lim.count() > 0 && /Qolgan vaqt: (14|15):/.test(await lim.innerText()), `${tag} o'quv: «Qolgan vaqt 15:00» ko'rinadi`);
-  (x.rooms as any).limitPause(tr); tr.limitLeftMs = 1200; (x.rooms as any).limitResume(tr);
-  await t.waitForSelector("text=O'yin natijasi", { timeout: 15000 }).catch(() => {});
-  check(tr.state!.endReason === "time" && !!tr.state!.winner, `${tag} vaqt tugadi: g'olib belgilandi (sabab «vaqt»)`);
-  check(await t.getByText(/Vaqt tugadi/).count() > 0, `${tag} natija ekranida «Vaqt tugadi»`);
-  check(await t.evaluate(() => localStorage.getItem("tajriba24-tutorial-done")) === "1", `${tag} o'quv o'yini tugagach qurilmada «o'tildi» belgisi qo'yildi`);
+  check(await nw.getByText(/Avval qisqa tanishuv/).count() > 0, `${tag} yangi o'yinchi: «Avval qisqa tanishuv» tushuntirishi bor`);
+  // 3) Majburiy tanishuv (o'yin emas): server xonasi ochilmaydi, har qadamda namuna tugma bosiladi, tugagach oddiy o'yin ochiladi
+  const t = nw; const roomsBefore = x.rooms.rooms.size;
+  await t.getByTestId("home-tutorial").click(); await t.getByTestId("flow-root").waitFor({ timeout: 6000 });
+  check(x.rooms.rooms.size === roomsBefore, `${tag} tanishuv: server xonasi ochilmadi (o'yin emas)`);
+  const nextBtn = t.getByRole("button", { name: "Keyingisi" }); let steps = 0, gated = 0, blocked = false;
+  for (let k = 0; k < 20; k++) {
+    if (await t.getByRole("button", { name: "Tushundim, o'yinga o'tish" }).count()) break;
+    steps++;
+    if (await t.getByTestId("flow-must").count()) {
+      gated++; if (await nextBtn.isDisabled()) blocked = true;
+      if (await t.locator("[data-testid^=flow-tab-]").count()) { for (const id of ["field", "blank", "cards", "hist", "ana", "chat"]) await t.getByTestId(`flow-tab-${id}`).click(); }
+      else await t.locator("[data-testid^=flow-act-]").first().click();
+      await t.getByTestId("flow-must").waitFor({ state: "detached", timeout: 3000 });
+    }
+    await nextBtn.click(); await t.waitForTimeout(120);
+  }
+  check(gated >= 6 && blocked, `${tag} tanishuv: tugma bosilmaguncha «Keyingisi» yopiq (${gated} ta qadam)`);
+  const fin = t.getByRole("button", { name: "Tushundim, o'yinga o'tish" }); check(await fin.count() === 1 && steps >= 10, `${tag} tanishuv: ketma-ket ${steps + 1} qadam o'tildi`);
+  await fin.click(); await t.getByTestId("home-new").waitFor({ timeout: 6000 }).catch(() => {});
+  check(await t.getByTestId("home-new").count() === 1 && await t.getByTestId("home-tutorial").count() === 0, `${tag} tanishuv tugagach oddiy o'yin ochildi`);
+  check(await t.evaluate(() => localStorage.getItem("tajriba24-tutorial-done")) === "1", `${tag} tanishuv tugagach qurilmada «o'tildi» belgisi qo'yildi`);
   await t.context().close();
 }
 await b.close(); await x.app.close(); console.log(failed ? `MODES: ${failed} ta xato` : "MODES: hammasi to'g'ri"); process.exit(failed ? 1 : 0);
