@@ -63,7 +63,7 @@ export function RequestModal({ room, userId, reqs, onAct, onClose }: { room: Roo
 }
 
 /** Sarlavhadagi doimiy profil tugmasi ostidagi menyu: «O'yindan chiqish» shu yerda. */
-export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp }: { open: boolean; onClose: () => void; onLeave: () => void; onProfile?: () => void; onHelp?: () => void }) {
+export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp, items }: { open: boolean; onClose: () => void; onLeave: () => void; onProfile?: () => void; onHelp?: () => void; items?: { key: string; icon: any; label: string; onPress: () => void; tid?: string }[] }) {
   const [sure, setSure] = useState(false);
   useEffect(() => { if (!open) setSure(false); }, [open]);
   useEffect(() => { const d = (globalThis as any).document; if (!open || !d?.addEventListener) return; const h = (e: any) => { if (e.key === "Escape") onClose(); }; d.addEventListener("keydown", h); return () => d.removeEventListener("keydown", h); }, [open, onClose]);
@@ -73,6 +73,7 @@ export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp }: { ope
       <Pressable style={StyleSheet.absoluteFill as any} onPress={onClose} accessibilityLabel={uz.leave.cancel} />
       <View style={s.menu} role="menu" aria-label={uz.profMenu.menu}>
         {!sure ? (<>
+          {items?.map((it) => <Pressable key={it.key} accessibilityRole="button" role="menuitem" accessibilityLabel={it.label} onPress={() => { onClose(); it.onPress(); }} style={s.item} testID={it.tid}><Icon name={it.icon} size={18} color={color.navy} /><Text style={s.itemT}>{it.label}</Text></Pressable>)}
           {onProfile && <Pressable accessibilityRole="button" role="menuitem" onPress={() => { onClose(); onProfile(); }} style={s.item}><Icon name="person" size={18} color={color.navy} /><Text style={s.itemT}>{uz.profMenu.me}</Text></Pressable>}
           {onHelp && <Pressable accessibilityRole="button" role="menuitem" onPress={() => { onClose(); onHelp(); }} style={s.item} testID="tour-help"><Icon name="help" size={18} color={color.navy} /><Text style={s.itemT}>{uz.onboarding.help}</Text></Pressable>}
           <Pressable accessibilityRole="button" role="menuitem" accessibilityLabel={uz.leave.button} onPress={() => setSure(true)} style={s.item} testID="leave-open"><Icon name="flag" size={18} color={color.red} /><Text style={[s.itemT, { color: color.red }]}>{uz.leave.button}</Text></Pressable>

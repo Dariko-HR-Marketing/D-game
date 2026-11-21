@@ -24,6 +24,20 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
   await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd", { timeout: 60000 });
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
+  if (tag === "kompyuter") { // o'ng panel yon oyna: ikonka bosilsa o'yinchilar, voqealar, vaqt va reaksiyalar chiqadi; Esc bilan yopiladi
+    const open = p.getByTestId("players-drawer-open"); const okBtn = (await open.count()) === 1; if (!okBtn) { failed++; console.log("XATO: kompyuterda «O'yinchilar» ikonkasi yo'q"); } else {
+      await open.click(); await p.getByTestId("players-drawer").waitFor({ timeout: 4000 }); const t = await p.getByTestId("players-drawer").innerText();
+      const ok = /O'yinchilar/.test(t) && /Reaksiyalar/.test(t) && /So'nggi voqealar/.test(t); if (!ok) { failed++; console.log("XATO: yon oyna tarkibi to'liq emas"); }
+      const acc = p.getByTestId("players-drawer").getByTestId("player-acc"); if ((await acc.count()) < 2) { failed++; console.log("XATO: akkordeonda o'yinchilar qatori yo'q"); }
+      const dr = p.getByTestId("players-drawer"); if (/Passiv daromad/.test(await dr.getByTestId("player-acc").first().innerText())) { failed++; console.log("XATO: akkordeon boshida yopiq bo'lishi kerak"); }
+      await acc.first().getByRole("button").click(); if (!/Passiv daromad/.test(await acc.first().innerText())) { failed++; console.log("XATO: akkordeon ochilmadi"); }
+      await acc.nth(1).getByRole("button").click(); if (/Passiv daromad/.test(await acc.first().innerText())) { failed++; console.log("XATO: boshqa o'yinchi ochilganda oldingisi yopilmadi"); }
+      await p.keyboard.press("Escape"); await p.waitForTimeout(300); if (await p.getByTestId("players-drawer").count()) { failed++; console.log("XATO: Esc yon oynani yopmadi"); }
+      await p.getByTestId("profile-menu-open").click(); for (const id of ["rules-open", "sheet-open", "history-open", "leave-open"]) if (!(await p.getByTestId(id).count())) { failed++; console.log(`XATO: profil menyusida ${id} yo'q`); }
+      if (await p.locator("header [data-testid=sheet-open]").count()) { failed++; console.log("XATO: Hisob varag'i sarlavhada qolgan"); }
+      await p.keyboard.press("Escape"); await p.waitForTimeout(200);
+    }
+  }
   let rolls = 0, accepted = 0, skipped = 0, idle = 0, recaps = 0;
   const prof = process.env.PROFILE && tag === "telefon" ? await c.newCDPSession(p) : null; // protsessor profili: eng og'ir funksiyalar (PROFILE=fayl.json)
   if (prof) { await prof.send("Profiler.enable"); await prof.send("Profiler.setSamplingInterval", { interval: 500 }); await prof.send("Profiler.start"); }

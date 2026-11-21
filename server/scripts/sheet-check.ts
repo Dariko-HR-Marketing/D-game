@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, joinByCode } from "./_seed";
+import { autoProfiles, axeSource, joinByCode, clickMenuItem } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/sheet";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -27,7 +27,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   for (const e of buys) me.assets.push({ kind: "buy", code: e.code, price: e.price, monthlyIncome: e.monthlyIncome ?? 100, creditPayment: e.creditPayment ?? 0, credit: e.credit ?? 0 });
   me.bankLoans.push({ amount: 3000, left: 24 }); me.bankDebt += 3000; me.children = 1; me.monthsPlayed = 9; me.qar = true;
   (x.rooms as any).emit(room); await a.waitForTimeout(900);
-  await a.getByTestId("sheet-open").click(); const det = a.getByTestId("sheet-detail"); await det.waitFor();
+  await clickMenuItem(a, "sheet-open"); const det = a.getByTestId("sheet-detail"); await det.waitFor();
   const t = await det.innerText();
   check(t.includes("Tajriba 24 | KICHIK AYLANA") && t.includes("DAROMADLAR") && t.includes("AKSIYALAR") && t.includes("XARAJATLAR"), `${tag} kichik aylana varag'i bo'limlari`);
   check(t.includes("O'yinchi nomi:") && t.includes("Sizning orzuyingiz:") && !/Sizning orzuyingiz: —/.test(t), `${tag} orzu o'yin davomida ko'rinadi`);
