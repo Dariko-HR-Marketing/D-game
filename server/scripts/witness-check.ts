@@ -22,7 +22,11 @@ for (const [tag, w, h] of SIZES) {
   for (const p of [g, wt]) { await joinByCode(p, code); await p.waitForSelector("text=Xona "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
   for (const [i, p] of [a, g, wt].entries()) { await p.waitForSelector("text=Orzuingizni tanlang", { timeout: 10000 }).catch(async (e) => { await p.screenshot({ path: `${OUT}/${tag}-orzu${i}.png` }); console.log(await p.locator("body").innerText()); throw e; }); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
-  const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
+  const room = x.rooms.rooms.get(code)!;
+  // Poyga: orzu tanlash tugab o'yin boshlanmaguncha (server holatni yangi obyektga almashtiradi) taklifni qo'shsak, u yo'qolib qoladi. Sekin CI'da shu uchun oyna chiqmasdi.
+  for (let i = 0; i < 100 && (!room.state || room.state.phase === "dreams"); i++) await new Promise((r) => setTimeout(r, 200));
+  for (const p of [a, g, wt]) await p.waitForSelector("text=Naqd", { timeout: 30000 });
+  slowTimers(x, room);
   const s: any = room.state!; for (const p of s.players) { p.circle = "small"; p.cash = 100_000; }
   // a (oluvchi) g (beruvchi) dan qarz so'radi; guvohlar: wt va yana ikki o'yinchi (qolgan ikkitasi hali xabardor emas)
   const others = s.players.map((p: any) => p.id).filter((id: string) => id !== ida && id !== idg && id !== idw);
