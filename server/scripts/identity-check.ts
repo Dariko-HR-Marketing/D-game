@@ -46,12 +46,14 @@ check((await c.locator("img[src*='/avatar/ida']").count()) > 0, "ikkinchi o'yinc
 await c.screenshot({ path: `${OUT}/3-lobby.png` });
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
 await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+{ const dro = a.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await a.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } } // kompyuter: o'yinchilar yon oynada
 const game = await a.locator("body").innerText(); check(game.includes("Madina") && !/O'yinchi \d/.test(game), "o'yinda ism ko'rinadi, «O'yinchi N» yo'q");
 
 // 4) Botlar: 1 odam + 2 bot
 const d = await mk("bot1"); await d.getByTestId("gate-name").fill("Aziza"); await d.getByTestId("gate-year").fill("1990"); await d.getByRole("button", { name: "Davom etish" }).click();
 await d.getByRole("button", { name: /^Yangi o'yin/ }).click(); await d.waitForSelector("[data-testid=lobby-code]");
 const code2 = (await d.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const r2 = x.rooms.rooms.get(code2)!; r2.members.push({ userId: "bot-1", bot: true, online: true }, { userId: "bot-2", bot: true, online: true }); await x.rooms.start(code2, "bot1", 3, { dreams: false }); await d.waitForSelector("text=Naqd", { timeout: 60000 });
+{ const dro = d.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await d.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } }
 const gb = await d.locator("body").innerText(); check(gb.includes("Bot 1") && gb.includes("Bot 2") && !gb.includes("Bot 3"), "botlar «Bot 1», «Bot 2» deb ko'rinadi");
 await d.screenshot({ path: `${OUT}/4-bots.png` });
 
