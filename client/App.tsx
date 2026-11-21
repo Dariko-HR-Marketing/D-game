@@ -80,7 +80,7 @@ export default function App() {
     return () => { off = true; };
   }, [auth]);
   if (!fontsLoaded || sess === undefined) return null;
-  if (!sess && landing && (globalThis as any).document) return (<SafeAreaView style={[s.root, { backgroundColor: night.bg }]}><StatusBar style="light" /><View role="main" style={{ flex: 1 }}><Landing onStart={() => setLanding(false)} /></View></SafeAreaView>);
+  if (!sess && landing && (globalThis as any).document) return (<SafeAreaView style={[s.root, { backgroundColor: "#F7FBF9" }]}><StatusBar style="dark" /><View role="main" style={{ flex: 1 }}><Landing onStart={() => setLanding(false)} /></View></SafeAreaView>);
   if (!sess) return (
     <SafeAreaView style={[s.root, { backgroundColor: night.bg }]}><StatusBar style="light" /><View role="main" style={{ flex: 1 }}>
       <Login auth={auth} onSignupProfile={(p) => store.set("tajriba24-signup-profile", JSON.stringify(p))} onDone={(x, remember) => { const j = JSON.stringify(x); if (remember) { store.set("tajriba24-session", j); sstore.set("tajriba24-session", null); } else { sstore.set("tajriba24-session", j); store.set("tajriba24-session", null); } setSess(x); }} />
