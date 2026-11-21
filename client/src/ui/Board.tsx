@@ -144,7 +144,7 @@ function Legend({ circle, wide }: { circle: "small" | "big"; wide?: boolean }) {
   const keys = circle === "small" ? (["S", "I", "H", "B", "D", "O", "K", "Q"] as const) : (["T", "V", "O", "Y", "X"] as const);
   const full = (k: string) => (circle === "small" ? (uz.legend.cells as Record<string, string>)[k] : (uz.legend.big as Record<string, string>)[k]);
   const item = (k: (typeof keys)[number], short: boolean) => { const L = circle === "small" ? SMALL_LOOK[k as keyof typeof SMALL_LOOK] : BIG_LOOK[k as keyof typeof BIG_LOOK]; const txt = full(k);
-    return (<View key={k} style={short ? s.chip : s.item} accessible aria-label={txt} {...({ title: txt } as any)}><View style={[s.sw, { backgroundColor: L.bg, borderColor: L.border }]} aria-hidden><Icon name={L.icon} size={14} color={L.fg} /></View>
+    return (<View key={k} style={short ? s.chip : s.item} role="img" aria-label={txt} {...({ title: txt } as any)}><View style={[s.sw, { backgroundColor: L.bg, borderColor: L.border }]} aria-hidden><Icon name={L.icon} size={14} color={L.fg} /></View>
       <Text style={short ? s.chipT : s.itemT} numberOfLines={short ? 1 : undefined} aria-hidden>{short ? txt.split(/[:(]/)[0].trim() : txt}</Text></View>); };
   const owner = circle === "big" && (<View style={s.item}><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]} aria-hidden><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.itemT}>{uz.board.ownerLegend}</Text></View>);
   if (wide) return (
