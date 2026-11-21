@@ -27,11 +27,11 @@ export const uz = {
   tour: {
     home: [
       { title: "Tajriba 24'ga xush kelibsiz", text: "Bu moliyaviy savodxonlik o'yini: pul oqimi va passiv daromad yaratishni o'ynab o'rganasiz. Hozir qisqacha tanishib chiqamiz. Istalgan payt o'tkazib yuborishingiz mumkin." },
-      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Kod bilan qo'shilish». O'yinda 2–8 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
+      { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Ochiq o'yinlar» ostidagi kod maydoniga kiriting. O'yinda 2–8 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
       { title: "Qoidalar, reyting va profil", text: "Pastdagi menyuda: «Qoidalar» — to'liq qoidalar, «Reyting» — eng kuchli o'yinchilar, «Profil» — ismingiz, fishka rangi va yutuqlaringiz." },
     ],
     lobby: [
-      { title: "Xona kodi", text: "Kodni do'stlaringizga yuboring — ular «Kod bilan qo'shilish» orqali kiradi. Hamma yig'ilgach xona egasi o'yinni boshlaydi." },
+      { title: "Xona kodi", text: "Kodni do'stlaringizga yuboring — ular «Ochiq o'yinlar» ostidagi kod maydoni orqali kiradi. Hamma yig'ilgach xona egasi o'yinni boshlaydi." },
       { title: "«Kutilmagan hodisa!» kartalari", text: "Yoqilsa, «Boshidan boshlang» katagi hodisa kartasini ochadi (katta to'lov bo'lishi mumkin). O'chirilsa — oddiy katak. Buni faqat xona egasi o'zgartiradi." },
     ],
     dreams: [
@@ -378,6 +378,9 @@ export const uz = {
     online: "Onlayn: {n}", playingStat: "O'ynayotganlar: {p} ({r} xona)", waitingStat: "Kutayotganlar: {p} ({r} xona)", liveTag: "Jonli", playingTitle: "Hozir o'ynalayotgan o'yinlar", playingRow: "{host} · {mode} · {round}-tur · {n} o'yinchi", playingEmpty: "Hozir ochiq o'yin o'ynalmayapti.", showPlaying: "o'ynalayotganlarni ko'rsatish", hidePlaying: "yashirish",
     stayTitle: "Davom etasizmi?", stayText: "Xonada hali hech kim yo'q. Javob bermasangiz, {s} soniyadan keyin xona yopiladi.", stayYes: "Ha, kutaman", stayNo: "Xonani yopish",
     row: "{host} · {mode} · {speed} · {n}/{max}", lockedLabel: "Qulfli xona: kod kerak",
+    colHost: "Xona egasi", colMode: "Tur", colSpeed: "Tezlik", colPlayers: "O'yinchilar", colStatus: "Holat", colAction: "Amal", statusWaiting: "Kutmoqda", statusPlaying: "O'ynalmoqda", roundN: "{n}-tur",
+    stAll: "Hammasi", stWaiting: "Kutayotganlar", stPlaying: "O'ynayotganlar", codeDirect: "Do'stingiz bergan kod", codeGo: "Xonaga o'tish", codeHint: "Yashirin xonalar ro'yxatda ko'rinmaydi: ularga faqat kod bilan kiriladi.", codeTitle: "Kod bilan",
+    noSpeed: "—",
     vis: "Ko'rinish", visHint: { open: "Ro'yxatda, hamma bosib qo'shiladi.", locked: "Ro'yxatda qulfcha bilan, faqat kod bilan kiriladi.", hidden: "Ro'yxatda yo'q, faqat kod bilan kiriladi." } as Record<string, string>,
     visName: { open: "Ochiq", locked: "Qulfli", hidden: "Yashirin" } as Record<string, string>,
     start: "Boshlash usuli", startName: { host: "Men o'zim boshlayman", full: "To'lganda boshlansin", bots: "Botlar bilan avtomatik" } as Record<string, string>,

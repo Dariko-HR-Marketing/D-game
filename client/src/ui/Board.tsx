@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-native";
+import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Easing } from "react-native";
 import { useReducedMotion } from "../motion";
 import { stepMs } from "../motionConfig";
 import { SMALL_BOARD } from "@tajriba24/rules";
@@ -137,16 +137,24 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
   );
 }
 
-/** Katak turlari izohi: ikonka + nom + qoida. Har doim ko'rinadi (maket: taxta tagida). */
+/** Katak turlari izohi: ikonka + nom + qoida. Telefonda ochiladigan ro'yxat; kompyuterda doim bitta qatorli, qat'iy balandlikdagi chiziq
+ * (ochish-yopish yo'q — taxta o'lchami va joyi hech qachon sakramaydi; to'liq qoida — katakni bosganda). */
 function Legend({ circle, wide }: { circle: "small" | "big"; wide?: boolean }) {
-  const [open, setOpen] = useState(!!wide); // kompyuterda katak yozuvlari sig'maydi: «Katak turlari» izohi boshidanoq ochiq
+  const [open, setOpen] = useState(false);
   const keys = circle === "small" ? (["S", "I", "H", "B", "D", "O", "K", "Q"] as const) : (["T", "V", "O", "Y", "X"] as const);
+  const full = (k: string) => (circle === "small" ? (uz.legend.cells as Record<string, string>)[k] : (uz.legend.big as Record<string, string>)[k]);
+  const item = (k: (typeof keys)[number], short: boolean) => { const L = circle === "small" ? SMALL_LOOK[k as keyof typeof SMALL_LOOK] : BIG_LOOK[k as keyof typeof BIG_LOOK]; const txt = full(k);
+    return (<View key={k} style={short ? s.chip : s.item} accessible aria-label={txt} {...({ title: txt } as any)}><View style={[s.sw, { backgroundColor: L.bg, borderColor: L.border }]} aria-hidden><Icon name={L.icon} size={14} color={L.fg} /></View>
+      <Text style={short ? s.chipT : s.itemT} numberOfLines={short ? 1 : undefined} aria-hidden>{short ? txt.split(/[:(]/)[0].trim() : txt}</Text></View>); };
+  const owner = circle === "big" && (<View style={s.item}><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]} aria-hidden><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.itemT}>{uz.board.ownerLegend}</Text></View>);
+  if (wide) return (
+    <View style={{ marginTop: space.sm, height: 44, justifyContent: "center" }} testID="board-legend" role="group" aria-label={uz.legend.title}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ alignItems: "center", gap: space.md, paddingHorizontal: space.sm }}>{keys.map((k) => item(k, true))}{circle === "big" && <View style={s.chip} aria-hidden><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.chipT} numberOfLines={1}>{uz.board.ownerLegend.split(/[:(—-]/)[0].trim()}</Text></View>}</ScrollView>
+    </View>);
   return (
     <View style={{ marginTop: space.sm }}>
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={s.toggle}><Text style={s.toggleT}>{open ? "▾" : "▸"} {uz.legend.title}</Text></Pressable>
-      {open && (<View style={s.grid}>{keys.map((k) => { const L = circle === "small" ? SMALL_LOOK[k] : BIG_LOOK[k];
-        return (<View key={k} style={s.item}><View style={[s.sw, { backgroundColor: L.bg, borderColor: L.border }]} aria-hidden><Icon name={L.icon} size={14} color={L.fg} /></View>
-          <Text style={s.itemT}>{circle === "small" ? uz.legend.cells[k] : uz.legend.big[k]}</Text></View>); })}{circle === "big" && (<View style={s.item}><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]} aria-hidden><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.itemT}>{uz.board.ownerLegend}</Text></View>)}</View>)}
+      {open && (<View style={s.grid}>{keys.map((k) => item(k, false))}{owner}</View>)}
     </View>
   );
 }
@@ -156,6 +164,7 @@ const s = StyleSheet.create({
   tileT: { fontWeight: "800", textAlign: "center", letterSpacing: 0.2, lineHeight: 10 },
   toggle: { minHeight: 44, justifyContent: "center", paddingHorizontal: space.sm, alignSelf: "flex-start", borderRadius: radius.sm }, toggleT: { color: color.navy, fontWeight: "700", fontSize: font.sm },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingHorizontal: space.sm },
+  chip: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 }, chipT: { color: tone.muted, fontSize: font.sm, fontWeight: "600" },
   item: { flexDirection: "row", alignItems: "center", gap: space.sm, flexBasis: 150, flexGrow: 1 }, sw: { width: 26, height: 26, borderRadius: 6, borderWidth: 1, alignItems: "center", justifyContent: "center" }, itemT: { color: tone.muted, fontSize: font.sm, flex: 1 },
 });
 

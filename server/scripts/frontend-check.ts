@@ -33,7 +33,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const a = await open("fcon" + tag, "rooms,billing"); await a.getByTestId("open-rooms").waitFor({ timeout: 8000 });
   await a.getByTestId("room-row").first().waitFor({ timeout: 8000 });
   check(await a.getByTestId("room-row").count() === 3, `${tag} ro'yxatda 3 xona`);
-  check(await a.getByText("Aziz · Standart · Odatiy · 1 daqiqa · 3/6").count() === 1, `${tag} qator matni: egasi, tur, tezlik, o'rinlar`);
+  { const rt = (await a.getByTestId("room-row").allInnerTexts()).join(" | "); check(/Aziz[\s\S]*Standart[\s\S]*Odatiy · 1 daqiqa[\s\S]*3\/6/.test(rt), `${tag} qator: egasi, tur, tezlik, o'rinlar (${rt.replace(/\s+/g, " ").slice(0, 120)})`); }
   check(await a.getByRole("button", { name: /^Qulf · kod/ }).count() === 1, `${tag} qulfli xonada «Qulf · kod» tugmasi`);
   check(await a.getByRole("button", { name: /^To'lgan/ }).isDisabled(), `${tag} to'lgan xonaga kirib bo'lmaydi`);
   await a.getByTestId("rooms-filter-student").click(); check(await a.getByTestId("room-row").count() === 1, `${tag} filtr: faqat Student`); await a.getByTestId("rooms-filter-all").click();
@@ -44,9 +44,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await scan(a, `${tag} ro'yxat va xona ko'rinishi`);
   // 3) Jonli: jami sonlar, o'ynalayotganlar ro'yxati va qayta yuklamasdan yangilanish
   const stats = await a.getByTestId("lobby-stats").innerText(); check(/Kutayotganlar: 16 \(3 xona\)/.test(stats) && /O'ynayotganlar: 2 \(1 xona\)/.test(stats) && /Onlayn: \d+/.test(stats), `${tag} jami sonlar: kutayotganlar, o'ynayotganlar, onlayn (${stats.replace(/\s+/g, " ")})`);
-  await a.getByTestId("playing-toggle").click(); check(await a.getByTestId("playing-list").getByText("Dilnoza · Standart · 1-tur · 2 o'yinchi").count() === 1, `${tag} hozir o'ynalayotgan xona qatori ko'rinadi`); await a.getByTestId("playing-toggle").click();
-  const liveCode = mkRoom("sE", { visibility: "open" }, 4, 0); await a.getByText(/^Eldor · /).waitFor({ timeout: 5000 }).catch(() => {}); { const n4 = await a.getByTestId("room-row").count(); check(n4 === 4, `${tag} yangi xona ro'yxatga qayta yuklamasdan qo'shildi (jonli) [${n4}]`); }
-  await x.rooms.forceClose(liveCode, "test"); await a.getByText(/^Eldor · /).waitFor({ state: "detached", timeout: 5000 }).catch(() => {}); check(await a.getByTestId("room-row").count() === 3, `${tag} xona yopilgach ro'yxatdan jonli yo'qoldi`);
+  { const pt = (await a.getByTestId("playing-row").allInnerTexts()).join(" | "); check(await a.getByTestId("playing-row").count() === 1 && /Dilnoza[\s\S]*O'ynalmoqda · 1-tur/.test(pt), `${tag} hozir o'ynalayotgan xona jadvalda holati bilan (${pt.replace(/\s+/g, " ")})`); await a.getByTestId("rooms-status-playing").click(); check(await a.getByTestId("room-row").count() === 0 && await a.getByTestId("playing-row").count() === 1, `${tag} holat filtri: faqat o'ynayotganlar`); await a.getByTestId("rooms-status-all").click(); }
+  const liveCode = mkRoom("sE", { visibility: "open" }, 4, 0); await a.getByText(/^Eldor$/).waitFor({ timeout: 5000 }).catch(() => {}); { const n4 = await a.getByTestId("room-row").count(); check(n4 === 4, `${tag} yangi xona ro'yxatga qayta yuklamasdan qo'shildi (jonli) [${n4}]`); }
+  await x.rooms.forceClose(liveCode, "test"); await a.getByText(/^Eldor$/).waitFor({ state: "detached", timeout: 5000 }).catch(() => {}); check(await a.getByTestId("room-row").count() === 3, `${tag} xona yopilgach ro'yxatdan jonli yo'qoldi`);
   // 4) Paketlar
   const pk = a; const packs = pk.getByTestId("home-packs"); if (tag === "tel") await pk.getByRole("button", { name: /^Paketlar/ }).first().click(); else await packs.click();
   await pk.getByTestId("packs").waitFor({ timeout: 6000 });
