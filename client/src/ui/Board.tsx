@@ -131,7 +131,7 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
         {/* Markaz paneli (ichida tugma bor — taxta tasviridan tashqarida) */}
         <View style={{ position: "absolute", left: c + 10, top: c + 10, width: W - 2 * c - 20, height: H - 2 * c - 20, alignItems: "center", justifyContent: "center", gap: space.sm, zIndex: 10, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: "#E6ECEF" }}>{children}</View>
       </View>
-      <Legend circle={circle} wide={wide} />
+      <Legend circle={circle} wide={wide} width={W} />
       {info && <CellSheet info={info} names={(id) => nameOf(room, id)} onClose={() => setSel(null)} />}
     </View>
   );
@@ -139,7 +139,7 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
 
 /** Katak turlari izohi: ikonka + nom + qoida. Telefonda ochiladigan ro'yxat; kompyuterda doim bitta qatorli, qat'iy balandlikdagi chiziq
  * (ochish-yopish yo'q — taxta o'lchami va joyi hech qachon sakramaydi; to'liq qoida — katakni bosganda). */
-function Legend({ circle, wide }: { circle: "small" | "big"; wide?: boolean }) {
+function Legend({ circle, wide, width }: { circle: "small" | "big"; wide?: boolean; width: number }) {
   const [open, setOpen] = useState(false);
   const keys = circle === "small" ? (["S", "I", "H", "B", "D", "O", "K", "Q"] as const) : (["T", "V", "O", "Y", "X"] as const);
   const full = (k: string) => (circle === "small" ? (uz.legend.cells as Record<string, string>)[k] : (uz.legend.big as Record<string, string>)[k]);
@@ -148,8 +148,8 @@ function Legend({ circle, wide }: { circle: "small" | "big"; wide?: boolean }) {
       <Text style={short ? s.chipT : s.itemT} numberOfLines={short ? 1 : undefined} aria-hidden>{short ? txt.split(/[:(]/)[0].trim() : txt}</Text></View>); };
   const owner = circle === "big" && (<View style={s.item}><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]} aria-hidden><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.itemT}>{uz.board.ownerLegend}</Text></View>);
   if (wide) return (
-    <View style={{ marginTop: space.sm, height: 44, justifyContent: "center" }} testID="board-legend" role="group" aria-label={uz.legend.title}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ alignItems: "center", gap: space.md, paddingHorizontal: space.sm }}>{keys.map((k) => item(k, true))}{circle === "big" && <View style={s.chip} aria-hidden><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.chipT} numberOfLines={1}>{uz.board.ownerLegend.split(/[:(—-]/)[0].trim()}</Text></View>}</ScrollView>
+    <View style={{ marginTop: space.sm, height: 44, width, maxWidth: "100%", justifyContent: "center" }} testID="board-legend">
+      <ScrollView horizontal tabIndex={0} role="region" aria-label={uz.legend.title} showsHorizontalScrollIndicator={false} contentContainerStyle={{ alignItems: "center", gap: space.md, paddingHorizontal: space.sm }}>{keys.map((k) => item(k, true))}{circle === "big" && <View style={s.chip} aria-hidden><View style={[s.sw, { backgroundColor: color.navy, borderColor: "#fff", borderRadius: 13 }]}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>1</Text></View><Text style={s.chipT} numberOfLines={1}>{uz.board.ownerLegend.split(/[:(—-]/)[0].trim()}</Text></View>}</ScrollView>
     </View>);
   return (
     <View style={{ marginTop: space.sm }}>
