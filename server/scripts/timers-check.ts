@@ -33,6 +33,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   // 3) Boshqa o'yinchi avtopilotda — belgi ko'rinadi
   const om = room.members.find((m) => m.userId === other.id)!; om.autopilot = true; (x.rooms as any).emit(room); await a.waitForTimeout(900);
   if (tag === "tel") { await a.getByRole("button", { name: /^O'yinchilar/ }).click(); await a.waitForTimeout(300); }
+  { const dro = a.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await a.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } } // kompyuter: o'yinchilar yon oynada
   check((await a.locator("body").innerText()).toLowerCase().includes("avtopilot"), `${tag} boshqa o'yinchi avtopilotda: belgi ko'rinadi`);
   await a.context().close(); await c.context().close();
 }
