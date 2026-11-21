@@ -10,7 +10,7 @@ describe("paket katalogi", () => {
   it("xona chegarasi: faqat bepul paketda", () => { expect(roomLimitReached(LIMITS.free.roomsPerDay, false)).toBe(true); expect(roomLimitReached(LIMITS.free.roomsPerDay - 1, false)).toBe(false); expect(roomLimitReached(99, true)).toBe(false); });
 });
 describe("funksiya bayroqlari", () => {
-  it("muhit va localStorage bayroqlari", () => { expect(featureOn("rooms", undefined, null)).toBe(false); expect(featureOn("rooms", "rooms,billing", null)).toBe(true); expect(featureOn("billing", "", "rooms, billing")).toBe(true); expect(featureOn("billing", "rooms", "")).toBe(false); });
+  it("muhit va localStorage bayroqlari", () => { expect(featureOn("rooms", undefined, null)).toBe(true); expect(featureOn("rooms", "-rooms", null)).toBe(false); expect(featureOn("billing", undefined, null)).toBe(false); expect(featureOn("billing", "rooms,billing", null)).toBe(true); expect(featureOn("billing", "", "rooms, billing")).toBe(true); expect(featureOn("billing", "rooms", "")).toBe(false); });
 });
 import { googleEnabled } from "../googleSignIn";
 describe("Google kirish", () => { it("client ID va server bayrog'i ikkalasi bo'lsa yoqiladi", () => { expect(googleEnabled(true, "")).toBe(false); expect(googleEnabled(false, "id")).toBe(false); expect(googleEnabled(undefined, "id")).toBe(false); expect(googleEnabled(true, "id")).toBe(true); }); });

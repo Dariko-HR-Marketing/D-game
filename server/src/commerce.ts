@@ -37,7 +37,7 @@ export const DEFAULT_CONFIG: CatalogConfig = { plusMonthly: null, plusYearly: nu
 
 export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
 export type OrderStatus = "pending_parent" | "pending_payment" | "paid" | "cancelled" | "rejected" | "refunded";
-export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string; refundedAt?: number; note?: string }
+export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; provider?: string; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string; refundedAt?: number; note?: string }
 
 export interface PaymentProvider { id: string; channels: ("web" | "store")[]; checkout(o: Order): Promise<{ ref: string; url?: string }> }
 /** Sinov provayderi (faqat production'dan tashqarida): to'lov oynasiz, `/dev/pay/:id` bilan tasdiqlanadi. */
@@ -52,7 +52,7 @@ const DAY = 86_400_000, ym = (t: number) => new Date(t).toISOString().slice(0, 7
 const MINOR_PAY_AGE = 18;
 
 export interface CommerceDeps { docs?: DocStore; now?: () => number; providers?: PaymentProvider[]; consents?: ParentConsents; phoneOk: (uid: string) => boolean; ageOf: (uid: string) => number | null; achievements: (uid: string) => string[]; phoneHashOf: (uid: string) => string | undefined; hashOf: (p: string) => string }
-export type OrderErr = "bad_sku" | "price_unset" | "unavailable" | "already_owned" | "phone_required" | "profile_required" | "parent_phone_required" | "payments_unavailable" | "bad_phone" | "bad_operator" | "same_phone" | "rate_limited" | "sms_failed" | "sms_unavailable" | "plus_already_long" | "not_found" | "not_pending" | "bad_item" | "not_owned" | "not_plus" | "already_claimed" | "amount_mismatch";
+export type OrderErr = "bad_sku" | "price_unset" | "unavailable" | "already_owned" | "phone_required" | "profile_required" | "parent_phone_required" | "payments_unavailable" | "bad_phone" | "bad_operator" | "same_phone" | "bad_provider" | "rate_limited" | "sms_failed" | "sms_unavailable" | "plus_already_long" | "not_found" | "not_pending" | "bad_item" | "not_owned" | "not_plus" | "already_claimed" | "amount_mismatch";
 
 export class Commerce {
   readonly ents: Collection<Ent>; readonly orders: Collection<Order>; readonly cfg: Collection<CatalogConfig>;
@@ -96,7 +96,7 @@ export class Commerce {
       plus: { active: plus, until: plus ? e.plusUntil : null, plan: plus ? e.plusPlan ?? null : null, cancelled: !!e.plusCancelled, monthly: c.plusMonthly, yearly: c.plusYearly, claimedThisMonth: e.claimedMonth === ym(this.now()),
         features: { rooms: plus ? null : c.freeRoomsPerDay, history: plus ? null : c.freeHistory, analysis: plus ? "all" : "last", ads: !plus } },
       items: ITEMS.filter((i) => !(c.hidden ?? []).includes(i.id) || this.owns(uid, i.id)).map((i) => ({ ...i, owned: this.owns(uid, i.id), price: i.source === "shop" ? c.items[i.id] ?? null : null, equipped: e.equipped[i.kind as "pawn" | "frame" | "avatar"] === i.id })),
-      equipped: e.equipped, paymentsReady: (this.d.providers ?? []).length > 0,
+      equipped: e.equipped, paymentsReady: (this.d.providers ?? []).length > 0, providers: (this.d.providers ?? []).filter((p) => p.channels.includes("web")).map((p) => p.id),
     };
   }
   /** Boshqa o'yinchilarga ko'rinadigan kosmetika (faqat egasi bo'lgan narsalar). */
@@ -107,17 +107,17 @@ export class Commerce {
   }
 
   // --- buyurtma ---
-  async order(uid: string, sku: string, channel: "web" | "store", parentPhone?: unknown): Promise<{ ok: true; order: Order; parentRequired: boolean } | { ok: false; error: OrderErr }> {
+  async order(uid: string, sku: string, channel: "web" | "store", parentPhone?: unknown, provider?: string): Promise<{ ok: true; order: Order; parentRequired: boolean } | { ok: false; error: OrderErr }> {
     const price = this.priceOf(sku); if (price === undefined) return { ok: false, error: "bad_sku" };
     let title = ""; const m = /^item:(.+)$/.exec(sku);
     if (m) { const it = ITEM.get(m[1])!; if (!it.available || (this.config().hidden ?? []).includes(it.id)) return { ok: false, error: "unavailable" }; if (this.owns(uid, it.id)) return { ok: false, error: "already_owned" }; title = it.name; }
     else title = sku === "plus:monthly" ? "Tajriba 24 Plus (oylik)" : "Tajriba 24 Plus (yillik)";
     if (price === null) return { ok: false, error: "price_unset" };
     if (sku.startsWith("plus:") && this.isPlus(uid) && (this.ent(uid).plusUntil! - this.now()) > 400 * DAY) return { ok: false, error: "plus_already_long" };
-    if (!(this.d.providers ?? []).some((p) => p.channels.includes(channel))) return { ok: false, error: "payments_unavailable" };
+    if (!(this.d.providers ?? []).some((p) => p.channels.includes(channel) && (!provider || p.id === provider))) return { ok: false, error: provider ? "bad_provider" : "payments_unavailable" };
     if (!this.d.phoneOk(uid)) return { ok: false, error: "phone_required" };
     const age = this.d.ageOf(uid); if (age === null) return { ok: false, error: "profile_required" };
-    const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku, title, amount: price, channel, status: "pending_payment", createdAt: this.now() };
+    const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku, title, amount: price, channel, ...(provider ? { provider } : {}), status: "pending_payment", createdAt: this.now() };
     if (age < MINOR_PAY_AGE) {
       if (parentPhone === undefined || parentPhone === null || parentPhone === "") return { ok: false, error: "parent_phone_required" };
       if (!this.d.consents) return { ok: false, error: "sms_unavailable" };
@@ -129,7 +129,7 @@ export class Commerce {
   }
   private async startCheckout(id: string): Promise<{ ok: true; order: Order; parentRequired: boolean } | { ok: false; error: OrderErr }> {
     const o = this.orders.get(id); if (!o) return { ok: false, error: "not_found" };
-    const p = (this.d.providers ?? []).find((x) => x.channels.includes(o.channel)); if (!p) return { ok: false, error: "payments_unavailable" };
+    const p = (this.d.providers ?? []).find((x) => x.channels.includes(o.channel) && (!o.provider || x.id === o.provider)); if (!p) return { ok: false, error: "payments_unavailable" };
     const c = await p.checkout(o); const n = this.orders.set(id, { ...o, status: "pending_payment", ref: c.ref, checkout: c.url });
     return { ok: true, order: n, parentRequired: false };
   }

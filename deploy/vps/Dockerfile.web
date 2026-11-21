@@ -17,8 +17,9 @@ COPY client client
 COPY admin admin
 ARG API_WS
 ARG API_HTTP
+ARG GOOGLE_CLIENT_ID=""
 RUN test -n "$API_WS" && test -n "$API_HTTP" \
- && EXPO_PUBLIC_SERVER_URL="$API_WS" CI=1 pnpm --filter @tajriba24/client export:web \
+ && EXPO_PUBLIC_SERVER_URL="$API_WS" EXPO_PUBLIC_GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" CI=1 pnpm --filter @tajriba24/client export:web \
  && VITE_API_URL="$API_HTTP" pnpm --filter @tajriba24/admin build \
  && grep -rqF "$API_WS" client/dist/_expo/static/js/web/ \
  && grep -rqF "$API_HTTP" admin/dist/assets/

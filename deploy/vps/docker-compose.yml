@@ -53,6 +53,7 @@ services:
       dockerfile: deploy/vps/Dockerfile.web
       args:
         API_WS: wss://${API_DOMAIN:?API_DOMAIN kerak}
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
         API_HTTP: https://${API_DOMAIN}
     restart: unless-stopped
     depends_on: [server]

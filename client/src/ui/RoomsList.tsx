@@ -26,11 +26,11 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000 }: { http: Http;
       {bad && <Text style={s.err} accessibilityRole="alert">{O.err}</Text>}
       {rooms === null && !bad && <Text style={s.mut}>{O.loading}</Text>}
       {rooms !== null && list.length === 0 && <Text style={s.mut} testID="rooms-empty">{O.empty}</Text>}
-      {list.map((r) => { const full = r.players >= r.seats; const open = ask === r.code; return (
-        <View key={r.code} style={s.row} testID="room-row">
+      {list.map((r) => { const full = r.players >= r.seats; const open = ask === r.id; return (
+        <View key={r.id} style={s.row} testID="room-row">
           <View style={s.line}>
             <Text style={[s.t, { flex: 1 }]} accessibilityLabel={`${roomLine(r)}${r.locked ? `. ${O.lockedLabel}` : ""}`}>{roomLine(r)}</Text>
-            <Pressable role="button" accessibilityLabel={`${full ? O.full : r.locked ? O.locked : O.join}: ${r.host}`} disabled={!online || full} onPress={() => (r.locked ? setAsk(open ? null : r.code) : onJoin(r.code))} style={[s.btn, r.locked && s.btnLock, (!online || full) && { opacity: 0.45 }]}>
+            <Pressable role="button" accessibilityLabel={`${full ? O.full : r.locked ? O.locked : O.join}: ${r.host}`} disabled={!online || full} onPress={() => (r.locked || !r.code ? setAsk(open ? null : r.id) : onJoin(r.code))} style={[s.btn, r.locked && s.btnLock, (!online || full) && { opacity: 0.45 }]}>
               <Text style={[s.btnT, r.locked && { color: color.navy }]}>{full ? O.full : r.locked ? O.locked : O.join}</Text></Pressable>
           </View>
           {open && <View style={s.line}>

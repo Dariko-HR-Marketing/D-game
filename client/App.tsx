@@ -142,13 +142,13 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
-        : !room && screen === "packs" ? <Packs onBack={() => setScreen("home")} /> : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
+        : !room && screen === "packs" ? <Packs http={http} onBack={() => setScreen("home")} /> : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
         : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
         : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n, m, o) => conn.create(t, c, n, m, o)} onPacks={() => setScreen("packs")} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
-        : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
+        : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} onStay={() => conn.stay()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />
         : room.state.winner ? <TutorialDoneMark tutorial={room.mode === "tutorial"}><Result http={http} code={room.code} onHome={() => conn.leave()} /></TutorialDoneMark>
         : <Game http={http} room={room} userId={userId} onAct={(a) => conn.act(a)} onReact={(e) => conn.react(e)} onLeave={() => conn.leave()} onResume={() => conn.resumePlay()} onBreak={() => conn.breakPlay()} chat={st.chat} onChat={(m) => conn.sendChat(m)} voice={voice} reactions={st.reactions} onRules={() => setRulesOpen(true)} error={st.error} status={st.status} calcFb={st.calcFb} />}

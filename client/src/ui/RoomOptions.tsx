@@ -5,15 +5,15 @@ import { uz } from "../i18n/uz";
 import { color, font, radius, space } from "../theme";
 
 const O = uz.openRooms;
-export interface RoomOpts { visibility: RoomVisibility; start: RoomStart }
+export interface RoomOpts { visibility: RoomVisibility; start: RoomStart; kind: "standard" | "student" }
 /** Rejim bo'yicha boshlang'ich ko'rinish (taklif, tasdiq kutilmoqda): Standart — Ochiq, Student — Qulfli, Korporativ — Ochiq (vaqtincha). */
 export const defaultVisibility = (mode: "standard" | "student" | "corporate"): RoomVisibility => (mode === "student" ? "locked" : "open");
-export const defaultOpts = (mode: "standard" | "student" | "corporate" = "standard"): RoomOpts => ({ visibility: defaultVisibility(mode), start: "host" });
+export const defaultOpts = (mode: "standard" | "student" | "corporate" = "standard"): RoomOpts => ({ visibility: defaultVisibility(mode), start: "host", kind: mode === "student" ? "student" : "standard" });
 
 /** Xona yaratish: «Ko'rinish» (Ochiq / Qulfli / Yashirin) va «Boshlash usuli». Botlar bilan avtomatik boshlash faqat Yashirin xonada. */
 export function RoomOptions({ value, onChange }: { value: RoomOpts; onChange: (v: RoomOpts) => void }) {
   const vis = ["open", "locked", "hidden"] as const, starts = (["host", "full", "bots"] as const).filter((k) => k !== "bots" || value.visibility === "hidden");
-  const pickVis = (v: RoomVisibility) => onChange({ visibility: v, start: v !== "hidden" && value.start === "bots" ? "host" : value.start });
+  const pickVis = (v: RoomVisibility) => onChange({ ...value, visibility: v, start: v !== "hidden" && value.start === "bots" ? "host" : value.start });
   return (
     <View style={s.box} testID="room-options">
       <Text style={s.l} nativeID="visL">{O.vis}</Text>
