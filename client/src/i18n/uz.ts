@@ -375,6 +375,7 @@ export const uz = {
   },
   openRooms: {
     title: "Ochiq o'yinlar", empty: "Hozir ochiq xona yo'q. O'zingiz yangisini oching yoki do'stingizning kodini kiriting.", loading: "Yuklanmoqda…", join: "Qo'shilish", locked: "Qulf · kod", full: "To'lgan", codeFor: "Xona kodi", enter: "Kirish", all: "Hammasi", live: "Ro'yxat real vaqtda yangilanadi", err: "Ro'yxatni yuklab bo'lmadi",
+    online: "Onlayn: {n}", playingStat: "O'ynayotganlar: {p} ({r} xona)", waitingStat: "Kutayotganlar: {p} ({r} xona)", liveTag: "Jonli", playingTitle: "Hozir o'ynalayotgan o'yinlar", playingRow: "{host} · {mode} · {round}-tur · {n} o'yinchi", playingEmpty: "Hozir ochiq o'yin o'ynalmayapti.", showPlaying: "o'ynalayotganlarni ko'rsatish", hidePlaying: "yashirish",
     stayTitle: "Davom etasizmi?", stayText: "Xonada hali hech kim yo'q. Javob bermasangiz, {s} soniyadan keyin xona yopiladi.", stayYes: "Ha, kutaman", stayNo: "Xonani yopish",
     row: "{host} · {mode} · {speed} · {n}/{max}", lockedLabel: "Qulfli xona: kod kerak",
     vis: "Ko'rinish", visHint: { open: "Ro'yxatda, hamma bosib qo'shiladi.", locked: "Ro'yxatda qulfcha bilan, faqat kod bilan kiriladi.", hidden: "Ro'yxatda yo'q, faqat kod bilan kiriladi." } as Record<string, string>,

@@ -8,7 +8,11 @@ export interface Reaction { id: number; from: string; emoji: string; at: number 
 /** Chat xabari: erkin matn yoki tayyor ibora tartib raqami (matni `uz.chat.phrases`da). */
 export interface ChatMsg { id: number; from: string; at: number; text?: string; phrase?: number }
 /** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
-export interface ConnState { status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
+export interface LobbyRow { id: string; code?: string; host: string; mode: "standard" | "student" | "corporate"; turnSeconds: 0 | 60 | 120; seats: number; players: number; locked: boolean }
+export interface PlayingRow { id: string; host: string; mode: "standard" | "student" | "corporate"; round: number; players: number }
+/** Jonli ro'yxat: ochiq/qulfli kutayotgan xonalar, hozir o'ynalayotganlar, jami sonlar va onlayn soni (server har o'zgarishda yuboradi). */
+export interface Lobbies { rooms: LobbyRow[]; playing: PlayingRow[]; stats: { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }; online: number }
+export interface ConnState { lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
@@ -18,7 +22,7 @@ export class Connection {
   private listeners = new Set<(s: ConnState) => void>();
   private retry = 0;
   private closed = false;
-  private rejoinCode: string | null = null;
+  private rejoinCode: string | null = null; private watching = false; // jonli ro'yxatga obuna: qayta ulanganda tiklanadi
   private lastAct: { action: Record<string, unknown>; retried: boolean } | null = null;
   private retryNext = false;
   /** Ovozli aloqa signali (SDP/ICE) kelganda chaqiriladi (VoiceEngine o'rnatadi). */
@@ -36,6 +40,7 @@ export class Connection {
     this.ws = ws;
     ws.onopen = () => {
       this.retry = 0; this.set({ status: "online", error: null });
+      if (this.watching) this.send({ type: "lobbies", on: true });
       if (this.rejoinCode) { this.expecting = true; this.send({ type: "join", code: this.rejoinCode }); } // §6.3: qayta ulanganda holat tiklanadi
       else if (this.state.lost) this.set({ lost: false, restoredAt: Date.now() }); // xonada emas: kutiladigan holat yo'q
     };
@@ -46,6 +51,8 @@ export class Connection {
         this.rejoinCode = m.room.code; this.set({ room: m.room, error: null, ...(this.state.lost ? { lost: false, restoredAt: Date.now() } : {}) });
         // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
         if (this.retryNext && this.lastAct && !this.lastAct.retried) { this.retryNext = false; this.lastAct.retried = true; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
+      } else if (m.type === "lobbies") {
+        this.set({ lobbies: { rooms: m.rooms ?? [], playing: m.playing ?? [], stats: m.stats, online: m.online ?? 0 } });
       } else if (m.type === "voice_state") {
         this.set({ voice: Array.isArray(m.members) ? (m.members as string[]) : [] });
       } else if (m.type === "voice_signal") {
@@ -92,6 +99,8 @@ export class Connection {
   start(events = true) { this.send({ type: "start", events }); }
   /** «Davom etasizmi?» — ha (xona egasi): zal yopilmaydi. */
   stay() { this.send({ type: "stay" }); }
+  /** Jonli «Ochiq o'yinlar» ro'yxatiga obuna bo'lish / chiqish. */
+  watchLobbies(on: boolean) { if (this.watching === on) return; this.watching = on; if (!on) this.set({ lobbies: null }); this.send({ type: "lobbies", on }); }
   leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [], chat: [], voice: [] }); }
   /** «Men qaytdim»: avtopilotni o'chiradi. */
   resumePlay() { this.send({ type: "resume" }); }

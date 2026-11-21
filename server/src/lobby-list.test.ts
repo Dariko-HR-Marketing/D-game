@@ -83,3 +83,20 @@ describe("saqlash va tiklash", () => {
     expect(r2.openRooms().map((y) => y.locked)).toEqual([true]);
   });
 });
+
+describe("jonli ro'yxat: o'ynayotgan va kutayotganlar", () => {
+  it("jami sonlar: kutayotgan va o'ynayotgan xonalar/odamlar (yashirin xonalar ham sanaladi), tugaganlar emas", async () => {
+    const a = mk("a", { visibility: "open" }, 2), h = mk("c", { visibility: "hidden" }); rm.join(a, "b"); await rm.start(a, "a", 1);
+    expect(rm.lobbyStats()).toEqual({ playing: { rooms: 1, players: 2 }, waiting: { rooms: 1, players: 1 } }); expect(h).toBeTruthy();
+    rm.join(h, "d"); expect(rm.lobbyStats().waiting).toEqual({ rooms: 1, players: 2 });
+  });
+  it("o'ynalayotgan Ochiq xona qatori (ma'lumot), yashirin va ismsiz egalar chiqmaydi", async () => {
+    const a = mk("a", { visibility: "open" }, 2); rm.join(a, "b"); await rm.start(a, "a", 1); const h = mk("c", { visibility: "hidden" }, 2); rm.join(h, "d"); await rm.start(h, "c", 2);
+    const rows = rm.playingRows(); expect(rows.length).toBe(1); expect(rows[0]).toMatchObject({ host: "Aziz", mode: "standard", players: 2, round: 1 }); expect(JSON.stringify(rows)).not.toContain(a);
+  });
+  it("o'zgarishlar yig'ilib bitta yangilanish bo'ladi (400 ms); obunachi bo'lmasa taymer ochilmaydi", async () => {
+    let n = 0; mk("a", { visibility: "open" }); expect(clock.q.length).toBe(0);
+    const off = rm.onLobbies(() => n++); const c = mk("b", { visibility: "open" }); rm.join(c, "c"); rm.join(c, "d"); await clock.advance(399); expect(n).toBe(0); await clock.advance(2); expect(n).toBe(1);
+    mk("zz2", undefined); off(); void off;
+  });
+});

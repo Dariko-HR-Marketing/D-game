@@ -28,6 +28,9 @@ export interface Member { userId: string; bot: boolean; online: boolean; left?: 
 export type RoomVisibility = "open" | "locked" | "hidden"; export type RoomStart = "host" | "full" | "bots"; export type RoomKind = "standard" | "student" | "corporate";
 /** Ochiq o'yinlar ro'yxati qatori. Qulfli xonaning kodi ro'yxatda YO'Q (kod — sir): faqat `id` (jarayon ichida barqaror, kodni oshkor qilmaydi). */
 export interface OpenRoomRow { id: string; code?: string; host: string; mode: RoomKind; turnSeconds: TurnSeconds; seats: number; players: number; locked: boolean }
+/** Jonli ro'yxat: hozir o'ynalayotgan (ochiq/qulfli) xona qatori — faqat ma'lumot, qo'shilib bo'lmaydi. */
+export interface PlayingRow { id: string; host: string; mode: RoomKind; round: number; players: number }
+export interface LobbyStats { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }
 export interface LobbyOpts { visibility?: RoomVisibility; start?: RoomStart; kind?: RoomKind; restricted?: boolean }
 export interface Room {
   code: string; hostId: string; members: Member[]; state: GameState | null; seq: number;
@@ -95,7 +98,7 @@ export class RoomManager {
   }
 
   on(f: (code: string, ev: RoomEvent) => void) { this.listeners.add(f); return () => this.listeners.delete(f); }
-  private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); }
+  private emit(r: Room) { const v = this.view(r); for (const l of this.listeners) l(r.code, { type: "state", room: v }); this.lobbyDirty(); }
   /** Orzular ro'yxati: faqat tanlash bosqichida to'liq (40 ta, ~7 KB); keyin har bir holat yangilanishida emas — faqat tanlanganlar (indeks bo'yicha, qolgani null). */
   private dreamsView(r: Room) {
     const pick = (d: { name: string; price: number; text?: string; sector?: string; horizon?: string }) => ({ name: d.name, price: d.price, text: d.text, sector: d.sector, horizon: d.horizon });
@@ -183,7 +186,7 @@ export class RoomManager {
     this.rooms.set(code, { code, hostId, ...(vis ? { visibility: vis, startMode: start, kind: lobby?.kind ?? "standard" } : {}), members: [{ userId: hostId, bot: false, online: true }], state: null, seq: 0, timer: null, deadline: null, turnSeconds, calcMode, mode, limitLeftMs: null, limitStartedAt: null, ...(seats !== undefined ? { seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {},
       ctx: this.activeCtx().ctx, contentVersion: null, createdAt: this.clock.now(), endedAt: null, offlineSince: null, tag });
     this.activeRoomOf.set(hostId, code); this.saveLobby(this.rooms.get(code)!);
-    this.armLobby(code);
+    this.armLobby(code); this.lobbyDirty(); // yangi xona jonli ro'yxatga tushsin
     return { ok: true, code };
   }
 
@@ -521,7 +524,7 @@ export class RoomManager {
     if (!r || !m || m.left) return; // takroriy chiqish hech narsani o'zgartirmaydi
     this.activeRoomOf.delete(userId); this.dropVoice(r, userId);
     this.markOffline(r, userId);
-    if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) { this.rooms.delete(code); this.dropLobby(code); } else if (r.hostId === userId) r.hostId = r.members.find((x) => !x.bot)?.userId ?? r.members[0].userId; /* xona egasi chiqsa — keyingi odam egasi bo'ladi */ if (r.members.length) this.saveLobby(r); }
+    if (!r.state) { r.members = r.members.filter((x) => x !== m); if (!r.members.length) { this.rooms.delete(code); this.dropLobby(code); this.lobbyDirty(); } else if (r.hostId === userId) r.hostId = r.members.find((x) => !x.bot)?.userId ?? r.members[0].userId; /* xona egasi chiqsa — keyingi odam egasi bo'ladi */ if (r.members.length) this.saveLobby(r); }
     else {
       // «Ishonchsiz» (qaror #66): ochiq qarz yoki sheriklik bilan chiqib ketish
       const gp = r.state.players.find((p) => p.id === userId);
@@ -538,6 +541,30 @@ export class RoomManager {
     if (!anyOnline && r.offlineSince === null) r.offlineSince = this.clock.now(); else if (anyOnline) r.offlineSince = null;
   }
 
+  // --- Jonli ro'yxat: ro'yxatga obuna bo'lganlarga o'zgarishlar qisqa kechikish bilan (yig'ib) yuboriladi ---
+  private lobbyListeners = new Set<() => void>(); private lobbyTimer: unknown = null; lobbyDebounceMs = 400;
+  onLobbies(f: () => void) { this.lobbyListeners.add(f); return () => this.lobbyListeners.delete(f); }
+  lobbyDirty() { if (this.lobbyTimer !== null || !this.lobbyListeners.size) return; this.lobbyTimer = this.clock.setTimeout(() => { this.lobbyTimer = null; for (const l of this.lobbyListeners) l(); }, this.lobbyDebounceMs); }
+  private humans(r: Room) { return r.members.filter((m) => !m.bot && !m.left).length; }
+  /** Hozir o'ynayotganlar va kutayotganlar (hamma xonalar bo'yicha, shaxssiz jami; yashirin xonalar ham sanaladi). */
+  lobbyStats(): LobbyStats {
+    const st: LobbyStats = { playing: { rooms: 0, players: 0 }, waiting: { rooms: 0, players: 0 } };
+    for (const r of this.rooms.values()) {
+      if (r.endedAt || r.closed) continue;
+      if (r.state) { if (r.state.winner) continue; st.playing.rooms++; st.playing.players += this.humans(r); } else { st.waiting.rooms++; st.waiting.players += this.humans(r); }
+    }
+    return st;
+  }
+  /** Hozir o'ynalayotgan Ochiq va Qulfli xonalar (faqat ma'lumot). */
+  playingRows(): PlayingRow[] {
+    const out: PlayingRow[] = [];
+    for (const r of this.rooms.values()) {
+      if (!r.state || r.state.winner || r.endedAt || r.closed || r.tag || (r.visibility !== "open" && r.visibility !== "locked")) continue;
+      const host = this.hooks.profile?.(r.hostId)?.name; if (!host) continue;
+      out.push({ id: this.rowId(r.code), host, mode: r.kind ?? "standard", round: r.state.round ?? 1, players: this.humans(r) });
+    }
+    return out.sort((a, b) => b.players - a.players || b.round - a.round).slice(0, 50);
+  }
   /** «Davom etasizmi?» — egasi «ha» desa zal yana shuncha muddat saqlanadi. */
   stay(code: string, userId: string): { ok: true } | { ok: false; error: Err } {
     const r = this.rooms.get(code.toUpperCase()); if (!r) return { ok: false, error: "room_not_found" }; if (r.hostId !== userId) return { ok: false, error: "not_host" }; if (r.state) return { ok: false, error: "already_started" };
@@ -578,7 +605,7 @@ export class RoomManager {
       for (const [k, h] of this.proposalTimers) if (k.startsWith(`${code}:`)) { this.clock.clearTimeout(h); this.proposalTimers.delete(k); }
       r.timer = null; r.deadline = null; r.endedAt = now;
       for (const m of r.members) this.activeRoomOf.delete(m.userId);
-      await this.store.closeRoom(code); this.hooks.onAbandon?.(code); n++;
+      await this.store.closeRoom(code); this.hooks.onAbandon?.(code); n++; this.lobbyDirty();
     }
     return n;
   }

@@ -207,7 +207,7 @@ export function buildApp(opts: { emailOtp?: EmailOtp; requireProfile?: boolean; 
       const userId = auth(new URL(req.url, "http://x").searchParams.get("token") ?? undefined);
       if (!userId) return socket.close(4401, "unauthorized");
       if (adminState.isBanned(userId)) return socket.close(4403, "banned");
-      cWs(); openSockets++;
+      cWs(); openSockets++; rooms.lobbyDirty();
       // Proxy (Render va b.) bo'sh WebSocket'ni ~1 daqiqada uzishi mumkin: serverdan davriy ping; ikki marta javob bo'lmasa — uzamiz.
       let missed = 0; const ping = setInterval(() => { if (missed >= 2) { socket.terminate(); return; } missed++; try { socket.ping(); } catch { /* yopilgan */ } }, wsPingMs);
       socket.on("pong", () => { missed = 0; });
@@ -229,6 +229,7 @@ export function buildApp(opts: { emailOtp?: EmailOtp; requireProfile?: boolean; 
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); reply({ type: "chat_log", msgs: rooms.chatLog(c) }); return reply({ type: "voice_state", members: rooms.voiceMembers(c) }); }
+          case "lobbies": { if ((m as { on: boolean }).on) { lobbySubs.add(client); pushLobbies([client]); } else lobbySubs.delete(client); return; }
           case "stay": { if (!code) return reply({ type: "error", error: "no_room" }); const r = rooms.stay(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "start": { if (!code) return reply({ type: "error", error: "no_room" });
             const seed = (crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0; // tekshiriladigan manba: urug' jurnalga yoziladi
@@ -254,7 +255,7 @@ export function buildApp(opts: { emailOtp?: EmailOtp; requireProfile?: boolean; 
         }
         } catch (e) { cWsErr(); app.log.error({ err: String((e as Error).message), type: m.type }, "ws: ichki xato"); reply({ type: "error", error: "internal" }); } // bitta xato jarayonni qulatmaydi
       });
-      socket.on("close", () => { clearInterval(ping); openSockets--; if (code) { sockets.get(code)?.delete(client); if (![...(sockets.get(code) ?? [])].some((c) => c.userId === userId)) rooms.disconnect(code, userId); } }); // yangi ulanish bor bo'lsa, eski soket yopilishi o'yinchini oflayn qilmasin
+      socket.on("close", () => { clearInterval(ping); openSockets--; lobbySubs.delete(client); rooms.lobbyDirty(); if (code) { sockets.get(code)?.delete(client); if (![...(sockets.get(code) ?? [])].some((c) => c.userId === userId)) rooms.disconnect(code, userId); } }); // yangi ulanish bor bo'lsa, eski soket yopilishi o'yinchini oflayn qilmasin
     });
   });
   // --- profil, tarix, reyting, hisobni boshqarish (§5.9, §7) ---
@@ -331,7 +332,13 @@ export function buildApp(opts: { emailOtp?: EmailOtp; requireProfile?: boolean; 
   });
   // Faol o'yin (§7: bir hisob — bitta faol o'yin): ilova yangidan ochilganda «Davom etish» uchun.
   // Ochiq o'yinlar ro'yxati: kutish zalidagi Ochiq va Qulfli xonalar. 16 yoshgacha (yoki ota-ona cheklagan) hisob ro'yxatni ko'rmaydi (SPEC §2.8, OPEN_QUESTIONS 202).
-  app.get("/rooms/open", secured((uid) => ({ rooms: profiles.restrictedOf([uid]).length ? [] : rooms.openRooms() })));
+  const lobbyPayload = (restricted: boolean) => ({ rooms: restricted ? [] : rooms.openRooms(), playing: restricted ? [] : rooms.playingRows(), stats: rooms.lobbyStats(), online: openSockets });
+  app.get("/rooms/open", secured((uid) => lobbyPayload(profiles.restrictedOf([uid]).length > 0)));
+  // Jonli ro'yxat: obunachilarga o'zgarish bo'lganda (yig'ilgan) yangilanish yuboriladi. 16 yoshgacha hisoblarga xonalar ro'yxati bo'sh, faqat jami sonlar.
+  const lobbySubs = new Set<{ userId: string; send: (s: string) => void }>();
+  const pushLobbies = (subs: Iterable<{ userId: string; send: (s: string) => void }>) => { let free: string | null = null, kid: string | null = null; for (const c of subs) { const restricted = profiles.restrictedOf([c.userId]).length > 0; const msg = restricted ? (kid ??= JSON.stringify({ type: "lobbies", ...lobbyPayload(true) })) : (free ??= JSON.stringify({ type: "lobbies", ...lobbyPayload(false) })); try { c.send(msg); } catch { /* yopilgan */ } } };
+  rooms.onLobbies(() => pushLobbies(lobbySubs));
+
   app.get("/me/active", secured((uid) => {
     const code = rooms.activeRoomOf.get(uid); const r = code ? rooms.rooms.get(code) : undefined;
     const m = r?.members.find((x) => x.userId === uid);
