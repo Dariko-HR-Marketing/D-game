@@ -20,6 +20,7 @@ for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number
   { // ommaviy bosh sahifa: ko'rinadi, "O'yinni boshlash" kirish ekraniga olib boradi, gorizontal aylanish yo'q, axe
     const c0 = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); const lp = await c0.newPage(); await lp.goto(WEB);
     await lp.getByRole("button", { name: "O'yinni boshlash" }).first().waitFor({ timeout: 15000 }); await lp.screenshot({ path: `${OUT}/${tag}-landing.png`, fullPage: true }); await scan(lp, `bosh sahifa ${tag}`);
+    { const sh = await lp.evaluate(() => ({ sh: document.documentElement.scrollHeight, ih: window.innerHeight })); if (sh.sh > sh.ih + 1) { total++; console.log(`SIG'MAYDI bosh sahifa ${tag}: ${sh.sh} > ${sh.ih} (bitta ekran bo'lishi shart)`); } }
     { const ov = await lp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); if (ov > 1) { total++; console.log(`GORIZONTAL AYLANISH bosh sahifa ${tag}: ${ov}`); } }
     await lp.getByRole("button", { name: "O'yinni boshlash" }).first().click(); await lp.getByLabel("Telefon yoki Email").waitFor({ timeout: 8000 }); await c0.close();
   }
