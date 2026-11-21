@@ -2,6 +2,8 @@
 export const httpBase = (wsUrl: string) => wsUrl.replace(/^ws(s?):/, "http$1:");
 export class HttpError extends Error { constructor(public status: number, public code: string) { super(code); } }
 
+export type RoomVisibility = "open" | "locked" | "hidden"; export type RoomStart = "host" | "full" | "bots";
+export interface OpenRoom { code: string; host: string; mode: "standard" | "student" | "corporate"; turnSeconds: 0 | 60 | 120; seats: number; players: number; locked: boolean }
 export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
   const call = async (method: string, path: string, body?: unknown) => {
     const r = await f(base + path, { method, headers: { authorization: `Bearer ${token}`, ...(body !== undefined ? { "content-type": "application/json" } : {}) }, body: body !== undefined ? JSON.stringify(body) : undefined });
@@ -33,6 +35,8 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     tournaments: () => call("GET", "/tournaments"), tournament: (id: string) => call("GET", `/tournaments/${id}`), tJoin: (code: string) => call("POST", "/tournaments/join", { code }), orgRooms: () => call("GET", "/org/rooms"), orgRoom: (id: string) => call("GET", `/org/rooms/${id}`), orgStatus: (id: string, status: string) => call("POST", `/org/rooms/${id}/status`, { status }), orgCode: (id: string) => call("POST", `/org/rooms/${id}/code`, {}), orgRemove: (id: string, uid: string) => call("POST", `/org/rooms/${id}/participants/${uid}/remove`, {}),
     orgCsv: async (id: string) => { const r = await f(base + `/org/rooms/${id}/report.csv`, { headers: { authorization: `Bearer ${token}` } }); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.text(); },
     tRegister: (id: string, parentPhone?: string) => call("POST", `/tournaments/${id}/register`, parentPhone ? { parentPhone } : {}), tUnregister: (id: string) => call("POST", `/tournaments/${id}/unregister`, {}), tRoom: (id: string) => call("POST", `/tournaments/${id}/room`, {}),
+    /** Ochiq o'yinlar ro'yxati (kutish zalidagi Ochiq va Qulfli xonalar). Server tomoni ulanmaguncha 404 qaytadi: mijoz bo'limni yashiradi. */
+    openRooms: () => call("GET", "/rooms/open") as Promise<{ rooms: OpenRoom[] }>,
     deleteAccount: (confirm: string) => call("DELETE", "/me", { confirm }),
   };
 }
@@ -47,9 +51,10 @@ export function makeAuth(base: string, f: typeof fetch = fetch) {
     return j as any;
   };
   return {
-    config: async (): Promise<{ sms: boolean; dev: boolean }> => { const r = await f(base + "/auth/config"); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.json(); },
+    config: async (): Promise<{ sms: boolean; dev: boolean; google?: boolean }> => { const r = await f(base + "/auth/config"); if (!r.ok) throw new HttpError(r.status, "unknown"); return r.json(); },
     request: (phone: string) => post("/auth/sms/request", { phone }),
     verify: (phone: string, code: string): Promise<{ token: string; userId: string }> => post("/auth/sms/verify", { phone, code }),
+    google: (idToken: string): Promise<{ token: string; userId: string }> => post("/auth/google", { idToken }),
   };
 }
 export const validPhone = (v: string) => /^\+?\d{9,15}$/.test(v.replace(/[\s()-]/g, ""));

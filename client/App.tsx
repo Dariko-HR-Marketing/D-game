@@ -23,6 +23,7 @@ import { ConnBanner } from "./src/ui/ConnBanner";
 import { useForeground } from "./src/useForeground";
 import { Login } from "./src/ui/Login";
 import { Landing } from "./src/ui/Landing";
+import { Packs } from "./src/ui/Packs";
 import { Tour } from "./src/ui/Tour";
 import { gameTourId, type TourId } from "./src/tours";
 import { isMyTurn } from "./src/model";
@@ -94,7 +95,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const conn = useMemo(() => new Connection(SERVER, session.token, (u) => new WebSocket(u) as any), [session.token]);
   const [st, setSt] = useState<ConnState>(conn.state);
   const http = useMemo(() => { setAvatarBase(httpBase(SERVER)); return makeHttp(httpBase(SERVER), session.token); }, [session.token]);
-  const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments">("home");
+  const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments" | "packs">("home");
   const [rulesOpen, setRulesOpen] = useState(false); // o'yin davomida ham ochiladi
   // Yangi versiya: server har deploy'da yangi `build` beradi; ochiq (o'ynab turgan) mijoz buni ko'rsa «Yangilash» taklif qiladi (o'yin saqlanadi, qayta yuklagach holat tiklanadi)
   const [stale, setStale] = useState(false);
@@ -141,11 +142,11 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
-        : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
+        : !room && screen === "packs" ? <Packs onBack={() => setScreen("home")} /> : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
         : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
-        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n, m) => conn.create(t, c, n, m)} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
+        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n, m, o) => conn.create(t, c, n, m, o)} onPacks={() => setScreen("packs")} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />

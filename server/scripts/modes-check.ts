@@ -20,7 +20,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("mode-student").click(); check(await a.getByTestId("seats-2").count() === 1 && await a.getByTestId("seats-8").count() === 1, `${tag} student: o'rinlar 2–8`);
   await a.getByTestId("mode-standard").click(); check(await a.getByTestId("seats-8").count() === 1 && await a.getByTestId("seats-2").count() === 1, `${tag} standart: 2–8`);
   check((await a.getByTestId("turn-60").count()) === 1 && (await a.getByTestId("turn-120").count()) === 1 && (await a.getByTestId("turn-0").count()) === 1 && (await a.getByTestId("turn-30").count()) === 0, `${tag} tezlik: Odatiy (1 daqiqa), Sekin (2 daqiqa), Mehrojiddin`);
-  check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0, `${tag} Standartda «Kod bilan qo'shilish» ko'rinmaydi`);
+  check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 1, `${tag} Standartda ham «Kod bilan qo'shilish» ko'rinadi (kod bilan kirish hamma rejimda)`);
   await a.getByTestId("mode-corporate").click(); check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 1, `${tag} Korporativda «Kod bilan qo'shilish» ko'rinadi`); await a.getByTestId("mode-standard").click();
   // 2) Standart xona va chiqish shartlari
   await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Linking, useWindowDimensions } from "react-native";
 import { Logo } from "./Logo";
 import { Field, Check, Cta, Ghost, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
 import { AUTH_METHODS } from "../authMethods";
+import { GOOGLE_CLIENT_ID, loadGis, googleEnabled } from "../googleSignIn";
 import { font, MIN_TAP, night, radius, space } from "../theme";
 import { isUnder16, validCode, validName, validPhone, validYear, HttpError, type makeAuth } from "../net/http";
 
@@ -38,6 +39,13 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
   const send = () => run(async () => { await auth.request(ident); if (tab === "register") onSignupProfile?.({ name: name.trim(), year }); setStep("code"); setCool(RESEND_S); });
   const verify = (c = code) => run(async () => onDone(await auth.verify(ident, c), remember));
   const switchTab = (t: Tab) => { setTab(t); setStatus(null); };
+  const [gOn, setGOn] = useState(false); const gRef = useRef<any>(null);
+  useEffect(() => { let off = false; if (!GOOGLE_CLIENT_ID) return; auth.config().then((c) => { if (!off) setGOn(googleEnabled(c.google)); }).catch(() => {}); return () => { off = true; }; }, [auth]);
+  useEffect(() => { // Google tugmasi: rasmiy tugma shu joyga chiziladi; token serverga yuboriladi, server tekshiradi
+    if (!gOn || !gRef.current) return; let off = false;
+    loadGis().then((g) => { if (off || !gRef.current) return; g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: (r: { credential?: string }) => { if (r?.credential) run(async () => onDone(await auth.google(r.credential!), remember)); } }); g.accounts.id.renderButton(gRef.current, { theme: "filled_black", size: "large", width: 320, text: tab === "login" ? "signin_with" : "signup_with" }); }).catch(() => setStatus({ kind: "bad", text: uz.login.googleSoon }));
+    return () => { off = true; };
+  }, [gOn, tab, remember]); // eslint-disable-line react-hooks/exhaustive-deps
   const google = () => setStatus(AUTH_METHODS.google ? null : { kind: "info", text: uz.login.googleSoon });
   return (
     <ScrollView style={{ backgroundColor: night.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" bounces={false}>
@@ -78,9 +86,10 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
                   <Pressable key={k} role="tab" accessibilityRole="tab" aria-selected={tab === k} accessibilityState={{ selected: tab === k }} onPress={() => switchTab(k)} style={[s.tab, tab === k && s.tabOn]}>
                     <Text style={[s.tabT, tab === k && { color: "#FFFFFF" }]}>{l}</Text></Pressable>))}
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel={uz.login.google} onPress={google} style={({ pressed }) => [s.google, pressed && { opacity: 0.85 }]}>
+              {gOn ? <View ref={gRef} testID="google-gis" style={{ alignItems: "center", minHeight: 44 }} />
+              : <Pressable accessibilityRole="button" accessibilityLabel={uz.login.google} onPress={google} style={({ pressed }) => [s.google, pressed && { opacity: 0.85 }]}>
                 <View style={s.gBadge} aria-hidden><Text style={s.gT}>G</Text></View><Text style={s.googleT}>{uz.login.google}</Text>
-              </Pressable>
+              </Pressable>}
               <View style={s.divider} aria-hidden><View style={s.rule} /><Text style={s.dividerT}>{uz.login.or}</Text><View style={s.rule} /></View>
 
               {tab === "register" && <><Field id="nm" label={uz.login.fullName} value={name} onChangeText={setName} placeholder={uz.login.fullNamePh} maxLength={24} autoComplete="nickname" />{!validName(name) && <Text style={k.note}>{uz.login.nameHint}</Text>}</>}
