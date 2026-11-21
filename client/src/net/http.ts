@@ -3,7 +3,7 @@ export const httpBase = (wsUrl: string) => wsUrl.replace(/^ws(s?):/, "http$1:");
 export class HttpError extends Error { constructor(public status: number, public code: string) { super(code); } }
 
 export type RoomVisibility = "open" | "locked" | "hidden"; export type RoomStart = "host" | "full" | "bots";
-export interface OpenRoom { code: string; host: string; mode: "standard" | "student" | "corporate"; turnSeconds: 0 | 60 | 120; seats: number; players: number; locked: boolean }
+export interface OpenRoom { id: string; code?: string; host: string; mode: "standard" | "student" | "corporate"; turnSeconds: 0 | 60 | 120; seats: number; players: number; locked: boolean }
 export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
   const call = async (method: string, path: string, body?: unknown) => {
     const r = await f(base + path, { method, headers: { authorization: `Bearer ${token}`, ...(body !== undefined ? { "content-type": "application/json" } : {}) }, body: body !== undefined ? JSON.stringify(body) : undefined });

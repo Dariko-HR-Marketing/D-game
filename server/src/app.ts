@@ -203,7 +203,7 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
         const m = parsed.msg;
         try {
         switch (m.type) {
-          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : m.turnSeconds === 120 ? 120 : m.turnSeconds === 0 ? 0 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players, (m as { mode?: "standard" | "quick" | "rated" | "tutorial" }).mode); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
+          case "create": { if (ops.flags().maintenance || ops.flags().roomsPaused) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId)) return reply({ type: "error", error: "profile_required" }); if (!commerce.canCreateRoom(userId)) return reply({ type: "error", error: "room_limit" }); const r = rooms.create(userId, undefined, m.turnSeconds === 60 ? 60 : m.turnSeconds === 120 ? 120 : m.turnSeconds === 0 ? 0 : 30, m.calc === "manual" ? "manual" : "auto", (m as { players?: number }).players, (m as { mode?: "standard" | "quick" | "rated" | "tutorial" }).mode, ((m as any).visibility || (m as any).start || (m as any).kind) ? { visibility: (m as any).visibility, start: (m as any).start, kind: (m as any).kind, restricted: profiles.restrictedOf([userId]).length > 0 } : undefined); if (!r.ok) return reply({ type: "error", error: r.error }); commerce.noteRoomCreated(userId);
             attach(r.code); return reply({ type: "state", room: rooms.view(rooms.rooms.get(r.code)!) }); }
           case "join": { if (ops.flags().maintenance) return reply({ type: "error", error: "maintenance" }); if (opts.requireProfile && !profiles.get(userId) && !rooms.rooms.get(String(m.code).toUpperCase())?.members.some((x) => x.userId === userId)) return reply({ type: "error", error: "profile_required" }); const r = rooms.join(String(m.code), userId); if (!r.ok) return reply({ type: "error", error: r.error });
             const c = String(m.code).toUpperCase(); attach(c); reply({ type: "state", room: rooms.view(rooms.rooms.get(c)!) }); reply({ type: "chat_log", msgs: rooms.chatLog(c) }); return reply({ type: "voice_state", members: rooms.voiceMembers(c) }); }
@@ -307,6 +307,8 @@ export function buildApp(opts: { requireProfile?: boolean; store?: Store; auth?:
     return { seats: r.members.filter((m) => !m.bot && !m.left).map((m) => ({ userId: m.userId, name: profiles.get(m.userId)?.name ?? null, online: m.online })) };
   });
   // Faol o'yin (§7: bir hisob — bitta faol o'yin): ilova yangidan ochilganda «Davom etish» uchun.
+  // Ochiq o'yinlar ro'yxati: kutish zalidagi Ochiq va Qulfli xonalar. 16 yoshgacha (yoki ota-ona cheklagan) hisob ro'yxatni ko'rmaydi (SPEC §2.8, OPEN_QUESTIONS 202).
+  app.get("/rooms/open", secured((uid) => ({ rooms: profiles.restrictedOf([uid]).length ? [] : rooms.openRooms() })));
   app.get("/me/active", secured((uid) => {
     const code = rooms.activeRoomOf.get(uid); const r = code ? rooms.rooms.get(code) : undefined;
     const m = r?.members.find((x) => x.userId === uid);
