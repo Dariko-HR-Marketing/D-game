@@ -29,6 +29,7 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 }); await shot(a, "06b-onboarding"); await onboard(a); await c.waitForSelector("text=Naqd", { timeout: 60000 }); await onboard(c);
   const room = x.rooms.rooms.get(code)!;
   await shot(a, "07-game-start");
+  { const dr = a.getByTestId("players-drawer-open"); if (await dr.count()) { await dr.click(); await a.waitForTimeout(400); await shot(a, "07e-drawer"); await a.keyboard.press("Escape"); await a.waitForTimeout(200); } } // kompyuter: o'ng panel yon oyna bo'lib ochiladi
   const tabBlank = a.getByRole("button", { name: "Blank", exact: true }); if (await tabBlank.count()) { await tabBlank.click(); await a.waitForTimeout(300); await shot(a, "07c-blank"); }
   const acts = a.getByRole("button", { name: /Moliya amallari/ }); await acts.click(); await a.waitForTimeout(300); await a.evaluate(() => window.scrollTo(0, 99999)); await shot(a, "07b-actions");
   const tabP = a.getByRole("button", { name: "O'yinchilar", exact: true }); if (await tabP.count()) { await tabP.click(); await a.waitForTimeout(300); await shot(a, "07d-players"); }

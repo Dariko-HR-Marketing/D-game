@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { layoutOf } from "../layout";
 import { chatText } from "../chatText";
 import { lazyNamed, LaterOverlay } from "../lazy";
@@ -9,7 +9,7 @@ import type { VoiceEngine } from "../voice/engine";
 import { DiceModal } from "./DiceModal";
 import { getRollModalPref, setRollModalPref } from "../turnPref";
 import { isTourOpen, subscribeTourOpen } from "./tourStore";
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pressable } from "react-native";
+import { View, Text, ScrollView, StyleSheet, useWindowDimensions, Animated, Pressable, Platform } from "react-native";
 import { animationMs, useReducedMotion } from "../motion";
 import { Button } from "./Button";
 import { Banner, Card, Pill, SectionTitle } from "./kit";
@@ -41,6 +41,7 @@ import { TutorialCoach } from "./TutorialCoach";
 import { OnboardingPlan } from "./OnboardingPlan";
 import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
+import { Avatar } from "./Avatar";
 import { ProfileMenu, RequestModal, useRequestModal, useRequests } from "./RequestCenter";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -89,6 +90,7 @@ function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; labe
 }
 
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+  const [drawerOpen, setDrawerOpen] = useState(false); const [seenLog, setSeenLog] = useState(0); // kompyuter: o'ng panel (vaqt, voqealar, o'yinchilar, reaksiyalar) yon oyna bo'lib ochiladi
   const [menuOpen, setMenuOpen] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [liveOpen, setLiveOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
   const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
@@ -114,7 +116,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       while (w > 240 && boardGeometry(w, true, nCells, true, true).H > height - reserveH) w -= 10;
       return { boardWidth: w, tight: true };
     }
-    let w = wide ? Math.min(Math.max(Math.min(width, 1440) - sideW - (tri ? rightW + space.lg : 0) - 64 - 2 * pad, 560), 940) : Math.min(width - 32 - 2 * pad, tablet ? 700 : 460), t = false;
+    let w = wide ? Math.min(Math.max(Math.min(width, tri ? 1920 : 1440) - sideW - 64 - 2 * pad, 560), tri ? 1120 : 940) : Math.min(width - 32 - 2 * pad, tablet ? 700 : 460), t = false;
     if (tablet) while (w > 440 && boardGeometry(w, false, nCells, false, false, true).H > height - TABLET_RESERVE) w -= 10; // tik planshet: taxta balandlikka ham sig'sin (sarlavha, statistika, o'yinchilar, tugma va menyu uchun joy qoladi)
     if (wide) {
       while (w > 560 && boardGeometry(w, true, nCells).H > height - reserveH) w -= 20;
@@ -179,6 +181,10 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const gate = due && mineTurn && !cardRaw && settled && !state.winner ? <LedgerPad testID="ledger-gate" title={uz.ledger.gateTitle} hint={uz.ledger.gateHint} current={ledgerNow} feedback={calcFb} submitLabel={uz.ledger.gateSubmit} onSubmit={(c) => onAct({ type: "confirm_calc", calc: c })} /> : null;
   const centre = <TurnPanel room={room} userId={userId} mineTurn={mineTurn} hasCard={!!cardRaw} moving={!settled || promptOpen} onRoll={() => onAct({ type: "roll" })} wide={wide} compact={compact} gate={wide && gate ? <View style={{ backgroundColor: "#FFF6DD", borderRadius: 12, padding: 12 }}><Text style={{ color: "#6B4300", fontWeight: "800", fontSize: 15, textAlign: "center" }}>{uz.ledger.gateSide}</Text></View> : null} />;
   // Kompyuter (3 ustun): taxta ostidagi bo'sh joy — «Mening kartalarim» va dekani tanlash shu yerda (chap ustun qisiq va aylantirishni talab qilardi)
+  const newLog = drawerOpen ? 0 : Math.max(0, (state.logN ?? 0) - seenLog); // yon oyna yopiq paytda yangi voqealar soni
+  useEffect(() => { if (drawerOpen) setSeenLog(state.logN ?? 0); }, [drawerOpen, state.logN]);
+  useEffect(() => { if (!drawerOpen) return; const d = (globalThis as any).document; if (!d?.addEventListener) return; const k = (e: any) => { if (e.key === "Escape") setDrawerOpen(false); }; d.addEventListener("keydown", k); return () => d.removeEventListener("keydown", k); }, [drawerOpen]);
+  useEffect(() => { if (!tri && drawerOpen) setDrawerOpen(false); }, [tri, drawerOpen]);
   const deckPick = tri && !!card && mineTurn && !!mine && (card as any).effect?.kind === "deckChoice";
   const timeInSide = wide && !tri && (compact || boardWidth < 760); // taxta tor bo'lsa vaqt paneli chap ustun tepasida (yonida joy yetmaydi)
   const nextName = nameOf(room, state.players[(state.turn + 1) % state.players.length].id);
@@ -241,7 +247,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const ui: HUi = { flat, labels, ib, tiny };
   const reqLayers = (<>
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
-    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} onHelp={width < 360 ? replayTour : undefined} />}
+    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} onHelp={width < 360 ? replayTour : undefined} items={wide ? [{ key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" }, { key: "sheet", icon: "chart", label: uz.sheet.title, onPress: () => setSheetView(true), tid: "sheet-open" }, ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : [])] : undefined} />}
   </>);
   const header = (
     <View style={[s.header, flat && { gap: 2, paddingHorizontal: space.md }]} onLayout={(e) => setHdrW(e.nativeEvent.layout.width)}>
@@ -254,8 +260,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <View style={{ flex: 1, minWidth: 0 }} />
       <Seg ui={ui} label={uz.hud.group.docs}>
         <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
-        <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
-        {http && <HBtn ui={ui} icon="clock" label={uz.history.title} text={uz.history.open} onPress={() => setHistoryOpen(true)} tid="history-open" />}
+        {!wide && <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />}
+        {!wide && http && <HBtn ui={ui} icon="clock" label={uz.history.title} text={uz.history.open} onPress={() => setHistoryOpen(true)} tid="history-open" />}
         {http && <HBtn ui={ui} icon="people" label={uz.live.title} text={uz.live.open} onPress={() => setLiveOpen(true)} tid="live-open" />}
       </Seg>
       {reqs.length > 0 && <HBtn ui={ui} icon="bell" label={uz.req.bellN.replace("{n}", String(reqs.length))} onPress={reqModal.show} tid="requests-open"><View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{reqs.length}</Text></View></HBtn>}
@@ -265,10 +271,12 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
         <HBtn ui={ui} icon={snd.muted ? "mute" : "volume"} label={uz.sound.label} role="switch" checked={!snd.muted} onPress={snd.toggle} tid="sound-toggle" />
       </Seg>
       <Seg ui={ui} label={uz.hud.group.help}>
-        {wide && <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />}{/* tik telefon/planshetda «Qoidalar» pastki menyuda bor: sarlavhada takrorlanmaydi (sarlavha qirqilmasin) */}
+        {false && <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />}{/* tik telefon/planshetda «Qoidalar» pastki menyuda bor: sarlavhada takrorlanmaydi (sarlavha qirqilmasin) */}
         {!tiny && <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />}
       </Seg>
-      {!state.winner && <HBtn ui={ui} icon="person" label={uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} tid="profile-menu-open" />}
+      {!state.winner && <Pressable accessibilityRole="button" aria-haspopup="menu" aria-expanded={menuOpen} accessibilityLabel={uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} testID="profile-menu-open" style={({ pressed }) => [s.avatarBtn, pressed && { opacity: 0.8 }]}>
+        <Avatar name={nameOf(room, userId)} colorIdx={room.names?.[userId]?.color ?? 0} size={36} photo={room.names?.[userId]?.photo} gender={room.names?.[userId]?.gender} frame={room.names?.[userId]?.cos?.frame} bgColor={room.names?.[userId]?.cos?.avatar} />
+      </Pressable>}
     </View>
   );
 
@@ -289,7 +297,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}{tri && reactPanel}{compact && reactRow}</ScrollView>}
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}{compact && reactRow}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
@@ -308,8 +316,22 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}</View>
           </View>}
         </ScrollView>
-        {tri && rightCol}
       </View>
+      {tri && !drawerOpen && <Pressable accessibilityRole="button" aria-haspopup="dialog" aria-expanded={false} accessibilityLabel={newLog > 0 ? `${uz.hud.drawer.open}. ${uz.hud.drawer.news.replace("{n}", String(newLog))}` : uz.hud.drawer.open} onPress={() => setDrawerOpen(true)} testID="players-drawer-open" style={s.edge}>
+        <Text style={s.edgeT} aria-hidden>‹</Text>{newLog > 0 && <View style={[s.chatBadge, { top: 6, right: 4 }]} aria-hidden><Text style={s.chatBadgeT}>{newLog > 9 ? "9+" : newLog}</Text></View>}</Pressable>}
+      {tri && drawerOpen && (<>
+        <Pressable accessibilityRole="button" accessibilityLabel={uz.hud.drawer.close} onPress={() => setDrawerOpen(false)} testID="players-drawer-backdrop" style={{ position: "absolute", left: 0, right: 0, top: HEADER_H, bottom: 0, backgroundColor: "rgba(8,34,56,0.28)" }} />
+        <SlideIn reduced={fx.reduced} style={s.drawer} testID="players-drawer" label={uz.hud.drawer.title}>
+          <View style={s.drawerHead}><Text style={s.drawerT} aria-level={2} accessibilityRole="header">{uz.hud.drawer.title}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={uz.hud.drawer.close} onPress={() => setDrawerOpen(false)} style={s.drawerX} testID="players-drawer-close"><Text style={s.drawerXT} aria-hidden>✕</Text></Pressable></View>
+          <ScrollView tabIndex={0} role="region" aria-label={uz.hud.playersTitle} style={{ flex: 1 }} contentContainerStyle={[s.sideScroll, { gap: space.md, paddingHorizontal: space.md, paddingTop: space.md, paddingBottom: space.xl }]}>
+            <TimePanel room={room} userId={userId} settled={settled} />
+            {eventsCard(8)}
+            <PlayerList room={room} userId={userId} accordion />
+            {reactPanel}
+          </ScrollView>
+        </SlideIn>
+      </>)}
     </View>
   );
 
@@ -352,7 +374,17 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   );
 }
 const first = (t: string, n = 70) => { const x = (t.split(/(?<=[.!?])\s/)[0] ?? t).trim(); return x.length > n ? x.slice(0, n - 1) + "…" : x; };
+/** Yon oyna: o'ng tomondan siljib chiqadi (harakatni kamaytirish yoqilgan bo'lsa — darrov). */
+function SlideIn({ reduced, style, testID, label, children }: { reduced?: boolean; style: any; testID: string; label: string; children: React.ReactNode }) {
+  const x = useRef(new Animated.Value(reduced ? 0 : 420)).current;
+  useEffect(() => { if (reduced) return; Animated.timing(x, { toValue: 0, duration: 220, useNativeDriver: Platform.OS !== "web" }).start(); }, [reduced, x]);
+  return <Animated.View role="dialog" aria-label={label} testID={testID} style={[style, { transform: [{ translateX: x }] }]}>{children}</Animated.View>;
+}
 const s = StyleSheet.create({
+  avatarBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 22 },
+  edge: { position: "absolute", right: 0, top: "42%", width: 44, height: 96, borderTopLeftRadius: 14, borderBottomLeftRadius: 14, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", zIndex: 5, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: -2, height: 0 }, elevation: 6 }, edgeT: { color: "#fff", fontSize: 22, fontWeight: "800", lineHeight: 24 },
+  drawer: { position: "absolute", right: 0, top: HEADER_H, bottom: 0, width: 400, maxWidth: "92%", backgroundColor: color.white, borderLeftWidth: 1, borderLeftColor: color.line, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: -8, height: 0 }, elevation: 12 },
+  drawerHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingLeft: space.lg, borderBottomWidth: 1, borderBottomColor: color.line, minHeight: 52 }, drawerT: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, drawerX: { width: 48, height: 48, alignItems: "center", justifyContent: "center" }, drawerXT: { color: color.navy, fontSize: font.lg, fontWeight: "800" },
   mwrap: { padding: space.lg, gap: space.md }, mwrapT: { width: "100%", maxWidth: 760, alignSelf: "center" }, // tik planshet: ustun markazda, o'qish uchun qulay kenglikda
   shell: { flex: 1, flexDirection: "row", gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md, minHeight: 0, maxWidth: 1440, width: "100%", alignSelf: "center" },
   decide: { flex: 1, minHeight: 0, borderRadius: radius.lg, borderWidth: 2, borderColor: color.gold, backgroundColor: color.white, padding: space.md, gap: space.md },

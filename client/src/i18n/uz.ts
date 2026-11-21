@@ -153,6 +153,7 @@ export const uz = {
     yourTurn: "Navbatingiz.", mineHintFree: "Kubikni tashlang. Bu xonada vaqt cheklovi yo'q.", mineHint: "{s} soniyada kubik tashlanmasa, navbat {name}ga o'tadi.", otherHint: "Navbat {name}da. U {s} soniyada tashlamasa, navbat o'tadi.", otherNoTimer: "Navbat {name}da.",
     onTurn: "Navbatda", online: "Onlayn", offline: "Oflayn", autoNote: "qarorlar avtomatik", you: "siz", dream: "Orzu", cashLabel: "Naqd", incomeAll: "Umumiy daromad", expensesAll: "Umumiy xarajat",
     welcomeTitle: "Olmaxon doirasiga xush kelibsiz!", ownCircleNote: "Siz faqat o'z aylanangizni ko'rasiz. Kichik aylana o'yinchisi katta aylanadan qarz so'ray oladi va sheriklikka taklif qila oladi; katta aylana o'yinchisi qarz ola olmaydi, sheriklik taklif qila olmaydi; suyunchi faqat kichik aylanada.",
+    drawer: { open: "O'yinchilar, voqealar va vaqt", short: "O'yinchilar", title: "O'yinchilar va voqealar", close: "Yopish", news: "Yangi voqealar: {n}" },
     playersTitle: "O'yinchilar", changes: "O'zgarishlar", before: "Oldin", after: "Keyin", timeNote: "{s} soniya ichida tasdiqlang. Tasdiqlanmasa — ixtiyoriy karta o'tkaziladi, majburiy karta avtomatik qabul qilinadi (−2 ball).",
     deckChoiceTitle: "Qaysi dekadan karta olasiz?", deckChoiceNote: "{s} soniya ichida tanlang. Tanlanmasa — karta o'tkazib yuboriladi va «Kichik sarmoyalar» ochiladi.", deckCards: "ta karta", deckSmall: "Kichik sarmoyalar", deckBig: "Katta sarmoyalar",
     deckChoiceWhy: "Naqdingiz 25 000 dan ko'p, shuning uchun dekani o'zingiz tanlaysiz. Kam bo'lsa — «Kichik sarmoyalar» darhol ochiladi.", majburiy: "Majburiy · rad etilmaydi", ixtiyoriy: "Ixtiyoriy",
@@ -374,6 +375,7 @@ export const uz = {
   },
   openRooms: {
     title: "Ochiq o'yinlar", empty: "Hozir ochiq xona yo'q. O'zingiz yangisini oching yoki do'stingizning kodini kiriting.", loading: "Yuklanmoqda…", join: "Qo'shilish", locked: "Qulf · kod", full: "To'lgan", codeFor: "Xona kodi", enter: "Kirish", all: "Hammasi", live: "Ro'yxat real vaqtda yangilanadi", err: "Ro'yxatni yuklab bo'lmadi",
+    online: "Onlayn: {n}", playingStat: "O'ynayotganlar: {p} ({r} xona)", waitingStat: "Kutayotganlar: {p} ({r} xona)", liveTag: "Jonli", playingTitle: "Hozir o'ynalayotgan o'yinlar", playingRow: "{host} · {mode} · {round}-tur · {n} o'yinchi", playingEmpty: "Hozir ochiq o'yin o'ynalmayapti.", showPlaying: "o'ynalayotganlarni ko'rsatish", hidePlaying: "yashirish",
     stayTitle: "Davom etasizmi?", stayText: "Xonada hali hech kim yo'q. Javob bermasangiz, {s} soniyadan keyin xona yopiladi.", stayYes: "Ha, kutaman", stayNo: "Xonani yopish",
     row: "{host} · {mode} · {speed} · {n}/{max}", lockedLabel: "Qulfli xona: kod kerak",
     vis: "Ko'rinish", visHint: { open: "Ro'yxatda, hamma bosib qo'shiladi.", locked: "Ro'yxatda qulfcha bilan, faqat kod bilan kiriladi.", hidden: "Ro'yxatda yo'q, faqat kod bilan kiriladi." } as Record<string, string>,

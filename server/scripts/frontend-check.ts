@@ -12,25 +12,25 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 const AXE = axeSource();
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
-const ROOMS = { rooms: [
-  { id: "r1", code: "AAA111", host: "Aziz", mode: "standard", turnSeconds: 60, seats: 6, players: 3, locked: false },
-  { id: "r2", host: "Sinf 9-B", mode: "student", turnSeconds: 120, seats: 8, players: 5, locked: true },
-  { id: "r3", code: "CCC333", host: "Jamoa", mode: "corporate", turnSeconds: 60, seats: 8, players: 8, locked: false },
-] };
+// Haqiqiy server: kutayotgan va o'ynalayotgan xonalar oldindan yaratiladi (jonli ro'yxat WebSocket orqali keladi)
+for (const [id, name] of [["sA", "Aziz"], ["sB", "Sinf 9-B"], ["sC", "Jamoa"], ["sD", "Dilnoza"], ["sE", "Eldor"]]) x.profiles.put(id, { name, color: 0, birthYear: 1990 } as any);
+const seeded: string[] = [];
+const mkRoom = (host: string, o: any, seats: number, fill: number, turn: 60 | 120 = 60) => { const r = x.rooms.create(host, undefined, turn, "auto", seats, "standard", o); if (!r.ok) throw new Error(r.error); for (let i = 0; i < fill; i++) x.rooms.join(r.code, `${host}f${i}`); seeded.push(r.code); return r.code; };
+mkRoom("sA", { visibility: "open" }, 6, 2); mkRoom("sB", { kind: "student" }, 8, 4, 120); mkRoom("sC", { visibility: "open" }, 8, 7);
+{ const p = mkRoom("sD", { visibility: "open" }, 2, 1); await x.rooms.start(p, "sD", 7); }
 const scan = async (p: any, name: string) => { await p.addScriptTag({ content: AXE }); const r = await p.evaluate(async () => (window as any).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"] } })); check(r.violations.length === 0, `${name}: qulaylik buzilishi yo'q${r.violations.length ? " " + r.violations.map((v: any) => v.id + "(" + v.nodes.length + ")").join(",") : ""}`); };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const open = async (uid: string, flags: string | null, rooms: unknown | 404) => {
+  const open = async (uid: string, flags: string | null) => {
     const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" });
     await c.addInitScript((u: string) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid);
     if (flags) await c.addInitScript(() => localStorage.setItem("tajriba24-features", "rooms,billing"));
-    await c.route("**/rooms/open", (r: any) => (rooms === 404 ? r.fulfill({ status: 404, contentType: "application/json", body: '{"error":"not_found"}' }) : r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(rooms) })));
     const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
     if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); } return p;
   };
   // 1) Bayroqsiz: ochiq o'yinlar yoqiq (server tayyor), Paketlar (to'lov) yopiq
-  const off = await open("fcoff" + tag, null, ROOMS); await off.getByTestId("open-rooms").waitFor({ timeout: 8000 }); check(await off.getByTestId("room-options").count() === 1 && await off.getByTestId("home-packs").count() === 0, `${tag} bayroqsiz: ro'yxat va ko'rinish tanlovi bor, Paketlar yo'q (to'lov ulanmagan)`); await off.context().close();
+  const off = await open("fcoff" + tag, null); await off.getByTestId("open-rooms").waitFor({ timeout: 8000 }); check(await off.getByTestId("room-options").count() === 1 && await off.getByTestId("home-packs").count() === 0, `${tag} bayroqsiz: ro'yxat va ko'rinish tanlovi bor, Paketlar yo'q (to'lov ulanmagan)`); await off.context().close();
   // 2) Bayroq yoqiq: ro'yxat
-  const a = await open("fcon" + tag, "rooms,billing", ROOMS); await a.getByTestId("open-rooms").waitFor({ timeout: 8000 });
+  const a = await open("fcon" + tag, "rooms,billing"); await a.getByTestId("open-rooms").waitFor({ timeout: 8000 });
   await a.getByTestId("room-row").first().waitFor({ timeout: 8000 });
   check(await a.getByTestId("room-row").count() === 3, `${tag} ro'yxatda 3 xona`);
   check(await a.getByText("Aziz · Standart · Odatiy · 1 daqiqa · 3/6").count() === 1, `${tag} qator matni: egasi, tur, tezlik, o'rinlar`);
@@ -42,8 +42,11 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(await a.getByTestId("start-bots").count() === 0, `${tag} botlar bilan boshlash faqat Yashirin xonada`);
   await a.getByTestId("vis-hidden").click(); check(await a.getByTestId("start-bots").count() === 1, `${tag} Yashirin tanlansa «Botlar bilan avtomatik» chiqadi`);
   await scan(a, `${tag} ro'yxat va xona ko'rinishi`);
-  // 3) Server ro'yxatni bilmasa bo'lim yashirin
-  const nf = await open("fcnf" + tag, "rooms,billing", 404); await nf.waitForTimeout(800); check(await nf.getByTestId("open-rooms").count() === 0, `${tag} server /rooms/open yo'q: bo'lim yashirin`); await nf.context().close();
+  // 3) Jonli: jami sonlar, o'ynalayotganlar ro'yxati va qayta yuklamasdan yangilanish
+  const stats = await a.getByTestId("lobby-stats").innerText(); check(/Kutayotganlar: 16 \(3 xona\)/.test(stats) && /O'ynayotganlar: 2 \(1 xona\)/.test(stats) && /Onlayn: \d+/.test(stats), `${tag} jami sonlar: kutayotganlar, o'ynayotganlar, onlayn (${stats.replace(/\s+/g, " ")})`);
+  await a.getByTestId("playing-toggle").click(); check(await a.getByTestId("playing-list").getByText("Dilnoza · Standart · 1-tur · 2 o'yinchi").count() === 1, `${tag} hozir o'ynalayotgan xona qatori ko'rinadi`); await a.getByTestId("playing-toggle").click();
+  const liveCode = mkRoom("sE", { visibility: "open" }, 4, 0); await a.getByText(/^Eldor · /).waitFor({ timeout: 5000 }).catch(() => {}); { const n4 = await a.getByTestId("room-row").count(); check(n4 === 4, `${tag} yangi xona ro'yxatga qayta yuklamasdan qo'shildi (jonli) [${n4}]`); }
+  await x.rooms.forceClose(liveCode, "test"); await a.getByText(/^Eldor · /).waitFor({ state: "detached", timeout: 5000 }).catch(() => {}); check(await a.getByTestId("room-row").count() === 3, `${tag} xona yopilgach ro'yxatdan jonli yo'qoldi`);
   // 4) Paketlar
   const pk = a; const packs = pk.getByTestId("home-packs"); if (tag === "tel") await pk.getByRole("button", { name: /^Paketlar/ }).first().click(); else await packs.click();
   await pk.getByTestId("packs").waitFor({ timeout: 6000 });
@@ -62,6 +65,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await pk.getByRole("button", { name: "Orqaga" }).first().click(); await pk.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 6000 });
   await a.context().close();
 }
+for (const c of seeded) await x.rooms.forceClose(c, "test"); await new Promise((r) => setTimeout(r, 600));
 // 5) Haqiqiy server: Student xonasi Qulfli yaratiladi, ro'yxatda kodsiz ko'rinadi, ikkinchi o'yinchi kod bilan kiradi
 {
   const mkp = async (uid: string) => { const c = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" }); await c.addInitScript((u: string) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); return p; };

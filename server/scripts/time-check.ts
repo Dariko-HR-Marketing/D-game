@@ -16,6 +16,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["plan", 820, 1180], ["kmp", 1440,
   const a = await c.newPage(); await a.goto(WEB);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const code = [...x.rooms.rooms.keys()].pop()!, room = x.rooms.rooms.get(code)!;
+  { const dro = a.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await a.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } } // kompyuter: vaqt paneli yon oynada
   for (const [months, want] of [[9, /9\s*oy/], [1821, /151\s*yil.*9\s*oy/s]] as [number, RegExp][]) {
     room.state!.players.find((p: any) => p.id === "tm" + tag)!.monthsPlayed = months; (x.rooms as any).emit(room); await a.waitForTimeout(900);
     const bar = a.getByTestId("timebar").first(); const txt = (await bar.innerText()).replace(/\s+/g, " ");

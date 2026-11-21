@@ -43,3 +43,10 @@ export async function joinByCode(p: any, code: string): Promise<void> {
   await input.fill(code);
   await p.getByRole("button", { name: "Kirish", exact: true }).last().click();
 }
+
+/** Kompyuter o'yin ekrani: «Qoidalar», «Hisob varag'i» va «Tarix» profil avatari menyusida. Tugma sarlavhada bo'lmasa (kompyuter) menyuni ochib bosadi. */
+export async function clickMenuItem(p: any, testId: string): Promise<void> {
+  const direct = p.getByTestId(testId);
+  if (!(await direct.count())) { await p.getByTestId("profile-menu-open").click(); await p.getByTestId(testId).waitFor({ timeout: 4000 }); }
+  await p.getByTestId(testId).click();
+}

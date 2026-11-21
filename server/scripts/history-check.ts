@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { currentPlayer, effectOf } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, joinByCode } from "./_seed";
+import { autoProfiles, axeSource, joinByCode, clickMenuItem } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/history";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -30,7 +30,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     else await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq);
   }
   await a.waitForTimeout(900);
-  await a.getByTestId("history-open").click(); const det = a.getByTestId("history-detail"); await det.waitFor(); await a.getByTestId("history-row").first().waitFor({ timeout: 8000 });
+  await clickMenuItem(a, "history-open"); const det = a.getByTestId("history-detail"); await det.waitFor(); await a.getByTestId("history-row").first().waitFor({ timeout: 8000 });
   const rows = await a.getByTestId("history-row").count(); const txt = await det.innerText();
   check(rows >= 3, `${tag} tarix qatorlari: ${rows}`);
   check(txt.includes("Yurdi") && /\d+ → \d+/.test(txt) && txt.includes("Kubik"), `${tag} katakdan-katakka va kubik ko'rinadi`);

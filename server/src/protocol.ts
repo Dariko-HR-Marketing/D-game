@@ -44,6 +44,7 @@ export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("create"), turnSeconds: z.union([z.literal(30), z.literal(60), z.literal(120), z.literal(0)]).optional(), calc: z.enum(["auto", "manual"]).optional(), players: z.number().int().min(2).max(8).optional(), mode: z.enum(["standard", "quick", "rated", "tutorial"]).optional(), visibility: z.enum(["open", "locked", "hidden"]).optional(), start: z.enum(["host", "full", "bots"]).optional(), kind: z.enum(["standard", "student"]).optional() }).strict(), // visibility/start/kind: ochiq o'yinlar ro'yxati (OPEN_QUESTIONS 202); players: oldindan belgilangan o'yinchilar soni (bo'shlarini botlar egallaydi); qaror vaqti: 30 yoki 60 soniya (standart 30)
   z.object({ type: z.literal("join"), code: z.string().length(6).regex(/^[A-Za-z0-9]+$/) }).strict(),
   z.object({ type: z.literal("start"), events: z.boolean().optional() }).strict(), // events: «Kutilmagan hodisa!» (K katagi) yoqilganmi — xona egasi tanlaydi
+  z.object({ type: z.literal("lobbies"), on: z.boolean() }).strict(), // jonli «Ochiq o'yinlar» ro'yxatiga obuna/obunadan chiqish
   z.object({ type: z.literal("stay") }).strict(), // «Davom etasizmi?» — ha (xona egasi)
   z.object({ type: z.literal("leave") }).strict(),
   z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
