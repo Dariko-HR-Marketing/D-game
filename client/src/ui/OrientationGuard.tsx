@@ -9,9 +9,10 @@ export function phoneLandscape(g: any = globalThis as any): boolean {
     const scr = g.screen, w = g.window ?? g; if (!scr) return false;
     const coarse = !!w.matchMedia?.("(pointer: coarse)").matches; const shortSide = Math.min(scr.width ?? 9999, scr.height ?? 9999);
     if (!coarse || shortSide >= 600) return false;
-    const t = scr.orientation?.type; if (typeof t === "string") return t.startsWith("landscape");
-    if (typeof w.orientation === "number") return Math.abs(w.orientation) === 90;
-    return (w.innerWidth ?? 0) > (w.innerHeight ?? 0);
+    const wide = (w.innerWidth ?? 0) > (w.innerHeight ?? 0); // klaviatura tik holatda oynani qisqartirsa ham, qurilma yo'nalishi tik bo'lsa yotiq hisoblanmaydi (ikkalasi ham shart)
+    const t = scr.orientation?.type; if (typeof t === "string") return t.startsWith("landscape") && wide;
+    if (typeof w.orientation === "number") return Math.abs(w.orientation) === 90 && wide;
+    return wide;
   } catch { return false; }
 }
 
