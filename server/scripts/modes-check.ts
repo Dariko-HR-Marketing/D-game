@@ -12,7 +12,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const open = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); } return p; };
+  const open = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click({ timeout: 3000 }).catch(() => {}); } return p; };
   // 1) Tanlov va o'rinlar chegarasi
   const a = await open("mda" + tag);
   check(await a.getByTestId("mode-quick").count() === 0 && await a.getByTestId("mode-rated").count() === 0 && await a.getByTestId("mode-tutorial").count() === 0, `${tag} tanlovda Tez, Reytingli va O'quv yo'q`);

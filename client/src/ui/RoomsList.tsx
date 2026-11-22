@@ -59,7 +59,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch }: 
         const statusChips = (["all", "waiting", "playing"] as const).map((f) => (
         <Pressable key={f} role="radio" aria-checked={status === f} testID={`rooms-status-${f}`} accessibilityLabel={f === "all" ? O.stAll : f === "waiting" ? O.stWaiting : O.stPlaying} onPress={() => setStatus(f)} style={[s.chip, status === f && s.chipOn]}><Text style={[s.chipT, status === f && { color: color.white }]} aria-hidden>{f === "all" ? O.stAll : f === "waiting" ? O.stWaiting : O.stPlaying}</Text></Pressable>));
         return wide ? (<View style={s.filters}><View style={s.chips} role="radiogroup" aria-label={O.colMode}>{typeChips}</View><View style={s.chips} role="radiogroup" aria-label={O.colStatus}>{statusChips}</View></View>)
-          : (<ScrollView horizontal showsHorizontalScrollIndicator={false} tabIndex={0} role="region" aria-label={O.title} contentContainerStyle={s.chipsRow}>
+          : (<ScrollView horizontal showsHorizontalScrollIndicator={false} tabIndex={0} role="region" aria-label={`${O.colStatus} · ${O.colMode}`} contentContainerStyle={s.chipsRow}>
               <View style={s.chipsRow} role="radiogroup" aria-label={O.colStatus}>{statusChips}</View><View style={s.sep} aria-hidden /><View style={s.chipsRow} role="radiogroup" aria-label={O.colMode}>{typeChips}</View>
             </ScrollView>); })()}
       {bad && <Text style={s.err} accessibilityRole="alert">{O.err}</Text>}
