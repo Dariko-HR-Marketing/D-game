@@ -28,7 +28,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["plan", 820, 1180], ["kmp", 1440,
     const ov = await a.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}: gorizontal aylanish yo'q (${ov})`);
   }
   if (tag === "kmp") { // sarlavha: tugmalar uch guruhda, sarlavha qirqilmaydi, xona kodi sarlavha yonida
-    for (const g of ["Hujjatlar va tarix", "Aloqa va ovoz", "Yordam"]) check(await a.getByRole("group", { name: g }).count() === 1, `${tag}: sarlavha guruhi «${g}»`);
+    check(await a.getByRole("group", { name: "Hujjatlar va tarix" }).count() === 1 && await a.getByRole("group", { name: "Aloqa va ovoz" }).count() === 0 && await a.getByRole("group", { name: "Yordam" }).count() === 0, `${tag}: sarlavhada faqat «Hujjatlar va tarix» guruhi (qolganlari profil menyusida)`);
     const tt = await a.getByText("Kichik aylana", { exact: true }).first().boundingBox(); check(!!tt && tt.x >= 0, `${tag}: sarlavha qirqilmagan`);
     await a.setViewportSize({ width: 1024, height: 800 }); await a.waitForTimeout(500);
     check(await a.getByRole("button", { name: "Chat" }).first().innerText().then((s) => s.trim() === "").catch(() => true), `${tag}: tor keng ekranda tugmalar faqat belgi`);
