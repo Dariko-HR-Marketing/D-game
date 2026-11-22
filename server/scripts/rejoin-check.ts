@@ -57,6 +57,6 @@ check(room.members.find((m: any) => m.userId === "rja")!.online === true && !roo
 x.rooms.leave(code, "rjb"); await ctxOf(b0).close(); const b1 = await open("rjb");
 await b1.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
 check(await b1.getByTestId("home-resume").count() === 0, "ixtiyoriy chiqqan: «Davom etayotgan o'yin» chiqmaydi");
-await openRoomsAcc(b1); await b1.getByTestId("rooms-code-input").fill(code); await b1.getByTestId("rooms-code-go").click(); await b1.getByText(/chiqqansiz/).first().waitFor({ timeout: 10000 }).catch(() => {});
+await joinByCode(b1, code); await b1.getByText(/chiqqansiz/).first().waitFor({ timeout: 10000 }).catch(() => {});
 check(await b1.getByText(/chiqqansiz/).count() > 0, "ixtiyoriy chiqqan kod bilan ham qaytolmaydi (xabar ko'rsatiladi)");
 await b.close(); await x.app.close(); console.log(failed ? `REJOIN: ${failed} ta xato` : "REJOIN: hammasi to'g'ri"); process.exit(failed ? 1 : 0);

@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { SpeedPicker } from "./SpeedPicker";
+import { PrivateToggle } from "./PrivateToggle";
 import { replayTour } from "./tourStore";
 import { seatsFor, turnLabel, calcUiEnabled, type CalcMode, type UiMode, GAME_MODES_UI, type TurnSeconds } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
@@ -14,7 +15,7 @@ import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 const D = uz.home.desk;
 const MODE_ICON: Record<UiMode, IconName> = { standard: "board", student: "book" };
 export type DesktopProps = {
-  roomsNode?: React.ReactNode; onPacks?: () => void;
+  roomsNode?: React.ReactNode; priv: boolean; showPriv: boolean; pickPriv: (v: boolean) => void; onPacks?: () => void;
   gated: boolean;   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
   mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; orgCode: string; orgErr: string | null; orgBusy: boolean;
@@ -122,6 +123,7 @@ export function HomeDesktop(p: DesktopProps) {
             <Text style={s.sumH} aria-level={2} accessibilityRole="header">{D.yourRoom}</Text>
             {[[D.rowType, modeName], [D.rowPlayers, p.corp ? D.corpPlayers : `${p.seats} ${D.kishi}`], [D.rowSpeed, p.corp ? "—" : speed], [D.rowDuration, dur]].map(([k, v]) => <View key={k} style={s.sumRow}><Text style={s.sumK}>{k}</Text><Text style={s.sumV}>{v}</Text></View>)}
             <View style={s.sumNote}><Text style={s.sumNoteT}>{p.corp ? uz.home.corporateHint : D.sumBots}</Text></View>
+            {p.showPriv && !p.corp && <PrivateToggle value={p.priv} onChange={p.pickPriv} />}
             <Pressable testID="home-new" role="button" accessibilityLabel={`${uz.home.newGame}: ${startLabel}`} accessibilityState={{ disabled: !online || (p.corp && p.orgCode.length !== 8) }} disabled={!online || (p.corp && p.orgCode.length !== 8)} onPress={p.corp ? p.orgJoin : p.create} style={[s.go, (!online || (p.corp && p.orgCode.length !== 8)) && { opacity: 0.45 }]}><Text style={s.goT}>{startLabel}</Text></Pressable>
             {p.error && <Text style={{ color: color.red, textAlign: "center" }} accessibilityRole="alert">{errText(p.error)}</Text>}
           </View>

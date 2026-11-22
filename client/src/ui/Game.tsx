@@ -36,6 +36,7 @@ import { DecisionCard } from "./DecisionCard";
 import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
 import { TimePanel } from "./TimeBar";
+import { openedExclusive, useExclusiveClose } from "../exclusive";
 import { Countdown, DeadlineRing } from "../useCountdown";
 import { TutorialCoach } from "./TutorialCoach";
 import { OnboardingPlan } from "./OnboardingPlan";
@@ -60,12 +61,13 @@ function CardEnter({ children, id, from = 12, style }: { children: React.ReactNo
 }
 
 /** Yig'iladigan bo'lim; kutayotgan takliflar bo'lsa o'zi ochiladi va belgi (soni) ko'rinadi. */
-function Collapsible({ title, badge, defaultOpen, children }: { title: string; badge?: number; defaultOpen?: boolean; children: React.ReactNode }) {
+function Collapsible({ title, badge, defaultOpen, children, group, id }: { title: string; badge?: number; defaultOpen?: boolean; children: React.ReactNode; group?: string; id?: string }) {
   const [open, setOpen] = useState(!!defaultOpen); const [touched, setTouched] = useState(false);
+  const close = React.useCallback(() => setOpen(false), []); useExclusiveClose(group ?? "-", id ?? title, close);
   useEffect(() => { if (defaultOpen && !touched) setOpen(true); }, [defaultOpen, touched]);
   return (
     <Card>
-      <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => { setTouched(true); setOpen(!open); }} style={s.collHead}>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => { setTouched(true); if (!open && group) openedExclusive(group, id ?? title); setOpen(!open); }} style={s.collHead}>
         <Text style={s.collTitle}>{open ? "▾" : "▸"} {title}</Text>{badge ? <Pill label={String(badge)} kind="warn" /> : null}
       </Pressable>
       {open && children}
@@ -217,7 +219,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
-      <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
+      <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0} group="side" id="acts"><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
       {compact && <PlayersLane room={room} userId={userId} />}

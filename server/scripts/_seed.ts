@@ -33,12 +33,10 @@ export async function dismissReq(p: any): Promise<void> {
   if (await b.count()) await b.first().click().catch(() => {}); await p.waitForTimeout(150);
 }
 
-/** Do'stining xona kodi bilan qo'shilish: «Ochiq o'yinlar» bo'limi ostidagi kod maydoni (buyurtmachi qarori 2026-11-21: bosh sahifadagi alohida «Kod bilan qo'shilish» olib tashlandi). */
+/** Do'stining xona kodi bilan qo'shilish: ulashilgan havola `/?kod=ABC123` orqali (bosh sahifada doimiy kod maydoni yo'q — buyurtmachi qarori 2026-11-22; ro'yxatdagi qulfchani bossa kod so'raladi). */
 export async function joinByCode(p: any, code: string): Promise<void> {
   await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
-  await openRoomsAcc(p); const input = p.getByTestId("rooms-code-input"); await input.waitFor({ timeout: 15000 });
-  await input.fill(code);
-  await p.getByTestId("rooms-code-go").click();
+  await p.goto(new URL(p.url()).origin + "/?kod=" + code);
 }
 
 /** Kompyuter o'yin ekrani: «Qoidalar», «Hisob varag'i» va «Tarix» profil avatari menyusida. Tugma sarlavhada bo'lmasa (kompyuter) menyuni ochib bosadi. */

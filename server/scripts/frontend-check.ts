@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Server `/rooms/open` hali yo'q: brauzerda javob qalbaki beriladi.
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, openRoomsAcc } from "./_seed";
+import { autoProfiles, axeSource, openRoomsAcc, openOpts } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -25,7 +25,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     await c.addInitScript((u: string) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid);
     if (flags) await c.addInitScript(() => localStorage.setItem("tajriba24-features", "rooms,billing"));
     const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
-    if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); await openRoomsAcc(p); } return p;
+    if (tag === "tel") await openRoomsAcc(p); return p;
   };
   // 1) Bayroqsiz: ochiq o'yinlar yoqiq (server tayyor), Paketlar (to'lov) yopiq
   const off = await open("fcoff" + tag, null); await off.getByTestId("open-rooms").waitFor({ timeout: 8000 }); check(await off.getByTestId("room-options").count() === 0 && await off.getByTestId("home-packs").count() === 0, `${tag} bayroqsiz: ro'yxat bor, xona kirishi tanlovi yo'q, Paketlar yo'q (to'lov ulanmagan)`); await off.context().close();
@@ -43,8 +43,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(/Onlayn/.test(await a.getByTestId("room-row").filter({ hasText: "Aziz" }).first().innerText()), `${tag} ochiq xonada «Onlayn» belgisi`);
   await scan(a, `${tag} ro'yxat va xona ko'rinishi`);
   // 3) Jonli: jami sonlar, o'ynalayotganlar ro'yxati va qayta yuklamasdan yangilanish
-  const stats = await a.getByTestId("lobby-stats").innerText(); const sn = stats.replace(/\s+/g, " "); check(/16 Kutmoqda 3 xona/.test(sn) && /2 O'ynayapti 1 xona/.test(sn) && /\d+ Onlayn/.test(sn), `${tag} jami sonlar: kutayotganlar, o'ynayotganlar, onlayn (${stats.replace(/\s+/g, " ")})`);
-  { const pt = (await a.getByTestId("playing-row").allInnerTexts()).join(" | "); check(await a.getByTestId("playing-row").count() === 1 && /Dilnoza[\s\S]*O'ynalmoqda · 1-tur/.test(pt), `${tag} hozir o'ynalayotgan xona jadvalda holati bilan (${pt.replace(/\s+/g, " ")})`); await a.getByTestId("rooms-status-playing").click(); check(await a.getByTestId("room-row").count() === 0 && await a.getByTestId("playing-row").count() === 1, `${tag} holat filtri: faqat o'ynayotganlar`); await a.getByTestId("rooms-status-all").click(); }
+  { const tx = await a.getByTestId(tag === "tel" ? "rooms-acc" : "lobby-stats").innerText(); const sn = tx.replace(/\s+/g, " "); check(/Kutmoqda: 16 o'yinchi · 3 xona/.test(sn), `${tag} faqat kutayotganlar: «${sn}»`); }
+  { const body = await a.locator("body").innerText(); check(!/O'ynayapti|O'ynalmoqda|Onlayn: \d|Hozir o'ynalayotgan/.test(body) && await a.getByTestId("playing-row").count() === 0 && await a.getByTestId("rooms-status-playing").count() === 0, `${tag} o'ynayotgan o'yinlar va onlayn soni ro'yxatda yo'q`); check(await a.getByTestId("rooms-code-input").count() === 0, `${tag} doimiy kod maydoni yo'q (faqat qulfcha bosilganda)`); }
   const liveCode = mkRoom("sE", { visibility: "open" }, 4, 0); await a.getByText(/^Eldor$/).waitFor({ timeout: 5000 }).catch(() => {}); { const n4 = await a.getByTestId("room-row").count(); check(n4 === 4, `${tag} yangi xona ro'yxatga qayta yuklamasdan qo'shildi (jonli) [${n4}]`); }
   await x.rooms.forceClose(liveCode, "test"); await a.getByText(/^Eldor$/).waitFor({ state: "detached", timeout: 5000 }).catch(() => {}); check(await a.getByTestId("room-row").count() === 3, `${tag} xona yopilgach ro'yxatdan jonli yo'qoldi`);
   // 4) Paketlar
@@ -69,7 +69,8 @@ for (const c of seeded) await x.rooms.forceClose(c, "test"); await new Promise((
 // 5) Haqiqiy server: Student xonasi Qulfli yaratiladi, ro'yxatda kodsiz ko'rinadi, ikkinchi o'yinchi kod bilan kiradi
 {
   const mkp = async (uid: string) => { const c = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" }); await c.addInitScript((u: string) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); return p; };
-  const A = await mkp("fcrealA"); await A.getByTestId("mode-student").click();
+  const A = await mkp("fcrealA"); await openOpts(A); await A.getByTestId("mode-student").click();
+  check(await A.getByTestId("room-private").getAttribute("aria-checked") === "true", "haqiqiy server: Student tanlansa «Yopiq xona» galochkasi belgilanadi");
   await A.getByTestId("home-new").click(); await A.waitForSelector("[data-testid=lobby-code]", { timeout: 15000 });
   const room = [...x.rooms.rooms.values()].find((r: any) => r.hostId === "fcrealA") as any;
   check(!!room && room.visibility === "locked" && room.kind === "student" && room.startMode === "host", "haqiqiy server: xona Qulfli, tur Student, boshlash «men»");

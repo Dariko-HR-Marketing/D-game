@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { openedExclusive, useExclusiveClose } from "../exclusive";
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { Pill } from "./kit";
 import { modLine } from "../opsFacts";
@@ -11,7 +12,7 @@ import { uz } from "../i18n/uz";
  */
 export function ModsPanel({ mods }: { mods: any[] }) {
   const ids: string[] = mods.map((m) => String(m.id)); const key = ids.join(",");
-  const [open, setOpen] = useState(false); const seen = useRef<Set<string>>(new Set(ids)); const [hl, setHl] = useState<Set<string>>(new Set());
+  const [open, setOpen] = useState(false); const closeMe = useCallback(() => setOpen(false), []); useExclusiveClose("side", "mods", closeMe); const seen = useRef<Set<string>>(new Set(ids)); const [hl, setHl] = useState<Set<string>>(new Set());
   const fresh = ids.filter((i) => !seen.current.has(i));
   const [announce, setAnnounce] = useState("");
   useEffect(() => { // yangi ta'sir kelganda (panel yopiq) — xabar; ochiq bo'lsa darrov ko'rilgan hisoblanadi
@@ -20,7 +21,7 @@ export function ModsPanel({ mods }: { mods: any[] }) {
     if (f.length) { const m = mods.find((x) => String(x.id) === f[0])!; setAnnounce(f.length === 1 ? uz.ops.mods.freshOne.replace("{text}", modLine(m).text) : uz.ops.mods.freshMany.replace("{n}", String(f.length))); } else setAnnounce("");
   }, [key, open]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!mods.length) return null;
-  const toggle = () => { if (!open) { setHl(new Set(fresh)); ids.forEach((i) => seen.current.add(i)); setAnnounce(""); } setOpen(!open); };
+  const toggle = () => { if (!open) { setHl(new Set(fresh)); ids.forEach((i) => seen.current.add(i)); setAnnounce(""); openedExclusive("side", "mods"); } setOpen(!open); };
   const nFresh = open ? 0 : fresh.length;
   return (
     <View style={s.wrap} testID="mods">

@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, openRoomsAcc, pickDream } from "./_seed";
+import { autoProfiles, openRoomsAcc, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -23,16 +23,19 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
     await a.waitForTimeout(500); const ov = await overflow(a); check(ov.doc <= 4 && ov.inner <= 4, `${tag} bosh sahifa scrollsiz (hujjat ${ov.doc}, ichki ${ov.inner})`);
     check(await a.getByTestId("home-opts").getAttribute("aria-expanded") === "false" && await a.getByTestId("rooms-acc").getAttribute("aria-expanded") === "false", `${tag} «Sozlamalar» va «Ochiq o'yinlar» yig'iq akkordion`);
     check(await a.getByRole("button", { name: "Profil", exact: true }).count() === 1, `${tag} «Profil» faqat bir joyda (pastki menyu)`);
-    check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && (await openRoomsAcc(a), await a.getByTestId("rooms-code-input").count()) === 1, `${tag} alohida «Kod bilan qo'shilish» yo'q, kod maydoni «Ochiq o'yinlar» ichida`);
+    check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && (await a.getByTestId("rooms-code-input").count()) === 0, `${tag} alohida «Kod bilan qo'shilish» va doimiy kod maydoni yo'q`);
     check(await a.getByTestId("home-tiles").count() === 1 && await a.getByRole("button", { name: /^Turnirlar/ }).count() === 1, `${tag} plitkalar: Turnirlar, Sinf, Do'kon`);
     check(await a.getByTestId("seats-4").count() === 0, `${tag} sozlamalar yig'iq turadi`);
     await a.getByTestId("home-opts").click(); check(await a.getByTestId("seats-4").count() === 1 && await a.getByTestId("turn-60").count() === 1, `${tag} «Sozlamalar» ochilganda hammasi bor`);
+    check(await a.getByTestId("rooms-acc").getAttribute("aria-expanded") === "false", `${tag} akkordionlar: «Sozlamalar» ochilganda «Ochiq o'yinlar» yopiq`);
+    await a.getByTestId("rooms-acc").click(); check(await a.getByTestId("home-opts").getAttribute("aria-expanded") === "false" && await a.getByTestId("rooms-acc").getAttribute("aria-expanded") === "true", `${tag} akkordionlar: «Ochiq o'yinlar» ochilganda «Sozlamalar» yopiladi`);
+    await a.getByTestId("home-opts").click();
     const txt = await a.locator("body").innerText(); for (const w of ["Ko'rinish", "Boshlash usuli", "Tezlik", "Men o'zim boshlayman", "To'lganda boshlansin", "Botlar bilan avtomatik"]) check(!txt.includes(w), `${tag} sozlamalarda «${w}» so'zi yo'q`);
     check(await a.getByTestId("room-options").count() === 0, `${tag} xona kirishi/boshlanishi tanlovi umuman yo'q`);
     check(await a.getByTestId("turn-60").count() === 1 && await a.getByTestId("turn-120").count() === 1 && await a.getByTestId("turn-0").count() === 1, `${tag} navbat vaqti: Odatiy, Sekin, Mehrojiddin kartalari`);
   } else {
     check(await a.getByRole("button", { name: "Profil", exact: true }).count() === 1, `${tag} «Profil» faqat bir joyda (chap menyu pastidagi karta)`);
-    check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && await a.getByTestId("rooms-code-input").count() === 1, `${tag} alohida «Kod bilan qo'shilish» yo'q`);
+    check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && await a.getByTestId("rooms-code-input").count() === 0, `${tag} alohida «Kod bilan qo'shilish» va doimiy kod maydoni yo'q`);
   }
   // 2) Qoidalar: akkordion
   await a.getByRole("button", { name: "Qoidalar", exact: true }).first().click(); await a.waitForSelector("text=O'yin qoidalari");
@@ -61,6 +64,26 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
   for (const id of ["rules-open", "history-open", "chat-open", "leave-open"]) check(await a.getByTestId(id).count() === 1, `o'yin (tel): profil menyusida ${id}`);
   check(await a.getByTestId("live-open").count() === 1, "o'yin (tel): «Tahlil» sarlavhada qoladi");
   await a.context().close();
+}
+
+// 6) «Yopiq xona» galochkasi: belgilansa xona ro'yxatda qulfcha bilan chiqadi, kod ko'rsatilmaydi, kodsiz kirib bo'lmaydi
+{
+  const A = await open("layA", 390, 844), B = await open("layB", 1440, 900);
+  await A.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
+  const tg = A.getByTestId("room-private"); check(await tg.count() === 1 && await tg.getAttribute("aria-checked") === "false", "yopiq xona galochkasi bor, Standartda belgilanmagan");
+  await tg.click(); check(await tg.getAttribute("aria-checked") === "true", "galochka belgilandi");
+  await A.getByRole("button", { name: /^Yangi o'yin/ }).click(); await A.waitForSelector("[data-testid=lobby-code]", { timeout: 15000 });
+  const code = (await A.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
+  check(room.visibility === "locked", "serverda xona qulfli (kod bilan)");
+  await B.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 }); await B.getByTestId("room-lock").first().waitFor({ timeout: 10000 }).catch(() => {});
+  check(await B.getByTestId("room-lock").count() >= 1 && !(await B.locator("body").innerText()).includes(code), "ro'yxatda qulfcha ikonkasi bor, kod ko'rinmaydi");
+  await B.getByTestId("room-lock").first().click(); const inp = B.getByLabel("Xona kodi").first(); await inp.waitFor({ timeout: 4000 });
+  check(await B.getByRole("button", { name: "Kirish", exact: true }).isDisabled(), "kodsiz «Kirish» o'chiq: kira olmaydi");
+  await inp.fill("ZZZZZZ"); await B.getByRole("button", { name: "Kirish", exact: true }).click(); await B.waitForTimeout(1500);
+  check(await B.getByTestId("lobby-code").count() === 0 && room.members.filter((m: any) => !m.bot).length === 1, "noto'g'ri kod bilan kirib bo'lmaydi");
+  await joinByCode(B, code); await B.waitForSelector("[data-testid=lobby-code]", { timeout: 15000 });
+  check(room.members.filter((m: any) => !m.bot).length === 2, "to'g'ri kod bilan kirildi");
+  await A.context().close(); await B.context().close();
 }
 // 5) Qat'iy qoida: telefon yotiq holatda o'yinni ko'rsatmaydi — «Telefonni tik tuting»; tik holatda — o'yin; planshet va kompyuterda ko'rsatma yo'q
 {
