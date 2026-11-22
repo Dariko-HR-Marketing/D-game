@@ -28,6 +28,11 @@ function Row({ icon, title, sub, onPress, disabled, primary, testID, compact }: 
     </Pressable>);
 }
 
+function Tile({ icon, title, onPress, testID }: { icon: IconName; title: string; onPress: () => void; testID?: string }) {
+  return (<Pressable testID={testID} accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={({ pressed }) => [s.tile, pressed && { backgroundColor: "#F4F7F8" }]}>
+    <View style={s.tileIco} aria-hidden><Icon name={icon} size={20} color={color.navy} /></View><Text style={s.tileT} numberOfLines={2}>{title}</Text></Pressable>);
+}
+
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
 export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments, onPacks, lobbies, onWatchLobbies }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: "standard" | "quick" | "rated" | "tutorial", opts?: RoomOpts) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void; onPacks?: () => void; lobbies?: Lobbies | null; onWatchLobbies?: (on: boolean) => void }) {
   const [flow, setFlow] = useState(false); const roomsOn = featureOn("rooms"), billingOn = featureOn("billing"); const [ropts, setRopts] = useState<RoomOpts>(() => defaultOpts(getModePref())); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<UiMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [optsOpen, setOptsOpen] = useState(false); const [corp, setCorp] = useState(false); const [orgCode, setOrgCode] = useState(""); const [orgErr, setOrgErr] = useState<string | null>(null); const [orgBusy, setOrgBusy] = useState(false);
@@ -42,7 +47,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
-  const gated = needsTutorial(me); const online = status === "online"; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  const gated = needsTutorial(me); const online = status === "online"; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const slim = compact || winW < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   if (flow) return <OnboardingFlow onDone={() => { markTutorialDone(); setFlow(false); }} />; // majburiy tanishuv: server xonasisiz, tugagach oddiy o'yin ochiladi
   const roomsNode = roomsOn && http && !gated && !corp ? <RoomsList http={http} online={online} onJoin={onJoin} live={lobbies} watch={onWatchLobbies} /> : null; const optsNode = roomsOn && !gated && !corp ? <RoomOptions value={ropts} onChange={setRopts} /> : null;
   if (winW >= 1100) return <HomeDesktop roomsNode={roomsNode} optsNode={optsNode} onPacks={billingOn ? onPacks : undefined} gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
@@ -69,11 +74,11 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
             </View>)}
             {gated && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => setFlow(true)} />}
             {!gated && <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} disabled={!online || corp} />}
-            {!gated && compact && (
+            {!gated && slim && (
               <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
                 <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {`${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
               </Pressable>)}
-            {!gated && (!compact || optsOpen) && (<>
+            {!gated && (!slim || optsOpen) && (<>
             <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
               <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.modeLabel}</Text>
               {GAME_MODES_UI.map((m) => (
@@ -118,13 +123,13 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
             </View>}
             </>)}
             </>)}
-            {optsNode}{roomsNode}
-            <Row compact={compact} icon="book" title={uz.home.rulesRow} sub={uz.home.rulesSub} onPress={onRules} />
-            <Row compact={compact} icon="trophy" title={uz.profile.leaderboard} sub={uz.home.boardSub} onPress={onLeaderboard} />
-            {onTournaments && <Row compact={compact} icon="flag" title="Turnirlar" sub="Homiylar bilan musobaqalar" onPress={onTournaments} />}
-            {billingOn && onPacks && <Row compact={compact} icon="trophy" title={uz.packs.title} sub={uz.packs.lead} onPress={onPacks} />}
-            {onClass && <Row compact={compact} icon="house" title="Sinf" sub="Maktab: sinfga qo'shilish yoki o'qituvchi paneli" onPress={onClass} />}
-            {onShop && <Row compact={compact} icon="star" title="Do'kon va Plus" sub="Ko'rinish uchun narsalar, cheklovsiz xonalar" onPress={onShop} />}
+            {(!slim || optsOpen) && optsNode}{roomsNode}
+            <View style={s.tiles} testID="home-tiles">
+              {onTournaments && <Tile icon="flag" title={uz.home.tiles.tournaments} onPress={onTournaments} />}
+              {onClass && <Tile icon="house" title={uz.home.tiles.cls} onPress={onClass} />}
+              {onShop && <Tile icon="star" title={uz.home.tiles.shop} onPress={onShop} />}
+              {billingOn && onPacks && <Tile icon="trophy" title={uz.packs.title} onPress={onPacks} testID="home-packs" />}
+            </View>
           </View>
           {error && <Text style={s.err} accessibilityRole="alert">{errText(error)}</Text>}
         </View>
@@ -137,6 +142,9 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
 const s = StyleSheet.create({
   learn: { backgroundColor: "#F3F7FA", borderRadius: radius.md, padding: space.md, gap: space.sm, marginVertical: space.sm }, learnH: { color: color.navy, fontWeight: "800", fontSize: font.md },
   learnRow: { flexDirection: "row", gap: space.sm, alignItems: "flex-start" }, learnNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: color.navy, alignItems: "center", justifyContent: "center" }, learnNumT: { color: color.white, fontWeight: "800", fontSize: font.xs }, learnT: { flex: 1, color: color.navy, fontSize: font.sm, lineHeight: 19 },
+  tiles: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingTop: space.md },
+  tile: { flexGrow: 1, flexBasis: "30%", minWidth: 96, minHeight: 72, alignItems: "center", justifyContent: "center", gap: 6, padding: space.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", backgroundColor: color.white },
+  tileIco: { width: 36, height: 36, borderRadius: 12, backgroundColor: "#F4F7F8", alignItems: "center", justifyContent: "center" }, tileT: { color: color.navy, fontWeight: "800", fontSize: font.sm, textAlign: "center" },
   header: { height: 56, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
   brand: { flexDirection: "row", alignItems: "center", gap: space.sm }, logoT: { fontSize: font.lg, fontWeight: "800", color: color.navy, letterSpacing: 0.3 }, avatarBtn: { minWidth: MIN_TAP, minHeight: MIN_TAP, alignItems: "center", justifyContent: "center" },
   scroll: { flexGrow: 1 }, wrap: { gap: space.lg, padding: space.lg, maxWidth: 560, width: "100%", alignSelf: "center" },

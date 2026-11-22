@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, joinByCode } from "./_seed";
+import { autoProfiles, joinByCode, openOpts } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -14,7 +14,7 @@ autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 const open = async (uid: string, w = 390, h = 844, path = "") => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB + path); return p; };
 const a0 = await open("rja"), b0 = await open("rjb"), c0 = await open("rjc");
-await a0.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a0.getByTestId("seats-4").click(); await a0.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a0.waitForSelector("[data-testid=lobby-code]");
+await a0.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await openOpts(a0); await a0.getByTestId("seats-4").click(); await a0.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a0.waitForSelector("[data-testid=lobby-code]");
 const code = (await a0.locator("[aria-label^='Xona kodi']").textContent())!.trim();
 for (const p of [b0, c0]) { await joinByCode(p, code); await p.waitForSelector("text=Xona egasi", { timeout: 8000 }).catch(async () => { console.log("LOBBY-XATO", (await p.innerText("body")).slice(0, 900), "| seats:", x.rooms.rooms.get(code)?.seats, "members:", x.rooms.rooms.get(code)?.members.map((m: any) => m.userId).join(",")); await p.screenshot({ path: "/tmp/rj.png" }); process.exit(2); }); }
 await a0.getByRole("button", { name: "O'yinni boshlash" }).click(); await a0.waitForSelector("text=Orzuingizni tanlang");

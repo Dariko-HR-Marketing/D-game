@@ -44,13 +44,13 @@ export function DiceModal({ room, userId, prompt }: { room: RoomView; userId: st
   }, [prompt, show]);
   if (!show && prompt) return <RollPromptView prompt={prompt} width={width} height={height} />;
   if (!show) return null;
-  const mine = show.playerId === userId, size = Math.round(Math.max(56, Math.min(110, width * 0.22, height * 0.26))); // past (yotiq) ekranda kubik kichrayadi
+  const mine = show.playerId === userId, full = Math.round(Math.max(56, Math.min(110, width * 0.22, height * 0.26))), size = mine ? full : Math.round(full * 0.72); // past (yotiq) ekranda kubik kichrayadi
   const who = mine ? uz.dice.you : uz.dice.by.replace("{name}", nameOf(room, show.playerId));
   const sum = show.dice.length > 1 ? `${show.dice.join(" + ")} = ${show.die}` : String(show.die);
   const card = (
     <View style={[s.card, !mine && s.cardSoft]} testID="dice-card">
       <Text style={s.who}>{who}</Text>
-      <View style={s.row} testID="dice-row">
+      <View style={[s.row, { paddingTop: Math.round(size * 0.72) }]} testID="dice-row">{/* tashlash animatsiyasi kubikni size/2 ko'taradi: karta ichida qolishi uchun yuqorida joy */}
         {show.dice.map((v, i) => <RollingDie key={`${show.n}-${i}`} value={v} n={show.n * 2 + i} size={size} />)}
       </View>
       <Text style={[s.sum, !done && { opacity: 0.35 }]} accessibilityLiveRegion="polite" testID="dice-sum">{done ? `${uz.dice.sum}: ${sum}` : uz.dice.rolling}</Text>

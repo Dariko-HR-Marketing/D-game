@@ -55,12 +55,14 @@ export const pawnSize = (wide: boolean) => (wide ? 30 : 24);
 export const boardPad = (wide: boolean) => Math.round(pawnSize(wide) * 0.75);
 
 /** Taxta o'lchamlari: telefonda tor va baland (10 ustun), planshet/kompyuterda keng (16 ustun). */
-export function boardGeometry(width: number, wide: boolean, n: number, tight = false, compact = false, roomy = false) {
+/** `fillH` (faqat telefon): taxta uchun qolgan balandlik — yon kataklar balandligi shu joyni to'ldirib, yuqori/pastki kataklarga yaqinlashadi (nisbat tenglashadi). */
+export function boardGeometry(width: number, wide: boolean, n: number, tight = false, compact = false, roomy = false, fillH?: number) {
   const cols = n === 48 ? (wide ? 16 : 10) : wide ? 17 : 11;
   const side = n - 2 * cols, rows = Math.ceil(side / 2) + 2; // o'ng ustun chapdan bitta ko'p bo'lishi mumkin
   // tight: past ekran (balandlik kam) — kataklar kichikroq (yozuvlar yashirinadi, ikonka va rang qoladi)
   const c = wide ? Math.max(compact ? 22 : tight ? 34 : 48, Math.min(72, Math.round(width / (cols + 1.2)))) : Math.round(Math.max(36, Math.min(roomy ? 72 : 48, width * 0.128))); // roomy: tik planshet — kataklar kattaroq
-  const sideH = wide ? Math.max(compact ? 20 : tight ? 30 : 40, c * 0.9) : Math.max(19, c * 0.46);
+  const baseSide = wide ? Math.max(compact ? 20 : tight ? 30 : 40, c * 0.9) : Math.max(19, c * 0.46);
+  const sideH = !wide && fillH ? Math.max(baseSide, Math.min(c * 0.8, (fillH - 2 * c) / Math.ceil(side / 2))) : baseSide;
   return { cols, c, W: width, H: Math.round(2 * c + rows * 0 + Math.ceil(side / 2) * sideH) };
 }
 
@@ -78,13 +80,13 @@ const Tile = React.memo(function Tile({ i, x, y, w, h, corner, L, here, dream, s
 });
 
 /** Taxta: kvadrat halqa (soat yo'nalishida), ikonkali kataklar, o'yinchi fishkalari; markazda — kubik/navbat paneli (`children`). */
-export function Board({ room, userId, width, wide, currentId, tight, compact, roomy, viewCircle, movement, children }: { userId?: string; /** viewCircle: ko'ruvchining O'Z aylanasi — taxta shu aylananiki; boshqa aylana o'yinchilari ichki halqada. */ viewCircle?: "small" | "big"; room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; compact?: boolean; roomy?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
+export function Board({ room, userId, width, wide, currentId, tight, compact, roomy, fillH, viewCircle, movement, children }: { fillH?: number; userId?: string; /** viewCircle: ko'ruvchining O'Z aylanasi — taxta shu aylananiki; boshqa aylana o'yinchilari ichki halqada. */ viewCircle?: "small" | "big"; room: RoomView; width: number; wide: boolean; currentId: string | null; tight?: boolean; compact?: boolean; roomy?: boolean; movement?: Record<string, { pos: number; circle: string }>; children?: React.ReactNode }) {
   const players: any[] = room.state.players;
   const anySmall = players.some((p) => p.circle === "small");
   const circle: "small" | "big" = viewCircle ?? (anySmall ? "small" : "big"); // ko'ruvchi kimligi ma'lum bo'lmasa (kuzatuvchi) — eski qoida
   const other: "small" | "big" = circle === "small" ? "big" : "small", otherN = other === "big" ? 53 : 48, otherOffset = other === "big" ? 24 : wide ? 4 : 12;
   const n = circle === "small" ? 48 : 53;
-  const g = boardGeometry(width, wide, n, tight, compact, roomy), { W, H, c } = g;
+  const g = boardGeometry(width, wide, n, tight, compact, roomy, fillH), { W, H, c } = g;
   const offset = circle === "small" ? (wide ? 4 : 12) : 24;
   const tiles = React.useMemo(() => squareRing(n, g.cols, W, H, c), [n, g.cols, W, H, c]);
   const owners = circle === "big" ? bigOwners(players) : null; // katta aylana: kim qaysi biznesni (va orzuni) sotib olgan

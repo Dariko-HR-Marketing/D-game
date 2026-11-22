@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
+import { View, Text, Pressable, TextInput, ScrollView, StyleSheet } from "react-native";
 import { Icon } from "./Icon";
 import type { Http, OpenRoom } from "../net/http";
 import type { Lobbies } from "../net/connection";
@@ -54,16 +54,14 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch }: 
         <View style={s.stat} role="listitem"><Text style={s.statT}>{O.playingStat.replace("{p}", String(st.playing.players)).replace("{r}", String(st.playing.rooms))}</Text></View>
         <View style={s.stat} role="listitem"><Text style={s.statT}>{O.waitingStat.replace("{p}", String(st.waiting.players)).replace("{r}", String(st.waiting.rooms))}</Text></View>
       </View>}
-      <View style={s.filters}>
-        <View style={s.chips} role="radiogroup" aria-label={O.colMode}>
-          {(["all", "standard", "student", "corporate"] as const).map((f) => (
-            <Pressable key={f} role="radio" aria-checked={filter === f} testID={`rooms-filter-${f}`} accessibilityLabel={f === "all" ? O.all : modeName(f)} onPress={() => setFilter(f)} style={[s.chip, filter === f && s.chipOn]}><Text style={[s.chipT, filter === f && { color: color.white }]} aria-hidden>{f === "all" ? O.all : modeName(f)}</Text></Pressable>))}
-        </View>
-        <View style={s.chips} role="radiogroup" aria-label={O.colStatus}>
-          {(["all", "waiting", "playing"] as const).map((f) => (
-            <Pressable key={f} role="radio" aria-checked={status === f} testID={`rooms-status-${f}`} accessibilityLabel={f === "all" ? O.stAll : f === "waiting" ? O.stWaiting : O.stPlaying} onPress={() => setStatus(f)} style={[s.chip, status === f && s.chipOn]}><Text style={[s.chipT, status === f && { color: color.white }]} aria-hidden>{f === "all" ? O.stAll : f === "waiting" ? O.stWaiting : O.stPlaying}</Text></Pressable>))}
-        </View>
-      </View>
+      {(() => { const typeChips = (["all", "standard", "student", "corporate"] as const).map((f) => (
+        <Pressable key={f} role="radio" aria-checked={filter === f} testID={`rooms-filter-${f}`} accessibilityLabel={f === "all" ? O.all : modeName(f)} onPress={() => setFilter(f)} style={[s.chip, filter === f && s.chipOn]}><Text style={[s.chipT, filter === f && { color: color.white }]} aria-hidden>{f === "all" ? O.all : modeName(f)}</Text></Pressable>));
+        const statusChips = (["all", "waiting", "playing"] as const).map((f) => (
+        <Pressable key={f} role="radio" aria-checked={status === f} testID={`rooms-status-${f}`} accessibilityLabel={f === "all" ? O.stAll : f === "waiting" ? O.stWaiting : O.stPlaying} onPress={() => setStatus(f)} style={[s.chip, status === f && s.chipOn]}><Text style={[s.chipT, status === f && { color: color.white }]} aria-hidden>{f === "all" ? O.stAll : f === "waiting" ? O.stWaiting : O.stPlaying}</Text></Pressable>));
+        return wide ? (<View style={s.filters}><View style={s.chips} role="radiogroup" aria-label={O.colMode}>{typeChips}</View><View style={s.chips} role="radiogroup" aria-label={O.colStatus}>{statusChips}</View></View>)
+          : (<ScrollView horizontal showsHorizontalScrollIndicator={false} tabIndex={0} role="region" aria-label={O.title} contentContainerStyle={s.chipsRow}>
+              <View style={s.chipsRow} role="radiogroup" aria-label={O.colStatus}>{statusChips}</View><View style={s.sep} aria-hidden /><View style={s.chipsRow} role="radiogroup" aria-label={O.colMode}>{typeChips}</View>
+            </ScrollView>); })()}
       {bad && <Text style={s.err} accessibilityRole="alert">{O.err}</Text>}
       {rooms === null && !bad && <Text style={s.mut}>{O.loading}</Text>}
       {rooms !== null && list.length === 0 && <Text style={s.mut} testID="rooms-empty">{O.empty}</Text>}
@@ -97,7 +95,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch }: 
 const s = StyleSheet.create({
   box: { gap: space.sm, padding: space.lg, borderRadius: radius.lg, backgroundColor: color.bg, borderWidth: 1, borderColor: color.line },
   head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: space.sm, flexWrap: "wrap" }, h: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, live: { color: color.text2, fontSize: 12 },
-  filters: { gap: space.xs }, chips: { flexDirection: "row", flexWrap: "wrap", gap: space.xs }, chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 2, borderColor: color.line, backgroundColor: color.white, alignItems: "center", justifyContent: "center" }, chipOn: { backgroundColor: color.green, borderColor: color.green }, chipT: { color: color.navy, fontWeight: "700", fontSize: font.sm },
+  filters: { gap: space.xs }, sep: { width: 1, height: 24, backgroundColor: color.line, marginHorizontal: 2 }, chipsRow: { flexDirection: "row", gap: space.xs, alignItems: "center" }, chips: { flexDirection: "row", flexWrap: "wrap", gap: space.xs }, chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 2, borderColor: color.line, backgroundColor: color.white, alignItems: "center", justifyContent: "center" }, chipOn: { backgroundColor: color.green, borderColor: color.green }, chipT: { color: color.navy, fontWeight: "700", fontSize: font.sm },
   table: { borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, overflow: "hidden" },
   tr: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.md, minHeight: 56 }, thr: { minHeight: 40, backgroundColor: "#F4F7F8", borderBottomWidth: 1, borderBottomColor: color.line }, trw: { borderBottomWidth: 1, borderBottomColor: "#EEF2F4" },
   th: { color: color.text2, fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" }, td: { color: color.navy, fontSize: font.md }, tdHost: { fontWeight: "800" },

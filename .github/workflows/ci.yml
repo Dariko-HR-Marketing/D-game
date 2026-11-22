@@ -64,6 +64,7 @@ jobs:
       - run: pnpm --filter @tajriba24/server exec tsx scripts/screens-admin.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/e2e-play.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/identity-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/layout-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/portfolio-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/calc-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/history-check.ts
