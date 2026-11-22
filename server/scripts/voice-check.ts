@@ -44,7 +44,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   check(/o'chirish/.test((await menuLabel(a, "voice-header-mic")) ?? ""), `${tag}: profil menyusida mikrofon bandi (yoniq)`);
   await clickMenuItem(a, "voice-header-mic"); await a.waitForTimeout(400); check(/yoqish/.test((await menuLabel(a, "voice-header-mic")) ?? ""), `${tag}: mikrofon o'chirildi`);
   check(await until(async () => !/gapiryapti/.test(await bb.getByTestId(`voice-peer-${A}`).innerText()), 6000), `${tag}: Sardor jim — Boburda «gapiryapti» yo'q`);
-  await hm.click(); await a.waitForTimeout(300);
+  await clickMenuItem(a, "voice-header-mic"); await a.waitForTimeout(300);
   // 4) Uchinchi: mikrofonga ruxsatsiz — faqat tinglash, baribir ulanadi
   await open(cc); await cc.getByRole("button", { name: "Ovozga qo'shilish" }).click(); await cc.waitForTimeout(800);
   await people(cc);
