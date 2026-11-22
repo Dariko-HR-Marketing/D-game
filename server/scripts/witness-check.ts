@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/witness-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, dismissReq, joinByCode, openOpts, pickDream } from "./_seed";
+import { autoProfiles, slowTimers, dismissReq, joinByCode, openOpts, pickDream, menuLabel } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/witness";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -48,7 +48,7 @@ for (const [tag, w, h] of SIZES) {
   const yes = dlg.getByRole("button", { name: "Ha, guvoh bo'laman" }); check((await yes.count()) === 1, `${tag}: oynada «Ha, guvoh bo'laman» tugmasi bor`);
   const r = (await yes.boundingBox())!; check(r.x >= -1 && r.x + r.width <= w + 1 && r.height >= 40, `${tag}: guvoh tugmasi ekran ichida va ≥ 40 px (${Math.round(r.width)}×${Math.round(r.height)})`);
   await wt.screenshot({ path: `${OUT}/${tag}-guvoh.png` });
-  check((await wt.getByTestId("requests-open").count()) === 1, `${tag}: sarlavhada so'rovlar qo'ng'iroqchasi bor`);
+  check((await menuLabel(wt, "requests-open")) !== null, `${tag}: profil menyusida so'rovlar bandi bor`);
   await g.waitForTimeout(400); await open(g, /Qabul qilish/);
   await g.waitForSelector("text=Qabul qilish", { timeout: 8000 });
   check(await g.getByRole("button", { name: "Qabul qilish" }).first().isDisabled(), `${tag}: guvohlar xabardor bo'lmaguncha beruvchida «Qabul qilish» o'chiq`);

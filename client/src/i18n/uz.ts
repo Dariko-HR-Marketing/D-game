@@ -47,7 +47,7 @@ export const uz = {
       { title: "Moliyaviy holat", text: "Naqd, oylik pul oqimi va passiv daromadingiz shu yerda. Pastda chiqish shartlariga qanchalik yaqinlashganingiz ko'rinadi." },
       { title: "Pul yetmasa", text: "Naqd yetmasa bank krediti beriladi (limit 10 000 sh.b.), so'ng o'zaro qarz va sheriklik mumkin. Bank, qarz, sheriklik va bozor takliflari «Moliya amallari» bo'limida." },
       { title: "Qancha davom etadi", text: "Botlar bilan o'lchovda kichik aylanadan chiqish o'rtacha taxminan {smallYears} yil ({smallMonths} oy, ≈ {smallLaps} aylana) davom etdi. Bu taxminiy raqam; haqiqiy o'yinchilarda farq qiladi." },
-      { title: "Tovush va qoidalar", text: "Tovushni shu tugma bilan yoqasiz yoki o'chirasiz. To'liq qoidalar — «Qoidalar» tugmasida. Omad!" },
+      { title: "Profil menyusi", text: "Tovush, qoidalar, o'yin tarixi, chat, tahlil va yordam shu profil tugmasi ostida. Omad!" },
     ],
     "game-big": [
       { title: "Katta aylanaga chiqdingiz!", text: "Taxtada 53 katak, endi 2 ta kubik tashlanadi. G'alaba uchun uchta shart birga bajarilishi kerak: oylik pul oqimi kamida 100 000, orzu katagiga tushish va naqd orzu narxidan kam bo'lmasligi." },
@@ -375,15 +375,15 @@ export const uz = {
     ] as { t: string; d: string }[],
   },
   openRooms: {
-    title: "Ochiq o'yinlar", empty: "Hozir kutayotgan xona yo'q. O'zingiz yangisini oching.", loading: "Yuklanmoqda…", join: "Qo'shilish", locked: "Qulf · kod", full: "To'lgan", codeFor: "Xona kodi", enter: "Kirish", all: "Hammasi", live: "Ro'yxat real vaqtda yangilanadi", err: "Ro'yxatni yuklab bo'lmadi",
-    online: "Onlayn: {n}", playingStat: "O'ynayotganlar: {p} ({r} xona)", waitingStat: "Kutayotganlar: {p} ({r} xona)", liveTag: "Jonli", playingTitle: "Hozir o'ynalayotgan o'yinlar", playingRow: "{host} · {mode} · {round}-tur · {n} o'yinchi", playingEmpty: "Hozir ochiq o'yin o'ynalmayapti.", showPlaying: "o'ynalayotganlarni ko'rsatish", hidePlaying: "yashirish",
+    title: "Ochiq o'yinlar", empty: "Hozir ochiq xona yo'q. O'zingiz yangisini oching.", loading: "Yuklanmoqda…", join: "Qo'shilish", locked: "Qulf · kod", full: "To'lgan", codeFor: "Xona kodi", enter: "Kirish", all: "Hammasi", live: "Ro'yxat real vaqtda yangilanadi", err: "Ro'yxatni yuklab bo'lmadi",
+    liveTag: "Jonli", 
     stayTitle: "Davom etasizmi?", stayText: "Xonada hali hech kim yo'q. Javob bermasangiz, {s} soniyadan keyin xona yopiladi.", stayYes: "Ha, kutaman", stayNo: "Xonani yopish",
     row: "{host} · {mode} · {speed} · {n}/{max}", lockedLabel: "Qulfli xona: kod kerak",
-    colHost: "Xona egasi", colMode: "Tur", colSpeed: "Vaqt", colPlayers: "O'yinchilar", colStatus: "Holat", colAction: "Amal", statusWaiting: "Kutmoqda", statusPlaying: "O'ynalmoqda", roundN: "{n}-tur",
-    stAll: "Hammasi", stWaiting: "Kutayotganlar", stPlaying: "O'ynayotganlar", codeDirect: "Do'stingiz bergan kod", codeGo: "Xonaga o'tish", codeHint: "Yashirin xonalar ro'yxatda ko'rinmaydi: ularga faqat kod bilan kiriladi.", codeTitle: "Kod bilan",
-    noSpeed: "—",
-    waitSummary: "Kutmoqda: {n} o'yinchi · {r} xona", onlineBtn: "Onlayn", statOnline: "Onlayn", statWaiting: "Kutmoqda", statPlaying: "O'ynayapti", roomsN: "{r} xona",
-    accSettings: "Sozlamalar", accRooms: "Ochiq o'yinlar", accSummary: "Kutayotgan: {w} · O'ynayotgan: {p}", kutaH: "Kutayotganlar", oynaH: "O'ynayotganlar",
+    colHost: "Xona egasi", colMode: "Tur", colSpeed: "Vaqt", colPlayers: "O'yinchilar", colAction: "Amal", 
+    
+    
+    roomsCount: "{r} ta xona", noRooms: "Xona yo'q", onlineBtn: "Onlayn", 
+    accSettings: "Sozlamalar", accRooms: "Ochiq o'yinlar", 
   },
   packs: {
     title: "Paketlar", back: "Orqaga", lead: "Asosiy o'yin hamma uchun bepul. Pullik paketlar o'yin natijasiga ta'sir qilmaydi.", priceTbd: "Narx aniqlanadi", buy: "Sotib olish", current: "Hozirgi paket", soon: "Tez orada", pay: "Payme, Click, Humo va Uzcard kartalari · korporativ karta ham mumkin",

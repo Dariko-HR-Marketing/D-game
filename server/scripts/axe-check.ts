@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // Oldindan: `pnpm --filter @tajriba24/client export:web` va `cd client/dist && python3 -m http.server 8081`.
 // Ishga tushirish: `cd server && pnpm a11y`  (CHROMIUM=/opt/pw-browsers/chromium, WEB=http://localhost:8081)
 import { chromium } from "playwright-core";
-import { autoProfiles, axeSource, joinByCode, pickDream } from "./_seed";
+import { autoProfiles, axeSource, joinByCode, pickDream, clickMenuItem } from "./_seed";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { buildApp } from "../src/app";
@@ -35,7 +35,7 @@ for (const [w, h] of [[390, 844], [844, 390], [768, 1024], [1024, 768], [1440, 9
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await scan(a, `xona ${tag}`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await scan(a, `orzu tanlash ${tag}`);
-  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 }); await a.getByTestId("tour-help").click(); await a.getByRole("dialog").waitFor(); await scan(a, `yo'riqnoma ${tag}`);
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 }); await clickMenuItem(a, "tour-help"); await a.getByRole("dialog").waitFor(); await scan(a, `yo'riqnoma ${tag}`);
   { // klaviatura: fokus oynadan chiqmaydi, Esc yopadi
     let out = 0; for (let k = 0; k < 8; k++) { await a.keyboard.press("Tab"); if (!(await a.evaluate(() => !!document.activeElement?.closest('[role="dialog"]')))) out++; }
     await a.keyboard.press("Escape"); await a.waitForTimeout(200); const still = await a.getByRole("dialog").count();

@@ -18,6 +18,22 @@ export function squareRing(n: number, cols: number, W: number, H: number, c: num
   const lh = (H - 2 * c) / left; for (let j = left - 1; j >= 0; j--) out.push({ x: 0, y: c + j * lh, w: c, h: lh, corner: false });
   return out;
 }
+/** Taxta shakli: yuqori/pastki qatordagi (burchaklar bilan) va yon ustunlardagi kataklar soni; `offset` — 0-katak yo'lning qaysi o'rnida turishi.
+ *  Qoida (buyurtmachi, 2026-11-22): to'rtta DAROMAD katagi («D» — kichik, «Yana pullar» — katta aylana) taxtaning to'rt burchagiga tushadi. Yo'l oralig'i: kichik 9/15/9/15, katta 15/11/16/11 — shakllar shunga moslab tanlangan. */
+export interface RingShape { t: number; b: number; l: number; r: number; offset: number }
+const SHAPES = { s48w: { t: 16, b: 16, l: 8, r: 8, offset: 4 }, s48n: { t: 10, b: 10, l: 14, r: 14, offset: 37 }, s53w: { t: 17, b: 16, l: 10, r: 10, offset: 27 }, s53n: { t: 12, b: 12, l: 14, r: 15, offset: 38 } } as const satisfies Record<string, RingShape>;
+export const ringShape = (n: number, wide: boolean): RingShape => (n === 48 ? (wide ? SHAPES.s48w : SHAPES.s48n) : (wide ? SHAPES.s53w : SHAPES.s53n)); // doimiy obyekt: React.useMemo har chizishda qayta hisoblamaydi
+/** Yo'ldagi burchak indekslari (soat yo'nalishida: yuqori-chap, yuqori-o'ng, pastki-o'ng, pastki-chap). */
+export const ringCorners = (s: RingShape): number[] => [0, s.t - 1, s.t + s.r, s.t + s.r + s.b - 1];
+/** `squareRing`ning umumlashmasi: yuqori va pastki qatorlarda kataklar soni har xil bo'lishi mumkin. */
+export function ringTiles(s: RingShape, W: number, H: number, c: number): Tile[] {
+  const out: Tile[] = [], tw = (W - 2 * c) / (s.t - 2), bw = (W - 2 * c) / (s.b - 2), rh = (H - 2 * c) / s.r, lh = (H - 2 * c) / s.l;
+  for (let i = 0; i < s.t; i++) { const corner = i === 0 || i === s.t - 1; out.push({ x: corner ? (i === 0 ? 0 : W - c) : c + (i - 1) * tw, y: 0, w: corner ? c : tw, h: c, corner }); }
+  for (let j = 0; j < s.r; j++) out.push({ x: W - c, y: c + j * rh, w: c, h: rh, corner: false });
+  for (let i = s.b - 1; i >= 0; i--) { const corner = i === 0 || i === s.b - 1; out.push({ x: corner ? (i === 0 ? 0 : W - c) : c + (i - 1) * bw, y: H - c, w: corner ? c : bw, h: c, corner }); }
+  for (let j = s.l - 1; j >= 0; j--) out.push({ x: 0, y: c + j * lh, w: c, h: lh, corner: false });
+  return out;
+}
 /** Katak indeksi → yo'l indeksi. `offset`: 0-katak (START) yo'lning qaysi o'rnida turishi. */
 export const pathIndex = (cell: number, n: number, offset: number) => (((cell + offset) % n) + n) % n;
 

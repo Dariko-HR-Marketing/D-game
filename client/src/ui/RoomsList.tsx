@@ -35,7 +35,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
       <TextInput aria-label={O.codeFor} placeholder="ABC123" placeholderTextColor="#6B7C8C" value={code} onChangeText={(t) => setCode(t.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} autoCapitalize="characters" style={s.input} />
       <Pressable role="button" accessibilityLabel={O.enter} disabled={code.length !== 6} onPress={() => onJoin(code)} style={[s.btn, code.length !== 6 && { opacity: 0.45 }]}><Text style={s.btnT}>{O.enter}</Text></Pressable>
     </View>);
-  const rowLabel = (r: Row) => `${r.host}, ${modeName(r.mode)}, ${r.waiting ? `${r.speed}, ${r.players}/${r.seats}${r.locked ? `, ${O.lockedLabel}` : ""}` : `${O.statusPlaying}, ${O.roundN.replace("{n}", String(r.round))}, ${r.players}`}`;
+  const rowLabel = (r: Row) => `${r.host}, ${modeName(r.mode)}, ${r.speed}, ${r.players}/${r.seats}${r.locked ? `, ${O.lockedLabel}` : ""}`;
   const inner = (<>
       {(() => { const typeChips = (["all", "standard", "student", "corporate"] as const).map((f) => (
         <Pressable key={f} role="radio" aria-checked={filter === f} testID={`rooms-filter-${f}`} accessibilityLabel={f === "all" ? O.all : modeName(f)} onPress={() => setFilter(f)} style={[s.chip, filter === f && s.chipOn]}><Text style={[s.chipT, filter === f && { color: color.white }]} aria-hidden>{f === "all" ? O.all : modeName(f)}</Text></Pressable>));
@@ -79,7 +79,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
           </View>))}
       </View>)}
   </>);
-  const sum = st ? O.waitSummary.replace("{n}", String(st.waiting.players)).replace("{r}", String(st.waiting.rooms)) : O.loading;
+  const sum = rooms === null ? O.loading : rooms.length ? O.roomsCount.replace("{r}", String(rooms.length)) : O.noRooms;
   if (collapsible) return (
     <View testID="open-rooms" role="region" aria-label={O.title} onLayout={(e) => setWide(e.nativeEvent.layout.width >= 640)}>
       <Acc icon="list" title={O.accRooms} summary={`${isLive ? "● " : ""}${sum}`} open={openProp ?? acc} onToggle={onToggleOpen ?? (() => setAcc((v) => !v))} testID="rooms-acc" label={`${O.accRooms}. ${sum}`}><View style={{ gap: space.sm }}>{inner}</View></Acc>

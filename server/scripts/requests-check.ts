@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/requests-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode, pickDream } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, pickDream, clickMenuItem, menuLabel } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/requests";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -32,12 +32,12 @@ for (const [tag, w, h] of SIZES) {
   check((await dlg.getByRole("button", { name: "Ha, qarz beraman" }).count()) === 1 && (await dlg.getByRole("button", { name: "Yo'q, rad etaman" }).count()) === 1, `${tag}: «Ha» va «Yo'q» tugmalari bor`);
   await dlg.getByRole("button", { name: "Keyinroq" }).click(); await c.waitForTimeout(300);
   check((await c.getByTestId("request-modal").count()) === 0, `${tag}: «Keyinroq» oynani yopdi`);
-  const bell = c.getByTestId("requests-open"); check((await bell.count()) === 1 && /1/.test(await bell.innerText() + (await bell.getAttribute("aria-label"))), `${tag}: qo'ng'iroqchada raqam qoldi`);
-  await bell.click(); await c.getByTestId("request-modal").waitFor({ timeout: 4000 }); check(true, `${tag}: qo'ng'iroqcha oynani qaytardi`);
+  check(/1/.test((await menuLabel(c, "requests-open")) ?? ""), `${tag}: profil menyusida so'rovlar bandi va raqam qoldi`);
+  await clickMenuItem(c, "requests-open"); await c.getByTestId("request-modal").waitFor({ timeout: 4000 }); check(true, `${tag}: qo'ng'iroqcha oynani qaytardi`);
   await c.screenshot({ path: `${OUT}/${tag}-oyna.png` });
   await c.getByTestId("request-modal").getByRole("button", { name: "Yo'q, rad etaman" }).click(); await new Promise((r) => setTimeout(r, 600));
   check(!(room.state!.proposals as any[]).some((p) => p.kind === "loan"), `${tag}: «Yo'q» taklifni o'chirdi`);
-  check((await c.getByTestId("request-modal").count()) === 0 && (await c.getByTestId("requests-open").count()) === 0, `${tag}: javobdan keyin oyna va qo'ng'iroqcha yo'qoldi`);
+  check((await c.getByTestId("request-modal").count()) === 0 && (await menuLabel(c, "requests-open")) === null, `${tag}: javobdan keyin oyna va so'rovlar bandi yo'qoldi`);
   check((await c.getByRole("button", { name: "O'yindan chiqish" }).count()) === 0, `${tag}: pastda «O'yindan chiqish» tugmasi yo'q`);
   await c.getByTestId("profile-menu-open").click(); await c.getByTestId("profile-menu").waitFor();
   const lv = c.getByRole("menuitem", { name: "O'yindan chiqish" }); check((await lv.count()) === 1, `${tag}: profil menyusida «O'yindan chiqish» bor`);

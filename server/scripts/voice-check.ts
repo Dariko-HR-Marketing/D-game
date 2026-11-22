@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/voice-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, slowTimers, joinByCode, clickMenuItem, pickDream } from "./_seed";
+import { autoProfiles, axeSource, slowTimers, joinByCode, clickMenuItem, pickDream, menuLabel } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/voice";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -41,8 +41,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   check(await until(async () => /gapiryapti/.test(await peerA.innerText()), 20000), `${tag}: ${"Bobur"} gapirishi Sardorda ko'rinadi (audio keldi)`);
   // 3) Mikrofonni o'chirish: sarlavhadagi tugma
   await a.getByTestId("chat-close").click(); await a.waitForTimeout(300);
-  const hm = a.getByTestId("voice-header-mic"); check(await hm.getAttribute("aria-checked") === "true", `${tag}: sarlavhada mikrofon tugmasi (yoniq)`);
-  await hm.click(); await a.waitForTimeout(400); check(await hm.getAttribute("aria-checked") === "false", `${tag}: mikrofon o'chirildi`);
+  check(/o'chirish/.test((await menuLabel(a, "voice-header-mic")) ?? ""), `${tag}: profil menyusida mikrofon bandi (yoniq)`);
+  await clickMenuItem(a, "voice-header-mic"); await a.waitForTimeout(400); check(/yoqish/.test((await menuLabel(a, "voice-header-mic")) ?? ""), `${tag}: mikrofon o'chirildi`);
   check(await until(async () => !/gapiryapti/.test(await bb.getByTestId(`voice-peer-${A}`).innerText()), 6000), `${tag}: Sardor jim — Boburda «gapiryapti» yo'q`);
   await hm.click(); await a.waitForTimeout(300);
   // 4) Uchinchi: mikrofonga ruxsatsiz — faqat tinglash, baribir ulanadi

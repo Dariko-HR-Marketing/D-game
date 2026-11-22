@@ -33,8 +33,8 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
       await acc.first().getByRole("button").click(); if (!/Passiv daromad/.test(await acc.first().innerText())) { failed++; console.log("XATO: akkordeon ochilmadi"); }
       await acc.nth(1).getByRole("button").click(); if (/Passiv daromad/.test(await acc.first().innerText())) { failed++; console.log("XATO: boshqa o'yinchi ochilganda oldingisi yopilmadi"); }
       await p.keyboard.press("Escape"); await p.waitForTimeout(300); if (await p.getByTestId("players-drawer").count()) { failed++; console.log("XATO: Esc yon oynani yopmadi"); }
-      await p.getByTestId("profile-menu-open").click(); for (const id of ["rules-open", "sheet-open", "history-open", "leave-open"]) if (!(await p.getByTestId(id).count())) { failed++; console.log(`XATO: profil menyusida ${id} yo'q`); }
-      if (await p.locator("header [data-testid=sheet-open]").count()) { failed++; console.log("XATO: Hisob varag'i sarlavhada qolgan"); }
+      await p.getByTestId("profile-menu-open").click(); for (const id of ["rules-open", "history-open", "live-open", "leave-open"]) if (!(await p.getByTestId(id).count())) { failed++; console.log(`XATO: profil menyusida ${id} yo'q`); }
+      if (!(await p.getByTestId("sheet-open").count()) || !(await p.getByTestId("portfolio-open").count())) { failed++; console.log("XATO: «Hisob varag'i» va «Mening kartalarim» sarlavhada yo'q"); }
       await p.keyboard.press("Escape"); await p.waitForTimeout(200);
     }
   }

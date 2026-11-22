@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Animatsiya tekshiruvi (harakat kamaytirilmagan holda): kubik 3D aylanadi va natija yuzida to'xtaydi; fishka har bir katak ustidan yuradi;
 // karta fishka yetib kelgachgina chiqadi; tovush tugmasi ishlaydi. `OUT=papka pnpm tsx scripts/motion-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles, joinByCode, pickDream } from "./_seed";
+import { autoProfiles, joinByCode, pickDream, clickMenuItem, menuLabel } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -22,9 +22,9 @@ await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await p
 await a.waitForSelector("text=Naqd", { timeout: 60000 }); for (const p of [a, c]) { const s = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await s.count()) await s.click(); }
 
 // Tovush tugmasi: o'chirish/yoqish va holat saqlanishi
-const tog = a.getByTestId("sound-toggle"); check((await tog.getAttribute("aria-checked")) === "true", "tovush boshida yoqilgan");
-await tog.click(); await a.waitForTimeout(150); check((await tog.getAttribute("aria-checked")) === "false" && (await a.evaluate(() => JSON.parse(localStorage.getItem("tajriba24-sound")!).muted)) === true, "tovush o'chirilganda holat saqlanadi");
-await tog.click(); await a.waitForTimeout(150); check((await tog.getAttribute("aria-checked")) === "true", "tovush qayta yoqiladi");
+check(/o'chirish/.test((await menuLabel(a, "sound-toggle")) ?? ""), "tovush boshida yoqilgan (menyuda «Tovushni o'chirish»)");
+await clickMenuItem(a, "sound-toggle"); await a.waitForTimeout(150); check(/yoqish/.test((await menuLabel(a, "sound-toggle")) ?? "") && (await a.evaluate(() => JSON.parse(localStorage.getItem("tajriba24-sound")!).muted)) === true, "tovush o'chirilganda holat saqlanadi");
+await clickMenuItem(a, "sound-toggle"); await a.waitForTimeout(150); check(/o'chirish/.test((await menuLabel(a, "sound-toggle")) ?? ""), "tovush qayta yoqiladi");
 
 // Tashlashlar: kubik va fishka kuzatiladi; karta chiqquncha takrorlanadi (karta fishka yetib kelgach chiqishi tekshiriladi)
 type Fr = { t: number; x: number; y: number; card: boolean; cube: string };

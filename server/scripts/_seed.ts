@@ -65,3 +65,12 @@ export async function pickDream(p: any): Promise<void> {
   await btn().click();
   for (let i = 0; i < 3; i++) { await p.waitForTimeout(1200); if (!(await btn().count()) || !(await btn().isVisible().catch(() => false))) return; await btn().click({ timeout: 4000 }).catch(() => {}); }
 }
+
+/** Profil menyusidagi bandning yorlig'i (holatni ko'rsatadi): menyu ochilib, o'qilgach yopiladi. Band yo'q bo'lsa null. */
+export async function menuLabel(p: any, testId: string): Promise<string | null> {
+  const it = p.getByTestId(testId); let opened = false;
+  if (!(await it.count())) { await p.getByTestId("profile-menu-open").click(); opened = true; await p.waitForTimeout(150); }
+  const lab = (await it.count()) ? await it.getAttribute("aria-label") : null;
+  if (opened) { await p.keyboard.press("Escape"); await p.waitForTimeout(150); }
+  return lab;
+}
