@@ -14,7 +14,7 @@ import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 const D = uz.home.desk;
 const MODE_ICON: Record<UiMode, IconName> = { standard: "board", student: "book" };
 export type DesktopProps = {
-  roomsNode?: React.ReactNode; optsNode?: React.ReactNode; onPacks?: () => void;
+  roomsNode?: React.ReactNode; onPacks?: () => void;
   gated: boolean;   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
   mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; orgCode: string; orgErr: string | null; orgBusy: boolean;
@@ -107,7 +107,6 @@ export function HomeDesktop(p: DesktopProps) {
 
               <StepTitle n={3} t={D.stepSpeed} sub={D.speedSub} />
               <SpeedPicker value={p.effTurn} onChange={p.pickTurn} />
-              {p.optsNode}
               {calcUiEnabled() && (<>
                 <StepTitle n={4} t={uz.ledger.modeLabel} />
                 <View style={s.speeds} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">

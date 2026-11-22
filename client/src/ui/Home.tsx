@@ -11,7 +11,7 @@ import { RoomsList } from "./RoomsList";
 import { Acc } from "./Accordion";
 import { SpeedPicker } from "./SpeedPicker";
 import type { Lobbies } from "../net/connection";
-import { RoomOptions, defaultOpts, type RoomOpts } from "./RoomOptions";
+import { defaultOpts, type RoomOpts } from "./RoomOptions";
 import { featureOn } from "../features";
 import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, serverMode, type UiMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
@@ -52,8 +52,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   const gated = needsTutorial(me); const online = status === "online"; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   const SUM = `${uz.home.modes[mode]} · ${uz.home.seatsOpt.replace("{n}", String(seats))} · ${turnLabel(effTurn)}${calcUiEnabled() ? ` · ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}` : ""}`;
   if (flow) return <OnboardingFlow onDone={() => { markTutorialDone(); setFlow(false); }} />; // majburiy tanishuv: server xonasisiz, tugagach oddiy o'yin ochiladi
-  const roomsNode = roomsOn && http && !gated && !corp ? <RoomsList http={http} online={online} onJoin={onJoin} live={lobbies} watch={onWatchLobbies} collapsible={winW < 1100} /> : null; const optsNode = roomsOn && !gated && !corp ? <RoomOptions value={ropts} onChange={setRopts} /> : null;
-  if (winW >= 1100) return <HomeDesktop roomsNode={roomsNode} optsNode={optsNode} onPacks={billingOn ? onPacks : undefined} gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
+  const roomsNode = roomsOn && http && !gated && !corp ? <RoomsList http={http} online={online} onJoin={onJoin} live={lobbies} watch={onWatchLobbies} collapsible={winW < 1100} /> : null;
+  if (winW >= 1100) return <HomeDesktop roomsNode={roomsNode} onPacks={billingOn ? onPacks : undefined} gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
     pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
     create={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} startTutorial={() => setFlow(true)} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
@@ -118,7 +118,6 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
                               <Text style={[s.segT, calc === v && { color: color.white }]} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Pressable>))}
                         </View>
                       </View>}
-                      {optsNode}
                     </>)}
                   </View>
                 </Acc>

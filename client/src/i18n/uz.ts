@@ -382,10 +382,7 @@ export const uz = {
     colHost: "Xona egasi", colMode: "Tur", colSpeed: "Vaqt", colPlayers: "O'yinchilar", colStatus: "Holat", colAction: "Amal", statusWaiting: "Kutmoqda", statusPlaying: "O'ynalmoqda", roundN: "{n}-tur",
     stAll: "Hammasi", stWaiting: "Kutayotganlar", stPlaying: "O'ynayotganlar", codeDirect: "Do'stingiz bergan kod", codeGo: "Xonaga o'tish", codeHint: "Yashirin xonalar ro'yxatda ko'rinmaydi: ularga faqat kod bilan kiriladi.", codeTitle: "Kod bilan",
     noSpeed: "—",
-    vis: "Kirish", visHint: { open: "Ro'yxatda, hamma bosib qo'shiladi.", locked: "Ro'yxatda qulfcha bilan, faqat kod bilan kiriladi.", hidden: "Ro'yxatda yo'q, faqat kod bilan kiriladi." } as Record<string, string>,
-    visName: { open: "Hamma uchun", locked: "Kod bilan", hidden: "Ro'yxatsiz" } as Record<string, string>,
-    start: "Boshlanishi", startName: { host: "Qo'lda", full: "To'lsa", bots: "Botlar bilan" } as Record<string, string>,
-    startHint: { host: "Xona egasi tugmani bosganda o'yin boshlanadi.", full: "Barcha o'rinlar to'lgach o'yin o'zi boshlanadi.", bots: "Odam yetmasa, qolgan o'rinlarni botlar egallab o'yin o'zi boshlanadi." } as Record<string, string>,
+    onlineBtn: "Onlayn", statOnline: "Onlayn", statWaiting: "Kutmoqda", statPlaying: "O'ynayapti", roomsN: "{r} xona",
     accSettings: "Sozlamalar", accRooms: "Ochiq o'yinlar", accSummary: "Kutayotgan: {w} · O'ynayotgan: {p}", kutaH: "Kutayotganlar", oynaH: "O'ynayotganlar",
   },
   packs: {

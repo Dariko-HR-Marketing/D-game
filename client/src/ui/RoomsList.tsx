@@ -36,9 +36,9 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
     ...(data?.playing ?? []).map((p): Row => ({ key: `p${p.id}`, id: p.id, waiting: false, host: p.host, mode: p.mode, speed: O.noSpeed, players: p.players, seats: null, round: p.round, locked: false })),
   ];
   const list = all.filter((r) => (filter === "all" || r.mode === filter) && (status === "all" || (status === "waiting") === r.waiting)); const st = data?.stats;
-  const action = (r: Row) => { if (!r.waiting) return null; const full = r.players >= r.seats!; const open = ask === r.id;
-    return <Pressable role="button" accessibilityLabel={`${full ? O.full : r.locked ? O.locked : O.join}: ${r.host}`} disabled={!online || full} onPress={() => (r.locked || !r.code ? setAsk(open ? null : r.id) : onJoin(r.code))} style={[s.btn, r.locked && s.btnLock, (!online || full) && { opacity: 0.45 }]}>
-      {r.locked && !full && <Icon name="lock" size={14} color={color.navy} />}<Text style={[s.btnT, r.locked && { color: color.navy }]}>{full ? O.full : r.locked ? O.locked : O.join}</Text></Pressable>; };
+  const action = (r: Row) => { if (!r.waiting) return null; const full = r.players >= r.seats!; const open = ask === r.id; const lock = r.locked && !full;
+    return <Pressable role="button" accessibilityLabel={`${full ? O.full : r.locked ? O.locked : O.join}: ${r.host}`} disabled={!online || full} onPress={() => (r.locked || !r.code ? setAsk(open ? null : r.id) : onJoin(r.code))} style={[s.btn, lock && s.btnLock, (!online || full) && { opacity: 0.45 }]} testID={lock ? "room-lock" : undefined}>
+      {full ? <Text style={s.btnT}>{O.full}</Text> : lock ? <Icon name="lock" size={20} color={color.navy} /> : <><View style={s.onDot} aria-hidden /><Text style={s.btnT}>{O.onlineBtn}</Text></>}</Pressable>; };
   const state = (r: Row) => <View style={[s.pill, r.waiting ? s.pillW : s.pillP]}><Text style={[s.pillT, r.waiting ? { color: "#0E6B4A" } : { color: "#7A4B00" }]}>{r.waiting ? O.statusWaiting : `${O.statusPlaying} · ${O.roundN.replace("{n}", String(r.round))}`}</Text></View>;
   const seatsOf = (r: Row) => r.seats ? <View style={s.seatRow} aria-hidden>{Array.from({ length: r.seats }, (_, i) => <View key={i} style={[s.dot, i < r.players && s.dotOn]} />)}</View> : null;
   const ask_ = (r: Row) => ask === r.id && (
@@ -49,9 +49,9 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
   const rowLabel = (r: Row) => `${r.host}, ${modeName(r.mode)}, ${r.waiting ? `${r.speed}, ${r.players}/${r.seats}${r.locked ? `, ${O.lockedLabel}` : ""}` : `${O.statusPlaying}, ${O.roundN.replace("{n}", String(r.round))}, ${r.players}`}`;
   const inner = (<>
       {st && <View style={s.stats} role="list" aria-label={O.title} testID="lobby-stats">
-        <View style={s.stat} role="listitem"><Text style={s.statT}>{O.online.replace("{n}", String(data?.online ?? 0))}</Text></View>
-        <View style={s.stat} role="listitem"><Text style={s.statT}>{O.playingStat.replace("{p}", String(st.playing.players)).replace("{r}", String(st.playing.rooms))}</Text></View>
-        <View style={s.stat} role="listitem"><Text style={s.statT}>{O.waitingStat.replace("{p}", String(st.waiting.players)).replace("{r}", String(st.waiting.rooms))}</Text></View>
+        <View style={s.stat} role="listitem"><Text style={s.statN}>{data?.online ?? 0}</Text><Text style={s.statL}>{O.statOnline}</Text></View>
+        <View style={s.stat} role="listitem"><Text style={s.statN}>{st.waiting.players}</Text><Text style={s.statL}>{O.statWaiting}</Text><Text style={s.statS}>{O.roomsN.replace("{r}", String(st.waiting.rooms))}</Text></View>
+        <View style={s.stat} role="listitem"><Text style={s.statN}>{st.playing.players}</Text><Text style={s.statL}>{O.statPlaying}</Text><Text style={s.statS}>{O.roomsN.replace("{r}", String(st.playing.rooms))}</Text></View>
       </View>}
       {(() => { const typeChips = (["all", "standard", "student", "corporate"] as const).map((f) => (
         <Pressable key={f} role="radio" aria-checked={filter === f} testID={`rooms-filter-${f}`} accessibilityLabel={f === "all" ? O.all : modeName(f)} onPress={() => setFilter(f)} style={[s.chip, filter === f && s.chipOn]}><Text style={[s.chipT, filter === f && { color: color.white }]} aria-hidden>{f === "all" ? O.all : modeName(f)}</Text></Pressable>));
@@ -93,7 +93,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
               </View>
               {r.waiting ? action(r) : state(r)}
             </View>
-            {r.waiting && <View style={s.liSeats}><Text style={s.liLock}>{r.speed} · {r.players}/{r.seats}</Text>{seatsOf(r)}{r.locked && <Text style={s.liLock}>· {O.lockedLabel}</Text>}</View>}
+            {r.waiting && <View style={s.liSeats}><Text style={s.liLock}>{r.speed} · {r.players}/{r.seats}</Text>{seatsOf(r)}</View>}
             {ask_(r)}
           </View>))}
       </View>)}
@@ -125,11 +125,11 @@ const s = StyleSheet.create({
   th: { color: color.text2, fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" }, td: { color: color.navy, fontSize: font.md }, tdHost: { fontWeight: "800" },
   card: { gap: space.xs, padding: space.md, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line },
   line: { flexDirection: "row", alignItems: "center", gap: space.sm }, askRow: { paddingHorizontal: space.md, paddingBottom: space.sm },
-  btn: { minHeight: 44, minWidth: 96, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: color.green, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }, btnLock: { backgroundColor: color.gold }, btnT: { color: color.white, fontWeight: "800", fontSize: font.sm },
+  btn: { minHeight: 44, minWidth: 96, flexShrink: 0, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: color.green, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }, btnLock: { backgroundColor: color.gold, minWidth: 56 }, onDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#8EF0B8" }, btnT: { color: color.white, fontWeight: "800", fontSize: font.sm },
   input: { flex: 1, minWidth: 0, width: 0, minHeight: 44, borderRadius: radius.md, borderWidth: 1, borderColor: color.line, paddingHorizontal: space.md, color: color.navy, fontSize: font.md, fontWeight: "700", letterSpacing: 2, backgroundColor: color.white },
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill }, pillW: { backgroundColor: "#E7F4EE" }, pillP: { backgroundColor: "#FFF1D6" }, pillT: { fontSize: 12, fontWeight: "800" },
   seatRow: { flexDirection: "row", gap: 3, flexWrap: "wrap", flexShrink: 1 }, dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#DCE3E8" }, dotOn: { backgroundColor: color.green },
-  stats: { flexDirection: "row", flexWrap: "wrap", gap: space.xs }, stat: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: "#E7F4EE" }, statT: { color: "#0E6B4A", fontWeight: "800", fontSize: 12 },
+  stats: { flexDirection: "row", gap: space.sm }, stat: { flex: 1, alignItems: "center", paddingVertical: space.sm, paddingHorizontal: 4, borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line }, statN: { color: color.navy, fontWeight: "800", fontSize: font.xl, fontVariant: ["tabular-nums"] }, statL: { color: "#0E6B4A", fontWeight: "800", fontSize: 12 }, statS: { color: color.text2, fontSize: 11 },
   codeBox: { gap: space.xs, paddingTop: space.sm, borderTopWidth: 1, borderTopColor: color.line }, codeL: { color: color.navy, fontWeight: "800", fontSize: font.sm },
   mut: { color: color.text2, fontSize: font.sm }, err: { color: color.red, fontSize: font.sm, fontWeight: "700" },
 });
