@@ -58,5 +58,16 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
   check(await a.getByTestId("live-open").count() === 1, "o'yin (tel): «Tahlil» sarlavhada qoladi");
   await a.context().close();
 }
+// 5) Qat'iy qoida: telefon yotiq holatda o'yinni ko'rsatmaydi — «Telefonni tik tuting»; tik holatda — o'yin; planshet va kompyuterda ko'rsatma yo'q
+{
+  const mk = async (w: number, h: number, mobile: boolean) => { const c = await b.newContext({ viewport: { width: w, height: h }, isMobile: mobile, hasTouch: mobile, reducedMotion: "reduce" }); await c.addInitScript(() => { localStorage.setItem("tajriba24-dev-user", "layo"); localStorage.setItem("tajriba24-tours-off", "1"); }); const p = await c.newPage(); await p.goto(WEB); return p; };
+  const ph = await mk(844, 390, true); await ph.waitForTimeout(1200);
+  check(await ph.getByTestId("orient-guard").count() === 1 && /Telefonni tik tuting/.test(await ph.getByTestId("orient-guard").innerText()), "telefon yotiq: «Telefonni tik tuting» ko'rsatmasi, o'yin yotiq ko'rinishga o'tmaydi");
+  await ph.setViewportSize({ width: 390, height: 844 }); await ph.waitForTimeout(800);
+  check(await ph.getByTestId("orient-guard").count() === 0, "telefon tik holatga qaytdi: ko'rsatma yo'qoldi");
+  await ph.context().close();
+  const tb = await mk(1024, 768, true); await tb.waitForTimeout(1200); check(await tb.getByTestId("orient-guard").count() === 0, "planshet yotiq: ko'rsatma yo'q (qoida faqat telefon uchun)"); await tb.context().close();
+  const dk = await mk(1440, 900, false); await dk.waitForTimeout(800); check(await dk.getByTestId("orient-guard").count() === 0, "kompyuter: ko'rsatma yo'q"); await dk.context().close();
+}
 await b.close(); await x.app.close();
 console.log(failed ? `XATO: ${failed}` : "hammasi o'tdi"); process.exit(failed ? 1 : 0);

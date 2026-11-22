@@ -242,6 +242,7 @@ export const uz = {
     partner_declined: "sheriklik taklifingizni rad etdi",
   },
   hod7: { pay: "Pul to'layman", lose: "Biznesdan voz kechaman" },
+  orient: { title: "Telefonni tik tuting", text: "Tajriba 24 telefonda faqat tik (portret) holatda o'ynaladi. Telefonni to'g'rilang — o'yin shu joyidan davom etadi." },
   rules: { groups: { play: "O'yin tartibi", money: "Pul, qarz va sheriklik", circles: "Aylanalar va g'alaba", more: "Qo'shimcha" } as Record<string, string>, ruleWord: "qoida", title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
   leave: {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
