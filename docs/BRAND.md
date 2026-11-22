@@ -71,3 +71,10 @@ Asosiy yadro: o'quv o'yini, standart va tez rejim, sinf (o'qituvchi paneli), kor
 | 4 | **Oilaviy xona**: ota-ona va farzand birga, ota-ona nazoratida | 16 yoshgacha segment | Yurist tasdig'ida (buyurtmachi: huquqiy masala aniq) va ota-ona roziligi oqimi |
 | 5 | **«Hayotda qo'llash» ro'yxati** o'yindan keyin (masalan, 3 oylik zaxira fondi rejasi) | Bilimni haqiqiy hayotga bog'laydi | Moliyaviy maslahat emas — o'quv matn; mas'uliyatdan voz kechish matni kerak |
 | 6 | Birinchi 5 daqiqa voronkasi o'lchovi va va'da matnini A/B sinash | Qaysi variant (P1–P5) ishlashini ma'lumot bilan hal qiladi | Faqat shaxssiz analitika |
+
+## 7. Yakuniy brend (2026-11-22, buyurtmachi paketi «Tajriba24 — yakuniy brend paketi»)
+- **Rasmiy nom:** «Tajriba24» (raqamdan oldin bo'sh joy yo'q); logotipning o'zida kichik harfli `tajriba24`. Izoh satri: «Moliyaviy savodxonlik o'yini». Ilgari yozilgan «Tajriba 24» mijoz, server (SMS, email, buyurtma nomlari), admin va PWA matnlarida «Tajriba24»ga almashtirildi.
+- **Ranglar:** to'q ko'k `#08263E` (asosiy; eski `#082238` o'rniga hamma joyda), zumrad `#00A86B` (belgi va tire; logotip va OG rasmida), oq `#FFFFFF`. Interfeysdagi tugma va kichik matn yashili AA kontrast uchun avvalgi to'qroq `#11835A`/`#0E6B4A` bo'lib qoldi (oq fonda `#00A86B` 3:1 — matn uchun yetmaydi).
+- **Logotip variantlari:** `client/public/brand/*.svg` (veb) va `client/assets/brand/*.png` (ilova); komponent `client/src/ui/Logo.tsx` (`full`/`mark`, `tone`: och fon uchun `light`, to'q fon uchun `dark`). Tavsiya etilgan minimal eni: to'liq logotip 144 px — sarlavhalarda balandlik 42–46 px (kenglik ≥ 144 px). Shakl cho'zilmaydi.
+- **Ikonkalar:** `client/public/favicon.ico`, `client/public/icons/*` (16, 32, 180, 192, 512), `client/assets/*` (ilova, Android adaptiv, splash), Open Graph rasmi `client/public/og.png` (1200×630, to'q fonda logotip va izoh satri).
+- **Qayerda:** bosh sahifa (telefon va kompyuter), kirish va ro'yxatdan o'tish (to'q fon — oq yozuvli variant), landing, ism kiritish, yuklanish ekrani, brauzer yorlig'i, PWA manifest (`theme_color` `#08263E`), SEO.

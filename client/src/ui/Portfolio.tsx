@@ -19,7 +19,7 @@ const LOOK = {
   stake: { bg: "#EADFF7", border: "#B79AD8", fg: "#4A2A78" }, other: { bg: "#EDF0F3", border: "#C3CBD3", fg: "#1B2733" },
 };
 const lookOf = (a: AssetRow) => (a.kind === "shares" ? LOOK.paper : a.kind === "partner_stake" || a.stakeOfName ? LOOK.stake : ["land", "dacha", "apartment"].includes(a.sub ?? "") ? LOOK.estate : a.kind === "business" || a.sub === "small_business" || a.sub === "business" ? LOOK.biz : LOOK.other);
-const SEG = ["#082238", "#11835A", "#2C6DB5", "#F2B233", "#9E2A30", "#7B4FA3", "#E07A2F", "#4A5B6C"];
+const SEG = ["#08263E", "#11835A", "#2C6DB5", "#F2B233", "#9E2A30", "#7B4FA3", "#E07A2F", "#4A5B6C"];
 const sg = (n: number) => (n > 0 ? "+" : "") + money(n);
 
 function Chip({ label, kind = "plain" }: { label: string; kind?: "good" | "bad" | "warn" | "info" | "plain" }) {
@@ -193,7 +193,7 @@ export function PortfolioDetail({ room, userId, onClose }: { room: any; userId: 
 
 const s = StyleSheet.create({
   deposits: { gap: space.xs, marginTop: space.sm },
-  card: { backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: "#E6ECEF", shadowColor: "#082238", shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  card: { backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.md, borderWidth: 1, borderColor: "#E6ECEF", shadowColor: "#08263E", shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }, h: { color: color.navy, fontWeight: "800", fontSize: font.lg }, muted: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
   tileWrap: { width: "48.5%", flexGrow: 1, minWidth: 130 },

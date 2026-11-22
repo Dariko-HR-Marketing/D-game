@@ -100,7 +100,7 @@ function RollingDie({ value, n, size }: { value: number; n: number; size: number
 
 const s = StyleSheet.create({
   layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 },
-  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,34,56,0.45)" },
+  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,38,62,0.45)" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.lg },
   card: { backgroundColor: color.white, borderRadius: radius.lg + 4, paddingVertical: space.lg, paddingHorizontal: space.xl, alignItems: "center", gap: space.sm, minWidth: 240, maxWidth: 420, ...shadow, shadowOpacity: 0.3, shadowRadius: 28, borderWidth: 2, borderColor: color.navy },
   cardSoft: { borderWidth: 1, borderColor: "#D5DEE4", opacity: 0.96 },

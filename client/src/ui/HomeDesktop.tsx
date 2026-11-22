@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
 import { SpeedPicker } from "./SpeedPicker";
+import { PrivateToggle } from "./PrivateToggle";
 import { replayTour } from "./tourStore";
 import { seatsFor, turnLabel, calcUiEnabled, type CalcMode, type UiMode, GAME_MODES_UI, type TurnSeconds } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
@@ -14,7 +15,7 @@ import { color, font, MIN_TAP, night, radius, space, tone } from "../theme";
 const D = uz.home.desk;
 const MODE_ICON: Record<UiMode, IconName> = { standard: "board", student: "book" };
 export type DesktopProps = {
-  roomsNode?: React.ReactNode; onPacks?: () => void;
+  roomsNode?: React.ReactNode; priv: boolean; showPriv: boolean; pickPriv: (v: boolean) => void; onPacks?: () => void;
   gated: boolean;   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
   mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; orgCode: string; orgErr: string | null; orgBusy: boolean;
@@ -37,7 +38,7 @@ export function HomeDesktop(p: DesktopProps) {
   return (
     <View style={{ flex: 1, flexDirection: "row", backgroundColor: color.bg }}>
       <View style={s.side} role="navigation" aria-label={uz.home.nav}>
-        <View style={s.brand}><Logo size={34} /><View><Text style={s.brandT}>{uz.app.name}</Text><Text style={s.brandS}>{D.brandSub}</Text></View></View>
+        <View style={s.brand}><View style={{ gap: 4 }}><Logo height={46} /><Text style={s.brandS}>{D.brandSub}</Text></View></View>
         <View style={{ gap: 4, marginTop: space.lg }}>{nav.map((n) => (
           <Pressable key={n.k} accessibilityRole="button" aria-current={n.cur ? "page" : undefined} accessibilityLabel={n.label} onPress={n.on} style={[s.navI, n.cur && s.navOn]}><Icon name={n.icon} size={20} color={n.cur ? color.green : tone.muted} /><Text style={[s.navT, n.cur && { color: "#0E6B4A" }]}>{n.label}</Text></Pressable>))}</View>
         <View style={{ flex: 1 }} />
@@ -122,6 +123,7 @@ export function HomeDesktop(p: DesktopProps) {
             <Text style={s.sumH} aria-level={2} accessibilityRole="header">{D.yourRoom}</Text>
             {[[D.rowType, modeName], [D.rowPlayers, p.corp ? D.corpPlayers : `${p.seats} ${D.kishi}`], [D.rowSpeed, p.corp ? "—" : speed], [D.rowDuration, dur]].map(([k, v]) => <View key={k} style={s.sumRow}><Text style={s.sumK}>{k}</Text><Text style={s.sumV}>{v}</Text></View>)}
             <View style={s.sumNote}><Text style={s.sumNoteT}>{p.corp ? uz.home.corporateHint : D.sumBots}</Text></View>
+            {p.showPriv && !p.corp && <PrivateToggle value={p.priv} onChange={p.pickPriv} />}
             <Pressable testID="home-new" role="button" accessibilityLabel={`${uz.home.newGame}: ${startLabel}`} accessibilityState={{ disabled: !online || (p.corp && p.orgCode.length !== 8) }} disabled={!online || (p.corp && p.orgCode.length !== 8)} onPress={p.corp ? p.orgJoin : p.create} style={[s.go, (!online || (p.corp && p.orgCode.length !== 8)) && { opacity: 0.45 }]}><Text style={s.goT}>{startLabel}</Text></Pressable>
             {p.error && <Text style={{ color: color.red, textAlign: "center" }} accessibilityRole="alert">{errText(p.error)}</Text>}
           </View>
@@ -146,7 +148,7 @@ export function HomeDesktop(p: DesktopProps) {
 const StepTitle = ({ n, t, sub }: { n: number; t: string; sub?: string }) => (<View style={s.stepT}><View style={s.stepN} aria-hidden><Text style={s.stepNT}>{n}</Text></View><Text style={s.stepL} aria-level={2} accessibilityRole="header">{t}</Text>{sub ? <Text style={s.stepS}>— {sub}</Text> : null}</View>);
 
 const s = StyleSheet.create({
-  side: { width: 248, backgroundColor: color.white, borderRightWidth: 1, borderRightColor: "#E6ECEF", padding: space.md, gap: 2 }, brand: { flexDirection: "row", alignItems: "center", gap: space.sm, padding: space.sm }, brandT: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, brandS: { color: tone.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.6 },
+  side: { width: 248, backgroundColor: color.white, borderRightWidth: 1, borderRightColor: "#E6ECEF", padding: space.md, gap: 2 }, brand: { flexDirection: "row", alignItems: "center", gap: space.sm, padding: space.sm }, brandT: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, brandS: { color: tone.muted, fontSize: 12, fontWeight: "800", letterSpacing: 0.2 },
   navI: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.md, borderRadius: radius.md }, navOn: { backgroundColor: "#E7F4EE" }, navT: { color: tone.muted, fontWeight: "700", fontSize: font.md },
   me: { flexDirection: "row", alignItems: "center", gap: space.sm, padding: space.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF" }, meN: { color: color.navy, fontWeight: "800" }, meS: { color: tone.muted, fontSize: font.xs },
   main: { padding: space.xl, gap: space.md, maxWidth: 1180, width: "100%", alignSelf: "center" }, top: { flexDirection: "row", alignItems: "center", gap: space.md }, h1: { color: color.navy, fontSize: 32, fontWeight: "800" }, lead: { color: tone.muted, fontSize: font.md, maxWidth: 560 },

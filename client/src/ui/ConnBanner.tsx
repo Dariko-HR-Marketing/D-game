@@ -28,7 +28,7 @@ export function ConnBanner({ st }: { st: Pick<ConnState, "status" | "lost" | "re
 }
 const s = StyleSheet.create({
   wrap: { position: "absolute", top: 4, left: space.md, right: space.md, alignItems: "center", zIndex: 95, height: HEADER_H - 8, justifyContent: "center" },
-  pill: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, minHeight: 40, borderRadius: radius.pill, borderWidth: 2, maxWidth: 560, shadowColor: "#082238", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
+  pill: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, minHeight: 40, borderRadius: radius.pill, borderWidth: 2, maxWidth: 560, shadowColor: "#08263E", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
   down: { backgroundColor: surface.bad, borderColor: tone.bad }, ok: { backgroundColor: surface.good, borderColor: tone.good },
   dot: { width: 10, height: 10, borderRadius: 5 }, t: { fontSize: font.md, fontWeight: "800" },
 });

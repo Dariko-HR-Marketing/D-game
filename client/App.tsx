@@ -102,7 +102,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const [stale, setStale] = useState(false);
   useEffect(() => { let first: string | null = null; let off = false; const tick = () => { http.status().then((r: any) => { if (off || !r?.build) return; if (first === null) first = r.build; else if (r.build !== first) setStale(true); }).catch(() => {}); }; tick(); const h = setInterval(tick, 45_000); return () => { off = true; clearInterval(h); }; }, [http]);
   useEffect(() => { const un = conn.subscribe(paced(setSt)); conn.connect(); return () => { un(); conn.close(); }; }, [conn]);
-  useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "Tajriba 24"; } }, []);
+  useEffect(() => { const d = (globalThis as any).document; if (d) { d.documentElement.lang = "uz"; d.title = "Tajriba24"; } }, []);
   useEffect(() => { if (st.error === "unauthorized") onLogout(); }, [st.error]);
   useForeground(() => conn.resume(), () => conn.markLost()); // ilovadan/ustundan qaytilganda yoki tarmoq qaytganda: «Aloqa uzildi» → qayta ulanish
   const voice = useMemo(() => new VoiceEngine({ selfId: userId, send: (m) => conn.send(m), iceServers: async () => (await http.voiceConfig()).iceServers }), [conn, http, userId]);

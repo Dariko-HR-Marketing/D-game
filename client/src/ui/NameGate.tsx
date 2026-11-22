@@ -27,7 +27,7 @@ export function NameGate({ http, onDone, initial }: { http: Http; onDone: () => 
   return (
     <ScrollView style={{ backgroundColor: night.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
       <View style={s.card}>
-        <View style={s.logoRow}><Logo size={36} /><Text style={s.brand}>Tajriba<Text style={{ color: night.accent, fontWeight: "800" }}> 24</Text></Text></View>
+        <View style={s.logoRow}><Logo height={46} tone="dark" /></View>
         {preparing ? (
           <View style={{ gap: space.sm, paddingVertical: space.lg }} accessibilityLiveRegion="polite"><Text style={s.h} aria-level={1} accessibilityRole="header">{uz.gate.preparing}</Text></View>
         ) : (<>

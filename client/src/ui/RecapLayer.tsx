@@ -81,7 +81,7 @@ export function RecapLayer({ room, userId, onAck, onBreak, onLeave }: { room: Ro
   );
 }
 const s = StyleSheet.create({
-  layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 120 }, backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,34,56,0.62)" },
+  layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 120 }, backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,38,62,0.62)" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.md },
   card: { width: "100%", maxWidth: 560, backgroundColor: color.white, borderRadius: radius.lg + 4, borderWidth: 2, borderColor: color.red, padding: space.lg, gap: space.md, ...shadow, shadowOpacity: 0.3, shadowRadius: 28 },
   cardRow: { flexDirection: "row", maxWidth: 820, gap: space.lg }, actionsSide: { width: 270, borderTopWidth: 0, borderLeftWidth: 1, borderLeftColor: color.line, paddingTop: 0, paddingLeft: space.md, justifyContent: "center" },

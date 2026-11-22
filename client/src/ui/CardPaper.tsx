@@ -39,7 +39,7 @@ export function CardPaper({ look, deck, text, rows }: { look: CardLook; deck?: s
   );
 }
 const s = StyleSheet.create({
-  paper: { backgroundColor: color.white, borderRadius: radius.lg, borderWidth: 2, overflow: "hidden", alignSelf: "stretch", shadowColor: "#082238", shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  paper: { backgroundColor: color.white, borderRadius: radius.lg, borderWidth: 2, overflow: "hidden", alignSelf: "stretch", shadowColor: "#08263E", shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   band: { flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm + 2, borderBottomWidth: 2 },
   badge: { width: 40, height: 40, borderRadius: radius.md, borderWidth: 1, backgroundColor: color.white, alignItems: "center", justifyContent: "center" },
   eyebrow: { fontSize: 12, fontWeight: "800", letterSpacing: 1 }, title: { fontSize: font.lg, fontWeight: "800" },

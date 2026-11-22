@@ -5,7 +5,7 @@ import { stepMs } from "../motionConfig";
 import { SMALL_BOARD } from "@tajriba24/rules";
 import { color, font, PLAYER_COLORS, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
-import { pathIndex, squareRing, labelSize, type Tile } from "../boardLayout";
+import { pathIndex, squareRing, ringTiles, ringShape, labelSize, type Tile } from "../boardLayout";
 import { BIG_CELLS } from "../bigBoard";
 import { Icon, type IconName } from "./Icon";
 import { nameOf, exitProgress } from "../model";
@@ -57,13 +57,12 @@ export const boardPad = (wide: boolean) => Math.round(pawnSize(wide) * 0.75);
 /** Taxta o'lchamlari: telefonda tor va baland (10 ustun), planshet/kompyuterda keng (16 ustun). */
 /** `fillH` (faqat telefon): taxta uchun qolgan balandlik — yon kataklar balandligi shu joyni to'ldirib, yuqori/pastki kataklarga yaqinlashadi (nisbat tenglashadi). */
 export function boardGeometry(width: number, wide: boolean, n: number, tight = false, compact = false, roomy = false, fillH?: number) {
-  const cols = n === 48 ? (wide ? 16 : 10) : wide ? 17 : 11;
-  const side = n - 2 * cols, rows = Math.ceil(side / 2) + 2; // o'ng ustun chapdan bitta ko'p bo'lishi mumkin
+  const shape = ringShape(n, wide), cols = shape.t, rows = Math.max(shape.l, shape.r);
   // tight: past ekran (balandlik kam) — kataklar kichikroq (yozuvlar yashirinadi, ikonka va rang qoladi)
   const c = wide ? Math.max(compact ? 22 : tight ? 34 : 48, Math.min(72, Math.round(width / (cols + 1.2)))) : Math.round(Math.max(36, Math.min(roomy ? 72 : 48, width * 0.128))); // roomy: tik planshet — kataklar kattaroq
   const baseSide = wide ? Math.max(compact ? 20 : tight ? 30 : 40, c * 0.9) : Math.max(19, c * 0.46);
-  const sideH = !wide && fillH ? Math.max(baseSide, Math.min(c * 0.8, (fillH - 2 * c) / Math.ceil(side / 2))) : baseSide;
-  return { cols, c, W: width, H: Math.round(2 * c + rows * 0 + Math.ceil(side / 2) * sideH) };
+  const sideH = !wide && fillH ? Math.max(baseSide, Math.min(c * 0.8, (fillH - 2 * c) / rows)) : baseSide;
+  return { cols, shape, c, W: width, H: Math.round(2 * c + rows * sideH) };
 }
 
 /** Bitta katak: faqat o'z xossalari o'zgarganda qayta chiziladi (har holat yangilanishida 48–53 katak qayta chizilmasin). */
@@ -87,8 +86,8 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
   const other: "small" | "big" = circle === "small" ? "big" : "small", otherN = other === "big" ? 53 : 48, otherOffset = other === "big" ? 24 : wide ? 4 : 12;
   const n = circle === "small" ? 48 : 53;
   const g = boardGeometry(width, wide, n, tight, compact, roomy, fillH), { W, H, c } = g;
-  const offset = circle === "small" ? (wide ? 4 : 12) : 24;
-  const tiles = React.useMemo(() => squareRing(n, g.cols, W, H, c), [n, g.cols, W, H, c]);
+  const offset = g.shape.offset; // to'rtta daromad katagi burchaklarda (boardLayout.ringShape)
+  const tiles = React.useMemo(() => ringTiles(g.shape, W, H, c), [g.shape, W, H, c]);
   const owners = circle === "big" ? bigOwners(players) : null; // katta aylana: kim qaysi biznesni (va orzuni) sotib olgan
   const [sel, setSel] = useState<number | null>(null); const openCell = React.useCallback((i: number) => setSel(i), []);
   const info: CellInfoData | null = sel === null ? null : circle === "small" ? smallCellInfo(sel) : (() => { // bosilgan katak tushuntirishi

@@ -33,12 +33,14 @@ export async function dismissReq(p: any): Promise<void> {
   if (await b.count()) await b.first().click().catch(() => {}); await p.waitForTimeout(150);
 }
 
-/** Do'stining xona kodi bilan qo'shilish: «Ochiq o'yinlar» bo'limi ostidagi kod maydoni (buyurtmachi qarori 2026-11-21: bosh sahifadagi alohida «Kod bilan qo'shilish» olib tashlandi). */
+/** Do'stining xona kodi bilan qo'shilish: ulashilgan havola `/?kod=ABC123` orqali (bosh sahifada doimiy kod maydoni yo'q — buyurtmachi qarori 2026-11-22; ro'yxatdagi qulfchani bossa kod so'raladi). */
 export async function joinByCode(p: any, code: string): Promise<void> {
   await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
-  await openRoomsAcc(p); const input = p.getByTestId("rooms-code-input"); await input.waitFor({ timeout: 15000 });
-  await input.fill(code);
-  await p.getByTestId("rooms-code-go").click();
+  const url = new URL(p.url()).origin + "/?kod=" + code;
+  for (let i = 0; i < 3; i++) { // yangi sahifa yuklanganda tarmoq xatosi bo'lsa (kirish ekrani chiqsa) qayta yuklanadi
+    await p.goto(url); await p.waitForTimeout(2000);
+    if (!(await p.getByRole("button", { name: /^Tizimga kirish/i }).count())) return;
+  }
 }
 
 /** Kompyuter o'yin ekrani: «Qoidalar», «Hisob varag'i» va «Tarix» profil avatari menyusida. Tugma sarlavhada bo'lmasa (kompyuter) menyuni ochib bosadi. */
@@ -46,7 +48,7 @@ export async function clickMenuItem(p: any, testId: string): Promise<void> {
   for (let i = 0; i < 4; i++) { // o'yin holati yangilanganda menyu qayta chizilib, bosish bekor bo'lishi mumkin: qayta uriniladi
     const direct = p.getByTestId(testId);
     if (!(await direct.count())) { await p.getByTestId("profile-menu-open").click({ timeout: 8000 }).catch(() => {}); await direct.waitFor({ timeout: 4000 }).catch(() => {}); }
-    try { await direct.click({ timeout: 5000 }); return; } catch (e) { if (i === 3) throw e; await p.waitForTimeout(300); }
+    try { await direct.click({ timeout: i === 0 ? 2500 : 5000 }); return; } catch (e) { if (i === 3) throw e; /* boshqa o'yinchining «karta tortdi» oynasi to'sib turishi mumkin: yopamiz */ const xb = p.getByRole("button", { name: "Yopish", exact: true }); if (await xb.count()) await xb.first().click({ timeout: 1500 }).catch(() => {}); await p.waitForTimeout(300); }
   }
 }
 
@@ -66,4 +68,13 @@ export async function pickDream(p: any): Promise<void> {
   const btn = () => p.getByRole("button", { name: "Tanlash" }).first();
   await btn().click();
   for (let i = 0; i < 3; i++) { await p.waitForTimeout(1200); if (!(await btn().count()) || !(await btn().isVisible().catch(() => false))) return; await btn().click({ timeout: 4000 }).catch(() => {}); }
+}
+
+/** Profil menyusidagi bandning yorlig'i (holatni ko'rsatadi): menyu ochilib, o'qilgach yopiladi. Band yo'q bo'lsa null. */
+export async function menuLabel(p: any, testId: string): Promise<string | null> {
+  const it = p.getByTestId(testId); let opened = false;
+  if (!(await it.count())) { await p.getByTestId("profile-menu-open").click(); opened = true; await p.waitForTimeout(150); }
+  const lab = (await it.count()) ? await it.getAttribute("aria-label") : null;
+  if (opened) { await p.keyboard.press("Escape"); await p.waitForTimeout(150); }
+  return lab;
 }

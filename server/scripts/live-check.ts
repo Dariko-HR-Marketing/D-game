@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { currentPlayer, effectOf } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode, pickDream } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, pickDream, clickMenuItem } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/live";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -32,7 +32,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yotiq", 844, 390], ["plan", 1024
   }
   await unblock(); await a.waitForTimeout(800);
   for (const [n, pg] of [["a", a], ["b", c]] as const) {
-    await pg.getByTestId("live-open").click(); await pg.getByTestId("live-analytics").waitFor({ timeout: 8000 }); await pg.getByTestId("live-tab-overview").waitFor({ timeout: 10000 });
+    await unblock(); await pg.waitForSelector("text=/TUG.ILDI/", { state: "detached", timeout: 9000 }).catch(() => {}); for (let k = 0; k < 3; k++) { const xb = pg.getByRole("button", { name: "Yopish", exact: true }); if (await xb.count()) await xb.first().click({ timeout: 2000 }).catch(() => {}); await pg.waitForTimeout(300); } await clickMenuItem(pg, "live-open"); await pg.getByTestId("live-analytics").waitFor({ timeout: 8000 }); await pg.getByTestId("live-tab-overview").waitFor({ timeout: 10000 });
     check(true, `${tag}/${n}: jonli tahlil ochildi`);
     check((await pg.getByTestId("live-players").locator("[data-testid^=live-player-]").count()) === 2, `${tag}/${n}: ikkala o'yinchi ro'yxatda`);
     for (const t of TABS) {

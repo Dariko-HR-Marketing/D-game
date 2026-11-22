@@ -57,9 +57,8 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
           <View aria-hidden pointerEvents="none" style={[s.glow, { bottom: -110, right: -110 }]} />
           <View style={{ gap: wide ? space.xl : space.md }} testID="login-intro">
             <View style={s.logoRow}>
-              <Logo size={wide ? 48 : 36} />
-              <View style={{ flexShrink: 1 }}>
-                <Text style={[s.brandName, wide && { fontSize: 26 }]}>Tajriba<Text style={{ color: night.accent, fontWeight: "800" }}> 24</Text></Text>
+              <View style={{ flexShrink: 1, gap: 4 }}>
+                <Logo height={wide ? 56 : 42} tone="dark" />
                 <Text style={s.brandLabel}>{uz.login.brandLabel}</Text>
               </View>
             </View>

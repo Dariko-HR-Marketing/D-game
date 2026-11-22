@@ -3,7 +3,7 @@ import { Api, ApiError } from "./api";
 import { ERRORS, t } from "./uz";
 
 export const css = `
-:root{--navy:#082238;--green:#11835A;--green-t:#0E6B4A;--red:#9E2A30;--gold:#F2B233;--bg:#F4F7F8;--line:#DCE3E8;--t2:#4A5B6C;--warn:#8A5A00;--s-good:#E7F4EE;--s-bad:#F8E8E9;--s-warn:#FFF6DD;--s-info:#E8F0F8}
+:root{--navy:#08263E;--green:#11835A;--green-t:#0E6B4A;--red:#9E2A30;--gold:#F2B233;--bg:#F4F7F8;--line:#DCE3E8;--t2:#4A5B6C;--warn:#8A5A00;--s-good:#E7F4EE;--s-bad:#F8E8E9;--s-warn:#FFF6DD;--s-info:#E8F0F8}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--navy);line-height:1.45}
 h1,h2,h3{margin:0}h2{font-size:20px}h3{font-size:16px}
 .shell{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
@@ -22,7 +22,7 @@ button.p{background:var(--green);color:#fff;border-color:var(--green)}button.d{b
 input,select,textarea{font:inherit;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff;color:var(--navy);width:100%}
 textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;min-height:320px;line-height:1.5;resize:vertical}
 label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(8,34,56,.05)}.card>h2{margin-bottom:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(8,38,62,.05)}.card>h2{margin-bottom:12px}
 .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}.grow{flex:1;min-width:200px}.stack{display:flex;flex-direction:column;gap:12px}
 .tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--t2);font-size:12px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
 tr:last-child td{border-bottom:0}td.num{text-align:right;font-variant-numeric:tabular-nums}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--t2)}.muted{color:var(--t2)}
@@ -30,7 +30,7 @@ tr:last-child td{border-bottom:0}td.num{text-align:right;font-variant-numeric:ta
 .banner{border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px}.banner.good{background:var(--s-good);color:var(--green-t)}.banner.bad{background:var(--s-bad);color:var(--red)}.banner.warn{background:var(--s-warn);color:var(--warn)}.banner.info{background:var(--s-info);color:var(--navy)}.pill.plain{background:#EEF2F5;color:var(--t2)}.banner ul{margin:6px 0 0;padding-left:20px;font-weight:600}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}.stat{background:var(--bg);border-radius:12px;padding:14px}.stat b{display:block;font-size:clamp(20px,2.1vw,26px);white-space:nowrap}.stat span{font-size:12px;color:var(--t2);font-weight:700}
 .bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden;min-width:80px}.bar i{display:block;height:100%;background:var(--green)}
-dialog{border:0;border-radius:16px;padding:24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,34,56,.35);color:var(--navy)}dialog::backdrop{background:rgba(8,34,56,.5)}
+dialog{border:0;border-radius:16px;padding:24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(8,38,62,.35);color:var(--navy)}dialog::backdrop{background:rgba(8,38,62,.5)}
 dialog form{display:flex;flex-direction:column;gap:14px}dialog menu{display:flex;gap:10px;justify-content:flex-end;margin:0;padding:0}
 .login{min-height:100vh;display:grid;place-items:center;padding:20px}.login .card{max-width:420px;width:100%}
 .sr{position:absolute;left:-9999px}
@@ -123,6 +123,6 @@ export function Lines({ series, label, cursor, height = 140 }: { series: { name:
   return (<svg role="img" aria-label={`${label}: ${series.map((s) => `${s.name} ${s.values[s.values.length - 1] ?? 0}`).join(", ")}`} viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" style={{ width: "100%", height }}>
     <line x1="0" x2="100" y1={Y(0)} y2={Y(0)} stroke="#DCE3E8" strokeWidth="0.4" vectorEffect="non-scaling-stroke" />
     {series.map((s) => <polyline key={s.name} fill="none" stroke={s.color} strokeWidth="2" vectorEffect="non-scaling-stroke" points={s.values.map((v, i) => `${X(i)},${Y(v)}`).join(" ")} />)}
-    {cursor !== undefined && <line x1={X(cursor)} x2={X(cursor)} y1="0" y2={height} stroke="#082238" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />}
+    {cursor !== undefined && <line x1={X(cursor)} x2={X(cursor)} y1="0" y2={height} stroke="#08263E" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />}
   </svg>);
 }

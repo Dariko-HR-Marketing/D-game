@@ -36,6 +36,7 @@ import { DecisionCard } from "./DecisionCard";
 import { CardToast, GambleToast } from "./CardToast";
 import { replayTour } from "./tourStore";
 import { TimePanel } from "./TimeBar";
+import { openedExclusive, useExclusiveClose } from "../exclusive";
 import { Countdown, DeadlineRing } from "../useCountdown";
 import { TutorialCoach } from "./TutorialCoach";
 import { OnboardingPlan } from "./OnboardingPlan";
@@ -60,12 +61,13 @@ function CardEnter({ children, id, from = 12, style }: { children: React.ReactNo
 }
 
 /** Yig'iladigan bo'lim; kutayotgan takliflar bo'lsa o'zi ochiladi va belgi (soni) ko'rinadi. */
-function Collapsible({ title, badge, defaultOpen, children }: { title: string; badge?: number; defaultOpen?: boolean; children: React.ReactNode }) {
+function Collapsible({ title, badge, defaultOpen, children, group, id }: { title: string; badge?: number; defaultOpen?: boolean; children: React.ReactNode; group?: string; id?: string }) {
   const [open, setOpen] = useState(!!defaultOpen); const [touched, setTouched] = useState(false);
+  const close = React.useCallback(() => setOpen(false), []); useExclusiveClose(group ?? "-", id ?? title, close);
   useEffect(() => { if (defaultOpen && !touched) setOpen(true); }, [defaultOpen, touched]);
   return (
     <Card>
-      <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => { setTouched(true); setOpen(!open); }} style={s.collHead}>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => { setTouched(true); if (!open && group) openedExclusive(group, id ?? title); setOpen(!open); }} style={s.collHead}>
         <Text style={s.collTitle}>{open ? "▾" : "▸"} {title}</Text>{badge ? <Pill label={String(badge)} kind="warn" /> : null}
       </Pressable>
       {open && children}
@@ -217,7 +219,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
         <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
-      <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0}><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
+      <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0} group="side" id="acts"><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
       {short && !tri && eventsCard(3)}
       {compact && <PlayersLane room={room} userId={userId} />}
@@ -248,7 +250,16 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const ui: HUi = { flat, labels, ib, tiny };
   const reqLayers = (<>
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
-    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} onHelp={width < 360 ? replayTour : undefined} items={[{ key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" }, ...(wide ? [{ key: "sheet", icon: "chart", label: uz.sheet.title, onPress: () => setSheetView(true), tid: "sheet-open" }] : []), ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : []), ...(onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : [])]} />}
+    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} items={[
+      { key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" },
+      ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : []),
+      ...(onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : []),
+      ...(http ? [{ key: "live", icon: "people", label: uz.live.title, onPress: () => setLiveOpen(true), tid: "live-open" }] : []),
+      ...(reqs.length > 0 ? [{ key: "req", icon: "bell", label: uz.req.bellN.replace("{n}", String(reqs.length)), onPress: reqModal.show, tid: "requests-open", badge: reqs.length }] : []),
+      ...(voice && vs && vs.status === "on" && vs.hasMic ? [{ key: "mic", icon: vs.muted ? "micOff" : "mic", label: vs.muted ? uz.voice.headerOff : uz.voice.headerOn, onPress: () => voice.setMuted(!vs.muted), tid: "voice-header-mic" }] : []),
+      { key: "sound", icon: snd.muted ? "mute" : "volume", label: snd.muted ? uz.sound.on : uz.sound.off, onPress: snd.toggle, tid: "sound-toggle" },
+      { key: "help", icon: "help", label: uz.onboarding.help, onPress: replayTour, tid: "tour-help" },
+    ]} />}
   </>);
   const header = (
     <View style={[s.header, flat && { gap: 2, paddingHorizontal: space.md }]} onLayout={(e) => setHdrW(e.nativeEvent.layout.width)}>
@@ -261,21 +272,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       <View style={{ flex: 1, minWidth: 0 }} />
       <Seg ui={ui} label={uz.hud.group.docs}>
         <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
-        {!wide && <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />}
-        {http && <HBtn ui={ui} icon="people" label={uz.live.title} text={uz.live.open} onPress={() => setLiveOpen(true)} tid="live-open" />}
-      </Seg>
-      {reqs.length > 0 && <HBtn ui={ui} icon="bell" label={uz.req.bellN.replace("{n}", String(reqs.length))} onPress={reqModal.show} tid="requests-open"><View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{reqs.length}</Text></View></HBtn>}
-      <Seg ui={ui} label={uz.hud.group.talk}>
-        {voice && vs && vs.status === "on" && vs.hasMic && <HBtn ui={ui} icon={vs.muted ? "micOff" : "mic"} label={vs.muted ? uz.voice.headerOff : uz.voice.headerOn} role="switch" checked={!vs.muted} onPress={() => voice.setMuted(!vs.muted)} tid="voice-header-mic" active={!vs.muted && vs.speaking ? "#E3F5EA" : undefined} />}
-        <HBtn ui={ui} icon={snd.muted ? "mute" : "volume"} label={uz.sound.label} role="switch" checked={!snd.muted} onPress={snd.toggle} tid="sound-toggle" />
-      </Seg>
-      <Seg ui={ui} label={uz.hud.group.help}>
-        {false && <HBtn ui={ui} icon="book" label={uz.rules.open} text={uz.hud.tabs.rules} onPress={onRules} />}{/* tik telefon/planshetda «Qoidalar» pastki menyuda bor: sarlavhada takrorlanmaydi (sarlavha qirqilmasin) */}
-        {!tiny && <HBtn ui={ui} icon="help" label={uz.onboarding.help} onPress={replayTour} tid="tour-help" />}
+        <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
       </Seg>
       {!state.winner && <Pressable accessibilityRole="button" aria-haspopup="menu" aria-expanded={menuOpen} accessibilityLabel={chatUnread ? `${uz.profMenu.menu}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} testID="profile-menu-open" style={({ pressed }) => [s.avatarBtn, pressed && { opacity: 0.8 }]}>
         <Avatar name={nameOf(room, userId)} colorIdx={room.names?.[userId]?.color ?? 0} size={36} photo={room.names?.[userId]?.photo} gender={room.names?.[userId]?.gender} frame={room.names?.[userId]?.cos?.frame} bgColor={room.names?.[userId]?.cos?.avatar} />
-        {chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}
+        {chatUnread + reqs.length > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread + reqs.length > 9 ? "9+" : chatUnread + reqs.length}</Text></View>}
       </Pressable>}
     </View>
   );
@@ -288,7 +289,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
       {header}{reqLayers}
-      <View style={s.shell}>
+      <View style={[s.shell, tri && { maxWidth: 1920 }]}>
         {card && mineTurn && mine && !deckPick && !sheetMin ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <Pressable accessibilityRole="button" accessibilityLabel={uz.deck.minimize} onPress={() => setSheetMin(true)} style={s.minBtn} testID="decision-minimize"><Text style={s.grabT}>{uz.deck.minimize} ▼</Text></Pressable>
@@ -320,7 +321,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {tri && !drawerOpen && <Pressable accessibilityRole="button" aria-haspopup="dialog" aria-expanded={false} accessibilityLabel={newLog > 0 ? `${uz.hud.drawer.open}. ${uz.hud.drawer.news.replace("{n}", String(newLog))}` : uz.hud.drawer.open} onPress={() => setDrawerOpen(true)} testID="players-drawer-open" style={s.edge}>
         <Text style={s.edgeT} aria-hidden>‹</Text>{newLog > 0 && <View style={[s.chatBadge, { top: 6, right: 4 }]} aria-hidden><Text style={s.chatBadgeT}>{newLog > 9 ? "9+" : newLog}</Text></View>}</Pressable>}
       {tri && drawerOpen && (<>
-        <Pressable accessibilityRole="button" accessibilityLabel={uz.hud.drawer.close} onPress={() => setDrawerOpen(false)} testID="players-drawer-backdrop" style={{ position: "absolute", left: 0, right: 0, top: HEADER_H, bottom: 0, backgroundColor: "rgba(8,34,56,0.28)" }} />
+        <Pressable accessibilityRole="button" accessibilityLabel={uz.hud.drawer.close} onPress={() => setDrawerOpen(false)} testID="players-drawer-backdrop" style={{ position: "absolute", left: 0, right: 0, top: HEADER_H, bottom: 0, backgroundColor: "rgba(8,38,62,0.28)" }} />
         <SlideIn reduced={fx.reduced} style={s.drawer} testID="players-drawer" label={uz.hud.drawer.title}>
           <View style={s.drawerHead}><Text style={s.drawerT} aria-level={2} accessibilityRole="header">{uz.hud.drawer.title}</Text>
             <Pressable accessibilityRole="button" accessibilityLabel={uz.hud.drawer.close} onPress={() => setDrawerOpen(false)} style={s.drawerX} testID="players-drawer-close"><Text style={s.drawerXT} aria-hidden>✕</Text></Pressable></View>
@@ -381,8 +382,8 @@ function SlideIn({ reduced, style, testID, label, children }: { reduced?: boolea
 }
 const s = StyleSheet.create({
   avatarBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 22 },
-  edge: { position: "absolute", right: 0, top: "42%", width: 44, height: 96, borderTopLeftRadius: 14, borderBottomLeftRadius: 14, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", zIndex: 5, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: -2, height: 0 }, elevation: 6 }, edgeT: { color: "#fff", fontSize: 22, fontWeight: "800", lineHeight: 24 },
-  drawer: { position: "absolute", right: 0, top: HEADER_H, bottom: 0, width: 400, maxWidth: "92%", backgroundColor: color.white, borderLeftWidth: 1, borderLeftColor: color.line, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: -8, height: 0 }, elevation: 12 },
+  edge: { position: "absolute", right: 0, top: "42%", width: 44, height: 96, borderTopLeftRadius: 14, borderBottomLeftRadius: 14, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", zIndex: 5, shadowColor: "#08263E", shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: -2, height: 0 }, elevation: 6 }, edgeT: { color: "#fff", fontSize: 22, fontWeight: "800", lineHeight: 24 },
+  drawer: { position: "absolute", right: 0, top: HEADER_H, bottom: 0, width: 400, maxWidth: "92%", backgroundColor: color.white, borderLeftWidth: 1, borderLeftColor: color.line, shadowColor: "#08263E", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: -8, height: 0 }, elevation: 12 },
   drawerHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingLeft: space.lg, borderBottomWidth: 1, borderBottomColor: color.line, minHeight: 52 }, drawerT: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, drawerX: { width: 48, height: 48, alignItems: "center", justifyContent: "center" }, drawerXT: { color: color.navy, fontSize: font.lg, fontWeight: "800" },
   mwrap: { padding: space.lg, gap: space.md }, mwrapT: { width: "100%", maxWidth: 760, alignSelf: "center" }, // tik planshet: ustun markazda, o'qish uchun qulay kenglikda
   shell: { flex: 1, flexDirection: "row", gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md, minHeight: 0, maxWidth: 1440, width: "100%", alignSelf: "center" },
@@ -402,12 +403,12 @@ const s = StyleSheet.create({
   gateSheet: { maxHeight: "62%" as any, backgroundColor: color.white, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
   cta: { width: "100%", maxWidth: 760, alignSelf: "center", paddingHorizontal: space.lg, paddingBottom: space.md, paddingTop: space.sm, backgroundColor: color.white },
   caption: { color: tone.muted, fontSize: font.sm, textAlign: "center", maxWidth: 640 },
-  sheet: { position: "absolute", left: 0, right: 0, bottom: 62, maxHeight: "80%" as any, backgroundColor: color.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: space.lg, paddingTop: space.sm, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: -6 }, elevation: 12 },
+  sheet: { position: "absolute", left: 0, right: 0, bottom: 62, maxHeight: "80%" as any, backgroundColor: color.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: space.lg, paddingTop: space.sm, shadowColor: "#08263E", shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: -6 }, elevation: 12 },
   grab: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "#D5DEE4" },
   minBtn: { minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: radius.md, borderWidth: 1, borderColor: color.line, backgroundColor: color.white },
   miniInline: { position: "relative", left: 0, right: 0, bottom: 0 },
   grabBtn: { minHeight: 44, alignItems: "center", justifyContent: "center", gap: 4, marginBottom: space.xs }, grabT: { color: tone.muted, fontSize: font.sm, fontWeight: "700" },
-  miniBar: { position: "absolute", left: space.md, right: space.md, bottom: 70, minHeight: 56, flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.md, borderRadius: radius.lg, backgroundColor: color.white, borderWidth: 2, borderColor: color.gold, shadowColor: "#082238", shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 10 }, miniK: { color: tone.warn, fontSize: 12, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }, miniT: { color: color.navy, fontWeight: "800", fontSize: font.md }, miniA: { color: GREEN_TEXT, fontWeight: "800", fontSize: font.sm },
+  miniBar: { position: "absolute", left: space.md, right: space.md, bottom: 70, minHeight: 56, flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.md, borderRadius: radius.lg, backgroundColor: color.white, borderWidth: 2, borderColor: color.gold, shadowColor: "#08263E", shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 10 }, miniK: { color: tone.warn, fontSize: 12, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }, miniT: { color: color.navy, fontWeight: "800", fontSize: font.md }, miniA: { color: GREEN_TEXT, fontWeight: "800", fontSize: font.sm },
   collHead: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }, collTitle: { color: color.navy, fontWeight: "800", fontSize: font.lg },
   muted: { color: tone.muted }, log: { color: tone.muted, fontSize: font.sm, lineHeight: 19 }, cardText: { color: color.navy, fontSize: font.md, lineHeight: 22 },
   reactRow: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" },

@@ -22,11 +22,11 @@ export function Lobby({ room, userId, error, onStart, onLeave, onStay }: { room:
   const [linkCopied, setLinkCopied] = useState(false);
   const link = `${(globalThis as any).location?.origin ?? "https://tajriba24.uz"}/?kod=${room.code}`;
   const copyLink = async () => { try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(link); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000); return; } } catch { /* pastga */ } try { await Share.share({ message: link }); } catch { /* bekor qilindi */ } };
-  const shareTelegram = () => { const u = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`Tajriba 24: ${uz.home.code} ${room.code}`)}`; const w = (globalThis as any).open; if (typeof w === "function") w(u, "_blank", "noopener"); else void Linking.openURL(u); };
+  const shareTelegram = () => { const u = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`Tajriba24: ${uz.home.code} ${room.code}`)}`; const w = (globalThis as any).open; if (typeof w === "function") w(u, "_blank", "noopener"); else void Linking.openURL(u); };
   const copy = async () => {
     const text = room.code;
     try { const nav = (globalThis as any).navigator; if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); return; } } catch { /* pastga */ }
-    try { await Share.share({ message: `Tajriba 24: ${text}` }); } catch { /* bekor qilindi */ }
+    try { await Share.share({ message: `Tajriba24: ${text}` }); } catch { /* bekor qilindi */ }
   };
   const ask = host && !!room.idleAskUntil; const [askNow, setAskNow] = useState(Date.now()); useEffect(() => { if (!ask) return; setAskNow(Date.now()); const h = setInterval(() => setAskNow(Date.now()), 1000); return () => clearInterval(h); }, [ask]);
   const askLeft = room.idleAskUntil ? Math.max(0, Math.ceil((room.idleAskUntil - askNow) / 1000)) : 0;
@@ -95,9 +95,9 @@ export function Lobby({ room, userId, error, onStart, onLeave, onStay }: { room:
       </View>
       </View>
     {ask && <Modal transparent animationType="fade" onRequestClose={() => onStay?.()}>
-        <View style={{ flex: 1, backgroundColor: "rgba(8,34,56,0.55)", alignItems: "center", justifyContent: "center", padding: space.lg }}>
+        <View style={{ flex: 1, backgroundColor: "rgba(8,38,62,0.55)", alignItems: "center", justifyContent: "center", padding: space.lg }}>
           <View role="alertdialog" aria-label={uz.openRooms.stayTitle} testID="idle-ask" style={{ width: "100%", maxWidth: 420, gap: space.md, padding: space.xl, borderRadius: 16, backgroundColor: "#fff" }}>
-            <Text style={{ color: "#082238", fontSize: 20, fontWeight: "800" }} aria-level={2} accessibilityRole="header">{uz.openRooms.stayTitle}</Text>
+            <Text style={{ color: "#08263E", fontSize: 20, fontWeight: "800" }} aria-level={2} accessibilityRole="header">{uz.openRooms.stayTitle}</Text>
             <Text style={{ color: "#4A5B6C", fontSize: 15, lineHeight: 22 }}>{uz.openRooms.stayText.replace("{s}", String(askLeft))}</Text>
             <Button label={uz.openRooms.stayYes} onPress={() => onStay?.()} />
             <Button label={uz.openRooms.stayNo} kind="ghost" onPress={onLeave} />
