@@ -10,7 +10,7 @@ describe("katak tushuntirishi", () => {
   it("turg'un biznes: nom, narx, daromad va egasi (yoki «egasi yo'q»)", () => {
     const i = BIG_CELLS.findIndex((c) => c.t === "T"); const c = BIG_CELLS[i];
     const free = bigCellInfo(i, [], names); expect(free.title).toBe(c.name); expect(free.kind).toBe("Turg'un biznes");
-    expect(free.lines.map((l) => l.k)).toEqual(["Narxi", "Oylik daromad", "Egasi"]); expect(free.lines[2].v).toBe("Hozircha egasi yo'q");
+    expect(free.lines.map((l) => l.k)).toEqual(["Narxi", "Oylik daromad", "Qoplanish muddati", "Egasi"]); expect(free.lines[3].v).toBe("Hozircha egasi yo'q");
     expect(bigCellInfo(i, [{ id: "a", n: 1, kind: "biz" }], names).lines.find((l) => l.k === "Egasi")!.v).toBe("Ali");
   });
   it("tavakkal biznes: yutuqli qirralar ko'rsatiladi", () => { const i = BIG_CELLS.findIndex((c) => c.t === "V" && c.faces); expect(bigCellInfo(i, [], names).lines.some((l) => l.k === "Yutuqli kubik")).toBe(true); });

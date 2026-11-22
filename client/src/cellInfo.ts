@@ -25,6 +25,8 @@ export function bigCellInfo(i: number, owners: BigOwner[], names: (id: string) =
   if (c.t === "T" || c.t === "V") { // orzu katagidagi yozuv/narx faqat bezak: g'alaba shartida o'yinchining O'Z orzusi hisoblanadi (OPEN_QUESTIONS 156)
     if (c.price !== undefined) lines.push({ k: uz.cell.price, v: money(c.price) });
     if (c.income !== undefined) lines.push({ k: uz.cell.income, v: money(c.income) });
+    if (c.price !== undefined && c.income) lines.push({ k: uz.cell.payback, v: fill(uz.cell.paybackMonths, { n: String(Math.ceil(c.price / c.income)) }) }); // narx / oylik daromad (kartadagi raqamlardan)
+    if (c.price !== undefined && viewer) lines.push({ k: uz.cell.youCash, v: `${money(viewer.cash)} · ${viewer.cash >= c.price ? uz.cell.youEnough : uz.cell.youShort}` });
   }
   if (c.faces?.length) lines.push({ k: uz.cell.faces, v: c.faces.join(", ") });
   if (c.lump !== undefined) lines.push({ k: uz.cell.lump, v: money(c.lump) });

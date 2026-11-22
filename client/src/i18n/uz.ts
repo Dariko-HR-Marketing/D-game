@@ -279,7 +279,7 @@ export const uz = {
   },
   board: { owners: "Egalari", ownerBiz: "Biznes egasi", ownerDream: "Orzu amalga oshdi", ownerVisit: "Orzu katagiga yetdi (shart bajarilmadi)", ownerLegend: "Rangli belgi — biznes egasi (o'yinchi raqami); yulduz — orzu amalga oshgan; bo'sh yulduz — orzu katagiga yetgan, shart bajarilmagan", tapHint: "Katakni bosing — tushuntirish chiqadi" },
   cell: {
-    close: "Yopish", cellWord: "katak", price: "Narxi", income: "Oylik daromad", faces: "Yutuqli kubik", lump: "Yutsangiz (bir marta)", owner: "Egasi", free: "Hozircha egasi yo'q", yourFlow: "Sizning pul oqimingiz", yourCash: "Sizning naqdingiz", owners: "Egalik",
+    close: "Yopish", cellWord: "katak", payback: "Qoplanish muddati", paybackMonths: "{n} oy", youCash: "Sizning naqdingiz", youEnough: "Naqd yetadi", youShort: "Naqd yetmaydi", price: "Narxi", income: "Oylik daromad", faces: "Yutuqli kubik", lump: "Yutsangiz (bir marta)", owner: "Egasi", free: "Hozircha egasi yo'q", yourFlow: "Sizning pul oqimingiz", yourCash: "Sizning naqdingiz", owners: "Egalik",
     small: { S: "Start", I: "Imkoniyat", H: "Xarajat", B: "Bozor", D: "Daromad", O: "Farzand", K: "Boshidan boshlang", Q: "Ishdan bo'shash" } as Record<string, string>,
     big: { T: "Turg'un biznes", V: "Tavakkal biznes", O: "Orzu katagi", Y: "Yana pullar", X: "Maxsus katak" } as Record<string, string>,
     turnT: "Faqat naqd to'lanadi, oylik daromad olasiz. Egasi bor bo'lsa — egasiga oylik daromadni to'laysiz yoki 2× narxda sotib olasiz (keyingisida 3×).",
