@@ -11,7 +11,7 @@ process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
 const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
-const sizes: [number, number][] = [[1024, 768], [1280, 720], [1440, 900], [1593, 890], [1735, 985], [1920, 1080]];
+const sizes: [number, number][] = [[1024, 768], [1280, 720], [1440, 900], [1593, 890], [1735, 985], [1870, 976], [1920, 1080]];
 let failed = 0;
 for (const [w, h] of sizes) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };

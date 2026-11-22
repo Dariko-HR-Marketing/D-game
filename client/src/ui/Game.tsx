@@ -289,7 +289,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
       {historyOpen && http && <LaterOverlay><HistoryDetail http={http} code={room.code} onClose={() => setHistoryOpen(false)} /></LaterOverlay>}{liveOpen && http && <LaterOverlay><LiveAnalytics http={http} code={room.code} tick={(state.logN ?? 0) + (state.round ?? 0)} onClose={() => setLiveOpen(false)} /></LaterOverlay>}
       {header}{reqLayers}
-      <View style={s.shell}>
+      <View style={[s.shell, tri && { maxWidth: 1920 }]}>
         {card && mineTurn && mine && !deckPick && !sheetMin ? (
           <View style={{ width: sideW, flexGrow: 0, flexShrink: 0, paddingBottom: space.lg, gap: space.sm }}>
             <Pressable accessibilityRole="button" accessibilityLabel={uz.deck.minimize} onPress={() => setSheetMin(true)} style={s.minBtn} testID="decision-minimize"><Text style={s.grabT}>{uz.deck.minimize} ▼</Text></Pressable>
