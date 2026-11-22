@@ -5,6 +5,7 @@ import { Banner, Pill } from "./kit";
 import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { Avatar } from "./Avatar";
+import { SpeedPicker } from "./SpeedPicker";
 import { replayTour } from "./tourStore";
 import { seatsFor, turnLabel, calcUiEnabled, type CalcMode, type UiMode, GAME_MODES_UI, type TurnSeconds } from "../turnPref";
 import { uz, errText } from "../i18n/uz";
@@ -105,13 +106,7 @@ export function HomeDesktop(p: DesktopProps) {
               <View style={s.slots} aria-hidden><View style={s.slotMe}><Text style={s.slotMeT}>{D.you}</Text></View>{Array.from({ length: Math.max(0, p.seats - 1) }, (_, i) => <View key={i} style={s.slot} />)}<Text style={s.slotN}>{D.slotsNote.replace("{n}", String(bots))}</Text></View>
 
               <StepTitle n={3} t={D.stepSpeed} sub={D.speedSub} />
-              <View style={s.speeds} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
-                {([60, 120, 0] as const).map((v) => (
-                  <Pressable key={v} role="radio" aria-checked={p.effTurn === v} testID={`turn-${v}`} accessibilityLabel={v === 0 ? uz.home.turn0Full : v === 120 ? uz.home.turn60 : uz.home.turn30} onPress={() => p.pickTurn(v)} style={[s.speed, p.effTurn === v && s.speedOn]}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }} aria-hidden><Text style={s.modeN}>{v === 0 ? uz.home.turn0 : v === 120 ? D.slow : D.usual}</Text><Text style={s.speedV}>{v === 0 ? D.speed0 : v === 120 ? D.speed60 : D.speed30}</Text></View>
-                    <Text style={s.modeH} aria-hidden>{v === 0 ? uz.home.turn0Hint : v === 120 ? uz.home.turn60Hint : uz.home.turn30Hint}</Text></Pressable>))}
-              </View>
-              {p.effTurn === 0 && <Text style={s.modeH} testID="turn0-hint">{uz.home.turn0Hint}</Text>}
+              <SpeedPicker value={p.effTurn} onChange={p.pickTurn} />
               {p.optsNode}
               {calcUiEnabled() && (<>
                 <StepTitle n={4} t={uz.ledger.modeLabel} />

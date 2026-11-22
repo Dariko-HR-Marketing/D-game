@@ -36,7 +36,7 @@ export async function dismissReq(p: any): Promise<void> {
 /** Do'stining xona kodi bilan qo'shilish: «Ochiq o'yinlar» bo'limi ostidagi kod maydoni (buyurtmachi qarori 2026-11-21: bosh sahifadagi alohida «Kod bilan qo'shilish» olib tashlandi). */
 export async function joinByCode(p: any, code: string): Promise<void> {
   await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
-  const input = p.getByTestId("rooms-code-input"); await input.waitFor({ timeout: 15000 });
+  await openRoomsAcc(p); const input = p.getByTestId("rooms-code-input"); await input.waitFor({ timeout: 15000 });
   await input.fill(code);
   await p.getByTestId("rooms-code-go").click();
 }
@@ -52,4 +52,9 @@ export async function clickMenuItem(p: any, testId: string): Promise<void> {
 /** Telefonda xona sozlamalari yig'iq turadi («Xona sozlamalari» qatori): kerak bo'lsa ochadi. */
 export async function openOpts(p: any): Promise<void> {
   const o = p.getByTestId("home-opts"); if (await o.count() && (await o.getAttribute("aria-expanded")) !== "true") await o.click();
+}
+
+/** Telefonda «Ochiq o'yinlar» akkordion yig'iq turadi: kerak bo'lsa ochadi (kompyuterda har doim ochiq). */
+export async function openRoomsAcc(p: any): Promise<void> {
+  const o = p.getByTestId("rooms-acc"); if (await o.count() && (await o.getAttribute("aria-expanded")) !== "true") await o.click();
 }

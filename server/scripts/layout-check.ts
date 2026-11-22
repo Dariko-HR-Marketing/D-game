@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, openRoomsAcc } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -22,10 +22,14 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
     // 1) Bosh sahifa: bitta ekranga sig'adi; profil faqat pastki menyuda; alohida «Kod bilan qo'shilish» va Reyting/Qoidalar qatorlari yo'q
     await a.waitForTimeout(500); const ov = await overflow(a); check(ov.doc <= 4 && ov.inner <= 4, `${tag} bosh sahifa scrollsiz (hujjat ${ov.doc}, ichki ${ov.inner})`);
     check(await a.getByRole("button", { name: "Profil", exact: true }).count() === 1, `${tag} «Profil» faqat bir joyda (pastki menyu)`);
-    check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && await a.getByTestId("rooms-code-input").count() === 1, `${tag} alohida «Kod bilan qo'shilish» yo'q, kod maydoni ro'yxat ostida`);
+    check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && (await openRoomsAcc(a), await a.getByTestId("rooms-code-input").count()) === 1, `${tag} alohida «Kod bilan qo'shilish» yo'q, kod maydoni «Ochiq o'yinlar» ichida`);
     check(await a.getByTestId("home-tiles").count() === 1 && await a.getByRole("button", { name: /^Turnirlar/ }).count() === 1, `${tag} plitkalar: Turnirlar, Sinf, Do'kon`);
     check(await a.getByTestId("room-options").count() === 0, `${tag} sozlamalar yig'iq turadi`);
-    await a.getByTestId("home-opts").click(); check(await a.getByTestId("room-options").count() === 1 && await a.getByTestId("seats-4").count() === 1, `${tag} «Xona sozlamalari» ochilganda hammasi bor`);
+    check(await a.getByTestId("home-opts").getAttribute("aria-expanded") === "false" && await a.getByTestId("rooms-acc").getAttribute("aria-expanded") === "false", `${tag} «Sozlamalar» va «Ochiq o'yinlar» yig'iq akkordion`);
+    await a.getByTestId("home-opts").click(); check(await a.getByTestId("room-options").count() === 1 && await a.getByTestId("seats-4").count() === 1, `${tag} «Sozlamalar» ochilganda hammasi bor`);
+    const txt = await a.locator("body").innerText(); for (const w of ["Ko'rinish", "Boshlash usuli", "Tezlik", "Men o'zim boshlayman", "To'lganda boshlansin", "Botlar bilan avtomatik"]) check(!txt.includes(w), `${tag} sozlamalarda «${w}» so'zi yo'q`);
+    const ro = await a.getByTestId("room-options").innerText(); check(!/Ochiq|Qulfli|Yashirin/.test(ro), `${tag} xona sozlamalarida «Ochiq/Qulfli/Yashirin» so'zlari yo'q`);
+    check(await a.getByTestId("turn-60").count() === 1 && await a.getByTestId("turn-120").count() === 1 && await a.getByTestId("turn-0").count() === 1, `${tag} navbat vaqti: Odatiy, Sekin, Mehrojiddin kartalari`);
   } else {
     check(await a.getByRole("button", { name: "Profil", exact: true }).count() === 1, `${tag} «Profil» faqat bir joyda (chap menyu pastidagi karta)`);
     check(await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count() === 0 && await a.getByTestId("rooms-code-input").count() === 1, `${tag} alohida «Kod bilan qo'shilish» yo'q`);

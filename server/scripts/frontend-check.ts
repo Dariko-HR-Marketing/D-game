@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Server `/rooms/open` hali yo'q: brauzerda javob qalbaki beriladi.
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource } from "./_seed";
+import { autoProfiles, axeSource, openRoomsAcc } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -25,7 +25,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     await c.addInitScript((u: string) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid);
     if (flags) await c.addInitScript(() => localStorage.setItem("tajriba24-features", "rooms,billing"));
     const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
-    if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); } return p;
+    if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); await openRoomsAcc(p); } return p;
   };
   // 1) Bayroqsiz: ochiq o'yinlar yoqiq (server tayyor), Paketlar (to'lov) yopiq
   const off = await open("fcoff" + tag, null); await off.getByTestId("open-rooms").waitFor({ timeout: 8000 }); check(await off.getByTestId("room-options").count() === 1 && await off.getByTestId("home-packs").count() === 0, `${tag} bayroqsiz: ro'yxat va ko'rinish tanlovi bor, Paketlar yo'q (to'lov ulanmagan)`); await off.context().close();

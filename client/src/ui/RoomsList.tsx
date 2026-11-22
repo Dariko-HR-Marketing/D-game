@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, StyleSheet } from "react-native";
 import { Icon } from "./Icon";
+import { Acc } from "./Accordion";
 import type { Http, OpenRoom } from "../net/http";
 import type { Lobbies } from "../net/connection";
 import { uz } from "../i18n/uz";
@@ -14,8 +15,8 @@ export const roomLine = (r: OpenRoom) => O.row.replace("{host}", r.host).replace
 
 /** «Ochiq o'yinlar»: kutayotgan (Ochiq va Qulfli) hamda hozir o'ynalayotgan xonalar bitta jadvalda — jonli (WebSocket). Tur va holat bo'yicha filtr; qulfli xona kod so'raydi; yashirin xonaga yuqoridagi maydon orqali kod bilan kiriladi. Ensiz joyda qatorlar kartaga aylanadi. */
 type Row = { key: string; waiting: boolean; host: string; mode: OpenRoom["mode"]; speed: string; players: number; seats: number | null; round: number; locked: boolean; code?: string; id: string };
-export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch }: { http: Http; online: boolean; onJoin: (code: string) => void; pollMs?: number; live?: Lobbies | null; watch?: (on: boolean) => void }) {
-  const [polled, setPolled] = useState<Lobbies | null>(null); const [gone, setGone] = useState(false); const [bad, setBad] = useState(false); const [filter, setFilter] = useState<Filter>("all"); const [ask, setAsk] = useState<string | null>(null); const [code, setCode] = useState(""); const [status, setStatus] = useState<"all" | "waiting" | "playing">("all"); const [wide, setWide] = useState(true); const [direct, setDirect] = useState("");
+export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, collapsible }: { collapsible?: boolean; http: Http; online: boolean; onJoin: (code: string) => void; pollMs?: number; live?: Lobbies | null; watch?: (on: boolean) => void }) {
+  const [polled, setPolled] = useState<Lobbies | null>(null); const [gone, setGone] = useState(false); const [bad, setBad] = useState(false); const [filter, setFilter] = useState<Filter>("all"); const [ask, setAsk] = useState<string | null>(null); const [code, setCode] = useState(""); const [status, setStatus] = useState<"all" | "waiting" | "playing">("all"); const [wide, setWide] = useState(!collapsible); const [direct, setDirect] = useState(""); const [acc, setAcc] = useState(false);
   // Jonli rejim: server o'zgarishlarni WebSocket orqali yuboradi. `watch` berilmasa (yoki ulanmagan bo'lsa) HTTP bilan har 5 soniyada so'raladi.
   useEffect(() => { if (!watch) return; watch(true); return () => watch(false); }, [watch]);
   useEffect(() => { if (watch && live) return; let off = false; let h: any; const load = async () => { try { const r = await http.openRooms() as any; if (!off) { setPolled({ rooms: r.rooms ?? [], playing: r.playing ?? [], stats: r.stats ?? { playing: { rooms: 0, players: 0 }, waiting: { rooms: 0, players: 0 } }, online: r.online ?? 0 }); setBad(false); } } catch (e: any) { if (!off) { if (e?.status === 404) setGone(true); else setBad(true); } } if (!off) h = setTimeout(load, pollMs); }; load(); return () => { off = true; clearTimeout(h); }; }, [http, pollMs, watch, !!live]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -46,9 +47,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch }: 
       <Pressable role="button" accessibilityLabel={O.enter} disabled={code.length !== 6} onPress={() => onJoin(code)} style={[s.btn, code.length !== 6 && { opacity: 0.45 }]}><Text style={s.btnT}>{O.enter}</Text></Pressable>
     </View>);
   const rowLabel = (r: Row) => `${r.host}, ${modeName(r.mode)}, ${r.waiting ? `${r.speed}, ${r.players}/${r.seats}${r.locked ? `, ${O.lockedLabel}` : ""}` : `${O.statusPlaying}, ${O.roundN.replace("{n}", String(r.round))}, ${r.players}`}`;
-  return (
-    <View style={s.box} testID="open-rooms" role="region" aria-label={O.title} onLayout={(e) => setWide(e.nativeEvent.layout.width >= 640)}>
-      <View style={s.head}><Text style={s.h} aria-level={2} accessibilityRole="header">{O.title}</Text><Text style={s.live}>{isLive ? `● ${O.liveTag}` : O.live}</Text></View>
+  const inner = (<>
       {st && <View style={s.stats} role="list" aria-label={O.title} testID="lobby-stats">
         <View style={s.stat} role="listitem"><Text style={s.statT}>{O.online.replace("{n}", String(data?.online ?? 0))}</Text></View>
         <View style={s.stat} role="listitem"><Text style={s.statT}>{O.playingStat.replace("{p}", String(st.playing.players)).replace("{r}", String(st.playing.rooms))}</Text></View>
@@ -83,16 +82,41 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch }: 
             {ask === r.id && r.waiting && <View role="row"><View role="cell">{ask_(r)}</View></View>}
           </View>))}
       </View>)}
-      {list.length > 0 && !wide && list.map((r) => (
-        <View key={r.key} style={s.card} testID={r.waiting ? "room-row" : "playing-row"} role="group" aria-label={rowLabel(r)}>
-          <View style={s.line}><Text style={[s.td, s.tdHost, { flex: 1 }]} numberOfLines={1}>{r.host}</Text>{state(r)}</View>
-          <View style={s.line}><Text style={[s.mut, { flex: 1 }]}>{modeName(r.mode)} · {r.speed} · {r.waiting ? `${r.players}/${r.seats}` : r.players}</Text>{action(r)}</View>
-          {ask_(r)}
-        </View>))}
+      {list.length > 0 && !wide && (<View style={s.lst} testID="rooms-list" role="list">
+        {list.map((r, i) => (
+          <View key={r.key} style={[s.li, i > 0 && s.liSep]} testID={r.waiting ? "room-row" : "playing-row"} role="listitem" aria-label={rowLabel(r)}>
+            <View style={s.liMain}>
+              <Avatar2 name={r.host} on={r.waiting} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={s.liHost} numberOfLines={1}>{r.host}</Text>
+                <Text style={s.liMeta} numberOfLines={1}>{modeName(r.mode)}{r.waiting ? "" : ` · ${r.players}`}</Text>
+              </View>
+              {r.waiting ? action(r) : state(r)}
+            </View>
+            {r.waiting && <View style={s.liSeats}><Text style={s.liLock}>{r.speed} · {r.players}/{r.seats}</Text>{seatsOf(r)}{r.locked && <Text style={s.liLock}>· {O.lockedLabel}</Text>}</View>}
+            {ask_(r)}
+          </View>))}
+      </View>)}
       {codeBox}
+  </>);
+  const sum = st ? O.accSummary.replace("{w}", String(st.waiting.rooms)).replace("{p}", String(st.playing.rooms)) : O.loading;
+  if (collapsible) return (
+    <View testID="open-rooms" role="region" aria-label={O.title} onLayout={(e) => setWide(e.nativeEvent.layout.width >= 640)}>
+      <Acc icon="list" title={O.accRooms} summary={`${isLive ? "● " : ""}${sum}`} open={acc} onToggle={() => setAcc((v) => !v)} testID="rooms-acc" label={`${O.accRooms}. ${sum}`}><View style={{ gap: space.sm }}>{inner}</View></Acc>
+    </View>);
+  return (
+    <View style={s.box} testID="open-rooms" role="region" aria-label={O.title} onLayout={(e) => setWide(e.nativeEvent.layout.width >= 640)}>
+      <View style={s.head}><Text style={s.h} aria-level={2} accessibilityRole="header">{O.title}</Text><Text style={s.live}>{isLive ? `● ${O.liveTag}` : O.live}</Text></View>
+      {inner}
     </View>);
 }
+const HUES = ["#11835A", "#1B6FA8", "#7A4B00", "#4B3FA0", "#8F2434", "#0E5F85"];
+function Avatar2({ name, on }: { name: string; on: boolean }) { const h = HUES[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % HUES.length]; return <View style={[s.av, { backgroundColor: h }]} aria-hidden><Text style={s.avT}>{(name[0] ?? "?").toUpperCase()}</Text><View style={[s.avDot, { backgroundColor: on ? "#34C27A" : "#F2B233" }]} /></View>; }
 const s = StyleSheet.create({
+  lst: { borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, overflow: "hidden" }, li: { paddingHorizontal: space.md, paddingVertical: space.sm, gap: 4 }, liSep: { borderTopWidth: 1, borderTopColor: "#EEF2F4" },
+  liMain: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 52 }, liHost: { color: color.navy, fontWeight: "800", fontSize: font.md }, liMeta: { color: color.text2, fontSize: 12, marginTop: 1 },
+  liSeats: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingLeft: 52 }, liLock: { color: color.text2, fontSize: 12 },
+  av: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" }, avT: { color: "#fff", fontWeight: "800", fontSize: font.md }, avDot: { position: "absolute", right: -1, bottom: -1, width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: "#fff" },
   box: { gap: space.sm, padding: space.lg, borderRadius: radius.lg, backgroundColor: color.bg, borderWidth: 1, borderColor: color.line },
   head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: space.sm, flexWrap: "wrap" }, h: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, live: { color: color.text2, fontSize: 12 },
   filters: { gap: space.xs }, sep: { width: 1, height: 24, backgroundColor: color.line, marginHorizontal: 2 }, chipsRow: { flexDirection: "row", gap: space.xs, alignItems: "center" }, chips: { flexDirection: "row", flexWrap: "wrap", gap: space.xs }, chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 2, borderColor: color.line, backgroundColor: color.white, alignItems: "center", justifyContent: "center" }, chipOn: { backgroundColor: color.green, borderColor: color.green }, chipT: { color: color.navy, fontWeight: "700", fontSize: font.sm },

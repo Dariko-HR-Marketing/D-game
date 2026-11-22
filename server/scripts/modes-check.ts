@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, openRoomsAcc } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -20,7 +20,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("mode-student").click(); check(await a.getByTestId("seats-2").count() === 1 && await a.getByTestId("seats-8").count() === 1, `${tag} student: o'rinlar 2–8`);
   await a.getByTestId("mode-standard").click(); check(await a.getByTestId("seats-8").count() === 1 && await a.getByTestId("seats-2").count() === 1, `${tag} standart: 2–8`);
   check((await a.getByTestId("turn-60").count()) === 1 && (await a.getByTestId("turn-120").count()) === 1 && (await a.getByTestId("turn-0").count()) === 1 && (await a.getByTestId("turn-30").count()) === 0, `${tag} tezlik: Odatiy (1 daqiqa), Sekin (2 daqiqa), Mehrojiddin`);
-  check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await a.getByTestId("rooms-code-input").count()) === 1, `${tag} bosh sahifada alohida «Kod bilan qo'shilish» yo'q; kod maydoni «Ochiq o'yinlar» ostida`);
+  check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await openRoomsAcc(a), await a.getByTestId("rooms-code-input").count()) === 1, `${tag} bosh sahifada alohida «Kod bilan qo'shilish» yo'q; kod maydoni «Ochiq o'yinlar» ostida`);
   await a.getByTestId("mode-corporate").click(); check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await a.getByTestId("corp-code").count()) === 1, `${tag} Korporativda faqat tashkilot kodi maydoni`); await a.getByTestId("mode-standard").click();
   // 2) Standart xona va chiqish shartlari
   await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
