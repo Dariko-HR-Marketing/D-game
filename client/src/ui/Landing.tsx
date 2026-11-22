@@ -20,7 +20,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
       <View style={[s.blob, { backgroundColor: "#FFE9B5", width: 360, height: 360, left: -140, bottom: -130 }]} aria-hidden />
       <View style={[s.inner, wide && { paddingHorizontal: space.xxl }]}>
         <View style={s.nav}>
-          <View style={s.brand}><Logo size={tiny ? 26 : 32} /><Text style={s.brandT}>{uz.app.name}</Text></View>
+          <View style={s.brand}><Logo height={tiny ? 42 : 46} /></View>
           <View style={{ flex: 1 }} />
           <View style={{ minWidth: 110 }}><Button label={L.signIn} kind="ghost" onPress={onStart} /></View>
         </View>

@@ -35,7 +35,7 @@ export function OrientationGuard({ children }: { children: React.ReactNode }) {
     </View>)}</>);
 }
 const s = StyleSheet.create({
-  layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: "#082238", alignItems: "center", justifyContent: "center", gap: space.md, padding: space.xl, flexDirection: "column" } as any,
+  layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: "#08263E", alignItems: "center", justifyContent: "center", gap: space.md, padding: space.xl, flexDirection: "column" } as any,
   phone: { width: 72, height: 72, borderRadius: 20, backgroundColor: "#11835A", alignItems: "center", justifyContent: "center" },
   body: { width: 26, height: 46, borderRadius: 7, borderWidth: 3, borderColor: "#fff", alignItems: "center" }, notch: { width: 8, height: 3, borderRadius: 2, backgroundColor: "#fff", marginTop: 3 },
   t: { color: "#fff", fontSize: font.xl, fontWeight: "800", textAlign: "center" }, p: { color: "#C6D3DC", fontSize: font.md, textAlign: "center", maxWidth: 420, lineHeight: 22 },

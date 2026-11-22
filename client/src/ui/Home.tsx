@@ -62,7 +62,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
-        <View style={[s.brand, { flexShrink: 1, minWidth: 0 }]}><Logo size={tiny ? 26 : 30} /><Text style={[s.logoT, tiny && { fontSize: 15 }]} numberOfLines={1}>{uz.app.name}</Text></View>
+        <View style={[s.brand, { flexShrink: 1, minWidth: 0 }]}><Logo height={tiny ? 42 : 46} /></View>
         <View style={{ flex: 1 }} />
         {(!tiny || !online) && <View style={{ alignSelf: "center" }}><Pill label={online ? uz.home.online : status === "offline" ? uz.home.offline : uz.home.connecting} kind={online ? "good" : status === "offline" ? "bad" : "warn"} /></View>}
         <Pressable accessibilityRole="button" accessibilityLabel={uz.onboarding.help} onPress={replayTour} style={s.avatarBtn} testID="tour-help"><Icon name="help" size={22} color={color.navy} /></Pressable>

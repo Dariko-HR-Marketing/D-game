@@ -34,7 +34,7 @@ function Balloon({ i, W, H }: { i: number; W: number; H: number }) {
   return (
     <Animated.View style={{ position: "absolute", left, top: 0, alignItems: "center", opacity: op, transform: [{ translateY: y }, { translateX: x }] }}>
       <View style={{ width: 44, height: 54, borderRadius: 27, backgroundColor: c, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}><View style={{ position: "absolute", top: 9, left: 11, width: 8, height: 14, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.45)" }} /></View>
-      <View style={{ width: 8, height: 8, backgroundColor: c, transform: [{ rotate: "45deg" }], marginTop: -2 }} /><View style={{ width: 1.5, height: 46, backgroundColor: "rgba(8,34,56,0.35)" }} />
+      <View style={{ width: 8, height: 8, backgroundColor: c, transform: [{ rotate: "45deg" }], marginTop: -2 }} /><View style={{ width: 1.5, height: 46, backgroundColor: "rgba(8,38,62,0.35)" }} />
     </Animated.View>);
 }
 

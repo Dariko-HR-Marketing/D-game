@@ -29,7 +29,7 @@ export function CellSheet({ info, names, onClose }: { info: CellInfoData; names:
 }
 const s = StyleSheet.create({
   layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "flex-end" },
-  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,34,56,0.45)" },
+  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,38,62,0.45)" },
   card: { width: "100%", maxWidth: 460, backgroundColor: color.white, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.lg, gap: space.md, ...shadow, margin: 0 },
   head: { flexDirection: "row", alignItems: "flex-start", gap: space.sm }, kind: { color: tone.muted, fontSize: font.sm, fontWeight: "800" }, title: { color: color.navy, fontSize: font.lg, fontWeight: "800", lineHeight: 24 },
   x: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }, text: { color: color.navy, fontSize: font.md, lineHeight: 22 },

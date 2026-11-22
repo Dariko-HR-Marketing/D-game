@@ -25,5 +25,5 @@ export function CardFace({ file, label, maxH, onState }: { file?: string; label:
   );
 }
 const s = StyleSheet.create({
-  frame: { alignSelf: "center", borderRadius: radius.lg, overflow: "hidden", backgroundColor: color.white, borderWidth: 1, borderColor: "#DCE3E8", shadowColor: "#082238", shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8, maxWidth: "100%" },
+  frame: { alignSelf: "center", borderRadius: radius.lg, overflow: "hidden", backgroundColor: color.white, borderWidth: 1, borderColor: "#DCE3E8", shadowColor: "#08263E", shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8, maxWidth: "100%" },
 });

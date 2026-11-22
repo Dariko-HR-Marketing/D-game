@@ -20,7 +20,7 @@ export interface ProfilePersist {
 export const PROFILE_COLORS = 8; // §7: fishka rangi (8 ta: 2–8 o'yinchi)
 export const MIN_AGE_RESTRICT = 16; // §2.8: 16 yoshgacha cheklovlar
 /** Ball berish qoidalari SPEC'da yo'q (§16): qiymatlar bo'sh, buyurtmachi to'ldiradi. */
-/** Ball qoidalari — «Tajriba 24 o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */
+/** Ball qoidalari — «Tajriba24 o'yin qo'llanmasi» §15 (o'yinchilar o'rtasida). 100 ball = 1 daraja (§5.9). */
 export { POINTS };
 /** Bitta o'yin uchun ball. Tashlab ketgan — faqat −20 (+ ishonchsizlik −50); oxirigacha o'ynagan — qolgan hamma bandlar. */
 export function gamePoints(p: ResultPlayer): number {

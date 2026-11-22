@@ -54,7 +54,7 @@ export function FxLayer({ chips, reduced, style }: { chips: Chip[]; reduced: boo
 const s = StyleSheet.create({
   layer: { position: "absolute", zIndex: 70, flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", gap: space.sm },
   sr: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 },
-  chip: { flexDirection: "row", alignItems: "center", gap: space.sm, maxWidth: "100%", paddingVertical: 4, paddingLeft: 6, paddingRight: space.md, borderRadius: radius.pill, borderWidth: 2, shadowColor: "#082238", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  chip: { flexDirection: "row", alignItems: "center", gap: space.sm, maxWidth: "100%", paddingVertical: 4, paddingLeft: 6, paddingRight: space.md, borderRadius: radius.pill, borderWidth: 2, shadowColor: "#08263E", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
   mark: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" }, markT: { color: color.white, fontSize: 12, fontWeight: "900" },
   main: { fontSize: font.lg, fontWeight: "900", fontVariant: ["tabular-nums"], lineHeight: 22 }, assetMain: { fontSize: font.md, fontWeight: "800", lineHeight: 19 },
   sub: { fontSize: 12, fontWeight: "700", color: tone.muted, lineHeight: 15 },

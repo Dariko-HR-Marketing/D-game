@@ -21,7 +21,7 @@ describe("HTTP: email bir martalik kod", () => {
   });
   it("so'rov → kod emailga → tasdiq → sessiya; manzil katta-kichik harfga bog'liq emas", async () => {
     const { cap, post } = mk(); expect((await post("/auth/email/request", { email: "Ali@Mail.uz" })).statusCode).toBe(200);
-    expect(cap.sent[0].to).toBe("ali@mail.uz"); expect(cap.sent[0].subject).toContain("Tajriba 24");
+    expect(cap.sent[0].to).toBe("ali@mail.uz"); expect(cap.sent[0].subject).toContain("Tajriba24");
     const r = (await post("/auth/email/verify", { email: "ali@MAIL.uz", code: codeOf(cap) })).json(); expect(verifyToken(SECRET, r.token)).toBe(r.userId);
     expect((await post("/auth/email/verify", { email: "ali@mail.uz", code: codeOf(cap) })).statusCode).toBe(401); // kod bir marta ishlaydi
   });

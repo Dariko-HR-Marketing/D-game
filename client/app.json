@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Tajriba 24",
+    "name": "Tajriba24",
     "slug": "tajriba24",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0B2620",
+        "backgroundColor": "#08263E",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

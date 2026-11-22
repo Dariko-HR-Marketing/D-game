@@ -87,7 +87,7 @@ export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp, items }
 
 const fixed: any = { position: Platform.OS === "web" ? "fixed" : "absolute", top: 0, left: 0, right: 0, bottom: 0 };
 const s = StyleSheet.create({
-  scrim: { ...fixed, zIndex: 60, backgroundColor: "rgba(8,34,56,.55)", alignItems: "center", justifyContent: "center", padding: space.lg },
+  scrim: { ...fixed, zIndex: 60, backgroundColor: "rgba(8,38,62,.55)", alignItems: "center", justifyContent: "center", padding: space.lg },
   card: { width: "100%", maxWidth: 420, backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, gap: space.md, ...shadow },
   h: { fontSize: font.lg, fontWeight: "700", color: color.navy }, q: { fontSize: font.md, color: color.navy, lineHeight: 22 },
   note: { fontSize: font.sm, color: color.text2, lineHeight: 18 }, next: { fontSize: font.sm, color: color.text2, textAlign: "center", paddingVertical: space.xs },

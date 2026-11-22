@@ -73,7 +73,7 @@ export function ChatSheet({ room, userId, chat, error, onSend, onClose, onReport
   );
 }
 const s = StyleSheet.create({
-  layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }, backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,34,56,0.35)" },
+  layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }, backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,38,62,0.35)" },
   panel: { position: "absolute", backgroundColor: color.white, ...shadow, shadowOpacity: 0.25, shadowRadius: 24, padding: space.md, gap: space.sm },
   side: { top: 0, right: 0, bottom: 0, width: 380, borderLeftWidth: 1, borderLeftColor: color.line }, sheet: { left: 0, right: 0, bottom: 0, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, title: { color: color.navy, fontSize: font.xl, fontWeight: "800" }, x: { width: MIN_TAP, height: MIN_TAP, alignItems: "center", justifyContent: "center" },

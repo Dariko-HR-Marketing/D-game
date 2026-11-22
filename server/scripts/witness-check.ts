@@ -48,7 +48,7 @@ for (const [tag, w, h] of SIZES) {
   const yes = dlg.getByRole("button", { name: "Ha, guvoh bo'laman" }); check((await yes.count()) === 1, `${tag}: oynada «Ha, guvoh bo'laman» tugmasi bor`);
   const r = (await yes.boundingBox())!; check(r.x >= -1 && r.x + r.width <= w + 1 && r.height >= 40, `${tag}: guvoh tugmasi ekran ichida va ≥ 40 px (${Math.round(r.width)}×${Math.round(r.height)})`);
   await wt.screenshot({ path: `${OUT}/${tag}-guvoh.png` });
-  check((await menuLabel(wt, "requests-open")) !== null, `${tag}: profil menyusida so'rovlar bandi bor`);
+  await dismissReq(wt); check((await menuLabel(wt, "requests-open")) !== null, `${tag}: profil menyusida so'rovlar bandi bor`);
   await g.waitForTimeout(400); await open(g, /Qabul qilish/);
   await g.waitForSelector("text=Qabul qilish", { timeout: 8000 });
   check(await g.getByRole("button", { name: "Qabul qilish" }).first().isDisabled(), `${tag}: guvohlar xabardor bo'lmaguncha beruvchida «Qabul qilish» o'chiq`);

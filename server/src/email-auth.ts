@@ -22,7 +22,7 @@ export function normalizeEmail(raw: unknown): string | null { if (typeof raw !==
 
 /** SMS xizmatining xuddi o'zi (bir xil himoya va sessiya), faqat yuboruvchi email; kalit maydoni «mail:» bilan ajratiladi. */
 export function emailOtp(secret: string, sender: EmailSender, extra: { code?: () => string; now?: () => number } = {}) {
-  const asSms: SmsSender = { send: (to, text) => sender.send(to.replace(/^mail:/, ""), "Tajriba 24: tasdiqlash kodi", text) };
+  const asSms: SmsSender = { send: (to, text) => sender.send(to.replace(/^mail:/, ""), "Tajriba24: tasdiqlash kodi", text) };
   const otp = new OtpService({ secret, sms: asSms, ...extra });
   return {
     request: (email: string) => otp.request("mail:" + email), verify: (email: string, code: unknown) => otp.verify("mail:" + email, code), sweep: () => otp.sweep(),

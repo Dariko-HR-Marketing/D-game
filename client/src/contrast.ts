@@ -7,4 +7,4 @@ export function contrast(a: string, b: string): number {
   const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05);
 }
 /** Fon ustida o'qiladigan matn rangi: kontrasti yuqori bo'lgani. */
-export const readableOn = (bg: string, light = "#FFFFFF", dark = "#082238") => (contrast(bg, light) >= contrast(bg, dark) ? light : dark);
+export const readableOn = (bg: string, light = "#FFFFFF", dark = "#08263E") => (contrast(bg, light) >= contrast(bg, dark) ? light : dark);

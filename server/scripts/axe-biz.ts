@@ -31,7 +31,7 @@ for (const [w, h] of [[390, 844], [1440, 900]] as [number, number][]) {
   const tag = `${w}px`;
   x.tournaments.unregister(t.id, "stu");
   const s = await open("stu", w, h); await scan(s, `bosh sahifa ${tag}`);
-  await s.getByRole("button", { name: /^Do'kon va Plus/ }).click(); await s.waitForSelector("text=Tajriba 24 Plus"); await s.waitForSelector("text=Kumush"); await scan(s, `do'kon ${tag}`);
+  await s.getByRole("button", { name: /^Do'kon va Plus/ }).click(); await s.waitForSelector("text=Tajriba24 Plus"); await s.waitForSelector("text=Kumush"); await scan(s, `do'kon ${tag}`);
   await s.getByRole("tab", { name: "Ramkalar" }).click(); await scan(s, `do'kon ramkalar ${tag}`); await back(s);
   await s.getByRole("button", { name: /^Sinf\./ }).click(); await s.waitForSelector("text=Sinfga qo'shilish"); await s.waitForSelector("text=O'qituvchi: Ismtch"); await scan(s, `sinf o'quvchi ${tag}`); await back(s);
   await s.getByRole("button", { name: /^Turnirlar\./ }).click(); await s.waitForSelector("text=Kuz kubogi"); await scan(s, `turnirlar ${tag}`);

@@ -38,7 +38,7 @@ export function HomeDesktop(p: DesktopProps) {
   return (
     <View style={{ flex: 1, flexDirection: "row", backgroundColor: color.bg }}>
       <View style={s.side} role="navigation" aria-label={uz.home.nav}>
-        <View style={s.brand}><Logo size={34} /><View><Text style={s.brandT}>{uz.app.name}</Text><Text style={s.brandS}>{D.brandSub}</Text></View></View>
+        <View style={s.brand}><View style={{ gap: 4 }}><Logo height={46} /><Text style={s.brandS}>{D.brandSub}</Text></View></View>
         <View style={{ gap: 4, marginTop: space.lg }}>{nav.map((n) => (
           <Pressable key={n.k} accessibilityRole="button" aria-current={n.cur ? "page" : undefined} accessibilityLabel={n.label} onPress={n.on} style={[s.navI, n.cur && s.navOn]}><Icon name={n.icon} size={20} color={n.cur ? color.green : tone.muted} /><Text style={[s.navT, n.cur && { color: "#0E6B4A" }]}>{n.label}</Text></Pressable>))}</View>
         <View style={{ flex: 1 }} />

@@ -1,10 +1,10 @@
 // §2.2: hamma matn shu yerda (o'zbek, lotin). Kodda qattiq yozilgan matn yo'q.
 export const uz = {
   dice: { title: "Kubik tashlandi", rolling: "Kubik tashlanmoqda…", sum: "Yig'indi", by: "{name} kubik tashladi", you: "Siz kubik tashladingiz", close: "Yopish", hint: "Yopish uchun bosing", yourTurn: "Sizning navbatingiz", later: "Avval hisobni ko'raman", sending: "Tashlanmoqda…", disable: "Bu oynani o'chirish (oddiy tugma)", oneDie: "1 kubik", twoDice: "2 kubik · yig'indisi bo'yicha yuriladi" },
-  app: { name: "Tajriba 24" },
+  app: { name: "Tajriba24" },
   sound: { label: "Tovush", on: "Tovushni yoqish", off: "Tovushni o'chirish" },
   home: { gateTitle: "Avval qisqa tanishuv", gateText: "Qisqa yo'riqnomani ketma-ket o'ting: har bir tugma va bo'lim ko'rsatiladi. Tugagach oddiy o'yinlar darhol ochiladi.", tutorialOffer: "Birinchi tanishuv", tutorialSub: "Qadamma-qadam yo'riqnoma: tugmalarni o'zingiz bosib ko'rasiz, o'ynash shart emas", modeLabel: "O'yin turi", corpEnter: "Korporativ xonaga kirish", desk: {
-      brandSub: "MOLIYAVIY SAVODXONLIK", newbie: "Yangi boshlovchi", tournaments: "Turnirlar",
+      brandSub: "Moliyaviy savodxonlik o'yini", newbie: "Yangi boshlovchi", tournaments: "Turnirlar",
       heroBadge: "Birinchi qadam · yangi o'yinchi uchun", heroTitle: "Birinchi tanishuv: tugmalarni o'zingiz bosib o'rganing",
       heroText: "Bu o'yin emas, qisqa yo'riqnoma: kubik, karta, bo'limlar va g'alaba sharti qadamma-qadam ko'rsatiladi. Tugagach oddiy o'yinlar ochiladi.", startTutorial: "Tanishuvni boshlash",
       learnTitle: "Nimalarni o'rganasiz", learn: ["Balans va oylik pul oqimi", "Imkoniyat: biznes va passiv daromad", "Aksiya va bozor", "Xarajat va kutilmagan hodisa", "Hisob varag'i, tarix, tahlil, chat", "Maqsad: kichik aylanadan chiqish"], learnNote: "+ har bir bo'limga birinchi kirishda alohida tushuntirish",
@@ -26,7 +26,7 @@ export const uz = {
   // Sahifa yo'riqnomalari (onboarding): har sahifada birinchi kirishda bir marta. {..} — taxminiy raqamlar (client/src/estimates.ts, docs/BALANCE.md).
   tour: {
     home: [
-      { title: "Tajriba 24'ga xush kelibsiz", text: "Bu moliyaviy savodxonlik o'yini: pul oqimi va passiv daromad yaratishni o'ynab o'rganasiz. Hozir qisqacha tanishib chiqamiz. Istalgan payt o'tkazib yuborishingiz mumkin." },
+      { title: "Tajriba24'ga xush kelibsiz", text: "Bu moliyaviy savodxonlik o'yini: pul oqimi va passiv daromad yaratishni o'ynab o'rganasiz. Hozir qisqacha tanishib chiqamiz. Istalgan payt o'tkazib yuborishingiz mumkin." },
       { title: "O'yinni shu yerdan boshlang", text: "«Yangi o'yin» — xona ochasiz va do'stlaringizni taklif qilasiz. Do'stingizning kodi bo'lsa — «Ochiq o'yinlar» ostidagi kod maydoniga kiriting. O'yinda 2–8 ishtirokchi bo'ladi; odam yetmasa bot qo'shiladi." },
       { title: "Qoidalar, reyting va profil", text: "Pastdagi menyuda: «Qoidalar» — to'liq qoidalar, «Reyting» — eng kuchli o'yinchilar, «Profil» — ismingiz, fishka rangi va yutuqlaringiz." },
     ],
@@ -242,7 +242,7 @@ export const uz = {
     partner_declined: "sheriklik taklifingizni rad etdi",
   },
   hod7: { pay: "Pul to'layman", lose: "Biznesdan voz kechaman" },
-  orient: { title: "Telefonni tik tuting", text: "Tajriba 24 telefonda faqat tik (portret) holatda o'ynaladi. Telefonni to'g'rilang — o'yin shu joyidan davom etadi." },
+  orient: { title: "Telefonni tik tuting", text: "Tajriba24 telefonda faqat tik (portret) holatda o'ynaladi. Telefonni to'g'rilang — o'yin shu joyidan davom etadi." },
   rules: { groups: { play: "O'yin tartibi", money: "Pul, qarz va sheriklik", circles: "Aylanalar va g'alaba", more: "Qo'shimcha" } as Record<string, string>, ruleWord: "qoida", title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
   leave: {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
@@ -352,7 +352,7 @@ export const uz = {
     chips: ["2–8 o'yinchi", "Asosiy o'yin bepul", "Natija serverda hisoblanadi"],
     small: "Kichik aylana · 48 katak", big: "Katta aylana · 53 katak", orbitLabel: "Ikki aylana: kichik (48 katak) va katta (53 katak); fishkalar aylanada yuradi",
     goalCash: "Naqd {cash}", goalPassive: "Passiv daromad {passive}",
-    footer: "© Tajriba 24 · DARIKO ekotizimi o'yin brendi · tajriba24.uz",
+    footer: "© Tajriba24 · DARIKO ekotizimi o'yin brendi · tajriba24.uz",
   },
   flow: {
     title: "Birinchi tanishuv", step: "{i} / {n}", next: "Keyingisi", back: "Orqaga", finish: "Tushundim, o'yinga o'tish", must: "Davom etish uchun yuqoridagi tugmani bosing.", sample: "Namuna (haqiqiy o'yin emas)", done: "Zo'r!", doneText: "Tanishuv tugadi. Endi oddiy o'yinlar ochildi: xona oching yoki do'stingiz kodi bilan qo'shiling.",
@@ -398,7 +398,7 @@ export const uz = {
       corpTeam: { t: "Yillik jamoa", d: "Doimiy foydalanish uchun pog'onalar: {tiers} o'rin; o'rinlar jamoa ichida umumiy." },
     } as Record<string, { t: string; d: string }>,
     paywall: { title: "Bugungi {n} ta xona tugadi", text: "Boshqa xonalarga qo'shilish cheklanmagan. Yangi xona uchun variantni tanlang:", plus: "Plus: cheksiz xona", host: "Bugunlik host-pass", later: "Ertaga davom etaman", note: "Narx «Sotib olish» bosilganda aniq ko'rsatiladi." },
-    checkout: { title: "To'lov", order: "Buyurtma", total: "Jami", method: "To'lash usuli", payme: "Payme", click: "Click", pay: "To'lash", cardNote: "Karta ma'lumoti faqat to'lov provayderida kiritiladi: Tajriba 24 uni ko'rmaydi va saqlamaydi.", minorNote: "16 yoshgacha: ota-onaga tasdiq so'rovi yuboriladi.", unavailable: "To'lov hali ulanmagan." },
+    checkout: { title: "To'lov", order: "Buyurtma", total: "Jami", method: "To'lash usuli", payme: "Payme", click: "Click", pay: "To'lash", cardNote: "Karta ma'lumoti faqat to'lov provayderida kiritiladi: Tajriba24 uni ko'rmaydi va saqlamaydi.", minorNote: "16 yoshgacha: ota-onaga tasdiq so'rovi yuboriladi.", unavailable: "To'lov hali ulanmagan." },
   },
   plan: {
     pill: "Onboarding rejasi", close: "Yopish", skip: "O'tkazib yuborish", back: "Orqaga", next: "Keyingi", done: "Tushunarli",
@@ -473,7 +473,7 @@ export const uz = {
   errors: {
     bad_photo: "Rasm o'qilmadi. JPEG yoki PNG rasm tanlang", photo_too_big: "Rasm juda katta. Kichikroq rasm tanlang", no_photo: "Rasm topilmadi",
     calc_wrong: "Hisob noto'g'ri. Qayta hisoblang", calc_required: "Avval hisobni kiriting", calc_due: "Avval hisobingizni yangilang", maintenance: "Texnik ishlar olib borilmoqda. Birozdan keyin urinib ko'ring", sales_paused: "Xaridlar vaqtincha to'xtatilgan. Keyinroq urinib ko'ring", paused: "Bu amal vaqtincha to'xtatilgan",
-    room_limit: "Bepul tarifda kuniga xona yaratish chegarasi tugadi. Plus bilan cheklov yo'q", not_allowed: "Bu xonaga faqat sinf yoki turnir a'zolari kira oladi", plus_required: "Bu imkoniyat Tajriba 24 Plus uchun", price_unset: "Bu mahsulot narxi hali belgilanmagan",
+    room_limit: "Bepul tarifda kuniga xona yaratish chegarasi tugadi. Plus bilan cheklov yo'q", not_allowed: "Bu xonaga faqat sinf yoki turnir a'zolari kira oladi", plus_required: "Bu imkoniyat Tajriba24 Plus uchun", price_unset: "Bu mahsulot narxi hali belgilanmagan",
     payments_unavailable: "To'lov hozircha ulanmagan. Keyinroq urinib ko'ring", phone_required: "Avval telefon raqamingizni tasdiqlang", profile_required: "Avval profilni to'ldiring", parent_phone_required: "Ota-onangizning telefon raqamini kiriting", same_phone: "Ota-ona raqami sizning raqamingizdan farq qilishi kerak",
      phone_taken: "Bu raqam boshqa hisobga bog'langan",  sms_unavailable: "SMS xizmati hozircha ulanmagan",  unavailable: "Bu mahsulot hozircha sotilmaydi", already_owned: "Bu narsa sizda bor", not_owned: "Bu narsa sizda yo'q", not_plus: "Bu imkoniyat Plus egalari uchun", already_claimed: "Bu oyning sovg'asi olingan", plus_already_long: "Plus muddati yetarlicha uzun",
       used: "Bu kod ishlatilgan", already_teacher: "Siz allaqachon o'qituvchisiz", not_teacher: "Siz o'qituvchi sifatida ulanmagansiz", no_license: "Maktab litsenziyasi faol emas", seats_full: "Maktabda o'rinlar tugagan", already_member: "Siz bu sinfdasiz", teacher_cannot_join: "O'qituvchi o'z sinfiga o'quvchi bo'lib qo'shilmaydi", closed: "Ro'yxatdan o'tish yopiq", full: "Turnirda joy qolmagan", already: "Siz ro'yxatdan o'tgansiz", consent_required: "16 yoshgacha ota-ona roziligi kerak", bad_sku: "Mahsulot topilmadi", bad_item: "Narsa noto'g'ri", not_pending: "Buyurtma kutish holatida emas",

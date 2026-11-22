@@ -1,16 +1,20 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { color, PLAYER_COLORS } from "../theme";
+import { Image, Platform, View } from "react-native";
+import { uz } from "../i18n/uz";
 
-/** Belgi: taxta halqasi (kataklar o'yinchi ranglarida) ichida «T». Faqat bezak — ekran o'qish dasturlariga ko'rinmaydi. */
-export function Logo({ size = 80 }: { size?: number }) {
-  const n = 16, r = size * 0.38, dot = size * 0.13;
-  return (
-    <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: size, height: size }}>
-      {Array.from({ length: n }, (_, i) => { const a = (i / n) * 2 * Math.PI - Math.PI / 2;
-        return <View key={i} style={{ position: "absolute", width: dot, height: dot, borderRadius: dot * 0.3, left: size / 2 + r * Math.cos(a) - dot / 2, top: size / 2 + r * Math.sin(a) - dot / 2, backgroundColor: PLAYER_COLORS[i % 6], opacity: 0.95 }} />; })}
-      <View style={{ position: "absolute", left: size * 0.26, top: size * 0.26, width: size * 0.48, height: size * 0.48, borderRadius: size * 0.24, backgroundColor: color.navy, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: color.white, fontWeight: "800", fontSize: size * 0.26 }}>T</Text></View>
-    </View>
-  );
+/** Tajriba24 brend logotipi (docs/BRAND.md, «Brend qo'llanmasi»). `full` — D belgisi + yashil tire + tajriba24; `mark` — faqat D emblemasi.
+ *  `tone`: «light» — och fon uchun to'q ko'k yozuv; «dark» — to'q fon uchun oq yozuv. Shaklni cho'zmang, fonga mos rangdagi variantni ishlating.
+ *  Veb: SVG (`public/brand`); ilova: PNG (`assets/brand`). Balandlik beriladi, kenglik nisbat bo'yicha. */
+const RATIO = { full: 1549 / 449, mark: 1 } as const;
+const FILE = { full: { light: "Tajriba24_Asosiy_och", dark: "Tajriba24_Asosiy_toq" }, mark: { light: "Tajriba24_Emblema_och", dark: "Tajriba24_Emblema_toq" } } as const;
+const NATIVE = {
+  full: { light: require("../../assets/brand/Tajriba24_Asosiy_och.png"), dark: require("../../assets/brand/Tajriba24_Asosiy_toq.png") },
+  mark: { light: require("../../assets/brand/Tajriba24_Emblema_och.png"), dark: require("../../assets/brand/Tajriba24_Emblema_toq.png") },
+} as const;
+export function Logo({ height = 32, variant = "full", tone = "light", label = true }: { height?: number; variant?: "full" | "mark"; tone?: "light" | "dark"; label?: boolean }) {
+  const source = Platform.OS === "web" ? { uri: `/brand/${FILE[variant][tone]}.svg` } : NATIVE[variant][tone];
+  const style = { width: Math.round(height * RATIO[variant]), height };
+  return label
+    ? <Image source={source} style={style} resizeMode="contain" accessibilityLabel={uz.app.name} role="img" testID="brand-logo" />
+    : <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants"><Image source={source} style={style} resizeMode="contain" /></View>;
 }

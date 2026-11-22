@@ -61,8 +61,8 @@ export function Tour({ id, onRules, defer }: { id: TourId | null; onRules: () =>
   return (
     <View style={s.back} pointerEvents="auto">
       <View style={s.dim} />{/* sahifani bosishdan to'sadi */}
-      {rect && <View aria-hidden pointerEvents="none" style={[s.ring, { left: rect.left - P, top: rect.top - P, width: rect.width + 2 * P, height: rect.height + 2 * P }, ({ boxShadow: "0 0 0 9999px rgba(8,34,56,0.66)" } as any)]} />}
-      {!rect && <View aria-hidden pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(8,34,56,0.66)" }]} />}
+      {rect && <View aria-hidden pointerEvents="none" style={[s.ring, { left: rect.left - P, top: rect.top - P, width: rect.width + 2 * P, height: rect.height + 2 * P }, ({ boxShadow: "0 0 0 9999px rgba(8,38,62,0.66)" } as any)]} />}
+      {!rect && <View aria-hidden pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(8,38,62,0.66)" }]} />}
       <View ref={card} style={[s.card, { width: cw, left: pos.left, top: pos.top, opacity: box.ready ? 1 : 0 }, reduced ? null : ({ transition: "top .25s ease, left .25s ease, opacity .2s ease" } as any)]} role="dialog" aria-modal aria-label={st.title}>
         <View style={s.head}>
           <View style={s.badge} aria-hidden><Icon name={ic} size={22} color={color.white} /></View>
