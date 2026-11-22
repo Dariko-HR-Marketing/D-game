@@ -23,7 +23,7 @@ export class Connection {
   private retry = 0;
   private closed = false;
   private rejoinCode: string | null = null; private watching = false; // jonli ro'yxatga obuna: qayta ulanganda tiklanadi
-  private lastAct: { action: Record<string, unknown>; retried: boolean } | null = null;
+  private lastAct: { action: Record<string, unknown>; retries: number } | null = null; // eski holat raqami (stale_seq) bo'lsa, yangi holat kelgach harakat 3 martagacha qayta yuboriladi
   private retryNext = false;
   /** Ovozli aloqa signali (SDP/ICE) kelganda chaqiriladi (VoiceEngine o'rnatadi). */
   voiceSignal: ((from: string, data: any) => void) | null = null;
@@ -50,7 +50,7 @@ export class Connection {
         if (!this.expecting && !this.state.room) return;
         this.rejoinCode = m.room.code; this.set({ room: m.room, error: null, ...(this.state.lost ? { lost: false, restoredAt: Date.now() } : {}) });
         // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
-        if (this.retryNext && this.lastAct && !this.lastAct.retried) { this.retryNext = false; this.lastAct.retried = true; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
+        if (this.retryNext && this.lastAct && this.lastAct.retries < 3) { this.retryNext = false; this.lastAct.retries++; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
       } else if (m.type === "lobbies") {
         this.set({ lobbies: { rooms: m.rooms ?? [], playing: m.playing ?? [], stats: m.stats, online: m.online ?? 0 } });
       } else if (m.type === "voice_state") {
@@ -66,7 +66,7 @@ export class Connection {
         this.set({ reactions: [...this.state.reactions, { id: ++this.rid, from: m.from, emoji: m.emoji, at: Date.now() }].slice(-3) }); // so'nggi 3 tasi
       } else if (m.type === "error") {
         if (typeof m.error === "string" && m.error.startsWith("calc_")) this.set({ calcFb: { error: m.error, n: ++this.fbN, detail: m.detail } }); // hisob javobi: shaklda ko'rsatiladi, umumiy xato emas
-        else if (m.error === "stale_seq" && this.lastAct && !this.lastAct.retried) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
+        else if (m.error === "stale_seq" && this.lastAct && this.lastAct.retries < 3) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
         else this.set({ error: m.error });
       }
     };
@@ -110,5 +110,5 @@ export class Connection {
   /** Chat: erkin matn yoki tayyor ibora (xona a'zolariga). */
   sendChat(m: { text: string } | { phrase: number }) { return this.send({ type: "chat", ...m }); }
   /** Harakat: mijoz ko'rgan oxirgi `seq` bilan (eski holatdagi harakat serverda rad etiladi). */
-  act(action: Record<string, unknown>) { this.lastAct = { action, retried: false }; this.retryNext = false; this.send({ type: "act", seq: this.state.room?.seq ?? 0, action }); }
+  act(action: Record<string, unknown>) { this.lastAct = { action, retries: 0 }; this.retryNext = false; this.send({ type: "act", seq: this.state.room?.seq ?? 0, action }); }
 }

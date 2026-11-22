@@ -134,12 +134,12 @@ describe("eski holat (stale_seq) da avtomatik qayta urinish", () => {
     w.onmessage({ data: state(6) });
     expect(w.sent.length).toBe(before + 1); expect(JSON.parse(w.sent.at(-1)!)).toEqual({ type: "act", seq: 6, action: { type: "roll" } });
   });
-  it("ikkinchi stale_seq da qayta urinmaydi (cheksiz tsikl yo'q) va xatoni ko'rsatadi", () => {
+  it("stale_seq da harakat 3 martagacha qayta yuboriladi; to'rtinchisida (cheksiz tsikl yo'q) xato ko'rsatiladi", () => {
     const { c, w } = mk(); c.act({ type: "roll" });
-    w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) }); w.onmessage({ data: state(6) });
+    for (let i = 0; i < 3; i++) { w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) }); expect(c.state.error).toBeNull(); const n = w.sent.length; w.onmessage({ data: state(6 + i) }); expect(w.sent.length).toBe(n + 1); }
     const n = w.sent.length;
     w.onmessage({ data: JSON.stringify({ type: "error", error: "stale_seq" }) }); expect(c.state.error).toBe("stale_seq");
-    w.onmessage({ data: state(7) }); expect(w.sent.length).toBe(n);
+    w.onmessage({ data: state(10) }); expect(w.sent.length).toBe(n);
   });
   it("boshqa xatolar qayta uringa sabab bo'lmaydi; yangi harakat hisobni yangilaydi", () => {
     const { c, w } = mk(); c.act({ type: "roll" });

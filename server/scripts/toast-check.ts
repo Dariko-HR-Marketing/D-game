@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Karta xabari: boshqa o'yinchi tortgan karta (jumladan bozor kartasi) 30 soniya yoki «✕» bosilguncha turadi, o'zi erta yo'qolmaydi.
 // `OUT=papka pnpm tsx scripts/toast-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles, slowTimers, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, pickDream } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -18,7 +18,7 @@ await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
 await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
+await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c);
 await a.waitForSelector("text=Naqd", { timeout: 60000 });
 const room = x.rooms.rooms.get(code)!; slowTimers(x, room); const toast = a.locator('[role="status"][aria-label]').filter({ hasText: "karta tortdi" }); // xabar kartasi: lahza-bannerlari («Bozor xabari») va moliya chiplari emas
 // «c» o'yinchisi navbatida karta tortilguncha: «a» ning sahifasida xabar chiqadi

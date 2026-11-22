@@ -23,6 +23,8 @@ const ICONS: Record<string, P> = {
   dice: [["rect", { x: 4, y: 4, width: 16, height: 16, rx: 3 }], ["circle", { cx: 9, cy: 9, r: 1 }], ["circle", { cx: 15, cy: 9, r: 1 }], ["circle", { cx: 9, cy: 15, r: 1 }], ["circle", { cx: 15, cy: 15, r: 1 }]],
   star: ["M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z"],
   banknote: [["rect", { x: 3, y: 6.5, width: 18, height: 11, rx: 2 }], ["circle", { cx: 12, cy: 12, r: 2.5 }], "M6.5 9.5v.1M17.5 14.5v.1"],
+  sliders: ["M4 7h9", "M17 7h3", ["circle", { cx: 15, cy: 7, r: 2 }], "M4 17h3", "M11 17h9", ["circle", { cx: 9, cy: 17, r: 2 }]],
+  list: ["M9 6.5h11", "M9 12h11", "M9 17.5h11", ["circle", { cx: 4.5, cy: 6.5, r: 1 }], ["circle", { cx: 4.5, cy: 12, r: 1 }], ["circle", { cx: 4.5, cy: 17.5, r: 1 }]],
   lock: [["rect", { x: 5, y: 11, width: 14, height: 9, rx: 2 }], "M8 11V8a4 4 0 0 1 8 0v3"],
   heart: ["M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.2 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"],
   flag: ["M6 21V4", "M6 4h11l-2 4 2 4H6"],

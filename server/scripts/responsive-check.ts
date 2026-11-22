@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 // `OUT=papka [ONLY=390x844,1440x900] pnpm tsx scripts/responsive-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, pickDream } from "./_seed";
 import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/resp";
@@ -67,7 +67,7 @@ for (const [w, h] of SIZES) {
     await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
     await check(a, "05-lobby");
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await check(a, "06-dreams");
-    await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+    await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
     const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
     { const cur0 = currentPlayer(room.state!).id; await check(cur0 === ida ? a : c, "07-game", /^Kubik(ni|larni) tashlash/); }
     const tab = (n: string) => a.getByRole("button", { name: new RegExp("^" + n), }).first();

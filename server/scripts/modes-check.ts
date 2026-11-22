@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, openRoomsAcc, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -12,7 +12,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (exist
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
 for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, number, number][]) {
-  const open = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click({ timeout: 3000 }).catch(() => {}); } return p; };
+  const open = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); await p.getByRole("button", { name: /^Yangi o'yin/ }).or(p.getByTestId("home-tutorial")).first().waitFor({ timeout: 15000 }); if (tag === "tel") { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click({ timeout: 3000 }).catch(() => {}); } return p; };
   // 1) Tanlov va o'rinlar chegarasi
   const a = await open("mda" + tag);
   check(await a.getByTestId("mode-quick").count() === 0 && await a.getByTestId("mode-rated").count() === 0 && await a.getByTestId("mode-tutorial").count() === 0, `${tag} tanlovda Tez, Reytingli va O'quv yo'q`);
@@ -20,13 +20,13 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("mode-student").click(); check(await a.getByTestId("seats-2").count() === 1 && await a.getByTestId("seats-8").count() === 1, `${tag} student: o'rinlar 2–8`);
   await a.getByTestId("mode-standard").click(); check(await a.getByTestId("seats-8").count() === 1 && await a.getByTestId("seats-2").count() === 1, `${tag} standart: 2–8`);
   check((await a.getByTestId("turn-60").count()) === 1 && (await a.getByTestId("turn-120").count()) === 1 && (await a.getByTestId("turn-0").count()) === 1 && (await a.getByTestId("turn-30").count()) === 0, `${tag} tezlik: Odatiy (1 daqiqa), Sekin (2 daqiqa), Mehrojiddin`);
-  check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await a.getByTestId("rooms-code-input").count()) === 1, `${tag} bosh sahifada alohida «Kod bilan qo'shilish» yo'q; kod maydoni «Ochiq o'yinlar» ostida`);
+  check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await openRoomsAcc(a), await a.getByTestId("rooms-code-input").count()) === 1, `${tag} bosh sahifada alohida «Kod bilan qo'shilish» yo'q; kod maydoni «Ochiq o'yinlar» ostida`);
   await a.getByTestId("mode-corporate").click(); check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await a.getByTestId("corp-code").count()) === 1, `${tag} Korporativda faqat tashkilot kodi maydoni`); await a.getByTestId("mode-standard").click();
   // 2) Standart xona va chiqish shartlari
   await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.mode === "standard" && room.seats === 2 && room.turnSeconds === 60, `${tag} serverda rejim «standart», o'rin 2, tezlik 1 daqiqa`);
-  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   if (tag === "tel") await a.getByRole("button", { name: /^Blank/ }).click();
   const txt = await a.locator("body").innerText(); check(txt.includes("Naqd ≥ 1 000 000") && txt.includes("Passiv daromad ≥ 25 000"), `${tag} standart: chiqish shartlari «1 000 000 / 25 000»`);
   check((room.state!.mode ?? "standard") === "standard", `${tag} o'yin holatida rejim «standart»`);

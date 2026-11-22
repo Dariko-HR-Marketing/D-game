@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, pickDream } from "./_seed";
 
 const OUT = process.env.OUT ?? "/tmp/seats"; import { mkdirSync } from "node:fs"; mkdirSync(OUT, { recursive: true });
 const WEB = process.env.WEB ?? "http://localhost:8081";
@@ -26,7 +26,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.waitForTimeout(500);
     check(room.state!.players.length === seats && room.members.filter((m) => m.bot).length === seats - 1, `${tag}/${seats} boshlanganda ${seats - 1} ta bot o'rin oldi`);
     if (seats === 8) { // 8 kishilik stol: orzular tanlanadi, o'yin ekrani sig'adi, 8 ta fishka va 8 ta o'yinchi
-      await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 20000 });
+      await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 20000 });
       await a.waitForTimeout(3000); const wide8 = await a.evaluate(() => { const W = window.innerWidth; return [document.documentElement.scrollWidth, ...[...document.querySelectorAll("*")].filter((e) => e.getBoundingClientRect().right > W + 1 && getComputedStyle(e).position !== "fixed").slice(0, 4).map((e) => `${e.tagName}.${String((e as any).className).slice(0, 40)}@${Math.round(e.getBoundingClientRect().right)}`)]; });
       check((wide8[0] as number) <= (w) + 1, `${tag}/8 o'yin ekrani gorizontal aylanmaydi ${JSON.stringify(wide8)}`);
       check(room.state!.players.length === 8 && new Set(room.state!.players.map((p: any) => p.dreamIdx)).size === 8, `${tag}/8 sakkala o'yinchining orzulari har xil`);

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/time-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/timecheck";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -14,7 +14,7 @@ let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok 
 for (const [tag, w, h] of [["tel", 390, 844], ["plan", 820, 1180], ["kmp", 1440, 900]] as [string, number, number][]) {
   const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, "tm" + tag);
   const a = await c.newPage(); await a.goto(WEB);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const code = [...x.rooms.rooms.keys()].pop()!, room = x.rooms.rooms.get(code)!;
   { const dro = a.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await a.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } } // kompyuter: vaqt paneli yon oynada
   if (!(await a.getByTestId("timebar").count())) { await a.getByRole("button", { name: /^Blank/ }).last().click(); await a.getByTestId("timebar").first().waitFor({ timeout: 4000 }); check(true, `${tag}: telefonda vaqt paneli «Blank» tepasida`); } // telefon: vaqt paneli Blank yorlig'ida

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/dreams-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, joinByCode } from "./_seed";
+import { autoProfiles, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/dreams";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -25,9 +25,9 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
   check(/900 000/.test(txt), `${tag}: narx to'liq yoziladi («900 000»)`);
   const ov = await a.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); check(ov <= 1, `${tag}: gorizontal aylanish yo'q (${ov})`);
   await a.screenshot({ path: `${OUT}/${tag}-orzu.png` });
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForTimeout(500);
+  await pickDream(a); await a.waitForTimeout(500);
   await c.waitForTimeout(500); const taken = await c.getByText(/^band · /).count(); check(taken === 1, `${tag}: tanlangan orzu ikkinchi o'yinchida «band» (${taken})`);
-  await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 15000 });
+  await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 15000 });
   const room = x.rooms.rooms.get(code)!; const idx = room.state!.players.map((p: any) => p.dreamIdx); check(idx[0] !== null && idx[1] !== null && idx[0] !== idx[1], `${tag}: serverda ikki xil orzu (${idx.join(",")})`);
   await a.context().close(); await c.context().close();
 }

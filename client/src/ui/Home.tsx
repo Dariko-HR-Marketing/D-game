@@ -8,8 +8,10 @@ import { replayTour } from "./tourStore";
 import { needsTutorial, markTutorialDone } from "../onboarding";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { RoomsList } from "./RoomsList";
+import { Acc } from "./Accordion";
+import { SpeedPicker } from "./SpeedPicker";
 import type { Lobbies } from "../net/connection";
-import { RoomOptions, defaultOpts, type RoomOpts } from "./RoomOptions";
+import { defaultOpts, type RoomOpts } from "./RoomOptions";
 import { featureOn } from "../features";
 import { turnLabel, getTurnPref, setTurnPref, getCalcPref, setCalcPref, calcUiEnabled, getSeatsPref, setSeatsPref, seatsFor, clampSeats, getModePref, setModePref, GAME_MODES_UI, serverMode, type UiMode, type TurnSeconds, type CalcMode, type Seats } from "../turnPref";
 import { BottomNav } from "./BottomNav";
@@ -47,10 +49,11 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   useEffect(() => { let off = false; http?.active().then((r) => { if (!off) setActive(r.active); }).catch(() => {}); return () => { off = true; }; }, [http]); // yangi sahifa ochilganda faol o'yinga qaytish yo'li
   const [notes, setNotes] = useState<{ id: string; text: string; kind: "info" | "warn" }[]>([]);
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? [])]; setNotes(list); }); return () => { off = true; }; }, [http]);
-  const gated = needsTutorial(me); const online = status === "online"; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const slim = compact || winW < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  const gated = needsTutorial(me); const online = status === "online"; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
+  const SUM = `${uz.home.modes[mode]} · ${uz.home.seatsOpt.replace("{n}", String(seats))} · ${turnLabel(effTurn)}${calcUiEnabled() ? ` · ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}` : ""}`;
   if (flow) return <OnboardingFlow onDone={() => { markTutorialDone(); setFlow(false); }} />; // majburiy tanishuv: server xonasisiz, tugagach oddiy o'yin ochiladi
-  const roomsNode = roomsOn && http && !gated && !corp ? <RoomsList http={http} online={online} onJoin={onJoin} live={lobbies} watch={onWatchLobbies} /> : null; const optsNode = roomsOn && !gated && !corp ? <RoomOptions value={ropts} onChange={setRopts} /> : null;
-  if (winW >= 1100) return <HomeDesktop roomsNode={roomsNode} optsNode={optsNode} onPacks={billingOn ? onPacks : undefined} gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
+  const roomsNode = roomsOn && http && !gated && !corp ? <RoomsList http={http} online={online} onJoin={onJoin} live={lobbies} watch={onWatchLobbies} collapsible={winW < 1100} /> : null;
+  if (winW >= 1100) return <HomeDesktop roomsNode={roomsNode} onPacks={billingOn ? onPacks : undefined} gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
     pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
     create={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} startTutorial={() => setFlow(true)} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
@@ -74,56 +77,52 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
             </View>)}
             {gated && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => setFlow(true)} />}
             {!gated && <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} disabled={!online || corp} />}
-            {!gated && slim && (
-              <Pressable accessibilityRole="button" aria-expanded={optsOpen} accessibilityLabel={`${uz.home.roomSettings}: ${uz.home.modes[mode]}, ${uz.home.seatsOpt.replace("{n}", String(seats))}, ${turnLabel(effTurn)}, ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}`} onPress={() => setOptsOpen((v) => !v)} style={[s.turnRow, { minHeight: 48 }]} testID="home-opts">
-                <Text style={s.turnL} numberOfLines={1}>{uz.home.roomSettings}: <Text style={{ color: color.navy, fontWeight: "800" }}>{uz.home.modes[mode]} · {`${uz.home.seatsOpt.replace("{n}", String(seats))} · `}{turnLabel(effTurn)} · {calc === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Text><Icon name="chevron" size={16} color="#6B7C8C" />
-              </Pressable>)}
-            {!gated && (!slim || optsOpen) && (<>
-            <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
-              <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.modeLabel}</Text>
-              {GAME_MODES_UI.map((m) => (
-                <Pressable key={m} role="radio" aria-checked={!corp && mode === m} testID={`mode-${m}`} accessibilityLabel={`${uz.home.modes[m]}. ${uz.home.modeHints[m]}`} onPress={() => pickMode(m)} style={[s.seg, !corp && mode === m && s.segOn]}>
-                  <Text style={[s.segT, !corp && mode === m && { color: color.white }]} aria-hidden>{uz.home.modes[m]}</Text>
-                </Pressable>))}
-              <Pressable role="radio" aria-checked={corp} testID="mode-corporate" accessibilityLabel={`${uz.home.corporate}. ${uz.home.corporateHint}`} onPress={() => setCorp(true)} style={[s.seg, corp && s.segOn]}>
-                <Text style={[s.segT, corp && { color: color.white }]} aria-hidden>{uz.home.corporate}</Text>
-              </Pressable>
-              <Text style={[s.turnL, { flexBasis: "100%", fontWeight: "600" }]}>{corp ? uz.home.corporateHint : uz.home.modeHints[mode]}</Text>
-            </View>
-            {!corp && <View style={[s.turnRow, { flexWrap: "wrap", rowGap: space.xs }]} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
-              <Text style={[s.turnL, { flexBasis: "100%" }]} aria-hidden>{uz.home.seatsLabel}</Text>
-              {seatsFor(mode).map((v) => (
-                <Pressable key={v} role="radio" aria-checked={seats === v} accessibilityLabel={`${uz.home.seatsOpt.replace("{n}", String(v))}. ${uz.home.seatsHint}`} onPress={() => { setSeats(v); setSeatsPref(v); }} style={[s.seg, seats === v && s.segOn, { paddingHorizontal: space.sm, minWidth: MIN_TAP }]} testID={`seats-${v}`}>
-                  <Text style={[s.segT, seats === v && { color: color.white }]} aria-hidden>{v}</Text>
-                </Pressable>))}
-            </View>}
-            {corp ? (
-              <View style={s.join} testID="home-corp">
-                <Text style={s.label} nativeID="orgCodeLabel">{uz.home.corpCodeLabel}</Text>
-                <View style={s.joinRow}>
-                  <TextInput accessibilityLabelledBy="orgCodeLabel" aria-label={uz.home.corpCode} placeholder="ABCD1234" placeholderTextColor="#6B7C8C" value={orgCode} onChangeText={(t) => { setOrgCode(t.toUpperCase().replace(/[^A-Z0-9]/g, "")); setOrgErr(null); }} autoCapitalize="characters" autoCorrect={false} maxLength={8} onSubmitEditing={orgJoin} returnKeyType="go" style={s.input} testID="corp-code" />
-                  <View style={{ flexShrink: 0 }}><Button label={uz.home.joinShort} onPress={orgJoin} disabled={!online || !orgReady || orgBusy} /></View>
-                </View>
-                {orgErr && <Text style={s.err} accessibilityRole="alert">{errText(orgErr)}</Text>}
-              </View>) : (<>
-            <View style={s.turnRow} role="radiogroup" aria-label={uz.home.turnLabel} testID="home-turn">
-              <Text style={s.turnL} aria-hidden>{uz.home.turnLabel}</Text>
-              {([60, 120, 0] as const).map((v) => { const name = v === 0 ? uz.home.turn0 : v === 120 ? uz.home.turn60 : uz.home.turn30;
-                return (<Pressable key={v} role="radio" aria-checked={effTurn === v} accessibilityLabel={v === 0 ? uz.home.turn0Full : name} onPress={() => pickTurn(v)} style={[s.seg, effTurn === v && s.segOn]} testID={`turn-${v}`}>
-                  <Text style={[s.segT, effTurn === v && { color: color.white }]} aria-hidden>{name}</Text>
-                </Pressable>); })}
-            </View>
-            {effTurn === 0 && <Text style={s.turnL} testID="turn0-hint">{uz.home.turn0Hint}</Text>}
-            {calcUiEnabled() && <View style={s.turnRow} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
-              <Text style={s.turnL} aria-hidden>{uz.ledger.modeLabel}</Text>
-              {(["manual", "auto"] as const).map((v) => (
-                <Pressable key={v} role="radio" aria-checked={calc === v} accessibilityLabel={`${v === "manual" ? uz.ledger.manual : uz.ledger.auto}. ${v === "manual" ? uz.ledger.manualHint : uz.ledger.autoHint}`} onPress={() => { setCalc(v); setCalcPref(v); }} style={[s.seg, calc === v && s.segOn]}>
-                  <Text style={[s.segT, calc === v && { color: color.white }]} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text>
-                </Pressable>))}
-            </View>}
-            </>)}
-            </>)}
-            {(!slim || optsOpen) && optsNode}{roomsNode}
+            {!gated && (
+              <View style={s.accWrap}>
+                <Acc icon="sliders" title={uz.openRooms.accSettings} summary={corp ? uz.home.corporate : SUM} open={optsOpen} onToggle={() => setOptsOpen((v) => !v)} testID="home-opts" label={`${uz.home.roomSettings}: ${corp ? uz.home.corporate : SUM}`}>
+                  <View style={{ gap: space.md }}>
+                    <View style={s.sec} role="radiogroup" aria-label={uz.home.modeLabel} testID="home-mode">
+                      <Text style={s.secL} aria-hidden>{uz.home.modeLabel}</Text>
+                      <View style={s.segRow}>
+                        {GAME_MODES_UI.map((m) => (
+                          <Pressable key={m} role="radio" aria-checked={!corp && mode === m} testID={`mode-${m}`} accessibilityLabel={`${uz.home.modes[m]}. ${uz.home.modeHints[m]}`} onPress={() => pickMode(m)} style={[s.seg, !corp && mode === m && s.segOn]}>
+                            <Text style={[s.segT, !corp && mode === m && { color: color.white }]} aria-hidden>{uz.home.modes[m]}</Text></Pressable>))}
+                        <Pressable role="radio" aria-checked={corp} testID="mode-corporate" accessibilityLabel={`${uz.home.corporate}. ${uz.home.corporateHint}`} onPress={() => setCorp(true)} style={[s.seg, corp && s.segOn]}>
+                          <Text style={[s.segT, corp && { color: color.white }]} aria-hidden>{uz.home.corporate}</Text></Pressable>
+                      </View>
+                      <Text style={s.hintT}>{corp ? uz.home.corporateHint : uz.home.modeHints[mode]}</Text>
+                    </View>
+                    {!corp && <View style={s.sec} role="radiogroup" aria-label={uz.home.seatsLabel} testID="home-seats">
+                      <Text style={s.secL} aria-hidden>{uz.home.seatsLabel}</Text>
+                      <View style={s.segRow}>
+                        {seatsFor(mode).map((v) => (
+                          <Pressable key={v} role="radio" aria-checked={seats === v} accessibilityLabel={`${uz.home.seatsOpt.replace("{n}", String(v))}. ${uz.home.seatsHint}`} onPress={() => { setSeats(v); setSeatsPref(v); }} style={[s.seat, seats === v && s.segOn]} testID={`seats-${v}`}>
+                            <Text style={[s.segT, seats === v && { color: color.white }]} aria-hidden>{v}</Text></Pressable>))}
+                      </View>
+                    </View>}
+                    {corp ? (
+                      <View style={s.join} testID="home-corp">
+                        <Text style={s.label} nativeID="orgCodeLabel">{uz.home.corpCodeLabel}</Text>
+                        <View style={s.joinRow}>
+                          <TextInput accessibilityLabelledBy="orgCodeLabel" aria-label={uz.home.corpCode} placeholder="ABCD1234" placeholderTextColor="#6B7C8C" value={orgCode} onChangeText={(t) => { setOrgCode(t.toUpperCase().replace(/[^A-Z0-9]/g, "")); setOrgErr(null); }} autoCapitalize="characters" autoCorrect={false} maxLength={8} onSubmitEditing={orgJoin} returnKeyType="go" style={s.input} testID="corp-code" />
+                          <View style={{ flexShrink: 0 }}><Button label={uz.home.joinShort} onPress={orgJoin} disabled={!online || !orgReady || orgBusy} /></View>
+                        </View>
+                        {orgErr && <Text style={s.err} accessibilityRole="alert">{errText(orgErr)}</Text>}
+                      </View>) : (<>
+                      <SpeedPicker value={effTurn} onChange={pickTurn} />
+                      {calcUiEnabled() && <View style={s.sec} role="radiogroup" aria-label={uz.ledger.modeLabel} testID="home-calc">
+                        <Text style={s.secL} aria-hidden>{uz.ledger.modeLabel}</Text>
+                        <View style={s.segRow}>
+                          {(["manual", "auto"] as const).map((v) => (
+                            <Pressable key={v} role="radio" aria-checked={calc === v} accessibilityLabel={`${v === "manual" ? uz.ledger.manual : uz.ledger.auto}. ${v === "manual" ? uz.ledger.manualHint : uz.ledger.autoHint}`} onPress={() => { setCalc(v); setCalcPref(v); }} style={[s.seg, calc === v && s.segOn]}>
+                              <Text style={[s.segT, calc === v && { color: color.white }]} aria-hidden>{v === "manual" ? uz.ledger.manual : uz.ledger.auto}</Text></Pressable>))}
+                        </View>
+                      </View>}
+                    </>)}
+                  </View>
+                </Acc>
+              </View>)}
+            {roomsNode && <View style={s.accWrap}>{roomsNode}</View>}
             <View style={s.tiles} testID="home-tiles">
               {onTournaments && <Tile icon="flag" title={uz.home.tiles.tournaments} onPress={onTournaments} />}
               {onClass && <Tile icon="house" title={uz.home.tiles.cls} onPress={onClass} />}
@@ -142,6 +141,8 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
 const s = StyleSheet.create({
   learn: { backgroundColor: "#F3F7FA", borderRadius: radius.md, padding: space.md, gap: space.sm, marginVertical: space.sm }, learnH: { color: color.navy, fontWeight: "800", fontSize: font.md },
   learnRow: { flexDirection: "row", gap: space.sm, alignItems: "flex-start" }, learnNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: color.navy, alignItems: "center", justifyContent: "center" }, learnNumT: { color: color.white, fontWeight: "800", fontSize: font.xs }, learnT: { flex: 1, color: color.navy, fontSize: font.sm, lineHeight: 19 },
+  accWrap: { marginTop: space.sm }, sec: { gap: space.xs }, secL: { color: tone.muted, fontSize: font.sm, fontWeight: "700" }, segRow: { flexDirection: "row", flexWrap: "wrap", gap: space.xs }, hintT: { color: tone.muted, fontSize: 12, lineHeight: 17 },
+  seat: { minHeight: MIN_TAP, minWidth: MIN_TAP, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingTop: space.md },
   tile: { flexGrow: 1, flexBasis: "30%", minWidth: 96, minHeight: 72, alignItems: "center", justifyContent: "center", gap: 6, padding: space.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", backgroundColor: color.white },
   tileIco: { width: 36, height: 36, borderRadius: 12, backgroundColor: "#F4F7F8", alignItems: "center", justifyContent: "center" }, tileT: { color: color.navy, fontWeight: "800", fontSize: font.sm, textAlign: "center" },
