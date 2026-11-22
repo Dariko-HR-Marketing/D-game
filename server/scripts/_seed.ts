@@ -48,7 +48,7 @@ export async function clickMenuItem(p: any, testId: string): Promise<void> {
   for (let i = 0; i < 4; i++) { // o'yin holati yangilanganda menyu qayta chizilib, bosish bekor bo'lishi mumkin: qayta uriniladi
     const direct = p.getByTestId(testId);
     if (!(await direct.count())) { await p.getByTestId("profile-menu-open").click({ timeout: 8000 }).catch(() => {}); await direct.waitFor({ timeout: 4000 }).catch(() => {}); }
-    try { await direct.click({ timeout: 5000 }); return; } catch (e) { if (i === 3) throw e; await p.waitForTimeout(300); }
+    try { await direct.click({ timeout: i === 0 ? 2500 : 5000 }); return; } catch (e) { if (i === 3) throw e; /* boshqa o'yinchining «karta tortdi» oynasi to'sib turishi mumkin: yopamiz */ const xb = p.getByRole("button", { name: "Yopish", exact: true }); if (await xb.count()) await xb.first().click({ timeout: 1500 }).catch(() => {}); await p.waitForTimeout(300); }
   }
 }
 
