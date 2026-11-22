@@ -4,7 +4,7 @@ import { join } from "node:path";
 // Rasmlar `content/art/generated` dan Playwright orqali beriladi (statik server shart emas). `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/art-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers } from "./_seed";
+import { autoProfiles, slowTimers, pickDream } from "./_seed";
 import { currentPlayer } from "@tajriba24/rules";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/art"; const ART = new URL("../../content/art/generated/", import.meta.url).pathname;
@@ -18,7 +18,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, "ar" + tag);
   const asked: string[] = []; await c.route("**/cards/*", async (r) => { const f = decodeURIComponent(new URL(r.request().url()).pathname.split("/").pop()!); asked.push(f); const p = join(ART, f); existsSync(p) ? await r.fulfill({ path: p, contentType: "image/webp" }) : await r.fulfill({ status: 404, body: "" }); });
   const a = await c.newPage(); await a.goto(WEB);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const code = [...x.rooms.rooms.keys()].pop()!, room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   for (const [id, what] of CARDS) {
     const eff = room.ctx.effects[`cat-${id}`]; check(!!eff && eff.file === `${id}.webp`, `${tag} ${what} (${id}): kartada rasm fayli ${eff?.file}`);

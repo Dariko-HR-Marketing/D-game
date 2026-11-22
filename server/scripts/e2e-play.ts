@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 // Sinov: brauzerda haqiqiy o'yin — odam tugmalarni bosib (kubik, karta, bank, qoidalar) bot bilan ko'p navbat o'ynaydi.
 // Konsol/sahifa xatosi yoki «qotib qolish» bo'lsa xato bilan chiqadi.  Ishlatish: `pnpm tsx scripts/e2e-play.ts` (oldindan veb eksport 8081 da).
 import { chromium } from "playwright-core";
-import { autoProfiles } from "./_seed";
+import { autoProfiles, pickDream } from "./_seed";
 import { buildApp } from "../src/app";
 
 process.env.ROLLMODAL = "1"; // haqiqiy yo'l: kubik oynasi yoqilgan (odam shu oynadagi tugmani bosadi)
@@ -22,7 +22,7 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   }
   p.on("pageerror", (e) => errors.push("pageerror: " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push("console: " + m.text().slice(0, 200)); });
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
-  await p.getByRole("button", { name: "Tanlash" }).first().click(); await p.waitForSelector("text=Naqd", { timeout: 60000 });
+  await pickDream(p); await p.waitForSelector("text=Naqd", { timeout: 60000 });
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
   if (tag === "kompyuter") { // o'ng panel yon oyna: ikonka bosilsa o'yinchilar, voqealar, vaqt va reaksiyalar chiqadi; Esc bilan yopiladi
     const open = p.getByTestId("players-drawer-open"); const okBtn = (await open.count()) === 1; if (!okBtn) { failed++; console.log("XATO: kompyuterda «O'yinchilar» ikonkasi yo'q"); } else {

@@ -60,3 +60,10 @@ export async function openOpts(p: any): Promise<void> {
 export async function openRoomsAcc(p: any): Promise<void> {
   const o = p.getByTestId("rooms-acc"); if (await o.count() && (await o.getAttribute("aria-expanded")) !== "true") await o.click();
 }
+
+/** Orzu tanlash: bosish eski holatga tushib yo'qolsa (poyga), tugma hamon turgan bo'lsa qayta bosiladi (CI'da sekin ishlaganda o'yin 60 soniya kutib qolmasin). */
+export async function pickDream(p: any): Promise<void> {
+  const btn = () => p.getByRole("button", { name: "Tanlash" }).first();
+  await btn().click();
+  for (let i = 0; i < 3; i++) { await p.waitForTimeout(1200); if (!(await btn().count()) || !(await btn().isVisible().catch(() => false))) return; await btn().click({ timeout: 4000 }).catch(() => {}); }
+}

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/birth-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/birth";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -18,7 +18,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yotiq", 844, 390], ["kmp", 1440,
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c);
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room); await new Promise((r) => setTimeout(r, 800));
   const s: any = room.state!; s.proposals.push({ id: s.nextProposal++, kind: "suyunchi", parent: ida, given: [] }); (x.rooms as any).emit(room);
   await a.getByTestId("birth-layer").waitFor({ timeout: 8000 }); await c.getByTestId("birth-layer").waitFor({ timeout: 8000 });

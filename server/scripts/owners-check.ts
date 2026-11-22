@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/owners-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/owners";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -19,7 +19,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   const big = (x.rooms as any).ctxOf?.(room)?.bigBoard ?? room.ctx.bigBoard; const T = big.filter((c: any) => c.t === "T").map((c: any) => c.i), V = big.filter((c: any) => c.t === "V").map((c: any) => c.i), O = big.find((c: any) => c.t === "O").i;
   const pa: any = room.state!.players.find((p: any) => p.id === ida), pb: any = room.state!.players.find((p: any) => p.id === idb);

@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, joinByCode, openOpts, openRoomsAcc } from "./_seed";
+import { autoProfiles, joinByCode, openOpts, openRoomsAcc, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -18,7 +18,7 @@ await a0.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 
 const code = (await a0.locator("[aria-label^='Xona kodi']").textContent())!.trim();
 for (const p of [b0, c0]) { await joinByCode(p, code); await p.waitForSelector("text=Xona egasi", { timeout: 8000 }).catch(async () => { console.log("LOBBY-XATO", (await p.innerText("body")).slice(0, 900), "| seats:", x.rooms.rooms.get(code)?.seats, "members:", x.rooms.rooms.get(code)?.members.map((m: any) => m.userId).join(",")); await p.screenshot({ path: "/tmp/rj.png" }); process.exit(2); }); }
 await a0.getByRole("button", { name: "O'yinni boshlash" }).click(); await a0.waitForSelector("text=Orzuingizni tanlang");
-for (const p of [a0, b0, c0]) { await p.getByRole("button", { name: "Tanlash" }).first().click(); }
+for (const p of [a0, b0, c0]) { await pickDream(p); }
 await a0.waitForSelector("text=Naqd", { timeout: 60000 }); const room = x.rooms.rooms.get(code)!;
 const aOnline = () => room.members.find((m: any) => m.userId === "rja")!.online === true;
 /** Qaytgach server o'yinchini onlayn deb ko'rishini kutadi; CI da ulanish kechiksa, foydalanuvchi kabi sahifani bir marta yangilaydi. */

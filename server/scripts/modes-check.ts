@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, openRoomsAcc } from "./_seed";
+import { autoProfiles, openRoomsAcc, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -26,7 +26,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.mode === "standard" && room.seats === 2 && room.turnSeconds === 60, `${tag} serverda rejim «standart», o'rin 2, tezlik 1 daqiqa`);
-  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   if (tag === "tel") await a.getByRole("button", { name: /^Blank/ }).click();
   const txt = await a.locator("body").innerText(); check(txt.includes("Naqd ≥ 1 000 000") && txt.includes("Passiv daromad ≥ 25 000"), `${tag} standart: chiqish shartlari «1 000 000 / 25 000»`);
   check((room.state!.mode ?? "standard") === "standard", `${tag} o'yin holatida rejim «standart»`);

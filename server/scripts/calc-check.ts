@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { applyEffect, crisisAdjusted, currentPlayer, passiveIncome, playerCashflow } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode, openOpts } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, openOpts, pickDream } from "./_seed";
 
 process.env.CALC_MANUAL = "1"; // o'quv rejimi yashirin sozlama (`tajriba24-calc-ui`) bilan yoqiladi
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/calc";
@@ -25,7 +25,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check(room.calcMode === "manual", `${tag} server: xona hisob rejimi manual`); check((await a.getByTestId("lobby-calc").textContent())?.includes("O'zim hisoblayman") ?? false, `${tag} xonada rejim ko'rinadi`);
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   slowTimers(x, room); // server o'zi kubik tashlab yubormasin (taymer ×10)
   const me = "ca" + tag, P = () => room.state!.players.find((p: any) => p.id === me)!;
   // Navbat «a» ga kelguncha «b» ni server orqali o'tkazamiz

@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/voice-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, slowTimers, joinByCode, clickMenuItem } from "./_seed";
+import { autoProfiles, axeSource, slowTimers, joinByCode, clickMenuItem, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/voice";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -23,7 +23,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   for (const p of [bb, cc, k]) { await joinByCode(p, code); await p.waitForSelector("text=Xona egasi"); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  for (const p of [a, bb, cc, k]) { await p.waitForSelector("text=Orzuingizni tanlang"); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
+  for (const p of [a, bb, cc, k]) { await p.waitForSelector("text=Orzuingizni tanlang"); await pickDream(p); }
   for (const p of [a, bb, cc, k]) await p.waitForSelector("text=Naqd", { timeout: 20000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room); // uzoq tekshiruv paytida avtopilot kubik tashlab, auksion/kubik oynalari tugmalarni to'smasin
   // Navbati kelgan o'yinchida «Kubik tashlash» oynasi ochiladi va chat/ovoz tugmalarini to'sadi (o'rinlar tasodifiy: faqat ba'zan «a» ga to'g'ri keladi — beqarorlik sababi). Oyna to'sganda orqa fonni bosib yopamiz.

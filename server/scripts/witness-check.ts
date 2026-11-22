@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/witness-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, dismissReq, joinByCode, openOpts } from "./_seed";
+import { autoProfiles, slowTimers, dismissReq, joinByCode, openOpts, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/witness";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -21,7 +21,7 @@ for (const [tag, w, h] of SIZES) {
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   for (const p of [g, wt]) { await joinByCode(p, code); await p.waitForSelector("text=Xona "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
-  for (const [i, p] of [a, g, wt].entries()) { await p.waitForSelector("text=Orzuingizni tanlang", { timeout: 10000 }).catch(async (e) => { await p.screenshot({ path: `${OUT}/${tag}-orzu${i}.png` }); console.log(await p.locator("body").innerText()); throw e; }); await p.getByRole("button", { name: "Tanlash" }).first().click(); }
+  for (const [i, p] of [a, g, wt].entries()) { await p.waitForSelector("text=Orzuingizni tanlang", { timeout: 10000 }).catch(async (e) => { await p.screenshot({ path: `${OUT}/${tag}-orzu${i}.png` }); console.log(await p.locator("body").innerText()); throw e; }); await pickDream(p); }
   const room = x.rooms.rooms.get(code)!;
   // Poyga: orzu tanlash tugab o'yin boshlanmaguncha (server holatni yangi obyektga almashtiradi) taklifni qo'shsak, u yo'qolib qoladi. Sekin CI'da shu uchun oyna chiqmasdi.
   for (let i = 0; i < 100 && (!room.state || room.state.phase === "dreams"); i++) await new Promise((r) => setTimeout(r, 200));

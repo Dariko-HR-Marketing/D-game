@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, openRoomsAcc } from "./_seed";
+import { autoProfiles, openRoomsAcc, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081";
 process.env.CORS_ORIGINS = WEB;
@@ -51,7 +51,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
 // 4) O'yin ichida (telefon): vaqt paneli «Blank» tepasida, «Maydon»da yo'q; profil menyusi
 {
   const a = await open("layg", 390, 844);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   check(await a.getByTestId("timebar").count() === 0, "o'yin (tel): «Maydon»da vaqt paneli yo'q");
   await a.getByRole("button", { name: /^Blank/ }).last().click(); await a.getByTestId("timebar").first().waitFor({ timeout: 4000 });
   const tb = (await a.getByTestId("timebar").first().boundingBox())!, st = (await a.getByRole("group", { name: "Moliyaviy holat" }).first().boundingBox())!;

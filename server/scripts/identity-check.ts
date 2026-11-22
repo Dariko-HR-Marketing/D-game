@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { joinByCode } from "./_seed";
+import { joinByCode, pickDream } from "./_seed";
 // Ism majburiy, avatar rasmi, botlar tartib raqami bilan, aloqa uzildi/tiklandi. `OUT=papka pnpm tsx scripts/identity-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`). Bu skript profillarni ATAYLAB oldindan yaratmaydi.
 import { chromium } from "playwright-core";
@@ -46,7 +46,7 @@ await c.locator("img[src*='/avatar/ida']").first().waitFor({ timeout: 8000 }).ca
 check((await c.locator("img[src*='/avatar/ida']").count()) > 0, "ikkinchi o'yinchi birinchisining rasmini ko'radi");
 await c.screenshot({ path: `${OUT}/3-lobby.png` });
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
 { const dro = a.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await a.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } } // kompyuter: o'yinchilar yon oynada
 const game = await a.locator("body").innerText(); check(game.includes("Madina") && !/O'yinchi \d/.test(game), "o'yinda ism ko'rinadi, «O'yinchi N» yo'q");
 

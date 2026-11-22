@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // Moliya animatsiyasi: naqd/passiv daromad/pul oqimi o'zgarishi va yangi aktiv chiplari (yashil — qo'shildi, qizil — ketdi), raqam sanab o'tadi, chiplar o'zi yo'qoladi.
 // `OUT=papka pnpm tsx scripts/fx-check.ts` (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
-import { autoProfiles, joinByCode, openOpts } from "./_seed";
+import { autoProfiles, joinByCode, openOpts, pickDream } from "./_seed";
 import { buildApp } from "../src/app";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/fx";
@@ -24,7 +24,7 @@ for (const [tag, w, h, motion] of sizes) {
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   check((await c.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} qo'shilgan o'yinchi ham xona vaqtini ko'radi`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click();
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c);
   await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const me = room.state!.players.find((p: any) => p.id === "fxa" + tag)!;
   check(room.turnSeconds === 120, `${tag} server xona vaqtini saqladi (120)`);

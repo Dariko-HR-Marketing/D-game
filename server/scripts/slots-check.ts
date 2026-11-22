@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, joinByCode } from "./_seed";
+import { autoProfiles, axeSource, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/slots";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -21,7 +21,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; const st = room.state!; const me = st.players.find((p: any) => p.id === "sa" + tag)!;
   const effects = Object.values(room.ctx.effects) as any[];
   const card = (asset: string) => effects.find((c) => c.effect?.kind === "buy" && c.effect.asset === asset && c.mode === "optional");

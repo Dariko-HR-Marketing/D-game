@@ -5,7 +5,7 @@ process.env.ROLLMODAL = "1"; // kubik oynasi yoqilgan
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
-import { autoProfiles, slowTimers, axeSource, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, axeSource, joinByCode, pickDream } from "./_seed";
 import { buildApp } from "../src/app";
 import { currentPlayer } from "@tajriba24/rules";
 
@@ -24,7 +24,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-  await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+  await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
   const turn = () => { const id = currentPlayer(room.state!).id; return { id, page: id === ida ? a : c, other: id === ida ? c : a }; };
   const roll = async (pg: any) => { const btn = pg.getByRole("button", { name: /^Kubik(ni|larni) tashlash/ }).first(); await btn.waitFor({ timeout: 8000 }); await btn.click(); };

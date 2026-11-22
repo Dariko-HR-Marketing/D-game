@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, dismissReq, joinByCode } from "./_seed";
+import { autoProfiles, axeSource, dismissReq, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/badges";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -19,7 +19,7 @@ await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }
 const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
 await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
-await a.getByRole("button", { name: "Tanlash" }).first().click(); await c.waitForSelector("text=Orzuingizni tanlang"); await c.getByRole("button", { name: "Tanlash" }).first().click(); await a.waitForSelector("text=Naqd", { timeout: 60000 });
+await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
 const room = x.rooms.rooms.get(code)!; const st = room.state!;
 const me = st.players.find((p: any) => p.id === "bga")!, other = st.players.find((p: any) => p.id === "bgb")!;
 const turnOf = (p: any) => { st.turn = st.players.indexOf(p); };
