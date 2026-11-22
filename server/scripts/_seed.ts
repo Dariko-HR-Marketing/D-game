@@ -36,7 +36,11 @@ export async function dismissReq(p: any): Promise<void> {
 /** Do'stining xona kodi bilan qo'shilish: ulashilgan havola `/?kod=ABC123` orqali (bosh sahifada doimiy kod maydoni yo'q — buyurtmachi qarori 2026-11-22; ro'yxatdagi qulfchani bossa kod so'raladi). */
 export async function joinByCode(p: any, code: string): Promise<void> {
   await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
-  await p.goto(new URL(p.url()).origin + "/?kod=" + code);
+  const url = new URL(p.url()).origin + "/?kod=" + code;
+  for (let i = 0; i < 3; i++) { // yangi sahifa yuklanganda tarmoq xatosi bo'lsa (kirish ekrani chiqsa) qayta yuklanadi
+    await p.goto(url); await p.waitForTimeout(2000);
+    if (!(await p.getByRole("button", { name: /^Tizimga kirish/i }).count())) return;
+  }
 }
 
 /** Kompyuter o'yin ekrani: «Qoidalar», «Hisob varag'i» va «Tarix» profil avatari menyusida. Tugma sarlavhada bo'lmasa (kompyuter) menyuni ochib bosadi. */
