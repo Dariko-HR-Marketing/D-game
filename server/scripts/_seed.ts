@@ -33,15 +33,12 @@ export async function dismissReq(p: any): Promise<void> {
   if (await b.count()) await b.first().click().catch(() => {}); await p.waitForTimeout(150);
 }
 
-/** Do'stining xona kodi bilan qo'shilish: «Kod bilan qo'shilish» faqat Korporativ tanlanganda ko'rinadi (buyurtmachi qarori 2026-11-18). Sahifa bir marta yuklanadi (ikkinchi ulanish yo'q). */
+/** Do'stining xona kodi bilan qo'shilish: «Ochiq o'yinlar» bo'limi ostidagi kod maydoni (buyurtmachi qarori 2026-11-21: bosh sahifadagi alohida «Kod bilan qo'shilish» olib tashlandi). */
 export async function joinByCode(p: any, code: string): Promise<void> {
   await p.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
-  if (!(await p.getByTestId("mode-corporate").count())) { const o = p.getByTestId("home-opts"); if (await o.count()) await o.click(); }
-  await p.getByTestId("mode-corporate").click();
-  const input = p.locator('input[maxlength="6"]');
-  if (!(await input.count())) await p.getByRole("button", { name: /^Kod bilan qo'shilish/ }).click();
+  const input = p.getByTestId("rooms-code-input"); await input.waitFor({ timeout: 15000 });
   await input.fill(code);
-  await p.getByRole("button", { name: "Kirish", exact: true }).last().click();
+  await p.getByTestId("rooms-code-go").click();
 }
 
 /** Kompyuter o'yin ekrani: «Qoidalar», «Hisob varag'i» va «Tarix» profil avatari menyusida. Tugma sarlavhada bo'lmasa (kompyuter) menyuni ochib bosadi. */
@@ -49,4 +46,10 @@ export async function clickMenuItem(p: any, testId: string): Promise<void> {
   const direct = p.getByTestId(testId);
   if (!(await direct.count())) { await p.getByTestId("profile-menu-open").click(); await p.getByTestId(testId).waitFor({ timeout: 4000 }); }
   await p.getByTestId(testId).click();
+}
+
+
+/** Telefonda xona sozlamalari yig'iq turadi («Xona sozlamalari» qatori): kerak bo'lsa ochadi. */
+export async function openOpts(p: any): Promise<void> {
+  const o = p.getByTestId("home-opts"); if (await o.count() && (await o.getAttribute("aria-expanded")) !== "true") await o.click();
 }

@@ -11,7 +11,7 @@ const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
-for (const [tag, w, h] of [["tik", 390, 844], ["yotiq", 844, 390]] as [string, number, number][]) {
+for (const [tag, w, h] of [["tik", 390, 844]] as [string, number, number][]) { // yotiq telefon endi o'yinni ko'rsatmaydi (OrientationGuard)
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", hasTouch: true }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ma" + tag), c = await mk("mb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
@@ -28,7 +28,7 @@ for (const [tag, w, h] of [["tik", 390, 844], ["yotiq", 844, 390]] as [string, n
   check((await a.getByTestId("decision-mini").count()) === 1 && (await a.getByTestId("decision-minimize").count()) === 0, `${tag}: varaq yig'ildi, qisqa chiziq ko'rinadi`);
   if (w < 800) { await a.getByRole("button", { name: /^Blank/ }).last().click().catch(async () => { await a.getByText("Blank", { exact: true }).last().click(); }); } await a.waitForTimeout(500); // yotiq telefonda ekran keng: blank chap ustunda
   const hdr = a.getByTestId("actions").getByText(/Moliya amallari/).first(); check((await hdr.count()) > 0, `${tag}: blankda «Moliya amallari» ko'rinadi`);
-  if (await hdr.count()) { const bb = (await hdr.boundingBox())!; const mini = (await a.getByTestId("decision-mini").boundingBox())!; check(w >= 800 ? bb.y >= mini.y + mini.height - 1 : bb.y + bb.height <= mini.y + 1, `${tag}: «Moliya amallari» chiziq bilan to'qnashmaydi`); await hdr.scrollIntoViewIfNeeded(); const hh = (await hdr.innerText()); if (hh.startsWith("▸")) await hdr.click(); }
+  if (await hdr.count()) { await hdr.evaluate((el: any) => el.scrollIntoView({ block: "center" })); await a.waitForTimeout(250); const bb = (await hdr.boundingBox())!; const mini = (await a.getByTestId("decision-mini").boundingBox())!; check(w >= 800 ? bb.y >= mini.y + mini.height - 1 : bb.y + bb.height <= mini.y + 1, `${tag}: «Moliya amallari» chiziq bilan to'qnashmaydi`); await hdr.scrollIntoViewIfNeeded(); const hh = (await hdr.innerText()); if (hh.startsWith("▸")) await hdr.click(); }
   await a.screenshot({ path: `${OUT}/${tag}-2-blank.png` });
   await a.getByTestId("decision-mini").click(); await a.waitForTimeout(400);
   check((await a.getByTestId("decision-minimize").count()) === 1, `${tag}: varaq qaytadan ochildi`);

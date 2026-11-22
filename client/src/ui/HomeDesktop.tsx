@@ -16,8 +16,8 @@ export type DesktopProps = {
   roomsNode?: React.ReactNode; optsNode?: React.ReactNode; onPacks?: () => void;
   gated: boolean;   me: { name: string; color: number; level: number; games: number; gender?: "m" | "f" } | null; online: boolean; status: string; error: string | null;
   notes: { id: string; text: string; kind: "info" | "warn" }[]; active: { code: string; started: boolean; round: number; players: number } | null;
-  mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; code: string; orgCode: string; orgErr: string | null; orgBusy: boolean;
-  pickMode: (m: UiMode) => void; pickCorp: () => void; pickSeats: (n: number) => void; pickTurn: (v: TurnSeconds) => void; setCode: (c: string) => void; setOrgCode: (c: string) => void;
+  mode: UiMode; calc: CalcMode; pickCalc: (v: CalcMode) => void; corp: boolean; seats: number; turn: number; effTurn: TurnSeconds; orgCode: string; orgErr: string | null; orgBusy: boolean;
+  pickMode: (m: UiMode) => void; pickCorp: () => void; pickSeats: (n: number) => void; pickTurn: (v: TurnSeconds) => void; setOrgCode: (c: string) => void;
   create: () => void; startTutorial: () => void; join: (c: string) => void; orgJoin: () => void;
   onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onTournaments?: () => void; onShop?: () => void; onClass?: () => void; resume: (c: string) => void;
 };
@@ -31,7 +31,7 @@ export function HomeDesktop(p: DesktopProps) {
   const bots = Math.max(0, p.seats - 1);
   const nav: { k: string; label: string; icon: IconName; on?: () => void; cur?: boolean }[] = [
     { k: "home", label: uz.home.tabHome, icon: "home", cur: true }, { k: "board", label: uz.profile.leaderboard, icon: "trophy", on: p.onLeaderboard },
-    ...(p.onTournaments ? [{ k: "tour", label: D.tournaments, icon: "flag" as IconName, on: p.onTournaments }] : []), { k: "rules", label: uz.hud.tabs.rules, icon: "book", on: p.onRules }, { k: "profile", label: uz.profile.title, icon: "person", on: p.onProfile },
+    ...(p.onTournaments ? [{ k: "tour", label: D.tournaments, icon: "flag" as IconName, on: p.onTournaments }] : []), { k: "rules", label: uz.hud.tabs.rules, icon: "book", on: p.onRules },
   ];
   return (
     <View style={{ flex: 1, flexDirection: "row", backgroundColor: color.bg }}>
@@ -138,13 +138,6 @@ export function HomeDesktop(p: DesktopProps) {
         {!p.gated && p.roomsNode ? <View style={{ marginTop: space.lg }}>{p.roomsNode}</View> : null}
         <Text style={[s.eyebrow, { marginTop: space.lg }]}>{D.quick}</Text>
         <View style={s.cols}>
-          {!p.gated && <View style={[s.card, { flex: 1.2 }]}>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${uz.home.joinByCode}. ${uz.home.joinSub}`} style={s.qHead}><View style={s.qIco}><Icon name="people" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.home.joinByCode}</Text><Text style={s.qS}>{uz.home.joinSub}</Text></View></Pressable>
-            <View style={{ flexDirection: "row", gap: space.sm, alignItems: "stretch" }}>
-              <TextInput aria-label={uz.home.code} placeholder="ABC123" placeholderTextColor="#6B7C8C" value={p.code} onChangeText={(t) => p.setCode(t.toUpperCase().replace(/[^A-Z0-9]/g, ""))} autoCapitalize="characters" autoCorrect={false} maxLength={6} onSubmitEditing={() => p.code.length === 6 && online && p.join(p.code)} returnKeyType="go" style={s.codeIn} />
-              <View style={{ flexShrink: 0 }}><Button label={uz.home.joinShort} onPress={() => p.join(p.code)} disabled={!online || p.code.length !== 6} /></View>
-            </View>
-          </View>}
           <Pressable accessibilityRole="button" accessibilityLabel={`${uz.home.rulesRow}. ${uz.home.rulesSub}`} onPress={p.onRules} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="book" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.home.rulesRow}</Text><Text style={s.qS}>{uz.home.rulesSub}</Text></View></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`${uz.profile.leaderboard}. ${uz.home.boardSub}`} onPress={p.onLeaderboard} style={[s.card, s.qCard]}><View style={s.qIco}><Icon name="trophy" size={20} color="#0E6B4A" /></View><View style={{ flex: 1 }} aria-hidden><Text style={s.qT}>{uz.profile.leaderboard}</Text><Text style={s.qS}>{uz.home.boardSub}</Text></View></Pressable>
         </View>

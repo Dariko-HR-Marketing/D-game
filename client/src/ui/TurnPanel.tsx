@@ -16,7 +16,7 @@ function DiceRow({ lr, circle, twoDice, size }: { lr: { die: number; dice?: numb
   const list: (number | null)[] = diceOf(lr, false) ?? Array.from({ length: placeholderCount(circle, twoDice) }, () => null); const sz = list.length > 1 ? Math.round(size * 0.86) : size;
   return <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }} testID="turn-dice">{list.map((v, i) => <Dice key={i} value={v} n={lr ? lr.n * 2 + i : undefined} size={sz} />)}</View>;
 }
-export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compact, moving, gate }: { compact?: boolean; gate?: React.ReactNode; room: RoomView; userId: string; mineTurn: boolean; hasCard: boolean; onRoll: () => void; wide?: boolean; moving?: boolean }) {
+export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compact, dense, moving, gate }: { compact?: boolean; /** past kompyuter ekrani: markaz paneliga hammasi sig'ishi uchun izohlar yashiriladi */ dense?: boolean; gate?: React.ReactNode; room: RoomView; userId: string; mineTurn: boolean; hasCard: boolean; onRoll: () => void; wide?: boolean; moving?: boolean }) {
   const st = room.state; const lr = st.lastRoll as { playerId: string; die: number; n: number } | null | undefined;
   const cur = st.players[st.turn % st.players.length]; const curId: string = cur.id;
   const who = lr ? (lr.playerId === userId ? uz.result.you : nameOf(room, lr.playerId)) : null;
@@ -35,13 +35,13 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compa
   );
   return (
     <View style={s.wrap} testID="turn-panel">
-      {!compact && <Text style={s.eyebrow}>{mineC && mineC !== cur.circle ? (cur.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle) : cellLabel(cur.circle, cur.pos)}</Text>}{/* navbat egasi boshqa aylanada: uning katagi bu taxtada yo'q — aylana nomi */}
-      <DiceRow lr={lr} circle={cur.circle} twoDice={cur.twoDice} size={wide ? 56 : 44} />
+      {!compact && !dense && <Text style={s.eyebrow}>{mineC && mineC !== cur.circle ? (cur.circle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle) : cellLabel(cur.circle, cur.pos)}</Text>}{/* navbat egasi boshqa aylanada: uning katagi bu taxtada yo'q — aylana nomi */}
+      <DiceRow lr={lr} circle={cur.circle} twoDice={cur.twoDice} size={dense ? 40 : wide ? 56 : 44} />
       <Text style={s.title} accessibilityLiveRegion="polite">{lr ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? uz.hud.rollNow : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
-      {!compact && (!mineC || mineC === cur.circle) && <Text style={s.sub}>{hint}</Text>}
+      {!compact && !dense && (!mineC || mineC === cur.circle) && <Text style={s.sub}>{hint}</Text>}
       {wide && (
         <View style={s.wideRow}>
-          <DeadlineRing deadline={room.deadline} total={phaseSeconds(room)} size={48} />
+          <DeadlineRing deadline={room.deadline} total={phaseSeconds(room)} size={dense ? 40 : 48} />
           <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
         </View>)}
       {wide && gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : null}
@@ -51,7 +51,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compa
   );
 }
 const s = StyleSheet.create({
-  wrap: { alignItems: "center", gap: space.sm, paddingHorizontal: space.md },
+  wrap: { alignItems: "center", gap: space.sm, paddingHorizontal: space.md, maxWidth: "100%" },
   eyebrow: { color: tone.muted, fontSize: 12, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
   title: { color: color.navy, fontSize: font.xl, fontWeight: "800", textAlign: "center", lineHeight: 26 }, sub: { color: tone.muted, fontSize: font.sm, textAlign: "center" },
   wrapC: { alignItems: "center", gap: 4, paddingHorizontal: space.sm }, rowC: { flexDirection: "row", alignItems: "center", gap: space.md }, turnC: { color: color.navy, fontSize: font.sm, fontWeight: "800", textAlign: "center" },

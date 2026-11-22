@@ -42,6 +42,7 @@ const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(
 const c = await mk("zed"); await c.getByTestId("gate-name").fill("Madina"); await c.getByTestId("gate-year").fill("1999"); await c.getByRole("button", { name: "Davom etish" }).click();
 await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
 const lob = await c.locator("body").innerText(); check(lob.includes("Sardor") && lob.includes("Madina") && !/O'yinchi \d/.test(lob), "xonada ikkala o'yinchi ismi ko'rinadi, «O'yinchi N» yo'q");
+await c.locator("img[src*='/avatar/ida']").first().waitFor({ timeout: 8000 }).catch(() => {}); // rasm sahifa tiklangach yuklanadi (poyga)
 check((await c.locator("img[src*='/avatar/ida']").count()) > 0, "ikkinchi o'yinchi birinchisining rasmini ko'radi");
 await c.screenshot({ path: `${OUT}/3-lobby.png` });
 await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");

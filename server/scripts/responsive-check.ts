@@ -45,6 +45,9 @@ for (const [w, h] of SIZES) {
   const tag = `${w}x${h}`; if (only && !only.includes(tag)) continue;
   const touch = Math.min(w, h) < 900 && !(w >= 1000 && h >= 700 && w > h && w < 1400 && false); // planshet ham sensorli: 1024 gacha
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", hasTouch: Math.max(w, h) <= 1366 && Math.min(w, h) < 1100 }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); await c.addInitScript("window.__name = (f) => f;"); /* tsx keepNames yordamchisi sahifada yo'q */ const p = await c.newPage(); await p.goto(WEB); return p; };
+  if (w > h && Math.min(w, h) < 600 && Math.max(w, h) <= 1366) { // qat'iy qoida: yotiq telefonda o'yin ko'rsatilmaydi, faqat «Telefonni tik tuting»
+    const g = await mk("ro" + tag); await g.waitForTimeout(1200); const ok = await g.getByTestId("orient-guard").count() === 1; console.log(`${ok ? "OK    " : "XATO  "}${tag} yotiq telefon: «Telefonni tik tuting» ko'rsatmasi`); if (!ok) issues.push({ size: tag, screen: "yotiq", kind: "orient-guard yo'q" } as any); await g.context().close(); continue;
+  }
   const ida = "ra" + tag, idc = "rb" + tag; const a = await mk(ida), c = await mk(idc);
   const check = async (p: any, screen: string, cta?: RegExp) => {
     await p.waitForTimeout(450); await p.screenshot({ path: `${OUT}/${tag}-${screen}.png` });
