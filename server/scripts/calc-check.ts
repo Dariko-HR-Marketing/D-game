@@ -4,7 +4,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { applyEffect, crisisAdjusted, currentPlayer, passiveIncome, playerCashflow } from "@tajriba24/rules";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, joinByCode, openOpts } from "./_seed";
 
 process.env.CALC_MANUAL = "1"; // o'quv rejimi yashirin sozlama (`tajriba24-calc-ui`) bilan yoqiladi
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/calc";
@@ -18,6 +18,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); localStorage.setItem("tajriba24-calc-ui", "1"); localStorage.setItem("tajriba24-calc", "manual"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ca" + tag), c = await mk("cb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
+  await openOpts(a);
   check((await a.getByRole("radio", { name: /^O'zim hisoblayman/ }).getAttribute("aria-checked")) === "true", `${tag} standart rejim — «O'zim hisoblayman»`);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;

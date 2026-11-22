@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "node:fs";
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/witness-check.ts`
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, slowTimers, dismissReq, joinByCode } from "./_seed";
+import { autoProfiles, slowTimers, dismissReq, joinByCode, openOpts } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/witness";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -17,7 +17,7 @@ const SIZES: [string, number, number][] = [["tel-tik", 390, 844], ["kmp", 1440, 
 for (const [tag, w, h] of SIZES) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
   const ida = "wa" + tag, idg = "wg" + tag, idw = "ww" + tag; const a = await mk(ida), g = await mk(idg), wt = await mk(idw);
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await openOpts(a); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
   for (const p of [g, wt]) { await joinByCode(p, code); await p.waitForSelector("text=Xona "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
