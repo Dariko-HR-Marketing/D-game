@@ -40,7 +40,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByRole("button", { name: /^Qulf · kod/ }).click(); const rl = a.getByTestId("open-rooms"); await rl.getByLabel("Xona kodi").waitFor({ timeout: 4000 }).catch(() => {}); check(await rl.getByLabel("Xona kodi").count() === 1, `${tag} qulfli xona kod so'raydi`);
   check(await a.getByTestId("room-options").count() === 0 && await a.getByTestId("vis-open").count() === 0 && await a.getByTestId("start-bots").count() === 0, `${tag} xona kirishi va boshlanishi tanlovi yo'q (standart qiymatlar)`);
   check(await a.getByTestId("room-lock").count() === 1 && (await a.getByTestId("room-lock").innerText()).trim() === "", `${tag} qulfli xonada so'zsiz qulfcha ikonkasi`);
-  check(/Onlayn/.test(await a.getByTestId("room-row").first().innerText()), `${tag} ochiq xonada «Onlayn» belgisi`);
+  check(/Onlayn/.test(await a.getByTestId("room-row").filter({ hasText: "Aziz" }).first().innerText()), `${tag} ochiq xonada «Onlayn» belgisi`);
   await scan(a, `${tag} ro'yxat va xona ko'rinishi`);
   // 3) Jonli: jami sonlar, o'ynalayotganlar ro'yxati va qayta yuklamasdan yangilanish
   const stats = await a.getByTestId("lobby-stats").innerText(); const sn = stats.replace(/\s+/g, " "); check(/16 Kutmoqda 3 xona/.test(sn) && /2 O'ynayapti 1 xona/.test(sn) && /\d+ Onlayn/.test(sn), `${tag} jami sonlar: kutayotganlar, o'ynayotganlar, onlayn (${stats.replace(/\s+/g, " ")})`);

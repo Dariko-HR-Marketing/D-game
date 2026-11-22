@@ -43,9 +43,11 @@ export async function joinByCode(p: any, code: string): Promise<void> {
 
 /** Kompyuter o'yin ekrani: «Qoidalar», «Hisob varag'i» va «Tarix» profil avatari menyusida. Tugma sarlavhada bo'lmasa (kompyuter) menyuni ochib bosadi. */
 export async function clickMenuItem(p: any, testId: string): Promise<void> {
-  const direct = p.getByTestId(testId);
-  if (!(await direct.count())) { await p.getByTestId("profile-menu-open").click(); await p.getByTestId(testId).waitFor({ timeout: 4000 }); }
-  await p.getByTestId(testId).click();
+  for (let i = 0; i < 4; i++) { // o'yin holati yangilanganda menyu qayta chizilib, bosish bekor bo'lishi mumkin: qayta uriniladi
+    const direct = p.getByTestId(testId);
+    if (!(await direct.count())) { await p.getByTestId("profile-menu-open").click({ timeout: 8000 }).catch(() => {}); await direct.waitFor({ timeout: 4000 }).catch(() => {}); }
+    try { await direct.click({ timeout: 5000 }); return; } catch (e) { if (i === 3) throw e; await p.waitForTimeout(300); }
+  }
 }
 
 
