@@ -11,7 +11,7 @@ const x = buildApp(); await x.app.listen({ port: 3000, host: "127.0.0.1" });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined), args: ["--no-sandbox"] });
 autoProfiles(x, b);
 let failed = 0; const check = (ok: boolean, msg: string) => { console.log(`${ok ? "OK    " : "XATO  "}${msg}`); if (!ok) failed++; };
-for (const [tag, w, h] of [["tik", 390, 844], ["yotiq", 844, 390]] as [string, number, number][]) {
+for (const [tag, w, h] of [["tik", 390, 844]] as [string, number, number][]) { // yotiq telefon endi o'yinni ko'rsatmaydi (OrientationGuard)
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", hasTouch: true }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk("ma" + tag), c = await mk("mb" + tag);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
