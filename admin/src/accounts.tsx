@@ -3,7 +3,7 @@ import type { Api } from "./api";
 import { Empty, Err, FormDialog, PageHead, Pill, errText, fmtTime, useLoad } from "./lib";
 import { t } from "./uz";
 
-const ROLE_NOTE: Record<string, string> = { administrator: "Hamma narsa", content_editor: "Kontent tayyorlaydi (nashr qilmaydi)", support: "Foydalanuvchi va shikoyat", moderator: "Support + xonani yopish", analyst: "Shaxssiz analitika", finance: "Do'kon, buyurtma, moliya", edu_manager: "Ta'lim va e'lonlar", tournament_manager: "Turnirlar va e'lonlar" };
+const ROLE_NOTE: Record<string, string> = { administrator: "Hamma narsa", content_editor: "Kontent tayyorlaydi (nashr qilmaydi)", support: "Foydalanuvchi va shikoyat", moderator: "Support + maydonni yopish", analyst: "Shaxssiz analitika", finance: "Do'kon, buyurtma, moliya", edu_manager: "Ta'lim va e'lonlar", tournament_manager: "Turnirlar va e'lonlar" };
 export function Accounts({ api, myId }: { api: Api; myId: string }) {
   const l = useLoad<{ accounts: any[]; roles: string[]; sessions: number }>(api, "/admin/accounts"); const ss = useLoad<{ sessions: any[] }>(api, "/admin/sessions");
   const [dlg, setDlg] = useState<null | { k: "new" | "role" | "pw" | "del" | "totp"; a?: any }>(null); const [err, setErr] = useState<string | null>(null);

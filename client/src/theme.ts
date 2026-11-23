@@ -21,4 +21,6 @@ export const tone = { good: GREEN_TEXT, bad: color.red, warn: "#8A5A00", neutral
 export const surface = { good: "#E7F4EE", bad: "#F8E8E9", warn: "#FFF6DD", info: "#E8F0F8", plain: color.white } as const;
 
 /** Kirish sahifasi (qorong'i ko'rinish, prototip bo'yicha). Matn juftliklari WCAG AA: asosiy ≥ 15:1, ikkinchi darajali ≥ 8:1, chegara ≥ 3:1. */
+/** Kirish/ro'yxat (och, landing bilan bir xil uslub). Kontrast: matn #08263E/#F7FBF9 ≥ 14:1, yashil tugma #11835A/oq ≥ 4.5:1, maydon chegarasi #7C8FA0 ≥ 3:1. */
+export const authUi = { bg: "#F7FBF9", panel: "#FFFFFF", brand: "#EAF8F1", line: "#7C8FA0", lineSoft: "#E1EBE6", text: "#08263E", muted: "#4A5E70", placeholder: "#6B7C8C", accent: "#0A6B49", ring: "#11835A", glow: "rgba(17,131,90,0.10)" } as const;
 export const night = { bg: "#07131C", panel: "#0F1B26", brand: "#0B2620", line: "#5B7388", lineSoft: "#1F2F3D", text: "#F1F5F9", muted: "#B4C2CE", placeholder: "#8FA3B5", accent: "#34D399", ring: "#6EE7B7", glow: "rgba(16,185,129,0.14)" } as const;

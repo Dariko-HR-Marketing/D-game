@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Api } from "./api";
 import { Banner, Empty, Err, FormDialog, PageHead, Pill, Tabs, errText, fmtTime, useLoad } from "./lib";
 import { t } from "./uz";
+import { Catalog, Professions } from "./catalog";
 
 const CARDS_URL: string = (import.meta as any).env?.VITE_CARD_IMAGES_URL ?? "/cards";
 const DECKS: [string, string][] = [["kasb", "Kasblar"], ["kichik", "Kichik biznes"], ["katta", "Katta biznes"], ["bozor", "Bozor"], ["xar", "Xarajat"], ["kxar", "Katta xarajat"], ["hod", "Hodisa"], ["new", "Yangi kartalar"]];
@@ -10,13 +11,13 @@ const keyOf = (x: any, i: number) => String(x?.file ?? x?.code ?? x?.i ?? x?.n ?
 const labelOf = (x: any, i: number) => String(x?.name ?? x?.text ?? x?.file ?? `#${i + 1}`).slice(0, 60);
 
 export function Content({ api, perms }: { api: Api; perms: string[] }) {
-  const [tab, setTab] = useState<"versions" | "editor">("versions"); const vs = useLoad<{ active: number; versions: any[] }>(api, "/admin/content/versions"); const rv = useLoad<{ reviews: any[] }>(api, "/admin/content/reviews");
+  const [tab, setTab] = useState<"versions" | "editor" | "catalog" | "kasb">("versions"); const vs = useLoad<{ active: number; versions: any[] }>(api, "/admin/content/versions"); const rv = useLoad<{ reviews: any[] }>(api, "/admin/content/reviews");
   const [msg, setMsg] = useState<string | null>(null);
   return (<>
     <PageHead title={t.content} />
-    <Tabs label="Kontent bo'limlari" active={tab} onChange={setTab} items={[["versions", "Versiyalar"], ["editor", "Muharrir"]]} />
+    <Tabs label="Kontent bo'limlari" active={tab} onChange={setTab} items={[["versions", "Versiyalar"], ["editor", "Muharrir"], ["catalog", "Hamma kartalar"], ["kasb", "Kasblar"]]} />
     {msg && <Banner kind="good">{msg}</Banner>}
-    {tab === "versions" ? <Versions api={api} perms={perms} vs={vs} rv={rv} /> : <Editor api={api} canWrite={perms.includes("content.write")} onCreated={(v) => { setMsg(`Yangi versiya v${v} yaratildi (nashr qilinmagan). «Versiyalar» bo'limida tekshirib, topshiring.`); vs.reload(); rv.reload(); setTab("versions"); }} />}
+    {tab === "catalog" ? <Catalog api={api} /> : tab === "kasb" ? <Professions api={api} /> : tab === "versions" ? <Versions api={api} perms={perms} vs={vs} rv={rv} /> : <Editor api={api} canWrite={perms.includes("content.write")} onCreated={(v) => { setMsg(`Yangi versiya v${v} yaratildi (nashr qilinmagan). «Versiyalar» bo'limida tekshirib, topshiring.`); vs.reload(); rv.reload(); setTab("versions"); }} />}
   </>);
 }
 

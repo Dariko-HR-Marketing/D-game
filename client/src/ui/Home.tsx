@@ -79,8 +79,6 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
               {uz.home.desk.learn.map((t: string, i: number) => <View key={t} style={s.learnRow} role="listitem"><View style={s.learnNum} aria-hidden><Text style={s.learnNumT}>{i + 1}</Text></View><Text style={s.learnT}>{t}</Text></View>)}
             </View>)}
             {gated && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => setFlow(true)} />}
-            {!gated && <Row compact={compact} testID="home-new" icon="dice" primary title={uz.home.newGame} sub={uz.home.newGameSub} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} disabled={!online || corp} />}
-            {!gated && roomsOn && !corp && <View style={s.accWrap}><PrivateToggle value={priv} onChange={pickPriv} /></View>}
             {!gated && (
               <View style={s.accWrap}>
                 <Acc icon="sliders" title={uz.openRooms.accSettings} summary={corp ? uz.home.corporate : SUM} open={optsOpen} onToggle={() => setAcc((a) => (a === "opts" ? null : "opts"))} testID="home-opts" label={`${uz.home.roomSettings}: ${corp ? uz.home.corporate : SUM}`}>
@@ -137,6 +135,14 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
           {error && <Text style={s.err} accessibilityRole="alert">{errText(error)}</Text>}
         </View>
       </ScrollView>
+      {!gated && (<View style={s.footer} testID="home-footer">
+        {roomsOn && !corp && <PrivateToggle compact value={priv} onChange={pickPriv} />}
+        <Pressable testID="home-new" accessibilityRole="button" accessibilityLabel={`${uz.home.newGame}. ${uz.home.newGameSub}`} accessibilityState={{ disabled: !online }} disabled={!online} onPress={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} style={({ pressed }) => [s.cta, !online && { opacity: 0.5 }, pressed && { opacity: 0.88 }]}>
+          <View style={s.ctaIco} aria-hidden><Icon name="dice" size={26} color={color.white} /></View>
+          <View style={{ flex: 1, minWidth: 0 }} aria-hidden><Text style={s.ctaT}>{uz.home.newGame}</Text><Text style={s.ctaS} numberOfLines={2}>{uz.home.newGameSub}</Text></View>
+          <Icon name="chevron" size={22} color={color.white} />
+        </Pressable>
+      </View>)}
       <BottomNav<Tab> testID="home-nav" label={uz.home.nav} active="home" onChange={(k) => (k === "board" ? onLeaderboard() : k === "rules" ? onRules() : k === "profile" ? onProfile() : undefined)}
         items={[{ key: "home", label: uz.home.tabHome, icon: "home" }, { key: "board", label: uz.profile.leaderboard, icon: "trophy" }, { key: "rules", label: uz.hud.tabs.rules, icon: "book" }, { key: "profile", label: uz.profile.title, icon: "person" }]} />
     </View>
@@ -147,6 +153,9 @@ const s = StyleSheet.create({
   learnRow: { flexDirection: "row", gap: space.sm, alignItems: "flex-start" }, learnNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: color.navy, alignItems: "center", justifyContent: "center" }, learnNumT: { color: color.white, fontWeight: "800", fontSize: font.xs }, learnT: { flex: 1, color: color.navy, fontSize: font.sm, lineHeight: 19 },
   accWrap: { marginTop: space.sm }, sec: { gap: space.xs }, secL: { color: tone.muted, fontSize: font.sm, fontWeight: "700" }, segRow: { flexDirection: "row", flexWrap: "wrap", gap: space.xs }, hintT: { color: tone.muted, fontSize: 12, lineHeight: 17 },
   seat: { minHeight: MIN_TAP, minWidth: MIN_TAP, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white },
+  footer: { gap: 2, paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, backgroundColor: color.white, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
+  cta: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 72, maxWidth: 560, width: "100%", alignSelf: "center", paddingHorizontal: space.lg, paddingVertical: space.md, borderRadius: radius.xl, backgroundColor: color.green },
+  ctaIco: { width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" }, ctaT: { color: color.white, fontSize: font.xl, fontWeight: "800" }, ctaS: { color: "rgba(255,255,255,0.88)", fontSize: font.sm, lineHeight: 18 },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, paddingTop: space.md },
   tile: { flexGrow: 1, flexBasis: "30%", minWidth: 96, minHeight: 72, alignItems: "center", justifyContent: "center", gap: 6, padding: space.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", backgroundColor: color.white },
   tileIco: { width: 36, height: 36, borderRadius: 12, backgroundColor: "#F4F7F8", alignItems: "center", justifyContent: "center" }, tileT: { color: color.navy, fontWeight: "800", fontSize: font.sm, textAlign: "center" },

@@ -20,8 +20,8 @@ for (const [tag, w, h, motion] of sizes) {
   await openOpts(a);
   await a.getByRole("radio", { name: "Sekin · 2 daqiqa" }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   check((await a.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} xona tezligi (Sekin) xonada ko'rinadi`);
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
+  await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
   check((await c.getByTestId("lobby-turn").textContent())?.includes("Sekin") ?? false, `${tag} qo'shilgan o'yinchi ham xona vaqtini ko'radi`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c);

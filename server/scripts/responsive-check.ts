@@ -63,8 +63,8 @@ for (const [w, h] of SIZES) {
       const btn = a.getByRole("button", { name, exact: true }).first(); if (!(await btn.count())) continue; await btn.click(); await a.waitForSelector(wait, { timeout: 8000 }).catch(() => {}); await check(a, shot); await a.getByRole("button", { name: "Orqaga" }).click();
     }
     await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-    const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-    await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
+    const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
+    await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
     await check(a, "05-lobby");
     await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await check(a, "06-dreams");
     await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });

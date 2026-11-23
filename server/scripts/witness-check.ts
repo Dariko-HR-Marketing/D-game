@@ -18,8 +18,8 @@ for (const [tag, w, h] of SIZES) {
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
   const ida = "wa" + tag, idg = "wg" + tag, idw = "ww" + tag; const a = await mk(ida), g = await mk(idg), wt = await mk(idw);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await openOpts(a); await a.getByTestId("home-seats").getByText("3", { exact: true }).click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  for (const p of [g, wt]) { await joinByCode(p, code); await p.waitForSelector("text=Xona "); }
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
+  for (const p of [g, wt]) { await joinByCode(p, code); await p.waitForSelector("text=Maydon "); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
   for (const [i, p] of [a, g, wt].entries()) { await p.waitForSelector("text=Orzuingizni tanlang", { timeout: 10000 }).catch(async (e) => { await p.screenshot({ path: `${OUT}/${tag}-orzu${i}.png` }); console.log(await p.locator("body").innerText()); throw e; }); await pickDream(p); }
   const room = x.rooms.rooms.get(code)!;

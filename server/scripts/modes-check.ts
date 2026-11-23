@@ -24,7 +24,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByTestId("mode-corporate").click(); check((await a.getByRole("button", { name: /^Kod bilan qo'shilish/ }).count()) === 0 && (await a.getByTestId("corp-code").count()) === 1, `${tag} Korporativda faqat tashkilot kodi maydoni`); await a.getByTestId("mode-standard").click();
   // 2) Standart xona va chiqish shartlari
   await a.getByTestId("seats-2").click(); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.mode === "standard" && room.seats === 2 && room.turnSeconds === 60, `${tag} serverda rejim «standart», o'rin 2, tezlik 1 daqiqa`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang"); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   if (tag === "tel") await a.getByRole("button", { name: /^Blank/ }).click();

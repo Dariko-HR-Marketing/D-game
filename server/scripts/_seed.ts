@@ -53,7 +53,7 @@ export async function clickMenuItem(p: any, testId: string): Promise<void> {
 }
 
 
-/** Telefonda xona sozlamalari yig'iq turadi («Xona sozlamalari» qatori): kerak bo'lsa ochadi. */
+/** Telefonda xona sozlamalari yig'iq turadi («Maydon turi» qatori): kerak bo'lsa ochadi. */
 export async function openOpts(p: any): Promise<void> {
   const o = p.getByTestId("home-opts"); if (await o.count() && (await o.getAttribute("aria-expanded")) !== "true") await o.click();
 }

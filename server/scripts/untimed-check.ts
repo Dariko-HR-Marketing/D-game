@@ -24,7 +24,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   // boshqa rejimda tugma yo'q
   const quick = a.getByRole("radio", { name: /^Tez/ }); if (await quick.count()) { await quick.first().click(); check(await a.getByRole("radio", { name: "Mehrojiddin (vaqtsiz)" }).count() === 0, `${tag}: «Tez» rejimida «Mehrojiddin» yo'q`); await a.getByRole("radio", { name: /^Standart/ }).first().click(); await a.getByRole("radio", { name: "Mehrojiddin (vaqtsiz)" }).click(); }
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.turnSeconds === 0, `${tag}: serverda xona vaqtsiz (turnSeconds ${room.turnSeconds})`);
   check(await a.getByTestId("lobby-turn").innerText().then((s) => /Mehrojiddin/.test(s)), `${tag}: lobbida «Mehrojiddin» belgisi`);
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await pickDream(a); await a.waitForSelector("text=Naqd", { timeout: 60000 });

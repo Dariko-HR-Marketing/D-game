@@ -29,11 +29,11 @@ for (const [tag, w, h] of sizes) {
   await a.reload(); await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.waitForTimeout(600); check((await dlg(a).count()) === 0, `${tag} bosh sahifa: qayta kirganda chiqmaydi`);
   await clickMenuItem(a, "tour-help"); await dlg(a).waitFor(); check((await title(a)).startsWith("Tajriba24"), `${tag} «?» tugmasi yo'riqnomani qayta ochadi`); await a.keyboard.press("Escape");
   // 2) Xona: yo'riqnoma (kod, hodisa kartalari)
-  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await dlg(a).waitFor(); check((await title(a)) === "Xona kodi", `${tag} xona: yo'riqnoma`); await shot(a, "02-lobby-1"); await fits(a, "lobby 1"); await next(a); await shot(a, "02-lobby-2"); await next(a);
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
+  await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await dlg(a).waitFor(); check((await title(a)) === "Maydon kodi", `${tag} xona: yo'riqnoma`); await shot(a, "02-lobby-1"); await fits(a, "lobby 1"); await next(a); await shot(a, "02-lobby-2"); await next(a);
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
   await dlg(c).waitFor({ timeout: 15000 }); await c.keyboard.press("Escape"); await c.waitForTimeout(150); // yangi foydalanuvchi: o'z bosh sahifa yo'riqnomasini ko'radi, Esc bilan yopadi
-  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
-  await dlg(c).first().waitFor(); const homeC = await title(c); check(homeC === "Xona kodi" || homeC.length > 0, `${tag} ikkinchi o'yinchi ham sahifa yo'riqnomasini ko'radi: «${homeC}»`); await c.keyboard.press("Escape");
+  await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
+  await dlg(c).first().waitFor(); const homeC = await title(c); check(homeC === "Maydon kodi" || homeC.length > 0, `${tag} ikkinchi o'yinchi ham sahifa yo'riqnomasini ko'radi: «${homeC}»`); await c.keyboard.press("Escape");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click();
   // 3) Orzu tanlash
   await dlg(a).waitFor({ timeout: 10000 }); check((await title(a)) === "Orzuingizni tanlang", `${tag} orzu: yo'riqnoma`); await shot(a, "03-dreams"); await next(a); await next(a);
