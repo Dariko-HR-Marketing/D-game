@@ -10,7 +10,7 @@ const F = uz.flow;
 const TABS = ["field", "blank", "cards", "hist", "ana", "chat"] as const;
 const fill = (t: string) => t.replace("{passive}", money(MODES.standard.exitPassive)).replace("{cash}", money(MODES.standard.exitCash));
 
-/** Majburiy birinchi tanishuv (buyurtmachi qarori 2026-11-21): o'ynaladigan o'quv o'yini o'rniga qadamma-qadam yo'riqnoma. Server xonasi yo'q; har qadamda foydalanuvchi namuna tugmani o'zi bosadi. Tugagach `onDone`. */
+/** Majburiy birinchi tanishuv (buyurtmachi qarori 2026-11-21): o'ynaladigan o'quv o'yini o'rniga qadamma-qadam yo'riqnoma. Server maydoni yo'q; har qadamda foydalanuvchi namuna tugmani o'zi bosadi. Tugagach `onDone`. */
 export function OnboardingFlow({ onDone }: { onDone: () => void }) {
   const [i, setI] = useState(0); const [acted, setActed] = useState<Record<string, string>>({}); const [seenTabs, setSeenTabs] = useState<string[]>([]); const [tab, setTab] = useState<string | null>(null);
   const n = F.steps.length, last = i === n - 1, st = F.steps[i];

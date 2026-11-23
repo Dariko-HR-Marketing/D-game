@@ -19,8 +19,8 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); localStorage.removeItem("tajriba24-chat-muted"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk(A), k = await mk(K);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await joinByCode(k, code); await k.waitForSelector("text=Xona egasi");
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
+  await joinByCode(k, code); await k.waitForSelector("text=Maydon egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await pickDream(a); await k.waitForSelector("text=Orzuingizni tanlang"); await pickDream(k); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   await k.waitForSelector("text=Naqd", { timeout: 60000 });

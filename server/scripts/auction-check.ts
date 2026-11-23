@@ -17,10 +17,10 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
   const ida = "aa" + tag, idb = "ab" + tag, idc = "ac" + tag, three = true; /* majburiy auksion uchun kamida 2 ta taklif qiluvchi kerak */ const a = await mk(ida), c = await mk(idb), d = three ? await mk(idc) : null;
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
   if (three) x.rooms.rooms.get(code)!.seats = 3; // uchinchi o'yinchi uchun joy
-  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
-  if (d) { await joinByCode(d, code); await d.waitForSelector("text=Xona egasi"); }
+  await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
+  if (d) { await joinByCode(d, code); await d.waitForSelector("text=Maydon egasi"); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); if (d) { await d.waitForSelector("text=Orzuingizni tanlang"); await pickDream(d); } await a.waitForSelector("text=Naqd", { timeout: 60000 });
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room);

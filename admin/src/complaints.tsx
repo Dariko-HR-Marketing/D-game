@@ -17,7 +17,7 @@ export function Complaints({ api, me }: { api: Api; me: string }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="row" style={{ gap: 8, alignItems: "center" }}><b>#{c.id}</b><Pill kind={ST[c.status][1]}>{ST[c.status][0]}</Pill>{c.againstCount > 1 && <Pill kind="bad">unga {c.againstCount} ta shikoyat</Pill>}<span className="muted">{fmtTime(c.at)}</span>{c.assigneeName && <span className="muted">· {c.assigneeName}</span>}</div>
           <p style={{ margin: "6px 0" }}>{c.text}</p>
-          <div className="muted" style={{ fontSize: 13 }}>Kimdan: {c.fromName ?? c.from} · Kimga: {c.against ? c.againstName ?? c.against : "—"}{c.room ? <> · xona <span className="mono">{c.room}</span></> : null}</div>
+          <div className="muted" style={{ fontSize: 13 }}>Kimdan: {c.fromName ?? c.from} · Kimga: {c.against ? c.againstName ?? c.against : "—"}{c.room ? <> · maydon <span className="mono">{c.room}</span></> : null}</div>
           {c.resolution && <p className="muted" style={{ margin: "6px 0 0" }}>Qaror: {c.resolution}</p>}
           {c.notes.map((n: any, i: number) => <p key={i} className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>📝 {n.text} <span className="mono">{fmtTime(n.at)}</span></p>)}
         </div>
@@ -26,7 +26,7 @@ export function Complaints({ api, me }: { api: Api; me: string }) {
           {(c.status === "new" || c.status === "in_progress") && <><button className="sm" onClick={() => { setOpen(c); setDlg("resolve"); }}>Hal qilish</button><button className="sm" onClick={() => { setOpen(c); setDlg("reject"); }}>Rad etish</button></>}
           {(c.status === "resolved" || c.status === "rejected") && <button className="sm" onClick={() => post(`/admin/complaints/${c.id}/status`, { status: "in_progress" })}>Qayta ochish</button>}
           <button className="sm" onClick={() => { setOpen(c); setDlg("note"); }}>Izoh</button>
-          {c.room && <span className="muted" style={{ fontSize: 12 }}>Jurnal: «Xonalar»</span>}
+          {c.room && <span className="muted" style={{ fontSize: 12 }}>Jurnal: «Maydonlar»</span>}
         </div>
       </article>))}</section>
     <FormDialog open={dlg === "resolve" || dlg === "reject"} title={dlg === "reject" ? "Shikoyatni rad etish" : "Shikoyatni hal qilish"} fields={[{ key: "resolution", label: "Qaror / izoh", type: "textarea", required: true }]} onClose={() => setDlg(null)} onOk={async (v) => { const r = await api.post(`/admin/complaints/${open.id}/status`, { status: dlg === "reject" ? "rejected" : "resolved", resolution: v.resolution }); if (r.error) throw new Error(r.error); setDlg(null); l.reload(); }} />

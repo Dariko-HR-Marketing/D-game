@@ -6,7 +6,7 @@ import { useReducedMotion } from "../motion";
 
 /** Bo'lim belgisi: `urgent` — qizil (javob kutilmoqda), `info` — yashil (yangilik/imkoniyat); `temp` — vaqt cheklangan, pulsatsiya qiladi. */
 export interface NavBadge { count: number; tone: "urgent" | "info"; temp?: boolean; label: string }
-export interface NavItem<K extends string> { key: K; label: string; icon: IconName; badge?: NavBadge | null }
+export interface NavItem<K extends string> { key: K; label: string; icon: IconName; badge?: NavBadge | null; testID?: string }
 
 function BadgeDot({ b }: { b: NavBadge }) {
   const reduced = useReducedMotion(); const v = useRef(new Animated.Value(0)).current;
@@ -28,7 +28,7 @@ export function BottomNav<K extends string>({ items, active, onChange, label, te
   return (
     <View role="navigation" aria-label={label} style={s.nav} testID={testID}>
       {items.map((it) => { const on = it.key === active; const b = on ? null : it.badge; return (
-        <Pressable key={it.key} accessibilityRole="button" accessibilityLabel={b ? `${it.label}, ${b.label}` : it.label} aria-current={on ? "page" : undefined} onPress={() => onChange(it.key)} style={s.item}>
+        <Pressable key={it.key} testID={it.testID} aria-haspopup={it.testID === "profile-menu-open" ? "menu" : undefined} accessibilityRole="button" accessibilityLabel={b ? `${it.label}, ${b.label}` : it.label} aria-current={on ? "page" : undefined} onPress={() => onChange(it.key)} style={s.item}>
           <View>
             <Icon name={it.icon} size={22} stroke={on ? 2.2 : 1.8} color={on ? color.navy : "#6B7C8C"} />
             {b && <BadgeDot b={b} />}

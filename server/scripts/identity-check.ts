@@ -38,9 +38,9 @@ await a.screenshot({ path: `${OUT}/2-profile.png` });
 
 // 3) Xona: ikkinchi o'yinchi ism va rasmni ko'radi; botlar tartib raqami bilan
 await a.getByRole("button", { name: "Orqaga" }).first().click().catch(() => {}); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
+const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
 const c = await mk("zed"); await c.getByTestId("gate-name").fill("Madina"); await c.getByTestId("gate-year").fill("1999"); await c.getByRole("button", { name: "Davom etish" }).click();
-await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
+await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
 const lob = await c.locator("body").innerText(); check(lob.includes("Sardor") && lob.includes("Madina") && !/O'yinchi \d/.test(lob), "xonada ikkala o'yinchi ismi ko'rinadi, «O'yinchi N» yo'q");
 await c.locator("img[src*='/avatar/ida']").first().waitFor({ timeout: 8000 }).catch(() => {}); // rasm sahifa tiklangach yuklanadi (poyga)
 check((await c.locator("img[src*='/avatar/ida']").count()) > 0, "ikkinchi o'yinchi birinchisining rasmini ko'radi");
@@ -53,7 +53,7 @@ const game = await a.locator("body").innerText(); check(game.includes("Madina") 
 // 4) Botlar: 1 odam + 2 bot
 const d = await mk("bot1"); await d.getByTestId("gate-name").fill("Aziza"); await d.getByTestId("gate-year").fill("1990"); await d.getByRole("button", { name: "Davom etish" }).click();
 await d.getByRole("button", { name: /^Yangi o'yin/ }).click(); await d.waitForSelector("[data-testid=lobby-code]");
-const code2 = (await d.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const r2 = x.rooms.rooms.get(code2)!; r2.members.push({ userId: "bot-1", bot: true, online: true }, { userId: "bot-2", bot: true, online: true }); await x.rooms.start(code2, "bot1", 3, { dreams: false }); await d.waitForSelector("text=Naqd", { timeout: 60000 });
+const code2 = (await d.locator("[aria-label^='Maydon kodi']").textContent())!.trim(); const r2 = x.rooms.rooms.get(code2)!; r2.members.push({ userId: "bot-1", bot: true, online: true }, { userId: "bot-2", bot: true, online: true }); await x.rooms.start(code2, "bot1", 3, { dreams: false }); await d.waitForSelector("text=Naqd", { timeout: 60000 });
 { const dro = d.getByTestId("players-drawer-open"); if (await dro.count()) { await dro.click(); await d.getByTestId("players-drawer").waitFor({ timeout: 4000 }); } }
 const gb = await d.locator("body").innerText(); check(gb.includes("Bot 1") && gb.includes("Bot 2") && !gb.includes("Bot 3"), "botlar «Bot 1», «Bot 2» deb ko'rinadi");
 await d.screenshot({ path: `${OUT}/4-bots.png` });

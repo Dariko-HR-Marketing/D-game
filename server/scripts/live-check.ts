@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync } from "node:fs";
-// Jonli tahlil ekrani: ikki o'yinchi, o'yin davomida. Tekshiriladi: ochiladi, 5 bo'lim va 11 nazariya bo'limi chiqadi, gorizontal aylanish yo'q, bosish maydoni, ikkala o'yinchi ham hammani ko'radi.
+// Tahlil ekrani: ikki o'yinchi, o'yin davomida. Tekshiriladi: ochiladi, 5 bo'lim va 11 nazariya bo'limi chiqadi, gorizontal aylanish yo'q, bosish maydoni, ikkala o'yinchi ham hammani ko'radi.
 // `OUT=papka WEB=http://localhost:8081 pnpm tsx scripts/live-check.ts`
 import { chromium } from "playwright-core";
 import { currentPlayer, effectOf } from "@tajriba24/rules";
@@ -17,8 +17,8 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yotiq", 844, 390], ["plan", 1024
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const pg = await c.newPage(); await pg.goto(WEB); return pg; };
   const ida = "ta" + tag, idb = "tb" + tag; const a = await mk(ida), c = await mk(idb);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
+  await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c);
   const room = x.rooms.rooms.get(code)!; slowTimers(x, room); await new Promise((r) => setTimeout(r, 600));

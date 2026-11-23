@@ -17,11 +17,11 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 });
   check((await a.getByTestId("home-resume").count()) === 0, `${tag} faol o'yin yo'q: «Davom etayotgan o'yin» ko'rinmaydi`);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
   await a.reload(); const r = a.getByTestId("home-resume"); await r.waitFor({ timeout: 15000 });
   check((await r.innerText()).includes(code), `${tag} yangilangandan keyin «Davom etayotgan o'yin» + kod ${code}`);
   await r.click(); await a.waitForSelector("[data-testid=lobby-code]", { timeout: 10000 });
-  check((await a.locator("[aria-label^='Xona kodi']").textContent())!.trim() === code, `${tag} xonaga qaytildi`);
+  check((await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim() === code, `${tag} xonaga qaytildi`);
   await c.close();
 }
 await b.close(); await x.app.close(); console.log(failed ? `RESUME: ${failed} ta xato` : "RESUME: hammasi to'g'ri"); process.exit(failed ? 1 : 0);

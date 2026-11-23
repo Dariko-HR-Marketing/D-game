@@ -63,7 +63,7 @@ export function RequestModal({ room, userId, reqs, onAct, onClose }: { room: Roo
 }
 
 /** Sarlavhadagi doimiy profil tugmasi ostidagi menyu: «O'yindan chiqish» shu yerda. */
-export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp, items }: { open: boolean; onClose: () => void; onLeave: () => void; onProfile?: () => void; onHelp?: () => void; items?: { key: string; icon: any; label: string; onPress: () => void; tid?: string; badge?: number }[] }) {
+export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp, items, fromBottom }: { fromBottom?: boolean; open: boolean; onClose: () => void; onLeave: () => void; onProfile?: () => void; onHelp?: () => void; items?: { key: string; icon: any; label: string; onPress: () => void; tid?: string; badge?: number }[] }) {
   const [sure, setSure] = useState(false);
   useEffect(() => { if (!open) setSure(false); }, [open]);
   useEffect(() => { const d = (globalThis as any).document; if (!open || !d?.addEventListener) return; const h = (e: any) => { if (e.key === "Escape") onClose(); }; d.addEventListener("keydown", h); return () => d.removeEventListener("keydown", h); }, [open, onClose]);
@@ -71,7 +71,7 @@ export function ProfileMenu({ open, onClose, onLeave, onProfile, onHelp, items }
   return (
     <View style={s.menuScrim} testID="profile-menu">
       <Pressable style={StyleSheet.absoluteFill as any} onPress={onClose} accessibilityLabel={uz.leave.cancel} />
-      <View style={s.menu} role="menu" aria-label={uz.profMenu.menu}>
+      <View style={[s.menu, fromBottom && { top: undefined, bottom: 72, right: 8, width: 300 }]} role="menu" aria-label={uz.profMenu.menu}>
         {!sure ? (<>
           {items?.map((it) => <Pressable key={it.key} accessibilityRole="button" role="menuitem" accessibilityLabel={it.label} onPress={() => { onClose(); it.onPress(); }} style={s.item} testID={it.tid}><Icon name={it.icon} size={18} color={color.navy} /><Text style={[s.itemT, { flex: 1 }]}>{it.label}</Text>{!!it.badge && <View style={s.badge} aria-hidden><Text style={s.badgeT}>{it.badge > 9 ? "9+" : it.badge}</Text></View>}</Pressable>)}
           {onProfile && <Pressable accessibilityRole="button" role="menuitem" onPress={() => { onClose(); onProfile(); }} style={s.item}><Icon name="person" size={18} color={color.navy} /><Text style={s.itemT}>{uz.profMenu.me}</Text></Pressable>}

@@ -20,8 +20,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844], ["yot", 844, 3
   const mk = async (uid: string, deny = false) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce", permissions: ["microphone"] }); await c.addInitScript(([u, d]) => { localStorage.setItem("tajriba24-dev-user", u as string); localStorage.setItem("tajriba24-tours-off", "1"); localStorage.removeItem("tajriba24-voice-muted"); const O = window.RTCPeerConnection; (window as any).__pcs = []; (window as any).RTCPeerConnection = function (...a: any[]) { const pc = new (O as any)(...a); (window as any).__pcs.push(pc); return pc; } as any; (window as any).RTCPeerConnection.prototype = O.prototype; if (d) navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error("denied"), { name: "NotAllowedError" })); }, [uid, deny]); const p = await c.newPage(); await p.goto(WEB); return p; };
   const a = await mk(A), bb = await mk(B), cc = await mk(C, true), k = await mk(K);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 15000 }); await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim();
-  for (const p of [bb, cc, k]) { await joinByCode(p, code); await p.waitForSelector("text=Xona egasi"); }
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();
+  for (const p of [bb, cc, k]) { await joinByCode(p, code); await p.waitForSelector("text=Maydon egasi"); }
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   for (const p of [a, bb, cc, k]) { await p.waitForSelector("text=Orzuingizni tanlang"); await pickDream(p); }
   for (const p of [a, bb, cc, k]) await p.waitForSelector("text=Naqd", { timeout: 20000 });

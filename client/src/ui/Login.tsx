@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Linking, useWindowDimensions } from "react-native";
 import { Logo } from "./Logo";
+import { LearnArt } from "./LearnArt";
 import { Field, Check, Cta, Ghost, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
 import { AUTH_METHODS } from "../authMethods";
 import { GOOGLE_CLIENT_ID, loadGis, googleEnabled } from "../googleSignIn";
-import { font, MIN_TAP, night, radius, space } from "../theme";
+import { font, MIN_TAP, authUi, radius, space } from "../theme";
 import { isUnder16, validCode, validName, validPhone, validEmail, validYear, HttpError, type makeAuth } from "../net/http";
 
 /** O'zbekiston raqamini yozish paytida chiroyli ko'rsatadi: 90 123 45 67 / +998 90 123 45 67. Boshqa davlat raqamlariga tegmaydi. */
@@ -49,7 +50,7 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
   }, [gOn, tab, remember, gKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const google = () => setStatus(AUTH_METHODS.google ? null : { kind: "info", text: uz.login.googleSoon });
   return (
-    <ScrollView style={{ backgroundColor: night.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" bounces={false}>
+    <ScrollView style={{ backgroundColor: authUi.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" bounces={false}>
       <View style={[s.shell, wide && s.shellWide]}>
         {/* Chap: brend va va'da */}
         <View style={[s.brandPane, wide ? s.brandWide : s.brandNarrow]}>
@@ -58,17 +59,13 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
           <View style={{ gap: wide ? space.xl : space.md }} testID="login-intro">
             <View style={s.logoRow}>
               <View style={{ flexShrink: 1, gap: 4 }}>
-                <Logo height={wide ? 56 : 42} tone="dark" />
+                <Logo height={wide ? 56 : 42} tone="light" />
                 <Text style={s.brandLabel}>{uz.login.brandLabel}</Text>
               </View>
             </View>
             <View style={s.badge}><View style={s.dot} /><Text style={s.badgeT}>{uz.login.badge}</Text></View>
             <Text style={[s.lead, wide && { fontSize: 32, lineHeight: 40 }]} aria-level={1} accessibilityRole="header">{uz.login.welcomeLead}</Text>
-            {(wide || tall) && <Text style={s.body}>{uz.login.introWhat}</Text>}
-            {wide && (<View style={{ gap: space.md }} role="list">
-              {uz.login.benefits.map((t, i) => (
-                <View key={i} style={s.benefit} role="listitem"><View style={s.tick} aria-hidden><Text style={s.tickT}>✓</Text></View><Text style={[s.body, { flex: 1 }]}>{t}</Text></View>))}
-            </View>)}
+            {wide && <View style={{ alignItems: "center" }}><LearnArt width={420} /></View>}
             {wide && <Text style={s.free}>{uz.login.introFree}</Text>}
           </View>
           {wide && <View style={s.brandFoot}>
@@ -98,11 +95,10 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
               {tab === "register" && <Field id="yr" label={uz.login.year} value={year} onChangeText={(v) => setYear(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="1995" maxLength={4} />}
               {tab === "register" && (isUnder16(year) ? <Text style={k.warn} accessibilityLiveRegion="polite">{uz.profile.under16}</Text> : <Text style={k.note}>{uz.login.yearHint}</Text>)}
               {emailTyped && !emailOn && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.emailSoon}</Text>}
-              {(tab === "login" || AUTH_METHODS.password) && <Field id="pw" label={tab === "login" ? uz.login.password : uz.login.passwordNew} soon={!AUTH_METHODS.password} value={pass} onChangeText={setPass} secureTextEntry={!showPass} autoComplete={tab === "login" ? "current-password" : "new-password"}
+              {AUTH_METHODS.password && <Field id="pw" label={tab === "login" ? uz.login.password : uz.login.passwordNew} soon={!AUTH_METHODS.password} value={pass} onChangeText={setPass} secureTextEntry={!showPass} autoComplete={tab === "login" ? "current-password" : "new-password"}
                 placeholder={tab === "login" ? uz.login.passwordPh : uz.login.passwordNewPh}
                 right={tab === "login" ? <Pressable accessibilityRole="link" accessibilityLabel={uz.login.forgot} onPress={() => setStatus({ kind: "info", text: uz.login.forgotSoon })} hitSlop={8}><Text style={k.link}>{uz.login.forgot}</Text></Pressable> : undefined} />}
               {AUTH_METHODS.password && <Pressable accessibilityRole="button" accessibilityLabel={showPass ? uz.login.hide : uz.login.show} onPress={() => setShowPass(!showPass)} style={s.eye}><Text style={s.eyeT}>{showPass ? uz.login.hide : uz.login.show}</Text></Pressable>}
-              {tab === "login" && !AUTH_METHODS.password && <Text style={k.note}>{uz.login.passwordSoon}</Text>}
 
               {tab === "login" && <Check label={uz.login.remember} checked={remember} onChange={setRemember} />}
               {tab === "register" && <Check label={uz.login.terms} checked={terms} onChange={setTerms} />}
@@ -137,41 +133,40 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
 }
 
 const s = StyleSheet.create({
-  scroll: { flexGrow: 1, justifyContent: "center", alignItems: "center", padding: space.lg, backgroundColor: night.bg },
-  shell: { width: "100%", maxWidth: 460, borderRadius: radius.xl + 4, overflow: "hidden", borderWidth: 1, borderColor: night.lineSoft, backgroundColor: night.panel },
+  scroll: { flexGrow: 1, justifyContent: "center", alignItems: "center", padding: space.lg, backgroundColor: authUi.bg },
+  shell: { width: "100%", maxWidth: 460, borderRadius: radius.xl + 4, overflow: "hidden", borderWidth: 1, borderColor: authUi.lineSoft, backgroundColor: authUi.panel },
   shellWide: { maxWidth: 960, flexDirection: "row" },
-  brandPane: { overflow: "hidden", justifyContent: "space-between", backgroundColor: night.brand },
-  brandWide: { flex: 1, padding: space.xxxl - 8, minHeight: 600, gap: space.xl, borderRightWidth: 1, borderRightColor: night.lineSoft },
-  brandNarrow: { padding: space.lg, borderBottomWidth: 1, borderBottomColor: night.lineSoft },
-  glow: { position: "absolute", width: 260, height: 260, borderRadius: 130, backgroundColor: night.glow },
+  brandPane: { overflow: "hidden", justifyContent: "space-between", backgroundColor: authUi.brand },
+  brandWide: { flex: 1, padding: space.xxxl - 8, minHeight: 560, gap: space.lg, borderRightWidth: 1, borderRightColor: authUi.lineSoft },
+  brandNarrow: { padding: space.lg, borderBottomWidth: 1, borderBottomColor: authUi.lineSoft },
+  glow: { position: "absolute", width: 260, height: 260, borderRadius: 130, backgroundColor: authUi.glow },
   logoRow: { flexDirection: "row", alignItems: "center", gap: space.md },
-  brandName: { color: night.text, fontSize: font.xl, fontWeight: "800", letterSpacing: 0.3 },
-  brandLabel: { color: night.accent, fontSize: font.xs, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" },
-  badge: { flexDirection: "row", alignItems: "center", gap: space.sm, alignSelf: "flex-start", paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: radius.pill, borderWidth: 1, borderColor: night.accent },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: night.accent }, badgeT: { color: night.accent, fontSize: font.xs, fontWeight: "700" },
-  lead: { color: night.text, fontSize: font.xl, lineHeight: 26, fontWeight: "800" },
-  body: { color: night.muted, fontSize: font.md, lineHeight: 22 },
+  brandName: { color: authUi.text, fontSize: font.xl, fontWeight: "800", letterSpacing: 0.3 },
+  brandLabel: { color: authUi.accent, fontSize: font.xs, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" },
+  badge: { flexDirection: "row", alignItems: "center", gap: space.sm, alignSelf: "flex-start", paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderRadius: radius.pill, borderWidth: 1, borderColor: authUi.accent },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: authUi.accent }, badgeT: { color: authUi.accent, fontSize: font.xs, fontWeight: "700" },
+  lead: { color: authUi.text, fontSize: font.xl, lineHeight: 26, fontWeight: "800" },
+  body: { color: authUi.muted, fontSize: font.md, lineHeight: 22 },
   benefit: { flexDirection: "row", alignItems: "flex-start", gap: space.md },
-  tick: { width: 24, height: 24, borderRadius: radius.sm, borderWidth: 1, borderColor: night.accent, alignItems: "center", justifyContent: "center" }, tickT: { color: night.accent, fontWeight: "800", fontSize: font.sm },
-  free: { color: night.text, fontSize: font.sm, lineHeight: 20, fontWeight: "700" },
-  brandFoot: { flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: space.sm, paddingTop: space.lg, borderTopWidth: 1, borderTopColor: night.lineSoft },
-  foot: { color: night.muted, fontSize: font.xs }, footLink: { color: night.accent, fontWeight: "700", textDecorationLine: "underline" },
-  formPane: { justifyContent: "space-between", gap: space.lg, backgroundColor: night.panel },
+  tick: { width: 24, height: 24, borderRadius: radius.sm, borderWidth: 1, borderColor: authUi.accent, alignItems: "center", justifyContent: "center" }, tickT: { color: authUi.accent, fontWeight: "800", fontSize: font.sm },
+  free: { color: authUi.text, fontSize: font.sm, lineHeight: 20, fontWeight: "700" },
+  brandFoot: { flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: space.sm, paddingTop: space.lg, borderTopWidth: 1, borderTopColor: authUi.lineSoft },
+  foot: { color: authUi.muted, fontSize: font.xs }, footLink: { color: authUi.accent, fontWeight: "700", textDecorationLine: "underline" },
+  formPane: { justifyContent: "space-between", gap: space.lg, backgroundColor: authUi.panel },
   formWide: { flex: 1, padding: space.xxxl - 8 },
   formNarrow: { padding: space.lg },
-  tabs: { flexDirection: "row", padding: 6, gap: 6, borderRadius: radius.lg, backgroundColor: night.bg, borderWidth: 1, borderColor: night.lineSoft },
+  tabs: { flexDirection: "row", padding: 6, gap: 6, borderRadius: radius.lg, backgroundColor: authUi.bg, borderWidth: 1, borderColor: authUi.lineSoft },
   tab: { flex: 1, minHeight: MIN_TAP - 4, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
-  tabOn: { backgroundColor: "#11835A" }, tabT: { color: night.muted, fontWeight: "700", fontSize: font.sm },
-  google: { minHeight: MIN_TAP + 6, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.md, borderRadius: radius.md, borderWidth: 1, borderColor: night.line, backgroundColor: "#16242F", paddingHorizontal: space.lg },
-  gBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: night.text, alignItems: "center", justifyContent: "center" }, gT: { color: "#4285F4", fontWeight: "800", fontSize: 14, lineHeight: 18 },
-  googleT: { color: night.text, fontWeight: "700", fontSize: font.sm },
-  divider: { flexDirection: "row", alignItems: "center", gap: space.md }, rule: { flex: 1, height: 1, backgroundColor: night.lineSoft },
-  dividerT: { color: night.muted, fontSize: font.xs, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase" },
-  h: { color: night.text, fontSize: font.xl, fontWeight: "800" },
+  tabOn: { backgroundColor: "#11835A" }, tabT: { color: authUi.muted, fontWeight: "700", fontSize: font.sm },
+  google: { minHeight: MIN_TAP + 6, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.md, borderRadius: radius.md, borderWidth: 1, borderColor: authUi.line, backgroundColor: "#FFFFFF", paddingHorizontal: space.lg },
+  gBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: authUi.lineSoft, alignItems: "center", justifyContent: "center" }, gT: { color: "#4285F4", fontWeight: "800", fontSize: 14, lineHeight: 18 },
+  googleT: { color: authUi.text, fontWeight: "700", fontSize: font.sm },
+  divider: { flexDirection: "row", alignItems: "center", gap: space.md }, rule: { flex: 1, height: 1, backgroundColor: authUi.lineSoft },
+  dividerT: { color: authUi.muted, fontSize: font.xs, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase" },
+  h: { color: authUi.text, fontSize: font.xl, fontWeight: "800" },
   codeInput: { letterSpacing: 10, textAlign: "center", fontWeight: "800", fontSize: font.xxl },
-  eye: { alignSelf: "flex-end", minHeight: MIN_TAP - 8, justifyContent: "center" }, eyeT: { color: night.accent, fontSize: font.sm, fontWeight: "700" },
-  ctaT: { color: "#04130E", fontWeight: "800", fontSize: font.sm, letterSpacing: 0.8, textTransform: "uppercase" },
-  ghostT: { color: night.text, fontWeight: "700", fontSize: font.sm, textAlign: "center" },
-  toggle: { gap: space.sm, paddingTop: space.md, borderTopWidth: 1, borderTopColor: night.lineSoft },
+  eye: { alignSelf: "flex-end", minHeight: MIN_TAP - 8, justifyContent: "center" }, eyeT: { color: authUi.accent, fontSize: font.sm, fontWeight: "700" },
+    ghostT: { color: authUi.text, fontWeight: "700", fontSize: font.sm, textAlign: "center" },
+  toggle: { gap: space.sm, paddingTop: space.md, borderTopWidth: 1, borderTopColor: authUi.lineSoft },
   toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm, minHeight: MIN_TAP - 8 },
 });

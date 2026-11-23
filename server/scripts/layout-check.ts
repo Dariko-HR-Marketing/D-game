@@ -60,24 +60,24 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
   const tb = (await a.getByTestId("timebar").first().boundingBox())!, st = (await a.getByRole("group", { name: "Moliyaviy holat" }).first().boundingBox())!;
   check(tb.y < st.y, "o'yin (tel): «Blank» yorlig'ida vaqt paneli moliyaviy holatdan yuqorida");
   await a.getByRole("button", { name: /^Maydon/ }).last().click();
-  check(await a.getByTestId("portfolio-open").count() === 1 && await a.getByTestId("sheet-open").count() === 1 && await a.getByTestId("live-open").count() === 0 && await a.getByTestId("chat-open").count() === 0 && await a.getByTestId("tour-help").count() === 0, "o'yin sarlavhasida faqat «Mening kartalarim», «Hisob varag'i» va profil; qolganlari menyuda");
-  await a.getByTestId("profile-menu-open").click();
-  for (const id of ["rules-open", "history-open", "chat-open", "live-open", "sound-toggle", "tour-help", "leave-open"]) check(await a.getByTestId(id).count() === 1, `o'yin (tel): profil menyusida ${id}`);
+  check(await a.getByTestId("portfolio-open").count() === 0 && await a.getByTestId("sheet-open").count() === 0 && await a.getByTestId("live-open").count() === 0 && await a.getByTestId("chat-open").count() === 0 && await a.getByTestId("tour-help").count() === 0, "o'yin sarlavhasi (tel): tugmalar yo'q, hammasi «Profil» menyusida");
+  await a.getByTestId("profile-menu-open").click(); check(/Profil/.test(await a.getByTestId("profile-menu-open").innerText()), "o'yin (tel): pastki menyuda «Profil» (Qoidalar o'rniga)");
+  for (const id of ["portfolio-open", "sheet-open", "rules-open", "history-open", "chat-open", "live-open", "sound-toggle", "tour-help", "leave-open"]) check(await a.getByTestId(id).count() === 1, `o'yin (tel): profil menyusida ${id}`);
   await a.context().close();
 }
 
-// 6) «Yopiq xona» galochkasi: belgilansa xona ro'yxatda qulfcha bilan chiqadi, kod ko'rsatilmaydi, kodsiz kirib bo'lmaydi
+// 6) «Yopiq maydon» galochkasi: belgilansa xona ro'yxatda qulfcha bilan chiqadi, kod ko'rsatilmaydi, kodsiz kirib bo'lmaydi
 {
   const A = await open("layA", 390, 844), B = await open("layB", 1440, 900);
   await A.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 });
   const tg = A.getByTestId("room-private"); check(await tg.count() === 1 && await tg.getAttribute("aria-checked") === "false", "yopiq xona galochkasi bor, Standartda belgilanmagan");
   await tg.click(); check(await tg.getAttribute("aria-checked") === "true", "galochka belgilandi");
   await A.getByRole("button", { name: /^Yangi o'yin/ }).click(); await A.waitForSelector("[data-testid=lobby-code]", { timeout: 15000 });
-  const code = (await A.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
+  const code = (await A.locator("[aria-label^='Maydon kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.visibility === "locked", "serverda xona qulfli (kod bilan)");
   await B.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 20000 }); await B.getByTestId("room-lock").first().waitFor({ timeout: 10000 }).catch(() => {});
   check(await B.getByTestId("room-lock").count() >= 1 && !(await B.locator("body").innerText()).includes(code), "ro'yxatda qulfcha ikonkasi bor, kod ko'rinmaydi");
-  await B.getByTestId("room-lock").first().click(); const inp = B.getByLabel("Xona kodi").first(); await inp.waitFor({ timeout: 4000 });
+  await B.getByTestId("room-lock").first().click(); const inp = B.getByLabel("Maydon kodi").first(); await inp.waitFor({ timeout: 4000 });
   check(await B.getByRole("button", { name: "Kirish", exact: true }).isDisabled(), "kodsiz «Kirish» o'chiq: kira olmaydi");
   await inp.fill("ZZZZZZ"); await B.getByRole("button", { name: "Kirish", exact: true }).click(); await B.waitForTimeout(1500);
   check(await B.getByTestId("lobby-code").count() === 0 && room.members.filter((m: any) => !m.bot).length === 1, "noto'g'ri kod bilan kirib bo'lmaydi");

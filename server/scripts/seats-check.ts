@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-// Xona egasi oldindan o'yinchilar sonini tanlaydi (2–6); odam yetmasa boshlanganda qolgan o'rinlarni botlar egallaydi. `pnpm tsx scripts/seats-check.ts`
+// Maydon egasi oldindan o'yinchilar sonini tanlaydi (2–6); odam yetmasa boshlanganda qolgan o'rinlarni botlar egallaydi. `pnpm tsx scripts/seats-check.ts`
 // (oldindan: client export:web va `cd client/dist && python3 -m http.server 8081`).
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
@@ -19,7 +19,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     if (tag === "tel") { const o = a.getByTestId("home-opts"); if (await o.count()) await o.click(); }
     await a.getByTestId(`seats-${seats}`).click(); check((await a.getByTestId(`seats-${seats}`).getAttribute("aria-checked")) === "true", `${tag}/${seats} tanlov belgilandi`);
     await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-    const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
+    const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
     check(room.seats === seats, `${tag}/${seats} serverda o'rinlar soni ${room.seats}`);
     const lt = await a.locator("body").innerText(); check(lt.includes(`1/${seats}`), `${tag}/${seats} zalda «1/${seats}» ko'rinadi`);
     check(seats === 2 || (await a.getByTestId("lobby-seats").count()) === 1, `${tag}/${seats} «${seats} kishilik» eslatma ko'rinadi`);

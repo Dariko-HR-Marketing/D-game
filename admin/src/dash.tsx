@@ -8,7 +8,7 @@ export function Dashboard({ api, go }: { api: Api; go: (k: string) => void }) {
   return (<>
     <PageHead title="Boshqaruv paneli"><button onClick={d.reload}>Yangilash</button></PageHead>
     <Err e={d.err} />{!x ? <Empty loading={d.loading} /> : (<>
-      {x.live && <section className="card" aria-labelledby="lv"><h2 id="lv">Hozir</h2><div className="stats">{tile("Onlayn o'yinchilar", x.live.online)}{tile("Faol xonalar", x.live.active)}{tile("Kutayotgan xonalar", x.live.lobby)}{tile("Sinf xonalari", x.live.classRooms)}{tile("Turnir xonalari", x.live.tournamentRooms)}</div></section>}
+      {x.live && <section className="card" aria-labelledby="lv"><h2 id="lv">Hozir</h2><div className="stats">{tile("Onlayn o'yinchilar", x.live.online)}{tile("Faol maydonlar", x.live.active)}{tile("Kutayotgan maydonlar", x.live.lobby)}{tile("Sinf maydonlari", x.live.classRooms)}{tile("Turnir maydonlari", x.live.tournamentRooms)}</div></section>}
       <div className="grid2">
         {x.attention?.length > 0 || true ? <section className="card" aria-labelledby="at"><h2 id="at">Diqqat talab qiladi</h2>
           {x.attention.length === 0 ? <p className="muted">Hozircha hammasi joyida.</p> : x.attention.map((a: any, i: number) => (

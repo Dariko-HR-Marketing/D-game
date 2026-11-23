@@ -1,4 +1,4 @@
-// O'yinlar: jonli xonalar, tugagan o'yinlar, shubhali o'yinlar, qayta o'ynatish va majburan yopish.
+// O'yinlar: jonli maydonlar, tugagan o'yinlar, shubhali o'yinlar, qayta o'ynatish va majburan yopish.
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Api } from "./api";
 import { Journal } from "./legacy";
@@ -20,9 +20,9 @@ export function Rooms({ api, perms }: { api: Api; perms: string[] }) {
   return (<>
     <PageHead title={t.rooms}><label style={{ minWidth: 220 }}><span className="sr">{t.search}</span><input type="search" aria-label={t.search} placeholder="Kod yoki o'yinchi" value={q} onChange={(e) => { setQ(e.target.value); setOff(0); }} /></label>
       <label><span className="sr">Turi</span><select aria-label="Turi" value={tag} onChange={(e) => { setTag(e.target.value); setOff(0); }}><option value="all">Hammasi</option><option value="none">Oddiy</option><option value="class">Sinf</option><option value="tournament">Turnir</option></select></label></PageHead>
-    <Tabs label="Xonalar" active={tab} onChange={setTab} items={[["live", "Jonli"], ["done", "Tugagan"], ["sus", "Shubhali"]]} />
+    <Tabs label="Maydonlar" active={tab} onChange={setTab} items={[["live", "Jonli"], ["done", "Tugagan"], ["sus", "Shubhali"]]} />
     {view?.kind === "journal" && <Journal api={api} code={view.code} onClose={() => setView(null)} />}
-    {tab === "live" && <section className="card"><Err e={live.err} />{!live.data?.length ? <Empty loading={live.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Jonli xonalar jadvali"><table><thead><tr><th>Kod</th><th>Holat</th><th>Turi</th><th>Kontent</th><th>Aylana</th><th>O'yinchilar</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{live.data.map((r) => (
+    {tab === "live" && <section className="card"><Err e={live.err} />{!live.data?.length ? <Empty loading={live.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Jonli maydonlar jadvali"><table><thead><tr><th>Kod</th><th>Holat</th><th>Turi</th><th>Kontent</th><th>Aylana</th><th>O'yinchilar</th><th><span className="sr">Amal</span></th></tr></thead><tbody>{live.data.map((r) => (
       <tr key={r.code}><td><b className="mono" style={{ fontSize: 14 }}>{r.code}</b></td><td>{status(r)}{r.closed && <div className="muted" style={{ fontSize: 12 }}>{r.closed}</div>}</td><td>{tagPill(r.tag)}</td><td>v{r.contentVersion ?? "—"}</td><td className="num">{r.round ?? "—"}</td>
         <td>{Array.isArray(r.members) ? r.members.map((m: any) => (m.bot ? "Bot" : m.name ?? m.userId) + (m.online || m.bot ? "" : " (oflayn)")).join(", ") : `${r.members} ta`}</td>
         <td><div className="row">{acts(r.code)}{canClose && !r.ended && <button className="sm d" onClick={() => setClose(r.code)}>Yopish</button>}</div></td></tr>))}</tbody></table></div>}</section>}
@@ -31,7 +31,7 @@ export function Rooms({ api, perms }: { api: Api; perms: string[] }) {
       <div className="row" style={{ marginTop: 12, justifyContent: "space-between" }}><span className="muted">Jami: {done.data.total}</span><span className="row"><button className="sm" disabled={off === 0} onClick={() => setOff(Math.max(0, off - 50))}>← Oldingi</button><button className="sm" disabled={off + 50 >= done.data.total} onClick={() => setOff(off + 50)}>Keyingi →</button><button className="sm" onClick={() => download("oyinlar.csv", csv([["Kod", "Tugagan", "Davomiyligi (s)", "Raund", "G'olib", "Tur", "Odam", "Bot"], ...done.data!.games.map((g) => [g.room, new Date(g.finishedAt).toISOString(), Math.round(g.durationMs / 1000), g.rounds, g.winner, g.tag?.kind ?? "", g.humans, g.bots])]))}>CSV</button></span></div></>}</section>}
     {tab === "sus" && <section className="card"><Banner kind="info">Bu faqat ko'rib chiqish uchun belgilar. Avtomatik jazo qo'llanmaydi.</Banner><Err e={sus.err} />{!sus.data?.games.length ? <Empty loading={sus.loading} /> : sus.data.games.map((g) => (
       <div className="attn" key={g.room + g.reasons[0]} style={{ alignItems: "flex-start" }}><div><b className="mono">{g.room}</b> <span className="muted">{fmtTime(g.finishedAt)}</span>{g.reasons.map((r: string, i: number) => <div key={i}><Pill kind="warn">!</Pill> {r}</div>)}</div>{acts(g.room)}</div>))}</section>}
-    <FormDialog open={close !== null} danger title={`Xonani yopish: ${close}`} body="O'yin to'xtatiladi, natija yozilmaydi. Sabab o'yinchilarga ko'rsatiladi." fields={[{ key: "reason", label: t.reason, required: true }]} onClose={() => setClose(null)} onOk={async (f) => { const r = await api.post(`/admin/rooms/${close}/close`, { reason: f.reason }); if (r.error) throw new Error(r.error); setClose(null); live.reload(); }} />
+    <FormDialog open={close !== null} danger title={`Maydonni yopish: ${close}`} body="O'yin to'xtatiladi, natija yozilmaydi. Sabab o'yinchilarga ko'rsatiladi." fields={[{ key: "reason", label: t.reason, required: true }]} onClose={() => setClose(null)} onOk={async (f) => { const r = await api.post(`/admin/rooms/${close}/close`, { reason: f.reason }); if (r.error) throw new Error(r.error); setClose(null); live.reload(); }} />
   </>);
 }
 

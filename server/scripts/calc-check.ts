@@ -21,9 +21,9 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await openOpts(a);
   check((await a.getByRole("radio", { name: /^O'zim hisoblayman/ }).getAttribute("aria-checked")) === "true", `${tag} standart rejim — «O'zim hisoblayman»`);
   await a.getByRole("button", { name: /^Yangi o'yin/ }).click(); await a.waitForSelector("[data-testid=lobby-code]");
-  const code = (await a.locator("[aria-label^='Xona kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
+  const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim(); const room = x.rooms.rooms.get(code)!;
   check(room.calcMode === "manual", `${tag} server: xona hisob rejimi manual`); check((await a.getByTestId("lobby-calc").textContent())?.includes("O'zim hisoblayman") ?? false, `${tag} xonada rejim ko'rinadi`);
-  await joinByCode(c, code); await c.waitForSelector("text=Xona egasi");
+  await joinByCode(c, code); await c.waitForSelector("text=Maydon egasi");
   await a.getByRole("button", { name: "O'yinni boshlash" }).click(); await a.waitForSelector("text=Orzuingizni tanlang");
   await pickDream(a); await c.waitForSelector("text=Orzuingizni tanlang"); await pickDream(c); await a.waitForSelector("text=Naqd", { timeout: 60000 });
   slowTimers(x, room); // server o'zi kubik tashlab yubormasin (taymer ×10)

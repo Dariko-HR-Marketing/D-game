@@ -250,11 +250,12 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const ui: HUi = { flat, labels, ib, tiny };
   const reqLayers = (<>
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
-    {!state.winner && <ProfileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} items={[
+    {!state.winner && <ProfileMenu fromBottom={!wide} open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} items={[
+      ...(!wide ? [{ key: "portfolio", icon: "file", label: uz.portfolio.title, onPress: () => setPortfolioOpen(true), tid: "portfolio-open" }, { key: "sheet", icon: "chart", label: uz.sheet.title, onPress: () => setSheetView(true), tid: "sheet-open" }] : []),
+      ...(http ? [{ key: "live", icon: "chart", label: uz.live.title, onPress: () => setLiveOpen(true), tid: "live-open" }] : []),
+      ...(onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : []),
       { key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" },
       ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : []),
-      ...(onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : []),
-      ...(http ? [{ key: "live", icon: "people", label: uz.live.title, onPress: () => setLiveOpen(true), tid: "live-open" }] : []),
       ...(reqs.length > 0 ? [{ key: "req", icon: "bell", label: uz.req.bellN.replace("{n}", String(reqs.length)), onPress: reqModal.show, tid: "requests-open", badge: reqs.length }] : []),
       ...(voice && vs && vs.status === "on" && vs.hasMic ? [{ key: "mic", icon: vs.muted ? "micOff" : "mic", label: vs.muted ? uz.voice.headerOff : uz.voice.headerOn, onPress: () => voice.setMuted(!vs.muted), tid: "voice-header-mic" }] : []),
       { key: "sound", icon: snd.muted ? "mute" : "volume", label: snd.muted ? uz.sound.on : uz.sound.off, onPress: snd.toggle, tid: "sound-toggle" },
@@ -270,11 +271,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       </View>
       {roomy && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
       <View style={{ flex: 1, minWidth: 0 }} />
-      <Seg ui={ui} label={uz.hud.group.docs}>
+      {wide && <Seg ui={ui} label={uz.hud.group.docs}>
         <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
         <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
-      </Seg>
-      {!state.winner && <Pressable accessibilityRole="button" aria-haspopup="menu" aria-expanded={menuOpen} accessibilityLabel={chatUnread ? `${uz.profMenu.menu}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} testID="profile-menu-open" style={({ pressed }) => [s.avatarBtn, pressed && { opacity: 0.8 }]}>
+      </Seg>}
+      {wide && !state.winner && <Pressable accessibilityRole="button" aria-haspopup="menu" aria-expanded={menuOpen} accessibilityLabel={chatUnread ? `${uz.profMenu.menu}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} testID="profile-menu-open" style={({ pressed }) => [s.avatarBtn, pressed && { opacity: 0.8 }]}>
         <Avatar name={nameOf(room, userId)} colorIdx={room.names?.[userId]?.color ?? 0} size={36} photo={room.names?.[userId]?.photo} gender={room.names?.[userId]?.gender} frame={room.names?.[userId]?.cos?.frame} bgColor={room.names?.[userId]?.cos?.avatar} />
         {chatUnread + reqs.length > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread + reqs.length > 9 ? "9+" : chatUnread + reqs.length}</Text></View>}
       </Pressable>}
@@ -355,8 +356,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             <Text style={s.turnHint} accessibilityLiveRegion="polite"><Text style={{ fontWeight: "800", color: mineTurn ? tone.good : color.navy }}>{mineTurn ? uz.hud.yourTurn : ""}</Text>{mineTurn ? " " : ""}<Countdown deadline={room.deadline}>{(left) => hintOf(left)}</Countdown></Text>
           </View>
         </>)}
-        {tab === "blank" && (<View style={{ gap: space.md }}><TimePanel room={room} userId={userId} settled={settled} />{stats}{side}</View>)}
-        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} />{eventsCard(6)}{reactRow}</View>)}
+        {tab === "blank" && (<View style={{ gap: space.md }}><TimePanel room={room} userId={userId} settled={settled} />{side}</View>)}
+        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} accordion />{eventsCard(6)}</View>)}
       </ScrollView>
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
       {tab === "field" && canRoll && !promptOpen && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
@@ -368,8 +369,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
           <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet deadline={room.deadline} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
-      <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "rules" ? onRules() : setTab(k as "field" | "blank" | "players")}
-        items={[{ key: "field", label: uz.hud.tabs.field, icon: "board", badge: navBadge("field") }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart", badge: navBadge("blank") }, { key: "players", label: uz.hud.tabs.players, icon: "people", badge: navBadge("players") }, { key: "rules" as any, label: uz.hud.tabs.rules, icon: "book" }]} />
+      <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "profile" ? setMenuOpen((v) => !v) : setTab(k as "field" | "blank" | "players")}
+        items={[{ key: "field", label: uz.hud.tabs.field, icon: "board", badge: navBadge("field") }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart", badge: navBadge("blank") }, { key: "players", label: uz.hud.tabs.players, icon: "people", badge: navBadge("players") }, { key: "profile" as any, testID: "profile-menu-open", label: uz.hud.tabs.profile, icon: "person", badge: chatUnread + reqs.length > 0 ? { count: chatUnread + reqs.length, tone: "info", label: `${uz.profMenu.menu}. ${uz.chat.unread.replace("{n}", String(chatUnread + reqs.length))}` } as any : null }]} />
     </View>
   );
 }
