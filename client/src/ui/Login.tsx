@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Linking, useWindowDimensions } from "react-native";
 import { Logo } from "./Logo";
-import { LearnArt } from "./LearnArt";
+import { Visual } from "./Landing";
 import { Field, Check, Cta, Ghost, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
 import { AUTH_METHODS } from "../authMethods";
@@ -65,7 +65,7 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
             </View>
             <View style={s.badge}><View style={s.dot} /><Text style={s.badgeT}>{uz.login.badge}</Text></View>
             <Text style={[s.lead, wide && { fontSize: 32, lineHeight: 40 }]} aria-level={1} accessibilityRole="header">{uz.login.welcomeLead}</Text>
-            {wide && <View style={{ alignItems: "center" }}><LearnArt width={420} /></View>}
+            {wide && <View style={{ alignItems: "center" }}><Visual width={420} /></View>}
             {wide && <Text style={s.free}>{uz.login.introFree}</Text>}
           </View>
           {wide && <View style={s.brandFoot}>

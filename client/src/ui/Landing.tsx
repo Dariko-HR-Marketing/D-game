@@ -48,7 +48,7 @@ export function Landing({ onStart }: { onStart: () => void }) {
 }
 
 /** Vizual: surat (bo'lsa) yoki brend gradienti; ustida Karta → Qaror → Natija zanjiri va «Kichik aylanadan chiqish» paneli (animatsiyali). */
-function Visual({ width, compact }: { width: number; compact?: boolean }) {
+export function Visual({ width, compact }: { width: number; compact?: boolean }) {
   const h = Math.round(width * (compact ? 0.8 : 0.82));
   const [photo, setPhoto] = useState(Platform.OS === "web");
   const [still, setStill] = useState(false); const [step, setStep] = useState(0);
@@ -72,7 +72,7 @@ function Visual({ width, compact }: { width: number; compact?: boolean }) {
       {/* Vaziyat belgisi */}
       <View style={[s.glass, s.sit, { left: pad, top: pad }, glass]} aria-hidden><View style={s.sitIco}><Icon name="dice" size={compact ? 15 : 18} color="#fff" /></View><View><Text style={s.sitT}>{L.sitTitle}</Text><Text style={s.sitS}>{L.sitText}</Text></View></View>
       {/* Karta → Qaror → Natija */}
-      {!compact && <View style={[s.glass, s.stepper, { right: pad, top: pad }, glass]} aria-hidden>
+      {!compact && width >= 520 && <View style={[s.glass, s.stepper, { right: pad, top: pad }, glass]} aria-hidden>
         {L.steps.map((t, i) => (<React.Fragment key={t}>{i > 0 && <View style={[s.line, step >= i && { backgroundColor: color.green }]} />}<View style={s.stepItem}><View style={[s.node, step >= i && s.nodeOn]}>{step > i && <Text style={s.nodeTick}>✓</Text>}</View><Text style={[s.stepT, step === i && { color: color.navy, fontWeight: "800" }]}>{t}</Text></View></React.Fragment>))}
       </View>}
       {/* Kichik aylanadan chiqish */}

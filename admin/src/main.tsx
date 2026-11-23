@@ -51,7 +51,7 @@ function App() {
       default: return <><PageHead title={L(tab)} /><Banner kind="info">Bu bo'lim keyingi bosqichda qo'shiladi.</Banner></>;
     }
   })();
-  return (<div className="shell"><aside><div className="brand">{t.title}</div><div className="who">{me.account.name} · {t.roles[me.account.role] ?? me.account.role}</div>
+  return (<div className="shell"><aside><div className="brand"><img src="/brand/Tajriba24_Asosiy_toq.svg" alt="Tajriba24" style={{ width: 150, height: "auto", display: "block" }} /><span style={{ display: "block", fontSize: 12, fontWeight: 700, letterSpacing: 0.6, color: "#9FD8BF", marginTop: 6 }}>{t.title}</span></div><div className="who">{me.account.name} · {t.roles[me.account.role] ?? me.account.role}</div>
     <nav aria-label="Bo'limlar">{groups.map((g) => <React.Fragment key={g}><div className="grp">{g}</div>{nav.filter((n) => n.group === g).map((n) => <button key={n.key} aria-current={n.key === tab ? "page" : undefined} onClick={() => setTab(n.key)}>{L(n.key)}</button>)}</React.Fragment>)}</nav>
     <button className="out" aria-current={tab === "me" ? "page" : undefined} onClick={() => setTab("me")}>Mening hisobim</button><button className="out" style={{ marginTop: 0 }} onClick={out}>{t.logout}</button></aside>
     <main>{view}</main></div>);
