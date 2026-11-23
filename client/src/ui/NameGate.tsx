@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { Logo } from "./Logo";
 import { Field, Cta, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
-import { font, night, PLAYER_COLORS, radius, space } from "../theme";
+import { font, authUi, PLAYER_COLORS, radius, space } from "../theme";
 import { Http, HttpError, isUnder16, validName, validYear } from "../net/http";
 
 /**
@@ -25,9 +25,9 @@ export function NameGate({ http, onDone, initial }: { http: Http; onDone: () => 
   useEffect(() => { if (auto && !tried.current) { tried.current = true; void save(initial!.name, initial!.year); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const preparing = auto && !autoFailed;
   return (
-    <ScrollView style={{ backgroundColor: night.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: authUi.bg }} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
       <View style={s.card}>
-        <View style={s.logoRow}><Logo height={46} tone="dark" /></View>
+        <View style={s.logoRow}><Logo height={46} tone="light" /></View>
         {preparing ? (
           <View style={{ gap: space.sm, paddingVertical: space.lg }} accessibilityLiveRegion="polite"><Text style={s.h} aria-level={1} accessibilityRole="header">{uz.gate.preparing}</Text></View>
         ) : (<>
@@ -47,9 +47,9 @@ export function NameGate({ http, onDone, initial }: { http: Http; onDone: () => 
   );
 }
 const s = StyleSheet.create({
-  scroll: { flexGrow: 1, justifyContent: "center", alignItems: "center", padding: space.lg, backgroundColor: night.bg },
-  card: { width: "100%", maxWidth: 460, gap: space.lg, padding: space.xl, borderRadius: radius.xl + 4, borderWidth: 1, borderColor: night.lineSoft, backgroundColor: night.panel },
-  logoRow: { flexDirection: "row", alignItems: "center", gap: space.md }, brand: { color: night.text, fontSize: font.xl, fontWeight: "800", letterSpacing: 0.3 },
-  step: { color: night.accent, fontSize: font.xs, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase" },
-  h: { color: night.text, fontSize: font.xxl - 4, fontWeight: "800", lineHeight: 30 },
+  scroll: { flexGrow: 1, justifyContent: "center", alignItems: "center", padding: space.lg, backgroundColor: authUi.bg },
+  card: { width: "100%", maxWidth: 460, gap: space.lg, padding: space.xl, borderRadius: radius.xl + 4, borderWidth: 1, borderColor: authUi.lineSoft, backgroundColor: authUi.panel },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: space.md }, brand: { color: authUi.text, fontSize: font.xl, fontWeight: "800", letterSpacing: 0.3 },
+  step: { color: authUi.accent, fontSize: font.xs, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase" },
+  h: { color: authUi.text, fontSize: font.xxl - 4, fontWeight: "800", lineHeight: 30 },
 });
