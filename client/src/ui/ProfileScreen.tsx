@@ -7,6 +7,7 @@ import { resetTours } from "../tours";
 import { Screen } from "./Screen";
 import { GenderPicker, type Gender } from "./GenderPicker";
 import { Avatar } from "./Avatar";
+import { Acc } from "./Accordion";
 import { PhotoPicker } from "./PhotoPicker";
 import { uz, errText } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, MIN_TAP, radius, space, tone } from "../theme";
@@ -17,7 +18,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
   const [name, setName] = useState(""); const [col, setCol] = useState(0); const [year, setYear] = useState(""); const [photo, setPhoto] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null); const [hist, setHist] = useState<any[]>([]); const [loaded, setLoaded] = useState(false);
   const [msg, setMsg] = useState<string | null>(null); const [err, setErr] = useState<string | null>(null);
-  const [gender, setGender] = useState<Gender>(null); const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false); const [tourReset, setTourReset] = useState(false);
+  const [gender, setGender] = useState<Gender>(null); const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false); const [tourReset, setTourReset] = useState(false); const [open, setOpen] = useState<string | null>(null); const tog = (k: string) => setOpen((o) => (o === k ? null : k));
 
   useEffect(() => { (async () => {
     try { const r = await http.profile(); setPhoto(r.photo ?? null); if (r.profile) { setName(r.profile.name); setCol(r.profile.color); setYear(String(r.profile.birthYear)); setGender(r.profile.gender ?? null); } setStats(r.stats); setHist(await http.history()); } catch (e) { setErr((e as HttpError).code ?? "network"); }
@@ -56,27 +57,28 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
         </>)}
       </Card>
 
-      <Card>
-        <SectionTitle>{uz.profile.edit}</SectionTitle>
-        <PhotoPicker http={http} photo={photo} name={name} colorIdx={col} onChange={setPhoto} />
-        <Text style={s.l} nativeID="nm">{uz.profile.name}</Text>
-        <TextInput accessibilityLabelledBy="nm" aria-label={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} autoComplete="nickname" />
-        <Text style={s.l}>{uz.profile.color}</Text>
-        <View style={s.row} accessibilityRole="radiogroup">{PLAYER_COLORS.map((c, i) => (
-          <Pressable key={c} accessibilityRole="radio" accessibilityLabel={`${uz.profile.color} ${i + 1}`} aria-checked={i === col} onPress={() => setCol(i)}
-            style={[s.dot, { backgroundColor: c }, i === col && s.dotOn]}>{i === col && <Text style={{ color: readableOn(c), fontWeight: "800" }} aria-hidden>✓</Text>}</Pressable>))}</View>
-        <Text style={s.l} nativeID="by">{uz.profile.birthYear}</Text>
-        <TextInput accessibilityLabelledBy="by" aria-label={uz.profile.birthYear} value={year} onChangeText={(t) => setYear(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" style={s.input} />
-        <GenderPicker value={gender} onChange={setGender} />
-        {isUnder16(year) && <Banner kind="warn">{uz.profile.under16}</Banner>}
-        <Button label={uz.profile.save} onPress={save} disabled={!canSave} />
-        {msg && <Banner kind="good">{msg}</Banner>}
-        {err && <Banner kind="bad">{errText(err)}</Banner>}
-      </Card>
+      <Acc icon="person" title={uz.profile.edit} summary={`${name.trim() || uz.profile.noName}${year ? ` · ${year}` : ""}`} open={open === "edit"} onToggle={() => tog("edit")} testID="prof-edit">
+        <View style={{ gap: space.sm }}>
+          <PhotoPicker http={http} photo={photo} name={name} colorIdx={col} onChange={setPhoto} />
+          <Text style={s.l} nativeID="nm">{uz.profile.name}</Text>
+          <TextInput accessibilityLabelledBy="nm" aria-label={uz.profile.name} value={name} onChangeText={setName} maxLength={24} style={s.input} autoComplete="nickname" />
+          <Text style={s.l}>{uz.profile.color}</Text>
+          <View style={s.row} accessibilityRole="radiogroup">{PLAYER_COLORS.map((c, i) => (
+            <Pressable key={c} accessibilityRole="radio" accessibilityLabel={`${uz.profile.color} ${i + 1}`} aria-checked={i === col} onPress={() => setCol(i)}
+              style={[s.dot, { backgroundColor: c }, i === col && s.dotOn]}>{i === col && <Text style={{ color: readableOn(c), fontWeight: "800" }} aria-hidden>✓</Text>}</Pressable>))}</View>
+          <Text style={s.l} nativeID="by">{uz.profile.birthYear}</Text>
+          <TextInput accessibilityLabelledBy="by" aria-label={uz.profile.birthYear} value={year} onChangeText={(t) => setYear(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" style={s.input} />
+          <GenderPicker value={gender} onChange={setGender} />
+          {isUnder16(year) && <Banner kind="warn">{uz.profile.under16}</Banner>}
+          <Button label={uz.profile.save} onPress={save} disabled={!canSave} />
+          {msg && <Banner kind="good">{msg}</Banner>}
+          {err && <Banner kind="bad">{errText(err)}</Banner>}
+        </View>
+      </Acc>
 
       {stats?.achievements && (
-        <Card>
-          <SectionTitle right={<Pill label={`${stats.achievements.length}/${Object.keys(uz.achievements).length}`} kind="info" />}>{uz.profile.achievements}</SectionTitle>
+        <Acc icon="trophy" title={uz.profile.achievements} summary={`${stats.achievements.length}/${Object.keys(uz.achievements).length}`} open={open === "ach"} onToggle={() => tog("ach")} testID="prof-ach"
+          badge={<View style={s.achRow} aria-hidden>{Object.keys(uz.achievements).slice(0, 8).map((k) => <Text key={k} style={[s.achDot, { color: stats.achievements.includes(k) ? "#B8860B" : color.line }]}>{stats.achievements.includes(k) ? "★" : "☆"}</Text>)}</View>}>
           <View role="list" style={s.ach}>
             {Object.entries(uz.achievements).map(([k, a]) => { const on = stats.achievements.includes(k); return (
               <View key={k} role="listitem" aria-label={`${a.name}: ${on ? uz.profile.earned : uz.profile.locked}. ${a.desc}`} style={[s.achItem, on && s.achOn]}>
@@ -84,23 +86,23 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
                 <View style={{ flex: 1 }} aria-hidden><Text style={[s.achName, !on && { color: tone.muted }]}>{a.name}</Text><Text style={s.muted}>{a.desc}</Text></View>
               </View>); })}
           </View>
-        </Card>)}
+        </Acc>)}
 
-      <Card>
-        <SectionTitle>{uz.profile.history}</SectionTitle>
+      <Acc icon="clock" title={uz.profile.history} summary={!loaded ? uz.result.loading : hist.length === 0 ? uz.profile.emptyHistory : `${hist.length}`} open={open === "hist"} onToggle={() => tog("hist")} testID="prof-hist">
         {!loaded ? <Text style={s.muted}>{uz.result.loading}</Text> : hist.length === 0 ? <Text style={s.muted}>{uz.profile.emptyHistory}</Text> : hist.slice(0, 10).map((h, i) => (
           <View key={i} style={s.hist} role="group" accessible aria-label={`${new Date(h.finishedAt).toLocaleDateString("uz")}, ${h.won ? uz.profile.won : uz.profile.lost}, ${h.rounds} ${uz.game.round.toLowerCase()}`}>
             <Text style={s.histD} aria-hidden>{new Date(h.finishedAt).toLocaleDateString("uz")}</Text><Pill label={h.won ? uz.profile.won : uz.profile.lost} kind={h.won ? "good" : "plain"} />
             <Text style={s.muted} aria-hidden>{h.rounds} {uz.game.round.toLowerCase()} · {h.players} {uz.profile.playersWord}</Text></View>))}
-      </Card>
+      </Acc>
 
-      <Card>
-        <Text style={s.body}>{uz.onboarding.replayHint}</Text>
+      <Acc icon="help" title={uz.onboarding.replay} summary={uz.onboarding.replayHint} open={open === "tour"} onToggle={() => tog("tour")} testID="prof-tour">
         <Button label={tourReset ? uz.profile.saved : uz.onboarding.replay} kind="ghost" onPress={() => { resetTours(tourKV); setTourReset(true); }} />
-      </Card>
+      </Acc>
 
-      {onLogout && <Button label={uz.login.logout} kind="ghost" onPress={onLogout} />}
-      <Button label={uz.profile.danger} kind="ghost" onPress={() => setShowDelete(!showDelete)} />
+      <View style={s.foot}>
+        {onLogout && <View style={{ flex: 1 }}><Button label={uz.login.logout} kind="ghost" onPress={onLogout} /></View>}
+        <View style={{ flex: 1 }}><Button label={uz.profile.danger} kind="ghost" onPress={() => setShowDelete(!showDelete)} /></View>
+      </View>
       {showDelete && (<Card accent="red" raised={false}>
         <Text style={s.body}>{uz.profile.consequences}</Text>
         <Button label={uz.profile.export} kind="ghost" onPress={download} />
@@ -111,6 +113,7 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
   );
 }
 const s = StyleSheet.create({
+  foot: { flexDirection: "row", gap: space.sm }, achRow: { flexDirection: "row", gap: 1 }, achDot: { fontSize: 12, lineHeight: 14 },
   who: { flexDirection: "row", gap: space.lg, alignItems: "center" }, avatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: color.navy, alignItems: "center", justifyContent: "center" }, avatarT: { fontSize: 28, fontWeight: "800" },
   whoName: { fontSize: font.xl, fontWeight: "800", color: color.navy }, pills: { flexDirection: "row", gap: space.xs, flexWrap: "wrap" },
   bar: { height: 8, borderRadius: radius.pill, backgroundColor: color.line, overflow: "hidden" }, fill: { height: 8, backgroundColor: color.green, borderRadius: radius.pill },

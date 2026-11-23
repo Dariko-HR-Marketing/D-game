@@ -251,9 +251,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const reqLayers = (<>
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
     {!state.winner && <ProfileMenu fromBottom={!wide} open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} items={[
-      ...(!wide ? [{ key: "portfolio", icon: "file", label: uz.portfolio.title, onPress: () => setPortfolioOpen(true), tid: "portfolio-open" }, { key: "sheet", icon: "chart", label: uz.sheet.title, onPress: () => setSheetView(true), tid: "sheet-open" }] : []),
-      ...(http ? [{ key: "live", icon: "chart", label: uz.live.title, onPress: () => setLiveOpen(true), tid: "live-open" }] : []),
-      ...(onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : []),
+      ...(wide && http ? [{ key: "live", icon: "analytics", label: uz.live.title, onPress: () => setLiveOpen(true), tid: "live-open" }] : []),
+      ...(wide && onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : []),
       { key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" },
       ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : []),
       ...(reqs.length > 0 ? [{ key: "req", icon: "bell", label: uz.req.bellN.replace("{n}", String(reqs.length)), onPress: reqModal.show, tid: "requests-open", badge: reqs.length }] : []),
@@ -271,6 +270,12 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       </View>
       {roomy && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
       <View style={{ flex: 1, minWidth: 0 }} />
+      {!wide && <View style={s.hIcons} role="toolbar" aria-label={uz.hud.group.docs}>
+        <HBtn ui={ui} icon="cards" label={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
+        <HBtn ui={ui} icon="sheet" label={uz.sheet.title} onPress={() => setSheetView(true)} tid="sheet-open" />
+        {http && <HBtn ui={ui} icon="analytics" label={uz.live.title} onPress={() => setLiveOpen(true)} tid="live-open" />}
+        {onChat && <HBtn ui={ui} icon="chat" label={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} onPress={() => setChatOpen(true)} tid="chat-open">{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</HBtn>}
+      </View>}
       {wide && <Seg ui={ui} label={uz.hud.group.docs}>
         <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
         <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
@@ -370,7 +375,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
         </View>)}
       <BottomNav label={uz.hud.tabs.nav} active={tab} onChange={(k) => (k as string) === "profile" ? setMenuOpen((v) => !v) : setTab(k as "field" | "blank" | "players")}
-        items={[{ key: "field", label: uz.hud.tabs.field, icon: "board", badge: navBadge("field") }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart", badge: navBadge("blank") }, { key: "players", label: uz.hud.tabs.players, icon: "people", badge: navBadge("players") }, { key: "profile" as any, testID: "profile-menu-open", label: uz.hud.tabs.profile, icon: "person", badge: chatUnread + reqs.length > 0 ? { count: chatUnread + reqs.length, tone: "info", label: `${uz.profMenu.menu}. ${uz.chat.unread.replace("{n}", String(chatUnread + reqs.length))}` } as any : null }]} />
+        items={[{ key: "field", label: uz.hud.tabs.field, icon: "board", badge: navBadge("field") }, { key: "blank", label: uz.hud.tabs.blank, icon: "chart", badge: navBadge("blank") }, { key: "players", label: uz.hud.tabs.players, icon: "people", badge: navBadge("players") }, { key: "profile" as any, testID: "profile-menu-open", label: uz.hud.tabs.profile, icon: "person", badge: reqs.length > 0 ? { count: reqs.length, tone: "urgent", label: uz.req.bellN.replace("{n}", String(reqs.length)) } as any : null }]} />
     </View>
   );
 }
@@ -391,6 +396,7 @@ const s = StyleSheet.create({
   decide: { flex: 1, minHeight: 0, borderRadius: radius.lg, borderWidth: 2, borderColor: color.gold, backgroundColor: color.white, padding: space.md, gap: space.md },
   decideActions: { paddingTop: space.sm, borderTopWidth: 1, borderTopColor: "#E6ECEF" },
   sideScroll: { paddingBottom: space.lg }, mainScroll: { alignItems: "center", gap: space.md, paddingBottom: space.lg },
+  hIcons: { flexDirection: "row", alignItems: "center", gap: 2 },
   srOnly: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 },
   chatBadge: { position: "absolute", top: 2, right: 0, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: color.red, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }, chatBadgeT: { color: color.white, fontSize: 10, fontWeight: "800" },
   header: { minHeight: HEADER_H, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: "#E6ECEF", backgroundColor: color.white },

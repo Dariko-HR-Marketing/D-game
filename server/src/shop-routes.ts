@@ -44,6 +44,7 @@ export function registerShop(d: ShopDeps) {
   }));
   app.post("/shop/plus/claim", d.secured((uid, req, reply) => { const r = commerce.claimMonthly(uid, String((req.body as any)?.itemId ?? "")); return r.ok ? commerce.catalog(uid) : fail(reply, r.error); }));
   app.post("/shop/plus/cancel", d.secured((uid) => commerce.cancelPlus(uid)));
+  app.post("/shop/premium/cancel", d.secured((uid) => commerce.cancelPremium(uid)));
   app.post("/shop/restore", d.secured((uid) => commerce.restore(uid)));
 
   // To'lov provayderi xabari: umumiy imzolangan tasdiq (haqiqiy provayder adapterlari shu orqali yoki o'z marshrutida `commerce.confirmPaid` ni chaqiradi).

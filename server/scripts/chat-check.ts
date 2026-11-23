@@ -30,7 +30,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   check(await sheet.getByTestId("chat-input").isVisible() && await sheet.getByText("Hozircha xabar yo'q").isVisible(), `${tag}: katta o'yinchida yozish maydoni va bo'sh holat`);
   await sheet.getByTestId("chat-input").fill("Salom, Bolajon! Omad tilayman."); await sheet.getByTestId("chat-input").press("Enter"); await a.waitForTimeout(500);
   check(await sheet.getByText("Salom, Bolajon! Omad tilayman.").count() === 1, `${tag}: yuborilgan xabar ro'yxatda`);
-  const lab = (await k.getByTestId("profile-menu-open").getAttribute("aria-label")) ?? ""; check(/1 yangi xabar/.test(lab), `${tag}: ikkinchi o'yinchida o'qilmagan belgisi («${lab}»)`);
+  const lab = (await (await k.getByTestId("chat-open").count() ? k.getByTestId("chat-open") : k.getByTestId("profile-menu-open")).getAttribute("aria-label")) ?? ""; check(/1 yangi xabar/.test(lab), `${tag}: ikkinchi o'yinchida o'qilmagan belgisi («${lab}»)`);
   const live = await k.locator('[role="status"]').allInnerTexts(); check(live.some((t) => /Sardor: Salom, Bolajon/.test(t)), `${tag}: ekran o'qigichga xabar`);
   // 2) Bola: faqat tayyor iboralar
   await clickMenuItem(k, "chat-open"); const ks = k.getByRole("dialog", { name: "Chat" }); await ks.waitFor();
@@ -40,7 +40,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["yot", 844, 390], ["kmp", 1440, 9
   check(await ks.getByText("Rahmat!").count() >= 1, `${tag}: bola tayyor ibora yuboradi («Rahmat!»)`);
   const r = room.chat?.filter((m: any) => m.from === K && m.phrase === 3).length; check(r === 1, `${tag}: serverda ibora saqlangan`);
   const bad = x.rooms.chat(code, K, { text: "erkin matn" }); check(!bad.ok && (bad as any).error === "chat_restricted", `${tag}: server bolaning erkin matnini rad etadi`);
-  const lab2 = (await a.getByTestId("profile-menu-open").getAttribute("aria-label")) ?? ""; check(!/yangi/.test(lab2), `${tag}: ochiq chatda o'qilmagan belgisi yo'q`);
+  const lab2 = (await (await a.getByTestId("chat-open").count() ? a.getByTestId("chat-open") : a.getByTestId("profile-menu-open")).getAttribute("aria-label")) ?? ""; check(!/yangi/.test(lab2), `${tag}: ochiq chatda o'qilmagan belgisi yo'q`);
   // 3) Jim qilish va shikoyat
   await ks.getByText("Salom, Bolajon! Omad tilayman.").first().click(); await ks.getByTestId("chat-mute").click(); await k.waitForTimeout(300);
   check(await ks.getByText("Siz bu o'yinchining xabarlarini yashirdingiz").count() >= 1 && await ks.getByText("Salom, Bolajon! Omad tilayman.").count() === 0, `${tag}: jim qilingan o'yinchi xabari yashiriladi`);
