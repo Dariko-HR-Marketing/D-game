@@ -12,7 +12,8 @@ export interface LobbyRow { id: string; code?: string; host: string; mode: "stan
 export interface PlayingRow { id: string; host: string; mode: "standard" | "student" | "corporate"; round: number; players: number }
 /** Jonli ro'yxat: ochiq/qulfli kutayotgan xonalar, hozir o'ynalayotganlar, jami sonlar va onlayn soni (server har o'zgarishda yuboradi). */
 export interface Lobbies { rooms: LobbyRow[]; playing: PlayingRow[]; stats: { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }; online: number }
-export interface ConnState { lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
+export interface PaywallInfo { error: "room_limit" | "no_coupon"; detail: { quota: { day: number | null; week: number | null; month: number | null }; usage: { day: number; week: number; month: number; resets: { day: number; week: number; month: number } }; coupons: number; plan: "start" | "plus" | "premium" } }
+export interface ConnState { paywall?: PaywallInfo | null; lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
@@ -67,6 +68,7 @@ export class Connection {
       } else if (m.type === "error") {
         if (typeof m.error === "string" && m.error.startsWith("calc_")) this.set({ calcFb: { error: m.error, n: ++this.fbN, detail: m.detail } }); // hisob javobi: shaklda ko'rsatiladi, umumiy xato emas
         else if (m.error === "stale_seq" && this.lastAct && this.lastAct.retries < 3) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
+        else if ((m.error === "room_limit" || m.error === "no_coupon") && m.detail) this.set({ paywall: { error: m.error, detail: m.detail } }); // limit tugadi: xato emas, paywall (kupon / Plus / Premium)
         else this.set({ error: m.error });
       }
     };
@@ -94,7 +96,11 @@ export class Connection {
     try { w.send(JSON.stringify(o)); return true; } catch { this.set({ error: "offline" }); return false; }
   }
 
-  create(turnSeconds: 0 | 30 | 60 | 120 = 60, calc: "auto" | "manual" = "auto", players?: number, mode?: "standard" | "quick" | "rated" | "tutorial", opts?: { visibility: "open" | "locked" | "hidden"; start: "host" | "full" | "bots"; kind?: "standard" | "student" }) { this.expecting = true; this.send({ type: "create", turnSeconds, calc, ...(players ? { players } : {}), ...(mode && mode !== "standard" ? { mode } : {}), ...(opts ? { visibility: opts.visibility, start: opts.start, ...(opts.kind ? { kind: opts.kind } : {}) } : {}) }); }
+  private lastCreate: any[] | null = null;
+  clearPaywall() { this.set({ paywall: null }); }
+  /** Limit tugagach bitta kupon bilan shu sozlamalarda qayta ochish. */
+  createWithCoupon() { const a = this.lastCreate; if (a) { this.set({ paywall: null }); (this as any).create(...a, true); } }
+  create(turnSeconds: 0 | 30 | 60 | 120 = 60, calc: "auto" | "manual" = "auto", players?: number, mode?: "standard" | "quick" | "rated" | "tutorial", opts?: { visibility: "open" | "locked" | "hidden"; start: "host" | "full" | "bots"; kind?: "standard" | "student" }, coupon?: boolean) { this.lastCreate = [turnSeconds, calc, players, mode, opts]; this.expecting = true; this.send({ type: "create", turnSeconds, calc, ...(players ? { players } : {}), ...(mode && mode !== "standard" ? { mode } : {}), ...(opts ? { visibility: opts.visibility, start: opts.start, ...(opts.kind ? { kind: opts.kind } : {}) } : {}), ...(coupon ? { coupon: true } : {}) }); }
   join(code: string) { this.expecting = true; this.send({ type: "join", code: code.trim().toUpperCase() }); }
   start(events = true) { this.send({ type: "start", events }); }
   /** «Davom etasizmi?» — ha (xona egasi): zal yopilmaydi. */

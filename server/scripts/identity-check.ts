@@ -26,7 +26,7 @@ const sock = await (await mk("zzz")).evaluate(() => new Promise<string>((res) =>
 check(JSON.parse(sock).error === "profile_required", "server profilsiz xona ochishni rad etadi");
 
 // 2) Avatar rasmi (profil)
-await a.getByRole("button", { name: "Profil" }).first().click(); await a.waitForSelector("text=Profilni tahrirlash");
+await a.getByRole("button", { name: "Profil" }).first().click(); await a.waitForSelector("text=Profilni tahrirlash"); await a.getByTestId("prof-edit").click(); await a.waitForTimeout(300);
 const jpeg = await a.evaluate(() => { const c = document.createElement("canvas"); c.width = 400; c.height = 300; const g = c.getContext("2d")!; g.fillStyle = "#c33"; g.fillRect(0, 0, 400, 300); g.fillStyle = "#fff"; g.fillRect(120, 80, 160, 140); return c.toDataURL("image/jpeg", 0.9); });
 const file = `${OUT}/me.jpg`; writeFileSync(file, Buffer.from(jpeg.split(",")[1], "base64"));
 const [chooser] = await Promise.all([a.waitForEvent("filechooser"), a.getByRole("button", { name: "Rasm yuklash" }).click()]); await chooser.setFiles(file);

@@ -28,7 +28,7 @@ for (const [w, h] of [[390, 844], [844, 390], [768, 1024], [1024, 768], [1440, 9
   const a = await mk("ua" + w), c = await mk("ub" + w); const tag = `${w}px`;
   await a.getByRole("button", { name: "Yangi o'yin" }).waitFor({ timeout: 15000 }); await scan(a, `bosh sahifa ${tag}`);
   await a.getByRole("button", { name: "Qoidalar", exact: true }).first().click(); await a.waitForSelector("text=O'yin qoidalari"); await scan(a, `qoidalar ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
-  await a.getByRole("button", { name: "Profil", exact: true }).first().click(); await a.getByLabel("Ism", { exact: true }).waitFor(); await scan(a, `profil ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
+  await a.getByRole("button", { name: "Profil", exact: true }).first().click(); await a.getByTestId("prof-edit").click(); await a.getByLabel("Ism", { exact: true }).waitFor(); await scan(a, `profil ${tag}`); for (const id of ["prof-ach", "prof-hist"]) { const t = a.getByTestId(id); if (await t.count()) { await t.click(); await a.waitForTimeout(200); await scan(a, `profil ${id} ${tag}`); } } await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Reyting", exact: true }).first().click(); await a.waitForSelector("text=Reyting"); await scan(a, `reyting ${tag}`); await a.getByRole("button", { name: "Orqaga" }).click();
   await a.getByRole("button", { name: "Yangi o'yin" }).click(); await a.waitForSelector("[data-testid=lobby-code]");
   const code = (await a.locator("[aria-label^='Maydon kodi']").textContent())!.trim();

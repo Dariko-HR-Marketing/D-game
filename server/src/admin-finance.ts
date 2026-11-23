@@ -26,10 +26,12 @@ export function registerAdminFinance(guard: Guard, app: FastifyInstance, d: FinD
     const cfg = commerce.config(); const ents = commerce.ents.values(); const active = ents.filter((e) => e.plusUntil && e.plusUntil > t);
     const mrr = active.reduce((n, e) => n + (e.plusPlan === "yearly" ? (cfg.plusYearly ?? 0) / 12 : (cfg.plusMonthly ?? 0)), 0);
     const expired30 = ents.filter((e) => e.plusUntil && e.plusUntil <= t && t - e.plusUntil < 30 * DAY).length;
+    const pAct = ents.filter((e) => e.premiumUntil && e.premiumUntil > t); const pMrr = pAct.reduce((n, e) => n + (e.premiumPlan === "yearly" ? (cfg.premiumYearly ?? 0) / 12 : (cfg.premiumMonthly ?? 0)), 0);
+    const premium = { active: pAct.length, yearly: pAct.filter((e) => e.premiumPlan === "yearly").length, mrr: Math.round(pMrr) };
     const payers = new Set(paid.map((o) => o.userId)).size; const registered = d.registered();
     return { from: dayKey(from), to: dayKey(to), revenue: sum(paid), orders: paid.length, refunds: { n: refunded.length, sum: sum(refunded) }, net: sum(paid) - sum(refunded), avgOrder: paid.length ? Math.round(sum(paid) / paid.length) : 0, payers, arppu: payers ? Math.round(sum(paid) / payers) : 0,
       conversion: registered ? payers / registered : 0, status, days, series: days.map((k) => rev[k]), bySku: by((o) => o.title.replace(/ — qo'lda$/, "")), byChannel: by((o) => o.channel),
-      plus: { active: active.length, yearly: active.filter((e) => e.plusPlan === "yearly").length, cancelledPending: active.filter((e) => e.plusCancelled).length, expired30, mrr: Math.round(mrr), churn30: active.length + expired30 ? expired30 / (active.length + expired30) : 0 }, pricesSet: cfg.plusMonthly !== null && cfg.plusYearly !== null };
+      plus: { active: active.length, yearly: active.filter((e) => e.plusPlan === "yearly").length, cancelledPending: active.filter((e) => e.plusCancelled).length, expired30, mrr: Math.round(mrr), churn30: active.length + expired30 ? expired30 / (active.length + expired30) : 0 }, premium: premium, coupons: { sold: paid.filter((o) => o.sku === "coupon:1").length, balance: ents.reduce((n, e) => n + (e.coupons ?? 0), 0) }, pricesSet: cfg.plusMonthly !== null && cfg.plusYearly !== null };
   }));
   app.get("/admin/finance/orders", guard("commerce.read", (req) => {
     const q = req.query as Record<string, string>; const s = (q.q ?? "").toLowerCase(); const off = Math.max(0, Number(q.offset) || 0), lim = Math.min(1000, Math.max(1, Number(q.limit) || 50));

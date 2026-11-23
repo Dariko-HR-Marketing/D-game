@@ -23,7 +23,7 @@ import { ConnBanner } from "./src/ui/ConnBanner";
 import { useForeground } from "./src/useForeground";
 import { Login } from "./src/ui/Login";
 import { Landing } from "./src/ui/Landing";
-import { Packs } from "./src/ui/Packs";
+import { Packs, Paywall } from "./src/ui/Packs";
 import { Tour } from "./src/ui/Tour";
 import { gameTourId, type TourId } from "./src/tours";
 import { isMyTurn } from "./src/model";
@@ -137,6 +137,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
     <SafeAreaView style={s.root}>
       <StatusBar style="dark" />
       <ConnBanner st={st} />
+      {st.paywall && !room && <Paywall http={http} info={st.paywall} onCoupon={() => conn.createWithCoupon()} onLater={() => conn.clearPaywall()} />}
       {stale && (<Pressable accessibilityRole="button" accessibilityLabel={uz.update.label} onPress={() => { try { (globalThis as any).location.reload(); } catch { /* mahalliy ilova */ } }} style={{ backgroundColor: night.brand, paddingVertical: 10, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 44 }} testID="update-banner"><Text style={{ color: night.text, fontWeight: "800" }}>{uz.update.text}</Text><Text style={{ color: night.accent, fontWeight: "800", textDecorationLine: "underline" }}>{uz.update.action}</Text></Pressable>)}
       <View role="main" style={{ flex: 1 }}><Later>
       {hasProfile === null && !room ? null : gated ? <NameGate http={http} initial={signupProfile()} onDone={() => { store.set("tajriba24-signup-profile", null); setHasProfile(true); }} />

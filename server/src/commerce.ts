@@ -31,11 +31,27 @@ export const ITEMS: Item[] = [
 const ITEM = new Map(ITEMS.map((i) => [i.id, i]));
 export const itemById = (id: string) => ITEM.get(id);
 
-export interface CatalogConfig { plusMonthly: number | null; plusYearly: number | null; items: Record<string, number | null>; freeRoomsPerDay: number | null; freeHistory: number | null; hidden?: string[] }
-/** Narxlar qiymati berilmagan (null). `freeRoomsPerDay`/`freeHistory` — taxminiy standartlar (OPEN_QUESTIONS): bepul tarifdagi chegara. */
-export const DEFAULT_CONFIG: CatalogConfig = { plusMonthly: null, plusYearly: null, items: {}, freeRoomsPerDay: 5, freeHistory: 10 };
+/** O'yin maydonini ochish chegarasi: kun / hafta / oy (Toshkent vaqti). `null` — chegarasiz. */
+export interface Quota { day: number | null; week: number | null; month: number | null }
+export type PlanId = "start" | "plus" | "premium";
+export interface OrgTier { seats: number; pct: number }
+export interface CatalogConfig {
+  plusMonthly: number | null; plusYearly: number | null; premiumMonthly: number | null; premiumYearly: number | null; coupon: number | null;
+  /** Tashkilot: bir o'rin oyiga (so'm) va hajm bo'yicha chegirma (%). */
+  orgSeatMonthly: number | null; orgTiers: OrgTier[];
+  items: Record<string, number | null>; quotas: Record<PlanId, Quota>; freeHistory: number | null; hidden?: string[];
+}
+const NO_QUOTA: Quota = { day: null, week: null, month: null };
+/** Kodda narx va chegara YO'Q (CLAUDE.md §2.4): hammasi `null`. Pilot qiymatlari `PILOT_CONFIG` (birinchi ishga tushishda bir marta yoziladi, keyin admin tahrirlaydi). */
+export const DEFAULT_CONFIG: CatalogConfig = { plusMonthly: null, plusYearly: null, premiumMonthly: null, premiumYearly: null, coupon: null, orgSeatMonthly: null, orgTiers: [], items: {}, quotas: { start: NO_QUOTA, plus: NO_QUOTA, premium: NO_QUOTA }, freeHistory: 10 };
+/** Pilot (sinov) paketlari va narxlari — buyurtmachi tasdig'i 2026-11-23 (docs/OPEN_QUESTIONS.md 214). Asos: Milliy statistika qo'mitasi mediana ish haqi 4 166 300 so'm. */
+export const PILOT_CONFIG: Partial<CatalogConfig> = {
+  plusMonthly: 49_000, plusYearly: 490_000, premiumMonthly: 99_000, premiumYearly: 990_000, coupon: 9_900, orgSeatMonthly: 25_000,
+  orgTiers: [{ seats: 10, pct: 0 }, { seats: 25, pct: 10 }, { seats: 50, pct: 20 }, { seats: 100, pct: 30 }],
+  quotas: { start: { day: 1, week: 2, month: 6 }, plus: { day: 3, week: 10, month: 30 }, premium: NO_QUOTA },
+};
 
-export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
+export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; premiumUntil?: number | null; premiumPlan?: "monthly" | "yearly"; premiumCancelled?: boolean; coupons?: number; starts?: number[]; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
 export type OrderStatus = "pending_parent" | "pending_payment" | "paid" | "cancelled" | "rejected" | "refunded";
 export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; provider?: string; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string; refundedAt?: number; note?: string }
 
@@ -48,7 +64,7 @@ export class DevProvider implements PaymentProvider {
 }
 
 export const PLUS_DAYS = { monthly: 30, yearly: 365 } as const;
-const DAY = 86_400_000, ym = (t: number) => new Date(t).toISOString().slice(0, 7);
+const TZ = 5 * 3_600_000, DAY = 86_400_000, ym = (t: number) => new Date(t).toISOString().slice(0, 7);
 const MINOR_PAY_AGE = 18;
 
 export interface CommerceDeps { docs?: DocStore; now?: () => number; providers?: PaymentProvider[]; consents?: ParentConsents; phoneOk: (uid: string) => boolean; ageOf: (uid: string) => number | null; achievements: (uid: string) => string[]; phoneHashOf: (uid: string) => string | undefined; hashOf: (p: string) => string }
@@ -58,25 +74,38 @@ export class Commerce {
   readonly ents: Collection<Ent>; readonly orders: Collection<Order>; readonly cfg: Collection<CatalogConfig>;
   readonly queue = new WriteQueue();
   private now: () => number;
-  private createdToday = new Map<string, { day: string; n: number }>();
+  private couponRooms = new Map<string, string>();
   constructor(private d: CommerceDeps) {
     this.now = d.now ?? Date.now; this.ents = new Collection("ent", d.docs, this.queue); this.orders = new Collection("order", d.docs, this.queue); this.cfg = new Collection("catalog", d.docs, this.queue);
   }
   async load() { await this.ents.load(); await this.orders.load(); await this.cfg.load(); return this; }
-  config(): CatalogConfig { return { ...DEFAULT_CONFIG, ...(this.cfg.get("config") ?? {}), items: { ...(this.cfg.get("config")?.items ?? {}) } }; }
+  config(): CatalogConfig {
+    const st = this.cfg.get("config") as (Partial<CatalogConfig> & { freeRoomsPerDay?: unknown }) | undefined;
+    const q = (k: PlanId): Quota => ({ ...NO_QUOTA, ...(st?.quotas?.[k] ?? {}) });
+    return { ...DEFAULT_CONFIG, ...(st ?? {}), items: { ...(st?.items ?? {}) }, orgTiers: [...(st?.orgTiers ?? DEFAULT_CONFIG.orgTiers)], quotas: { start: q("start"), plus: q("plus"), premium: q("premium") } };
+  }
   setConfig(patch: Partial<CatalogConfig>): { ok: true; config: CatalogConfig } | { ok: false; error: string } {
     const c = { ...this.config(), ...patch };
     const okP = (v: unknown) => v === null || (Number.isInteger(v) && (v as number) > 0 && (v as number) <= 1_000_000_000);
-    if (!okP(c.plusMonthly) || !okP(c.plusYearly)) return { ok: false, error: "bad_price" };
+    for (const k of ["plusMonthly", "plusYearly", "premiumMonthly", "premiumYearly", "coupon", "orgSeatMonthly"] as const) if (!okP(c[k])) return { ok: false, error: "bad_price" };
     for (const [k, v] of Object.entries(c.items)) if (!ITEM.has(k) || !okP(v)) return { ok: false, error: "bad_price" };
     const lim = (v: unknown) => v === null || (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 10_000);
-    if (!lim(c.freeRoomsPerDay) || !lim(c.freeHistory)) return { ok: false, error: "bad_limit" };
+    if (!lim(c.freeHistory)) return { ok: false, error: "bad_limit" };
+    for (const k of ["start", "plus", "premium"] as const) { const q = c.quotas?.[k]; if (!q || !lim(q.day) || !lim(q.week) || !lim(q.month)) return { ok: false, error: "bad_limit" }; }
+    if (!Array.isArray(c.orgTiers) || c.orgTiers.length > 12 || c.orgTiers.some((t) => !t || !Number.isInteger(t.seats) || t.seats < 1 || t.seats > 100_000 || !Number.isInteger(t.pct) || t.pct < 0 || t.pct > 90)) return { ok: false, error: "bad_tier" };
     if (c.hidden !== undefined && (!Array.isArray(c.hidden) || c.hidden.some((h) => !ITEM.has(h)))) return { ok: false, error: "bad_item" };
     this.cfg.set("config", c); return { ok: true, config: c };
   }
+  /** Birinchi ishga tushishda pilot narx va chegaralarini bir marta yozadi (admin keyin o'zgartiradi). */
+  seedPilot(): boolean { if (this.cfg.get("config")) return false; this.cfg.set("config", { ...DEFAULT_CONFIG, ...PILOT_CONFIG } as CatalogConfig); return true; }
 
   ent(uid: string): Ent { return this.ents.get(uid) ?? { userId: uid, plusUntil: null, owned: [], equipped: {} }; }
   isPlus(uid: string) { const e = this.ents.get(uid); return !!e?.plusUntil && e.plusUntil > this.now(); }
+  isPremium(uid: string) { const e = this.ents.get(uid); return !!e?.premiumUntil && e.premiumUntil > this.now(); }
+  /** Paket: Premium > Plus > Start. */
+  plan(uid: string): PlanId { return this.isPremium(uid) ? "premium" : this.isPlus(uid) ? "plus" : "start"; }
+  /** Pullik paket (Plus yoki Premium) faolmi: tarix, tahlil, kosmetika huquqlari. */
+  isPaid(uid: string) { return this.isPlus(uid) || this.isPremium(uid); }
   /** Egalik: sotib olingan + standart + yutuq uchun berilgan. */
   owns(uid: string, id: string) {
     const it = ITEM.get(id); if (!it) return false;
@@ -87,14 +116,17 @@ export class Commerce {
   priceOf(sku: string): number | null | undefined {
     const c = this.config();
     if (sku === "plus:monthly") return c.plusMonthly; if (sku === "plus:yearly") return c.plusYearly;
+    if (sku === "premium:monthly") return c.premiumMonthly; if (sku === "premium:yearly") return c.premiumYearly; if (sku === "coupon:1") return c.coupon;
     const m = /^item:(.+)$/.exec(sku); if (!m) return undefined; const it = ITEM.get(m[1]); if (!it || it.source !== "shop") return undefined;
     return c.items[it.id] ?? null;
   }
   catalog(uid: string) {
-    const c = this.config(), e = this.ent(uid), plus = this.isPlus(uid);
+    const c = this.config(), e = this.ent(uid), plus = this.isPlus(uid), prem = this.isPremium(uid), paid = plus || prem;
     return {
       plus: { active: plus, until: plus ? e.plusUntil : null, plan: plus ? e.plusPlan ?? null : null, cancelled: !!e.plusCancelled, monthly: c.plusMonthly, yearly: c.plusYearly, claimedThisMonth: e.claimedMonth === ym(this.now()),
-        features: { rooms: plus ? null : c.freeRoomsPerDay, history: plus ? null : c.freeHistory, analysis: plus ? "all" : "last", ads: !plus } },
+        features: { rooms: this.quotaOf(uid), history: paid ? null : c.freeHistory, analysis: paid ? "all" : "last", ads: !paid } },
+      premium: { active: prem, until: prem ? e.premiumUntil ?? null : null, plan: prem ? e.premiumPlan ?? null : null, cancelled: !!e.premiumCancelled, monthly: c.premiumMonthly, yearly: c.premiumYearly },
+      pkg: { plan: this.plan(uid), quotas: c.quotas, usage: this.usage(uid), coupons: e.coupons ?? 0, couponPrice: c.coupon, org: { seatMonthly: c.orgSeatMonthly, tiers: c.orgTiers } },
       items: ITEMS.filter((i) => !(c.hidden ?? []).includes(i.id) || this.owns(uid, i.id)).map((i) => ({ ...i, owned: this.owns(uid, i.id), price: i.source === "shop" ? c.items[i.id] ?? null : null, equipped: e.equipped[i.kind as "pawn" | "frame" | "avatar"] === i.id })),
       equipped: e.equipped, paymentsReady: (this.d.providers ?? []).length > 0, providers: (this.d.providers ?? []).filter((p) => p.channels.includes("web")).map((p) => p.id),
     };
@@ -111,9 +143,10 @@ export class Commerce {
     const price = this.priceOf(sku); if (price === undefined) return { ok: false, error: "bad_sku" };
     let title = ""; const m = /^item:(.+)$/.exec(sku);
     if (m) { const it = ITEM.get(m[1])!; if (!it.available || (this.config().hidden ?? []).includes(it.id)) return { ok: false, error: "unavailable" }; if (this.owns(uid, it.id)) return { ok: false, error: "already_owned" }; title = it.name; }
-    else title = sku === "plus:monthly" ? "Tajriba24 Plus (oylik)" : "Tajriba24 Plus (yillik)";
+    else title = sku === "plus:monthly" ? "Tajriba24 Plus (oylik)" : sku === "plus:yearly" ? "Tajriba24 Plus (yillik)" : sku === "premium:monthly" ? "Tajriba24 Premium (oylik)" : sku === "premium:yearly" ? "Tajriba24 Premium (yillik)" : "O'yin kuponi (1 ta o'yin)";
     if (price === null) return { ok: false, error: "price_unset" };
     if (sku.startsWith("plus:") && this.isPlus(uid) && (this.ent(uid).plusUntil! - this.now()) > 400 * DAY) return { ok: false, error: "plus_already_long" };
+    if (sku.startsWith("premium:") && this.isPremium(uid) && (this.ent(uid).premiumUntil! - this.now()) > 400 * DAY) return { ok: false, error: "plus_already_long" };
     if (!(this.d.providers ?? []).some((p) => p.channels.includes(channel) && (!provider || p.id === provider))) return { ok: false, error: provider ? "bad_provider" : "payments_unavailable" };
     if (!this.d.phoneOk(uid)) return { ok: false, error: "phone_required" };
     const age = this.d.ageOf(uid); if (age === null) return { ok: false, error: "profile_required" };
@@ -158,14 +191,20 @@ export class Commerce {
   private grant(o: Order) {
     const e = this.ent(o.userId);
     if (o.sku.startsWith("plus:")) { const plan = o.sku === "plus:yearly" ? "yearly" : "monthly"; const from = Math.max(this.now(), e.plusUntil ?? 0); this.ents.set(o.userId, { ...e, plusUntil: from + PLUS_DAYS[plan] * DAY, plusPlan: plan, plusCancelled: false }); }
+    else if (o.sku.startsWith("premium:")) { const plan = o.sku === "premium:yearly" ? "yearly" : "monthly"; const from = Math.max(this.now(), e.premiumUntil ?? 0); this.ents.set(o.userId, { ...e, premiumUntil: from + PLUS_DAYS[plan] * DAY, premiumPlan: plan, premiumCancelled: false }); }
+    else if (o.sku === "coupon:1") this.ents.set(o.userId, { ...e, coupons: (e.coupons ?? 0) + 1 });
     else { const id = o.sku.slice(5); if (!e.owned.includes(id)) this.ents.set(o.userId, { ...e, owned: [...e.owned, id] }); }
   }
   /** Xaridni tiklash: to'langan buyurtmalardan qayta hisoblanadi (obuna muddati ketma-ket uzaytiriladi). */
   restore(uid: string) {
     const paid = this.ordersOf(uid).filter((o) => o.status === "paid").sort((a, b) => (a.paidAt ?? 0) - (b.paidAt ?? 0));
-    let until: number | null = null, plan: "monthly" | "yearly" | undefined; const owned = new Set<string>();
-    for (const o of paid) { if (o.sku.startsWith("plus:")) { const p = o.sku === "plus:yearly" ? "yearly" : "monthly"; until = Math.max(o.paidAt!, until ?? 0) + PLUS_DAYS[p] * DAY; plan = p; } else owned.add(o.sku.slice(5)); }
-    const e = this.ent(uid); this.ents.set(uid, { ...e, plusUntil: until, plusPlan: plan, owned: [...new Set([...e.owned.filter((x) => owned.has(x)), ...owned])] });
+    let until: number | null = null, plan: "monthly" | "yearly" | undefined, pUntil: number | null = null, pPlan: "monthly" | "yearly" | undefined; const owned = new Set<string>();
+    for (const o of paid) {
+      if (o.sku.startsWith("plus:")) { const p = o.sku === "plus:yearly" ? "yearly" : "monthly"; until = Math.max(o.paidAt!, until ?? 0) + PLUS_DAYS[p] * DAY; plan = p; }
+      else if (o.sku.startsWith("premium:")) { const p = o.sku === "premium:yearly" ? "yearly" : "monthly"; pUntil = Math.max(o.paidAt!, pUntil ?? 0) + PLUS_DAYS[p] * DAY; pPlan = p; }
+      else if (o.sku.startsWith("item:")) owned.add(o.sku.slice(5));
+    }
+    const e = this.ent(uid); this.ents.set(uid, { ...e, plusUntil: until, plusPlan: plan, premiumUntil: pUntil, premiumPlan: pPlan, owned: [...new Set([...e.owned.filter((x) => owned.has(x)), ...owned])] });
     return this.catalog(uid);
   }
   // --- admin amallari (sabab va auditga yozilishi marshrut tomonida majburiy) ---
@@ -181,7 +220,8 @@ export class Commerce {
   refund(id: string, note: string): { ok: true } | { ok: false; error: OrderErr } {
     const o = this.orders.get(id); if (!o) return { ok: false, error: "not_found" }; if (o.status !== "paid") return { ok: false, error: "not_pending" };
     this.orders.set(id, { ...o, status: "refunded", refundedAt: this.now(), note });
-    if (o.sku.startsWith("plus:")) this.restore(o.userId);
+    if (o.sku.startsWith("plus:") || o.sku.startsWith("premium:")) this.restore(o.userId);
+    else if (o.sku === "coupon:1") { const e = this.ent(o.userId); this.ents.set(o.userId, { ...e, coupons: Math.max(0, (e.coupons ?? 0) - 1) }); }
     else { const e = this.ent(o.userId), item = o.sku.slice(5); const eq = { ...e.equipped }; for (const k of ["pawn", "frame", "avatar"] as const) if (eq[k] === item) delete eq[k]; this.ents.set(o.userId, { ...e, owned: e.owned.filter((x) => x !== item), equipped: eq }); }
     return { ok: true };
   }
@@ -191,6 +231,7 @@ export class Commerce {
     this.orders.set(o.id, o); this.grant(o); return o;
   }
   revokePlus(uid: string, note: string): number { let n = 0; for (const o of this.ordersOf(uid)) if (o.status === "paid" && o.sku.startsWith("plus:")) { this.orders.set(o.id, { ...o, status: "refunded", refundedAt: this.now(), note }); n++; } this.restore(uid); return n; }
+  cancelPremium(uid: string) { const e = this.ent(uid); if (this.isPremium(uid)) this.ents.set(uid, { ...e, premiumCancelled: true }); return this.catalog(uid); }
   cancelPlus(uid: string) { const e = this.ent(uid); if (this.isPlus(uid)) this.ents.set(uid, { ...e, plusCancelled: true }); return this.catalog(uid); }
 
   equip(uid: string, id: string | null, kind: "pawn" | "frame" | "avatar"): { ok: true } | { ok: false; error: OrderErr } {
@@ -208,14 +249,30 @@ export class Commerce {
     this.ents.set(uid, { ...e, claimedMonth: ym(this.now()), owned: e.owned.includes(id) ? e.owned : [...e.owned, id] }); return { ok: true };
   }
 
-  // --- Plus imkoniyatlari (bepul tarifdagi chegaralar sozlanadi) ---
-  canCreateRoom(uid: string): boolean {
-    if (this.isPlus(uid)) return true; const lim = this.config().freeRoomsPerDay; if (lim === null) return true;
-    const day = new Date(this.now()).toISOString().slice(0, 10); const c = this.createdToday.get(uid);
-    return !c || c.day !== day || c.n < lim;
+  // --- Paket imkoniyatlari: o'yin maydonini ochish chegarasi (kun / hafta / oy, Toshkent vaqti), kupon ---
+  /** Joriy paketning chegarasi. */
+  quotaOf(uid: string): Quota { return this.config().quotas[this.plan(uid)]; }
+  /** Oynalar chegarasi (Toshkent UTC+5: kun 00:00, hafta dushanba, oy 1-sana). */
+  private windows() { const L = this.now() + TZ, d = new Date(L), day = Math.floor(L / DAY) * DAY, wd = (d.getUTCDay() + 6) % 7, month = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1); return { day: day - TZ, week: day - wd * DAY - TZ, month: month - TZ, nextDay: day + DAY - TZ, nextWeek: day - wd * DAY + 7 * DAY - TZ, nextMonth: Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) - TZ }; }
+  usage(uid: string) { const w = this.windows(), st = this.ents.get(uid)?.starts ?? []; return { day: st.filter((t) => t >= w.day).length, week: st.filter((t) => t >= w.week).length, month: st.filter((t) => t >= w.month).length, resets: { day: w.nextDay, week: w.nextWeek, month: w.nextMonth } }; }
+  /** Yangi maydon ochish mumkinmi: chegara bo'lmasa yoki hech biri to'lmagan bo'lsa. `coupon` — kupon bilan ochish (chegara o'tkazib yuboriladi, kupon bo'lishi shart). */
+  createCheck(uid: string, coupon = false): { ok: true; viaCoupon: boolean } | { ok: false; error: "room_limit" | "no_coupon"; detail: { quota: Quota; usage: ReturnType<Commerce["usage"]>; coupons: number; plan: PlanId } } {
+    const q = this.quotaOf(uid), u = this.usage(uid), full = (q.day !== null && u.day >= q.day) || (q.week !== null && u.week >= q.week) || (q.month !== null && u.month >= q.month);
+    const coupons = this.ents.get(uid)?.coupons ?? 0, detail = { quota: q, usage: u, coupons, plan: this.plan(uid) };
+    if (coupon) return coupons > 0 ? { ok: true, viaCoupon: true } : { ok: false, error: "no_coupon", detail };
+    return full ? { ok: false, error: "room_limit", detail } : { ok: true, viaCoupon: false };
   }
-  noteRoomCreated(uid: string) { const day = new Date(this.now()).toISOString().slice(0, 10); const c = this.createdToday.get(uid); this.createdToday.set(uid, c && c.day === day ? { day, n: c.n + 1 } : { day, n: 1 }); }
-  historyLimit(uid: string): number | null { return this.isPlus(uid) ? null : this.config().freeHistory; }
-  analysisAllowed(uid: string, isLatest: boolean) { return this.isPlus(uid) || isLatest; }
+  /** Xona yaratilganda: kupon bilan ochilgan bo'lsa shu xona belgilanadi (kupon o'yin BOSHLANGANDA sarflanadi). */
+  noteRoomCreated(uid: string, code?: string, viaCoupon = false) { if (code && viaCoupon) this.couponRooms.set(code, uid); }
+  /** O'yin boshlanganda hisob: kupon yoki kun/hafta/oy hisoblagichi (kutish zalida bekor qilingan hisoblanmaydi). */
+  commitStart(code: string, hostId: string) {
+    const e = this.ent(hostId), t = this.now();
+    if (this.couponRooms.get(code) === hostId) { this.couponRooms.delete(code); this.ents.set(hostId, { ...e, coupons: Math.max(0, (e.coupons ?? 0) - 1) }); return; }
+    this.couponRooms.delete(code);
+    if (this.isPremium(hostId)) return; // chegarasiz paketda hisoblagich kerak emas
+    this.ents.set(hostId, { ...e, starts: [...(e.starts ?? []).filter((x) => x >= t - 40 * DAY), t] });
+  }
+  historyLimit(uid: string): number | null { return this.isPaid(uid) ? null : this.config().freeHistory; }
+  analysisAllowed(uid: string, isLatest: boolean) { return this.isPaid(uid) || isLatest; }
   erase(uid: string) { this.ents.delete(uid); for (const o of this.orders.values()) if (o.userId === uid) this.orders.delete(o.id); }
 }

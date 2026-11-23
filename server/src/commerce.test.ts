@@ -28,7 +28,7 @@ describe("katalog va narx sozlamasi", () => {
   it("sozlama tekshiriladi: manfiy/kasr narx, noma'lum element, chegaralar", async () => {
     const { x } = await setup(); const c = x.commerce;
     expect(c.setConfig({ plusMonthly: -5 }).ok).toBe(false); expect(c.setConfig({ plusMonthly: 1.5 }).ok).toBe(false); expect(c.setConfig({ items: { nope: 5 } }).ok).toBe(false);
-    expect(c.setConfig({ freeRoomsPerDay: -1 }).ok).toBe(false); expect(c.setConfig({ plusMonthly: 31_000 }).ok).toBe(true); expect(c.config().plusMonthly).toBe(31_000);
+    expect(c.setConfig({ freeHistory: -1 }).ok).toBe(false); expect(c.setConfig({ plusMonthly: 31_000 }).ok).toBe(true); expect(c.config().plusMonthly).toBe(31_000);
   });
   it("faqat «shop» manbali elementlarga narx; kontent to'plamlari hozircha yopiq; tasodifiy sandiq yo'q", async () => {
     const { x, prof, post } = await setup(); await prof("a", 1990);
@@ -163,9 +163,9 @@ describe("to'lov xavfsizligi", () => {
 
 describe("Plus chegaralari", () => {
   it("bepul tarif: kuniga N xona; Plus — cheksiz; tarix va tahlil chegaralanadi", async () => {
-    const { x, prof, post } = await setup(); await prof("a", 1990); x.commerce.setConfig({ freeRoomsPerDay: 2, freeHistory: 3 });
-    expect(x.commerce.canCreateRoom("a")).toBe(true); x.commerce.noteRoomCreated("a"); x.commerce.noteRoomCreated("a"); expect(x.commerce.canCreateRoom("a")).toBe(false);
-    const o = (await post("a", "/shop/order", { sku: "plus:monthly" })).json().order; await post("a", `/dev/pay/${o.id}`); expect(x.commerce.canCreateRoom("a")).toBe(true);
+    const { x, prof, post } = await setup(); await prof("a", 1990); x.commerce.setConfig({ quotas: { start: { day: 2, week: null, month: null }, plus: { day: null, week: null, month: null }, premium: { day: null, week: null, month: null } }, freeHistory: 3 });
+    expect(x.commerce.createCheck("a").ok).toBe(true); x.commerce.commitStart("R1", "a"); x.commerce.commitStart("R2", "a"); expect(x.commerce.createCheck("a").ok).toBe(false);
+    const o = (await post("a", "/shop/order", { sku: "plus:monthly" })).json().order; await post("a", `/dev/pay/${o.id}`); expect(x.commerce.createCheck("a").ok).toBe(true);
     expect(x.commerce.historyLimit("a")).toBeNull(); expect(x.commerce.historyLimit("nobody")).toBe(3); expect(x.commerce.analysisAllowed("nobody", false)).toBe(false); expect(x.commerce.analysisAllowed("nobody", true)).toBe(true);
   });
   it("hisobni o'chirish: buyurtma, egalik va ota-ona yozuvlari ham o'chadi", async () => {

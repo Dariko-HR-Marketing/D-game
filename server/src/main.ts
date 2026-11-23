@@ -45,7 +45,7 @@ if (authSecret && ids(process.env.GOOGLE_CLIENT_IDS).length) oidc.google = new O
 if (authSecret && ids(process.env.APPLE_CLIENT_ID).length) oidc.apple = new OidcVerifier(APPLE(ids(process.env.APPLE_CLIENT_ID)));
 let emailOtpSvc: ReturnType<typeof emailOtp> | undefined; // email kodi: EMAIL_HTTP_URL + EMAIL_HTTP_TOKEN (yoki dasturlashda EMAIL_PROVIDER=console)
 if (authSecret) { const eu = process.env.EMAIL_HTTP_URL, et = process.env.EMAIL_HTTP_TOKEN; const snd = eu && et ? new HttpEmail(eu, et) : process.env.EMAIL_PROVIDER === "console" ? new ConsoleEmail() : undefined; if (snd) { emailOtpSvc = emailOtp(authSecret, snd); setInterval(() => emailOtpSvc!.sweep(), 60_000).unref(); } }
-const { app, rooms, ready, flush } = buildApp({ emailOtp: emailOtpSvc, requireProfile: true, docs, ops, sms: smsSender, publicUrl: process.env.PUBLIC_URL, webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET, otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
+const { app, rooms, ready, flush } = buildApp({ pilotPrices: true, emailOtp: emailOtpSvc, requireProfile: true, docs, ops, sms: smsSender, publicUrl: process.env.PUBLIC_URL, webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET, otp, authSecret, oidc, store, registry, adminState, profiles, analysis, logger: { level: process.env.LOG_LEVEL ?? "info" } });
 rooms.lobbyAutoMs = Number(process.env.LOBBY_AUTO_MS ?? 60_000); // kutish zali: 60 soniyadan keyin botlar to'ldiradi va o'yin boshlanadi (0 — o'chiq)
 await ready;
 process.on("unhandledRejection", (e) => app.log.error({ err: String((e as Error)?.message ?? e) }, "unhandledRejection"));
