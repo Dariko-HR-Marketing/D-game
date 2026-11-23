@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
 import { buildApp } from "../src/app";
-import { autoProfiles, axeSource, joinByCode, pickDream } from "./_seed";
+import { autoProfiles, axeSource, clickMenuItem, joinByCode, pickDream } from "./_seed";
 
 const WEB = process.env.WEB ?? "http://localhost:8081", OUT = process.env.OUT ?? "/tmp/portfolio";
 process.env.CORS_ORIGINS = WEB; mkdirSync(OUT, { recursive: true });
@@ -47,7 +47,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   await a.screenshot({ path: `${OUT}/${tag}-2-batafsil.png` });
   await a.addScriptTag({ content: AXE }); const ax = await a.evaluate(`axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }).then((r) => r.violations.map((v) => v.id + "(" + v.nodes.length + ")"))`) as string[]; check(ax.length === 0, `${tag} axe: buzilish yo'q ${ax.join(", ")}`);
   await a.keyboard.press("Escape"); await a.waitForTimeout(300); check((await a.getByTestId("portfolio-detail").count()) === 0, `${tag} Esc bilan yopiladi`);
-  await a.getByTestId("portfolio-open").click(); await a.getByTestId("portfolio-detail").waitFor(); await a.getByTestId("portfolio-close").click(); await a.waitForTimeout(300);
+  await clickMenuItem(a, "portfolio-open"); await a.getByTestId("portfolio-detail").waitFor(); await a.getByTestId("portfolio-close").click(); await a.waitForTimeout(300);
   check((await a.getByTestId("portfolio-detail").count()) === 0, `${tag} sarlavhadagi tugma bilan ochiladi va «✕» bilan yopiladi`);
   const ov = await a.evaluate(() => document.documentElement.scrollHeight - window.innerHeight); check(ov <= 1, `${tag} sahifa aylanmaydi (${ov})`);
   await a.context().close(); await c.context().close();
