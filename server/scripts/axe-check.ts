@@ -21,7 +21,7 @@ const scan = async (p: any, name: string) => {
   await p.addScriptTag({ content: AXE });
   const r = await p.evaluate(async () => (window as any).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] } }));
   total += r.violations.length;
-  console.log(name.padEnd(22), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 80)}`).join(" | ") : "OK");
+  console.log(name.padEnd(22), r.violations.length ? r.violations.map((v: any) => `${v.id}(${v.nodes.length}) ${v.nodes[0].html.slice(0, 80)} ${(v.nodes[0].any?.[0]?.message ?? "").slice(0, 160)} ${(v.nodes[0].html.match(/>([^<]{3,40})</) ?? [])[1] ?? ""}`).join(" | ") : "OK");
 };
 for (const [w, h] of [[390, 844], [844, 390], [768, 1024], [1024, 768], [1440, 900]] as [number, number][]) { // tik telefon, yotiq telefon, tik planshet, yotiq planshet, kompyuter
   const mk = async (uid: string) => { const c = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" }); await c.addInitScript((u) => { localStorage.setItem("tajriba24-dev-user", u); localStorage.setItem("tajriba24-tours-off", "1"); }, uid); const p = await c.newPage(); await p.goto(WEB); return p; };
