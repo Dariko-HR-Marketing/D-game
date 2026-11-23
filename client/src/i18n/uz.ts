@@ -352,6 +352,8 @@ export const uz = {
     chips: ["2–8 o'yinchi", "Asosiy o'yin bepul", "Natija serverda hisoblanadi"],
     small: "Kichik aylana · 48 katak", big: "Katta aylana · 53 katak", artLabel: "Yoshlar moliyaviy savodxonlikni o'rganmoqda: hisob-kitob, grafiklar, algoritmlar va biznes", orbitLabel: "Ikki aylana: kichik (48 katak) va katta (53 katak); fishkalar aylanada yuradi",
     goalCash: "Naqd {cash}", goalPassive: "Passiv daromad {passive}",
+    sitTitle: "Vaziyat", sitText: "Imkoniyat kartasi", steps: ["Karta", "Qaror", "Natija"], exitTitle: "Kichik aylanadan chiqish", cashflowTitle: "Pul oqimi", sample: "namuna", cashflowAlt: "Pul oqimi o'sishi (namuna)",
+    feats: [["2–8 o'yinchi", "Do'stlaringiz bilan yoki botlarga qarshi, xohlagan vaqtda."], ["Asosiy o'yin bepul", "Pullik qo'shimchalar o'yin natijasiga ta'sir qilmaydi."], ["Natija serverda", "Hisob-kitob adolatli: qalam va qo'lda hisobsiz."]],
     footer: "© Tajriba24 · DARIKO ekotizimi o'yin brendi · tajriba24.uz",
   },
   flow: {

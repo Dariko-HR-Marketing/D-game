@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" role="img" aria-label="Pul oqimi o'sishi (namuna)">
+<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#11835A" stop-opacity=".28"/><stop offset="1" stop-color="#11835A" stop-opacity="0"/></linearGradient>
+<style>@keyframes d{from{stroke-dashoffset:320}to{stroke-dashoffset:0}}@keyframes a{from{opacity:0}to{opacity:1}}@keyframes p{0%,100%{r:4}50%{r:6.500}}
+.l{stroke-dasharray:320;animation:d 2.4s .3s cubic-bezier(.3,.7,.2,1) both}.f{animation:a 1.2s 1.6s both}.o{animation:p 2.2s 2.7s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.l,.f,.o{animation:none!important}}</style></defs>
+<g stroke="#08263E" stroke-opacity=".12" stroke-width="1"><path d="M10 100H232"/><path d="M10 70H232"/><path d="M10 40H232"/></g>
+<path class="f" d="M12 96 C40 92 56 80 80 82 S116 68 138 58 S184 50 204 26 L204 104 L12 104Z" fill="url(#f)"/>
+<path class="l" d="M12 96 C40 92 56 80 80 82 S116 68 138 58 S184 50 204 26" fill="none" stroke="#11835A" stroke-width="3.500" stroke-linecap="round"/>
+<circle class="o" cx="204" cy="26" r="4.500" fill="#fff" stroke="#11835A" stroke-width="3"/>
+</svg>
