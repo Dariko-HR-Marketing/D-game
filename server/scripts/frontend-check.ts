@@ -28,7 +28,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
     if (tag === "tel") await openRoomsAcc(p); return p;
   };
   // 1) Bayroqsiz: ochiq o'yinlar yoqiq (server tayyor), Paketlar (to'lov) yopiq
-  const off = await open("fcoff" + tag, null); await off.getByTestId("open-rooms").waitFor({ timeout: 8000 }); check(await off.getByTestId("room-options").count() === 0 && await off.getByTestId("home-packs").count() === 0, `${tag} bayroqsiz: ro'yxat bor, xona kirishi tanlovi yo'q, Paketlar yo'q (to'lov ulanmagan)`); await off.context().close();
+  const off = await open("fcoff" + tag, null); await off.getByTestId("open-rooms").waitFor({ timeout: 8000 }); check(await off.getByTestId("room-options").count() === 0 && await off.getByTestId("home-packs").count() > 0, `${tag} bayroqsiz: ro'yxat bor, xona kirishi tanlovi yo'q, Paketlar bor (pilot: doim yoqiq)`); await off.context().close();
   // 2) Bayroq yoqiq: ro'yxat
   const a = await open("fcon" + tag, "rooms,billing"); await a.getByTestId("open-rooms").waitFor({ timeout: 8000 });
   await a.getByTestId("room-row").first().waitFor({ timeout: 8000 });
@@ -50,8 +50,8 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   // 4) Paketlar
   const pk = a; const packs = pk.getByTestId("home-packs"); if (tag === "tel") await pk.getByRole("button", { name: /^Paketlar/ }).first().click(); else await packs.click();
   await pk.getByTestId("packs").waitFor({ timeout: 6000 });
-  check(await pk.getByTestId("pack-plus-tbd").count() === 1 && await pk.getByRole("button", { name: "Sotib olish" }).count() === 0, `${tag} Paketlar: narx «aniqlanadi», «Sotib olish» yo'q`);
-  check(await pk.getByTestId("pack-free").count() === 1 && await pk.getByTestId("pack-corpTeam").count() === 1, `${tag} Paketlar: bepul va korporativ paketlar bor`);
+  check(await pk.getByTestId("pack-plus-tbd").count() === 1 && await pk.getByTestId("pack-premium-tbd").count() === 1 && await pk.getByRole("button", { name: "Sotib olish" }).count() === 0, `${tag} Paketlar: narx «aniqlanadi», «Sotib olish» yo'q`);
+  check(await pk.getByTestId("pack-start").count() === 1 && await pk.getByTestId("pack-org").count() === 1 && await pk.getByTestId("pack-coupon").count() === 1, `${tag} Paketlar: Start, Tashkilot va kupon bor`);
   await scan(pk, `${tag} Paketlar`);
   await pk.getByRole("button", { name: "Orqaga" }).click(); await pk.getByRole("button", { name: /^Yangi o'yin/ }).waitFor({ timeout: 6000 }); check(true, `${tag} Paketlardan bosh sahifaga qaytish`);
   // 4b) Narx kiritilsa (serverdagi katalog): faqat Plus sotib olinadi, to'lov oynasi ochiladi; provayder ulanmagan bo'lsa «To'lash» yopiq
