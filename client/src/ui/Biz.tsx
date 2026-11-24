@@ -83,14 +83,14 @@ export function ShopScreen({ http, onBack }: { http: Http; onBack: () => void })
           <Tabs label="Turlari" items={KINDS as [string, string][]} active={tab} onChange={setTab} />
           <View style={s.grid}>
             {d.items.filter((i: any) => i.kind === tab).map((i: any) => {
-              const usable = i.owned && (i.source !== "plus" || d.plus.active);
+              const usable = i.owned && (i.source !== "plus" || d.plus.active) && (i.source !== "premium" || d.premium?.active);
               return (<View key={i.id} style={[s.item, i.equipped && { borderColor: color.green, borderWidth: 2 }]} accessible accessibilityLabel={`${i.name}. ${i.desc}`}>
                 <View style={[s.swatch, { backgroundColor: i.color }]} aria-hidden />
                 <Text style={s.itemT}>{i.name}</Text><Text style={s.small}>{i.desc}</Text>
                 {i.equipped ? <Pill label="Tanlangan" kind="good" /> : usable ? <Button kind="ghost" label="Tanlash" onPress={() => run(() => http.equip(i.kind, i.id))} />
                   : i.source === "shop" && i.available ? <Button label={i.price === null ? "Tez orada" : money(i.price)} disabled={i.price === null} onPress={() => buy(`item:${i.id}`)} />
                   : i.source === "plus" ? (d.plus.active && !d.plus.claimedThisMonth ? <Button label="Bu oy olish" onPress={() => run(() => http.claimMonthly(i.id), "Qo'shildi")} /> : <Pill label="Plus" kind="warn" />)
-                  : i.source === "achievement" ? <Pill label="Yutuq uchun" kind="info" /> : <Pill label="Tez orada" kind="plain" />}
+                  : i.source === "premium" ? <Pill label="Premium" kind="warn" /> : i.source === "achievement" ? <Pill label="Yutuq uchun" kind="info" /> : <Pill label="Tez orada" kind="plain" />}
               </View>);
             })}
           </View>

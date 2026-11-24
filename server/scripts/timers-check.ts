@@ -26,7 +26,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   if (turnIsMine && tag === "tel") check(await a.getByText(/20 soniyada kubik tashlanmasa/).count() > 0, `${tag} maslahat: «20 soniyada kubik tashlanmasa…»`);
   // 2) Avtopilot: o'zimniki — banner va «Men qaytdim»
   me.autopilot = true; me.autoStreak = 3; (x.rooms as any).emit(room); await a.waitForTimeout(900);
-  if (tag === "tel") await a.getByRole("button", { name: /^Maydon/ }).click().catch(() => {});
+  if (tag === "tel") await a.getByRole("button", { name: /^Taxta/ }).click().catch(() => {});
   check(await a.getByTestId("autopilot-banner").count() === 1, `${tag} avtopilot yoqilgan: banner ko'rinadi`);
   await a.getByRole("button", { name: "Men qaytdim" }).click(); await a.waitForTimeout(900);
   check(!me.autopilot && me.autoStreak === 0 && await a.getByTestId("autopilot-banner").count() === 0, `${tag} «Men qaytdim»: avtopilot o'chdi, banner yo'qoldi`);

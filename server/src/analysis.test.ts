@@ -26,6 +26,8 @@ describe("o'yin tugagach hisobot API (har bir o'yinchi uchun)", () => {
     expect(b.me.name).toBe("Alisa"); expect(b.me.id).toBe("me"); expect(b.me.series.length).toBeGreaterThan(1); expect(Array.isArray(b.me.insights)).toBe(true); expect(Array.isArray(b.me.moments)).toBe(true);
     expect(b.others).toHaveLength(1); expect(b.others[0].name).toBe("Bobur"); expect(b.others[0].decisions).toBeDefined(); expect(b.others[0].insights).toBeUndefined(); expect(b.others[0].moments).toBeUndefined(); expect(b.others[0].assets).toEqual(expect.any(Number));
     expect(b.ranking).toHaveLength(2); expect(b.ranking).toContain("me"); expect(b.meta.winner === null || typeof b.meta.winner === "string").toBe(true);
+    expect(b.me.adviceLocked).toBe(true); expect(b.me.advice).toBeNull(); // «Qaror tahlili» — faqat Premium
+    x.commerce.ents.set("alice", { ...x.commerce.ent("alice"), premiumUntil: Date.now() + 86_400_000, premiumPlan: "monthly" }); const pr = await x.app.inject({ method: "GET", url: `/me/games/${code}/report`, headers: H("alice") }).then((r) => r.json()); expect(pr.me.adviceLocked).toBe(false); expect(Array.isArray(pr.me.advice)).toBe(true);
     expect(JSON.stringify(b)).not.toContain("\"bob\""); expect(JSON.stringify(b)).not.toContain("\"alice\"");
     const rb = await x.app.inject({ method: "GET", url: `/me/games/${code}/report`, headers: H("bob") }).then((r) => r.json()); expect(rb.me.name).toBe("Bobur"); expect(rb.others[0].name).toBe("Alisa");
     expect(rb.me.rank + b.me.rank).toBe(3);

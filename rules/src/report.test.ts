@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ctx } from "./testctx";
-import { Action, GameState, buildReport, buildLive, insightsOf, chooseDream, currentPlayer, effectOf, newGame, reduce, slotBlocked, MODES, type PlayerReport } from "./index";
+import { Action, GameState, buildReport, buildLive, insightsOf, adviceOf, chooseDream, currentPlayer, effectOf, newGame, reduce, slotBlocked, MODES, type PlayerReport } from "./index";
 
 function play(seed: number, n: number, turns: number, bots: string[] = []) {
   const ids = Array.from({ length: n }, (_, i) => `p${i}`);
@@ -101,3 +101,19 @@ describe("jurnal qoidalar o'zgargandan keyin (lenient)", () => {
     expect(buildReport(ctx, init, [], { lenient: true }).skipped).toBeUndefined();
   });
 });
+
+describe("Qaror tahlili (Premium)", () => {
+  const base = (() => { const { ids } = play(31, 4, 500); return buildReport(ctx, init(ids, 31), play(31, 4, 500).acts); })();
+  const rep = base;
+  const mk = (over: Partial<PlayerReport>): PlayerReport => ({ ...rep.players[0], ...over });
+  it("aktivlardan eng yaxshi va eng sekin qoplanadigan; birinchi xarid; hisobot raqamlaridan", () => {
+    const r = mk({ assets: [{ code: "A", name: "Tez", kind: "kichik", boughtMonth: 3, paid: 1000, price: 1000, income: 100, paybackMonths: 10, status: "held" }, { code: "B", name: "Sekin", kind: "katta", boughtMonth: 8, paid: 5000, price: 5000, income: 50, paybackMonths: 100, status: "held" }], moments: [{ month: 3, round: 1, kind: "bought", text: "Tez", amount: 1000 }, { month: 8, round: 2, kind: "bought", text: "Sekin", amount: 5000 }] });
+    const a = adviceOf(r); const best = a.find((x) => x.key === "best_asset")!, slow = a.find((x) => x.key === "slow_asset")!, fb = a.find((x) => x.key === "first_buy")!;
+    expect(best.params).toMatchObject({ name: "Tez", payback: 10 }); expect(slow.params).toMatchObject({ name: "Sekin", payback: 100 }); expect(fb.params).toMatchObject({ month: 3, name: "Tez" });
+  });
+  it("aktiv sotib olinmagan va 6 oydan ko'p o'ynalgan bo'lsa ogohlantirish; qarz va salbiy oqim", () => {
+    const r = mk({ assets: [], moments: [{ month: 5, round: 1, kind: "loan", amount: 7000 }], months: 12, spending: { ...rep.players[0].spending, bankLoans: 1 }, series: [{ month: 0, cash: 100, cashflow: 50, passive: 0, expenses: 0, debt: 0, netWorth: 100 }, { month: 6, cash: 10, cashflow: -40, passive: 0, expenses: 0, debt: 0, netWorth: 10 }] });
+    const a = adviceOf(r); expect(a.map((x) => x.key)).toEqual(expect.arrayContaining(["no_buy", "debt_taken", "flow_dip"])); expect(a.find((x) => x.key === "debt_taken")!.params).toMatchObject({ n: 1, month: 5, value: 7000 }); expect(a.find((x) => x.key === "flow_dip")!.params).toMatchObject({ month: 6, value: -40 });
+  });
+});
+

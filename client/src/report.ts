@@ -18,11 +18,16 @@ export interface RMine {
   decisions: { shown: number; accepted: number; skipped: number; auto: number; forced: number; byGroup: Record<DeckGroup, { shown: number; accepted: number; skipped: number; forced: number }> };
   spending: { expenseCards: number; expenseTotal: number; biggest: { amount: number; text?: string; month: number } | null; purchases: number; purchaseTotal: number; sales: number; bankLoans: number };
   quiz: { answered: number; correct: number }; risks: { restarts: number; crisisMonths: number; unemployedMonths: number };
-  assets: RAsset[]; moments: RMoment[]; insights: RInsight[]; score: { points: { pos: number; neg: number }; xp: number | null } | null;
+  advice?: RInsight[] | null; adviceLocked?: boolean; assets: RAsset[]; moments: RMoment[]; insights: RInsight[]; score: { points: { pos: number; neg: number }; xp: number | null } | null;
 }
 export interface RSummary { id: string; name: string; bot: boolean; rank: number; outcome: "won" | "big" | "small"; circle: "small" | "big"; months: number; turns: number; final: RMine["final"]; peakNetWorth: number; exitMonth: number | null; restarts: number; assets: number; decisions: { shown: number; accepted: number; skipped: number }; netWorthSeries: { month: number; netWorth: number }[] }
 export interface ReportData { meta: { rounds: number; turns: number; months: number; mode: string; endReason: "win" | "time" | null; winner: string | null; players: number }; me: RMine; others: RSummary[]; ranking: string[] }
 
+/** Qaror tahlili matni (Premium): kalit bo'yicha jadvaldan; summalar to'liq, `name` qavs ichida. */
+export function adviceText(i: RInsight): string {
+  const t = (uz.report.adv.t as Record<string, string>)[i.key] ?? i.key;
+  return t.replace(/\{(\w+)\}/g, (_, k: string) => { const v = i.params[k]; if (v === undefined) return ""; if (k === "name") return v ? ` («${v}»)` : ""; return ["value", "paid", "income"].includes(k) ? money(Number(v)) : String(v); });
+}
 /** «2 yil 5 oy» (o'yin oylari). */
 export function timeText(months: number): string {
   const y = Math.floor(months / 12), m = months % 12; const T = uz.time;

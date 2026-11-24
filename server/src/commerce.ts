@@ -7,7 +7,7 @@ import { WriteQueue } from "./persist";
 import type { ParentConsents } from "./parents";
 
 export type ItemKind = "pawn" | "frame" | "avatar" | "bundle";
-export interface Item { id: string; kind: ItemKind; name: string; color?: string; source: "default" | "shop" | "plus" | "achievement"; ach?: string; desc: string; available: boolean }
+export interface Item { id: string; kind: ItemKind; name: string; color?: string; source: "default" | "shop" | "plus" | "premium" | "achievement"; ach?: string; desc: string; available: boolean }
 /** Faqat ko'rinish. Kasb va orzu to'plamlari kontent talab qiladi (asosiy deka muvozanatida) — kontent kelguncha yopiq (`available: false`). */
 export const ITEMS: Item[] = [
   { id: "pawn-silver", kind: "pawn", name: "Kumush", color: "#AEB8C2", source: "default", desc: "Hamma uchun", available: true },
@@ -24,6 +24,10 @@ export const ITEMS: Item[] = [
   { id: "avatar-mint", kind: "avatar", name: "Yalpiz", color: "#DCEEC4", source: "shop", desc: "Sotib olinadi", available: true },
   { id: "avatar-sand", kind: "avatar", name: "Qum", color: "#F5EEDC", source: "shop", desc: "Sotib olinadi", available: true },
   { id: "avatar-rose", kind: "avatar", name: "Atirgul", color: "#F7E6EC", source: "shop", desc: "Sotib olinadi", available: true },
+  { id: "pawn-amethyst", kind: "pawn", name: "Ametist", color: "#7B4FA3", source: "premium", desc: "Premium · eksklyuziv", available: true },
+  { id: "pawn-sunrise", kind: "pawn", name: "Tong", color: "#E07A2F", source: "premium", desc: "Premium · eksklyuziv", available: true },
+  { id: "frame-diamond", kind: "frame", name: "Olmos ramka", color: "#7FD1E8", source: "premium", desc: "Premium · eksklyuziv", available: true },
+  { id: "avatar-lilac", kind: "avatar", name: "Siren", color: "#E9E0F3", source: "premium", desc: "Premium · eksklyuziv", available: true },
   { id: "bundle-board", kind: "bundle", name: "Mavzuli maydon", source: "shop", desc: "Maydon va karta orqalarining boshqa ko'rinishi", available: false },
   { id: "bundle-kasb", kind: "bundle", name: "Kasblar to'plami", source: "shop", desc: "Qo'shimcha kasb kartalari — asosiy deka bilan bir xil muvozanatda; reytingli o'yinda yoqilmaydi", available: false },
   { id: "bundle-orzu", kind: "bundle", name: "Orzular to'plami", source: "shop", desc: "Qo'shimcha orzu kartalari — narxlar asosiy orzular oralig'ida; reytingli o'yinda yoqilmaydi", available: false },
@@ -115,6 +119,7 @@ export class Commerce {
   owns(uid: string, id: string) {
     const it = ITEM.get(id); if (!it) return false;
     if (it.source === "default") return true;
+    if (it.source === "premium") return this.isPremium(uid); // faqat ko'rinish: o'yin natijasiga ta'sir qilmaydi
     if (it.source === "achievement") return !!it.ach && this.d.achievements(uid).includes(it.ach);
     return this.ent(uid).owned.includes(id);
   }
@@ -141,7 +146,7 @@ export class Commerce {
   /** Boshqa o'yinchilarga ko'rinadigan kosmetika (faqat egasi bo'lgan narsalar). */
   cosmetics(uid: string): { pawn?: string; frame?: string; avatar?: string } {
     const e = this.ents.get(uid); if (!e) return {}; const out: { pawn?: string; frame?: string; avatar?: string } = {};
-    for (const k of ["pawn", "frame", "avatar"] as const) { const id = e.equipped[k]; if (id && this.owns(uid, id) && !(ITEM.get(id)!.source === "plus" && !this.isPlus(uid))) out[k] = ITEM.get(id)!.color; }
+    for (const k of ["pawn", "frame", "avatar"] as const) { const id = e.equipped[k]; if (id && this.owns(uid, id) && !(ITEM.get(id)!.source === "plus" && !this.isPlus(uid)) && !(ITEM.get(id)!.source === "premium" && !this.isPremium(uid))) out[k] = ITEM.get(id)!.color; }
     return out;
   }
 
@@ -246,6 +251,7 @@ export class Commerce {
     if (id === null) { const eq = { ...e.equipped }; delete eq[kind]; this.ents.set(uid, { ...e, equipped: eq }); return { ok: true }; }
     const it = ITEM.get(id); if (!it || it.kind !== kind) return { ok: false, error: "bad_item" };
     if (!this.owns(uid, id) && !(it.source === "plus" && this.isPlus(uid))) return { ok: false, error: "not_owned" };
+    if (it.source === "premium" && !this.isPremium(uid)) return { ok: false, error: "not_owned" };
     this.ents.set(uid, { ...e, equipped: { ...e.equipped, [kind]: id } }); return { ok: true };
   }
   /** Plus: har oy bitta fishka yoki ramka tanlanadi (Plus manbali elementlar). */

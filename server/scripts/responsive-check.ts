@@ -71,7 +71,7 @@ for (const [w, h] of SIZES) {
     const room = x.rooms.rooms.get(code)!; slowTimers(x, room);
     { const cur0 = currentPlayer(room.state!).id; await check(cur0 === ida ? a : c, "07-game", /^Kubik(ni|larni) tashlash/); }
     const tab = (n: string) => a.getByRole("button", { name: new RegExp("^" + n), }).first();
-    for (const [n, s] of [["Blank", "07b-blank"], ["O'yinchilar", "07c-players"], ["Maydon", "07d-field"]] as const) { const t = tab(n); if (await t.count()) { await t.click().catch(() => {}); await check(a, s); } }
+    for (const [n, s] of [["Blank", "07b-blank"], ["O'yinchilar", "07c-players"], ["Taxta", "07d-field"]] as const) { const t = tab(n); if (await t.count()) { await t.click().catch(() => {}); await check(a, s); } }
     // Katalog kartalari: har turdan eng uzun matnlisi — qaror oynasi (sinov uchun navbat egasiga qo'yiladi)
     const fx = Object.values(room.ctx.effects) as any[]; const live = fx.filter((e) => e.id.startsWith("cat-") && e.effect?.kind !== "unresolved");
     const pick = (k: string) => live.filter((e) => e.effect.kind === k).sort((p, q) => (q.text?.length ?? 0) - (p.text?.length ?? 0))[0];

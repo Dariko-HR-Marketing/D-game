@@ -15,6 +15,8 @@ export type InsightKey =
   | "won" | "time_up" | "exit_done" | "exit_blocked_cash" | "exit_blocked_passive" | "exit_blocked_debt" | "exit_blocked_partner" | "no_passive" | "passive_growth"
   | "many_skipped" | "all_accepted" | "autopilot" | "restarts" | "debt_end" | "big_expense" | "quiz_good" | "quiz_low" | "negative_flow" | "big_progress" | "left_game";
 export interface Insight { key: InsightKey; level: "good" | "info" | "warn"; params: Record<string, number | string> }
+export type AdviceKey = "best_asset" | "slow_asset" | "first_buy" | "no_buy" | "cash_idle" | "debt_taken" | "skipped_invest" | "expense_hit" | "flow_dip" | "passive_start";
+export interface Advice { key: AdviceKey; level: "good" | "info" | "warn"; params: Record<string, number | string> }
 export interface ExitProgress { cash: { value: number; need: number }; passive: { value: number; need: number }; debt: { value: number }; partnerships: { value: number } }
 export interface BigProgress { cashflow: { value: number; need: number }; cash: { value: number; need: number | null }; dream: string | null }
 
@@ -168,3 +170,28 @@ export function insightsOf(r: PlayerReport, mode: GameMode, left: boolean, endRe
   void mode;
   return out;
 }
+
+/** «Qaror tahlili» (Premium): o'yinchining O'Z qarorlari bo'yicha aniq misollar. Faqat hisobot raqamlaridan (taxmin va yangi chegara yo'q). */
+export function adviceOf(r: PlayerReport): Advice[] {
+  const out: Advice[] = []; const add = (key: AdviceKey, level: Advice["level"], params: Advice["params"] = {}) => out.push({ key, level, params });
+  const held = r.assets.filter((a) => a.paybackMonths !== null && a.income > 0);
+  if (held.length) {
+    const best = held.reduce((a, b) => ((a.paybackMonths as number) <= (b.paybackMonths as number) ? a : b));
+    add("best_asset", "good", { name: best.name ?? best.code, month: best.boughtMonth, paid: best.paid, income: best.income, payback: best.paybackMonths as number });
+    const slow = held.reduce((a, b) => ((a.paybackMonths as number) >= (b.paybackMonths as number) ? a : b));
+    if (slow !== best) add("slow_asset", "info", { name: slow.name ?? slow.code, month: slow.boughtMonth, paid: slow.paid, income: slow.income, payback: slow.paybackMonths as number });
+  }
+  const bought = r.moments.filter((m) => m.kind === "bought").sort((a, b) => a.month - b.month);
+  if (bought.length) add("first_buy", "info", { month: bought[0].month, total: r.months, name: bought[0].text ?? "" });
+  else if (r.months >= 6) add("no_buy", "warn", { total: r.months });
+  if (r.series.length > 1) {
+    const firstPassive = r.series.find((x) => x.passive > 0); if (firstPassive) add("passive_start", "good", { month: firstPassive.month, value: firstPassive.passive });
+    const low = r.series.reduce((a, b) => (b.cashflow < a.cashflow ? b : a)); if (low.cashflow < 0) add("flow_dip", "warn", { month: low.month, value: low.cashflow });
+    const idle = r.series.reduce((a, b) => (b.cash > a.cash ? b : a)); if (idle.cash > 0 && idle.passive === 0 && r.circle === "small") add("cash_idle", "info", { month: idle.month, value: idle.cash });
+  }
+  if (r.spending.bankLoans > 0) { const l = r.moments.filter((m) => m.kind === "loan"); add("debt_taken", "warn", { n: r.spending.bankLoans, month: l[0]?.month ?? 0, value: Math.max(0, ...l.map((m) => m.amount ?? 0)) }); }
+  const inv = r.decisions.byGroup.invest; if (inv.shown >= 3 && inv.skipped > 0) add("skipped_invest", "info", { skipped: inv.skipped, shown: inv.shown });
+  if (r.spending.biggest) add("expense_hit", "info", { value: r.spending.biggest.amount, month: r.spending.biggest.month, name: r.spending.biggest.text ?? "" });
+  return out;
+}
+

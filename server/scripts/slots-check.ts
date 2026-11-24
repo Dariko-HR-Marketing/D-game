@@ -50,7 +50,7 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   const now = room.state!.players.find((p: any) => p.id === me.id)!; // reduce holatni ko'chiradi — yangi ob'ekt
   check(now.assets.length === before - 1 && now.cash === 510_000, `${tag} sotildi: naqd +10 000, aktivlar ${now.assets.length}`);
   check(await a.getByText(/Hisob varag'ida ko'chmas mulk uchun joy qolmagan/).count() === 0, `${tag} joy bo'shagach ogohlantirish yo'qoldi`);
-  if (tag === "tel") { await a.getByRole("button", { name: "Maydon" }).click(); await a.waitForTimeout(400); }
+  if (tag === "tel") { await a.getByRole("button", { name: "Taxta" }).click(); await a.waitForTimeout(400); }
   const accept = a.getByRole("button", { name: /sh\.b\. olish/ }).first();
   check(await accept.count() > 0 && await accept.isEnabled(), `${tag} qabul qilish tugmasi yoqildi`);
   await a.screenshot({ path: `${OUT}/${tag}-freed.png` });

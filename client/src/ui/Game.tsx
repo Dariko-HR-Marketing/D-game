@@ -27,6 +27,7 @@ import type { Http } from "../net/http";
 import { LedgerPad, type CalcFeedback } from "./Ledger";
 import { useFx } from "../useFx";
 import { BottomNav } from "./BottomNav";
+import { Acc } from "./Accordion";
 import { tabBadges, badgeLabel, type Seen } from "../badges";
 import { Icon } from "./Icon";
 import { TimerRing } from "./TimerRing";
@@ -95,7 +96,7 @@ function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; labe
 export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
   const [drawerOpen, setDrawerOpen] = useState(false); const [seenLog, setSeenLog] = useState(0); // kompyuter: o'ng panel (vaqt, voqealar, o'yinchilar, reaksiyalar) yon oyna bo'lib ochiladi
   const [menuOpen, setMenuOpen] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [liveOpen, setLiveOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
-  const [tab, setTab] = useState<"field" | "blank" | "players">("field");
+  const [tab, setTab] = useState<"field" | "blank" | "players">("field"); const [reactOpen, setReactOpen] = useState(false);
   const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
   useEffect(() => { if (chatOpen) setSeenChat(lastChat); }, [chatOpen, lastChat]);
   const chatNew = chatList.filter((m) => m.id > seenChat && m.from !== userId && !getMuted().has(m.from)); const chatUnread = chatOpen ? 0 : chatNew.length;
@@ -362,7 +363,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
           </View>
         </>)}
         {tab === "blank" && (<View style={{ gap: space.md }}><TimePanel room={room} userId={userId} settled={settled} />{side}</View>)}
-        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} accordion />{eventsCard(6)}</View>)}
+        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} accordion />{eventsCard(6)}<Acc icon="heart" title={uz.react.title} open={reactOpen} onToggle={() => setReactOpen((v) => !v)} testID="react-acc">{reactRow}</Acc></View>)}
       </ScrollView>
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
       {tab === "field" && canRoll && !promptOpen && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}

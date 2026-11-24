@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Card, Pill, SectionTitle, Banner } from "./kit";
+import { Button } from "./Button";
 import { LineChart, type ChartSeries } from "./LineChart";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, font, radius, space, tone, PLAYER_COLORS, MIN_TAP } from "../theme";
-import { acceptRate, chartPoints, insightText, momentText, ratio, timeText, type DeckGroup, type ReportData, type RMine, type RSummary } from "../report";
+import { acceptRate, adviceText, chartPoints, insightText, momentText, ratio, timeText, type DeckGroup, type ReportData, type RMine, type RSummary } from "../report";
 
 const R = uz.report;
 type Metric = "netWorth" | "cash" | "cashflow" | "passive";
@@ -132,6 +133,12 @@ function Moments({ me }: { me: RMine }) {   if (!me.moments.length) return <Text
   );
 }
 
+function Advice({ me, onPacks }: { me: RMine; onPacks?: () => void }) { const A = R.adv; const icon = { good: "✓", info: "i", warn: "!" } as const;
+  if (me.adviceLocked) return (<View style={{ gap: space.sm }} testID="advice-locked"><Banner kind="info"><Text style={{ fontWeight: "800" }}>{A.premium}. </Text>{A.locked}</Banner>{onPacks && <Button label={A.lockedBtn} kind="ghost" onPress={onPacks} />}</View>);
+  if (!me.advice?.length) return <Text style={{ color: "#4A5B6C" }}>{A.empty}</Text>;
+  return (<View style={{ gap: space.sm }} role="list" aria-label={A.title} testID="advice">{me.advice.map((i, k) => (<View key={k} role="listitem"><Banner kind={i.level === "good" ? "good" : i.level === "warn" ? "warn" : "info"}><Text style={{ fontWeight: "800" }} aria-hidden>{icon[i.level]}  </Text>{adviceText(i)}</Banner></View>))}</View>);
+}
+
 function Insights({ me }: { me: RMine }) { const icon = { good: "✓", info: "i", warn: "!" } as const;
   return (
     <View style={{ gap: space.sm }} role="list" aria-label={R.sec.insights}>{me.insights.map((i, k) => (
@@ -165,7 +172,7 @@ function Compare({ data }: { data: ReportData }) { const { width } = useWindowDi
 }
 
 /** O'yin tugagach to'liq hisobot: natija, ko'rsatkichlar, dinamika, maqsad sari yo'l, qarorlar, investitsiyalar, xarajatlar, lahzalar, tavsiyalar va taqqoslash. */
-export function ReportView({ data }: { data: ReportData }) { const me = data.me, f = me.final;
+export function ReportView({ data, onPacks }: { data: ReportData; onPacks?: () => void }) { const me = data.me, f = me.final;
   const outcomeKind = me.outcome === "won" ? "good" : me.outcome === "big" ? "info" : "plain";
   return (
     <View style={{ gap: space.lg }} testID="report">
@@ -193,6 +200,7 @@ export function ReportView({ data }: { data: ReportData }) { const me = data.me,
         <Block title={R.sec.invest}><Invest me={me} /></Block>
         <Block title={R.sec.spending}><Spending me={me} /></Block>
         <Block title={R.sec.insights} wide><Insights me={me} /></Block>
+        <Block title={R.adv.title} wide><Advice me={me} onPacks={onPacks} /></Block>
         <Block title={R.sec.moments}><Moments me={me} /></Block>
         <Block title={R.sec.compare} wide><Compare data={data} /></Block>
       </View>
