@@ -4,7 +4,7 @@ import { h, hasDom } from "./svg";
 type P = (string | [string, Record<string, unknown>])[];
 // Chiziqli ikonkalar (24×24). Har biri — path'lar ro'yxati yoki [tag, atributlar].
 const ICONS: Record<string, P> = {
-  dollar: [["circle", { cx: 12, cy: 12, r: 9 }], "M12 7v10", "M9.5 9.7c0-1 1-1.6 2.5-1.6s2.5.7 2.5 1.7-1 1.4-2.5 1.8-2.5.8-2.5 1.9 1 1.7 2.5 1.7 2.5-.6 2.5-1.6"],
+  dollar: [["circle", { cx: 12, cy: 12, r: 9 }], "M14.7 9.3c-.3-1-1.3-1.7-2.7-1.7-1.5 0-2.7.8-2.7 2 0 1.2 1.1 1.6 2.7 2 1.6.4 2.7.8 2.7 2.1 0 1.2-1.2 2-2.7 2-1.4 0-2.5-.7-2.8-1.8", "M12 5.8v1.8M12 16.4v1.8"],
   cart: ["M3 4h2l2.3 10.6h9.4L19 7.5H6.2", ["circle", { cx: 9.5, cy: 19, r: 1.4 }], ["circle", { cx: 16.5, cy: 19, r: 1.4 }]],
   move: ["M12 3v18M3 12h18", "M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5"],
   search: [["circle", { cx: 10.5, cy: 10.5, r: 6 }], "M15 15l5.5 5.5"],
@@ -14,7 +14,7 @@ const ICONS: Record<string, P> = {
   clock: [["circle", { cx: 12, cy: 12, r: 9 }], "M12 7v5l3 2"],
   person: [["circle", { cx: 12, cy: 8, r: 3.8 }], "M4.5 20.5a7.5 7.5 0 0 1 15 0"],
   people: [["circle", { cx: 9, cy: 8, r: 3.5 }], "M2.5 20a6.5 6.5 0 0 1 13 0", "M16 4.5a3.5 3.5 0 0 1 0 7", "M18 14a6 6 0 0 1 3.5 6"],
-  home: ["M3 11l9-7 9 7", "M5 10v10h14V10"],
+  home: ["M3.5 11.2L12 4l8.5 7.2", "M6 10v10h12V10", "M10 20v-5.5h4V20"],
   trophy: ["M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z", "M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"],
   book: ["M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z", "M4 19V5"],
   board: [["rect", { x: 4, y: 4, width: 16, height: 16, rx: 2.5 }], ["rect", { x: 9, y: 9, width: 6, height: 6, rx: 1 }]],
@@ -49,7 +49,7 @@ const ICONS: Record<string, P> = {
 export type IconName = keyof typeof ICONS;
 
 /** Dekorativ ikonka (ekran o'qish dasturlariga ko'rinmaydi); ma'nosi doim yonidagi matnda. */
-export function Icon({ name, size = 20, color = "currentColor", stroke = 2, fill = "none" }: { name: IconName; size?: number; color?: string; stroke?: number; fill?: string }) {
+export function Icon({ name, size = 20, color = "currentColor", stroke = 1.8, fill = "none" }: { name: IconName; size?: number; color?: string; stroke?: number; fill?: string }) {
   if (!hasDom) return null;
   return h("svg", { width: size, height: size, viewBox: "0 0 24 24", fill, stroke: color, strokeWidth: stroke, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, style: { flexShrink: 0, display: "block" } },
     ...ICONS[name].map((p, i) => (typeof p === "string" ? h("path", { key: i, d: p }) : h(p[0], { key: i, ...p[1] }))));

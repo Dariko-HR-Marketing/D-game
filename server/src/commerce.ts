@@ -1,7 +1,7 @@
 // Do'kon va Tajriba24 Plus (maketlar N44–N46, N53; qo'llanma/spetsifikatsiya §7–§9).
 // Tamoyillar: asosiy o'yin bepul; Plus va kosmetika o'yin natijasiga ta'sir qilmaydi; tasodifiy sandiq (loot box) yo'q; narx oldindan aniq;
 // 18 yoshgacha to'lov ota-ona roziligi bilan; to'lovdan oldin telefon tasdig'i. Narxlar sozlamada (admin) — qiymati berilmaguncha xarid yopiq.
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { Collection, type DocStore } from "./docs";
 import { WriteQueue } from "./persist";
 import type { ParentConsents } from "./parents";
@@ -36,6 +36,8 @@ export interface Quota { day: number | null; week: number | null; month: number 
 export type PlanId = "start" | "plus" | "premium";
 export interface OrgTier { seats: number; pct: number }
 export interface CatalogConfig {
+  /** Plus oylik narxining sinov (A/B) variantlari: bo'sh = o'chiq. Foydalanuvchi variantni identifikatori bo'yicha doimiy oladi; yillik = oylik × 10. */
+  plusMonthlyVariants: number[];
   plusMonthly: number | null; plusYearly: number | null; premiumMonthly: number | null; premiumYearly: number | null; coupon: number | null;
   /** Tashkilot: bir o'rin oyiga (so'm) va hajm bo'yicha chegirma (%). */
   orgSeatMonthly: number | null; orgTiers: OrgTier[];
@@ -43,7 +45,7 @@ export interface CatalogConfig {
 }
 const NO_QUOTA: Quota = { day: null, week: null, month: null };
 /** Kodda narx va chegara YO'Q (CLAUDE.md §2.4): hammasi `null`. Pilot qiymatlari `PILOT_CONFIG` (birinchi ishga tushishda bir marta yoziladi, keyin admin tahrirlaydi). */
-export const DEFAULT_CONFIG: CatalogConfig = { plusMonthly: null, plusYearly: null, premiumMonthly: null, premiumYearly: null, coupon: null, orgSeatMonthly: null, orgTiers: [], items: {}, quotas: { start: NO_QUOTA, plus: NO_QUOTA, premium: NO_QUOTA }, freeHistory: 10 };
+export const DEFAULT_CONFIG: CatalogConfig = { plusMonthlyVariants: [], plusMonthly: null, plusYearly: null, premiumMonthly: null, premiumYearly: null, coupon: null, orgSeatMonthly: null, orgTiers: [], items: {}, quotas: { start: NO_QUOTA, plus: NO_QUOTA, premium: NO_QUOTA }, freeHistory: 10 };
 /** Pilot (sinov) paketlari va narxlari — buyurtmachi tasdig'i 2026-11-23 (docs/OPEN_QUESTIONS.md 214). Asos: Milliy statistika qo'mitasi mediana ish haqi 4 166 300 so'm. */
 export const PILOT_CONFIG: Partial<CatalogConfig> = {
   plusMonthly: 49_000, plusYearly: 490_000, premiumMonthly: 99_000, premiumYearly: 990_000, coupon: 9_900, orgSeatMonthly: 25_000,
@@ -51,6 +53,8 @@ export const PILOT_CONFIG: Partial<CatalogConfig> = {
   quotas: { start: { day: 1, week: 2, month: 6 }, plus: { day: 3, week: 10, month: 30 }, premium: NO_QUOTA },
 };
 
+/** Tashkilot paketi uchun murojaat (onlayn sotib olish hali yo'q: shartnoma va o'rinlar qo'lda). */
+export interface Inquiry { id: string; userId: string; org: string; seats: number; contact: string; note: string; at: number; status: "new" | "contacted" | "closed" }
 export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; premiumUntil?: number | null; premiumPlan?: "monthly" | "yearly"; premiumCancelled?: boolean; coupons?: number; starts?: number[]; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
 export type OrderStatus = "pending_parent" | "pending_payment" | "paid" | "cancelled" | "rejected" | "refunded";
 export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; provider?: string; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string; refundedAt?: number; note?: string }
@@ -71,14 +75,14 @@ export interface CommerceDeps { docs?: DocStore; now?: () => number; providers?:
 export type OrderErr = "bad_sku" | "price_unset" | "unavailable" | "already_owned" | "phone_required" | "profile_required" | "parent_phone_required" | "payments_unavailable" | "bad_phone" | "bad_operator" | "same_phone" | "bad_provider" | "rate_limited" | "sms_failed" | "sms_unavailable" | "plus_already_long" | "not_found" | "not_pending" | "bad_item" | "not_owned" | "not_plus" | "already_claimed" | "amount_mismatch";
 
 export class Commerce {
-  readonly ents: Collection<Ent>; readonly orders: Collection<Order>; readonly cfg: Collection<CatalogConfig>;
+  readonly inquiries: Collection<Inquiry>; readonly ents: Collection<Ent>; readonly orders: Collection<Order>; readonly cfg: Collection<CatalogConfig>;
   readonly queue = new WriteQueue();
   private now: () => number;
   private couponRooms = new Map<string, string>();
   constructor(private d: CommerceDeps) {
-    this.now = d.now ?? Date.now; this.ents = new Collection("ent", d.docs, this.queue); this.orders = new Collection("order", d.docs, this.queue); this.cfg = new Collection("catalog", d.docs, this.queue);
+    this.now = d.now ?? Date.now; this.inquiries = new Collection("orginq", d.docs, this.queue); this.ents = new Collection("ent", d.docs, this.queue); this.orders = new Collection("order", d.docs, this.queue); this.cfg = new Collection("catalog", d.docs, this.queue);
   }
-  async load() { await this.ents.load(); await this.orders.load(); await this.cfg.load(); return this; }
+  async load() { await this.inquiries.load(); await this.ents.load(); await this.orders.load(); await this.cfg.load(); return this; }
   config(): CatalogConfig {
     const st = this.cfg.get("config") as (Partial<CatalogConfig> & { freeRoomsPerDay?: unknown }) | undefined;
     const q = (k: PlanId): Quota => ({ ...NO_QUOTA, ...(st?.quotas?.[k] ?? {}) });
@@ -87,6 +91,7 @@ export class Commerce {
   setConfig(patch: Partial<CatalogConfig>): { ok: true; config: CatalogConfig } | { ok: false; error: string } {
     const c = { ...this.config(), ...patch };
     const okP = (v: unknown) => v === null || (Number.isInteger(v) && (v as number) > 0 && (v as number) <= 1_000_000_000);
+    if (!Array.isArray(c.plusMonthlyVariants) || c.plusMonthlyVariants.length > 5 || c.plusMonthlyVariants.some((v) => !okP(v) || v === null)) return { ok: false, error: "bad_price" };
     for (const k of ["plusMonthly", "plusYearly", "premiumMonthly", "premiumYearly", "coupon", "orgSeatMonthly"] as const) if (!okP(c[k])) return { ok: false, error: "bad_price" };
     for (const [k, v] of Object.entries(c.items)) if (!ITEM.has(k) || !okP(v)) return { ok: false, error: "bad_price" };
     const lim = (v: unknown) => v === null || (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 10_000);
@@ -113,9 +118,11 @@ export class Commerce {
     if (it.source === "achievement") return !!it.ach && this.d.achievements(uid).includes(it.ach);
     return this.ent(uid).owned.includes(id);
   }
-  priceOf(sku: string): number | null | undefined {
-    const c = this.config();
-    if (sku === "plus:monthly") return c.plusMonthly; if (sku === "plus:yearly") return c.plusYearly;
+  /** Sinov variantining indeksi: foydalanuvchi identifikatoridan (doimiy, tasodifiy taqsimot). */
+  variantOf(uid: string, n: number) { return n > 0 ? createHash("sha1").update(uid).digest().readUInt16BE(0) % n : -1; }
+  priceOf(sku: string, uid?: string): number | null | undefined {
+    const c = this.config(), vs = c.plusMonthlyVariants ?? [], v = uid && vs.length ? vs[this.variantOf(uid, vs.length)] : undefined;
+    if (sku === "plus:monthly") return v ?? c.plusMonthly; if (sku === "plus:yearly") return v !== undefined ? v * 10 : c.plusYearly;
     if (sku === "premium:monthly") return c.premiumMonthly; if (sku === "premium:yearly") return c.premiumYearly; if (sku === "coupon:1") return c.coupon;
     const m = /^item:(.+)$/.exec(sku); if (!m) return undefined; const it = ITEM.get(m[1]); if (!it || it.source !== "shop") return undefined;
     return c.items[it.id] ?? null;
@@ -123,7 +130,7 @@ export class Commerce {
   catalog(uid: string) {
     const c = this.config(), e = this.ent(uid), plus = this.isPlus(uid), prem = this.isPremium(uid), paid = plus || prem;
     return {
-      plus: { active: plus, until: plus ? e.plusUntil : null, plan: plus ? e.plusPlan ?? null : null, cancelled: !!e.plusCancelled, monthly: c.plusMonthly, yearly: c.plusYearly, claimedThisMonth: e.claimedMonth === ym(this.now()),
+      plus: { active: plus, until: plus ? e.plusUntil : null, plan: plus ? e.plusPlan ?? null : null, cancelled: !!e.plusCancelled, monthly: this.priceOf("plus:monthly", uid) ?? null, yearly: this.priceOf("plus:yearly", uid) ?? null, claimedThisMonth: e.claimedMonth === ym(this.now()),
         features: { rooms: this.quotaOf(uid), history: paid ? null : c.freeHistory, analysis: paid ? "all" : "last", ads: !paid } },
       premium: { active: prem, until: prem ? e.premiumUntil ?? null : null, plan: prem ? e.premiumPlan ?? null : null, cancelled: !!e.premiumCancelled, monthly: c.premiumMonthly, yearly: c.premiumYearly },
       pkg: { plan: this.plan(uid), quotas: c.quotas, usage: this.usage(uid), coupons: e.coupons ?? 0, couponPrice: c.coupon, org: { seatMonthly: c.orgSeatMonthly, tiers: c.orgTiers } },
@@ -140,7 +147,7 @@ export class Commerce {
 
   // --- buyurtma ---
   async order(uid: string, sku: string, channel: "web" | "store", parentPhone?: unknown, provider?: string): Promise<{ ok: true; order: Order; parentRequired: boolean } | { ok: false; error: OrderErr }> {
-    const price = this.priceOf(sku); if (price === undefined) return { ok: false, error: "bad_sku" };
+    const price = this.priceOf(sku, uid); if (price === undefined) return { ok: false, error: "bad_sku" };
     let title = ""; const m = /^item:(.+)$/.exec(sku);
     if (m) { const it = ITEM.get(m[1])!; if (!it.available || (this.config().hidden ?? []).includes(it.id)) return { ok: false, error: "unavailable" }; if (this.owns(uid, it.id)) return { ok: false, error: "already_owned" }; title = it.name; }
     else title = sku === "plus:monthly" ? "Tajriba24 Plus (oylik)" : sku === "plus:yearly" ? "Tajriba24 Plus (yillik)" : sku === "premium:monthly" ? "Tajriba24 Premium (oylik)" : sku === "premium:yearly" ? "Tajriba24 Premium (yillik)" : "O'yin kuponi (1 ta o'yin)";
@@ -274,5 +281,17 @@ export class Commerce {
   }
   historyLimit(uid: string): number | null { return this.isPaid(uid) ? null : this.config().freeHistory; }
   analysisAllowed(uid: string, isLatest: boolean) { return this.isPaid(uid) || isLatest; }
-  erase(uid: string) { this.ents.delete(uid); for (const o of this.orders.values()) if (o.userId === uid) this.orders.delete(o.id); }
+  /** Tashkilot murojaati: nom, o'rinlar soni va aloqa (telefon, email yoki Telegram). Bir foydalanuvchidan kuniga 3 tagacha. */
+  addInquiry(uid: string, f: { org?: unknown; seats?: unknown; contact?: unknown; note?: unknown }): { ok: true; inquiry: Inquiry } | { ok: false; error: string } {
+    const org = typeof f.org === "string" ? f.org.trim() : "", contact = typeof f.contact === "string" ? f.contact.trim() : "", note = typeof f.note === "string" ? f.note.trim() : "";
+    if (org.length < 2 || org.length > 80) return { ok: false, error: "bad_org" };
+    if (!Number.isInteger(f.seats) || (f.seats as number) < 1 || (f.seats as number) > 100_000) return { ok: false, error: "bad_inq_seats" };
+    if (contact.length < 5 || contact.length > 80) return { ok: false, error: "bad_contact" };
+    if (note.length > 300) return { ok: false, error: "bad_note" };
+    const t = this.now(); if (this.inquiries.values().filter((q) => q.userId === uid && t - q.at < DAY).length >= 3) return { ok: false, error: "rate_limited" };
+    const q: Inquiry = { id: randomBytes(8).toString("hex"), userId: uid, org, seats: f.seats as number, contact, note, at: t, status: "new" }; this.inquiries.set(q.id, q); return { ok: true, inquiry: q };
+  }
+  setInquiryStatus(id: string, status: unknown): boolean { const q = this.inquiries.get(id); if (!q || (status !== "new" && status !== "contacted" && status !== "closed")) return false; this.inquiries.set(id, { ...q, status }); return true; }
+  erase(uid: string) {
+    for (const q of this.inquiries.values()) if (q.userId === uid) this.inquiries.delete(q.id); this.ents.delete(uid); for (const o of this.orders.values()) if (o.userId === uid) this.orders.delete(o.id); }
 }

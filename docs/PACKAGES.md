@@ -28,3 +28,8 @@ Tashkilot: 10 o'rin 250 000/oy, 25 o'rin 562 500, 50 o'rin 1 000 000, 100 o'rin 
 
 ## Pilot rejasi (4–6 hafta)
 Plus narxini 39 000 / 49 000 / 59 000 variantlarida sinash (tasodifiy taqsimot); kuzatiladigan ko'rsatkichlar: limitga yetganlar ulushi, kupon/Plus/Premium'ga o'tish, kupon:Plus nisbati, bekor qilish (churn), ARPU. Mavjud obunachilar narx o'zgarganda kamida bir yil eski narxda qoladi (taklif). Narx variantlari bo'yicha A/B hali kodda YO'Q (keyingi bosqich).
+
+## Qo'shimcha (2026-11-24)
+- **Narx sinovi (A/B)**: `plusMonthlyVariants` (admin «Narxlar va chegaralar»), bo'sh = o'chiq (standart holat). Yoqilsa foydalanuvchi identifikatoridan doimiy variant oladi (taqsimot tasodifiy, 1–5 variant), yillik narx = oylik × 10. Hozir O'CHIQ; yoqish faqat buyurtmachi qarori bilan (turli odamlarga turli narx adolat va ishonch masalasi).
+- **Tashkilot murojaati**: Paketlar sahifasida «Murojaat qoldirish» (nom, o'rinlar, aloqa, izoh) → admin «Moliya → Tashkilot murojaatlari» (Yangi / Bog'lanildi / Yopildi). Kuniga 3 tagacha. Shartnoma va o'rinlar qo'lda.
+

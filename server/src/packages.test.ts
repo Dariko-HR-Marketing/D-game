@@ -58,4 +58,24 @@ describe("paketlar (pilot): chegara va kupon", () => {
     expect(c.setConfig({ coupon: -5 }).ok).toBe(false);
     expect(c.setConfig({ quotas: { start: { day: -1, week: null, month: null }, plus: { day: null, week: null, month: null }, premium: { day: null, week: null, month: null } } }).ok).toBe(false);
   });
+  it("Plus narx variantlari (A/B): o'chiq bo'lsa hamma bir xil; yoqilsa foydalanuvchi doimiy variant oladi, yillik = oylik × 10", async () => {
+    const c = await mk({ t: T0 }).load(); c.seedPilot();
+    expect(c.priceOf("plus:monthly", "a")).toBe(49_000); expect(c.priceOf("plus:yearly", "a")).toBe(490_000);
+    expect(c.setConfig({ plusMonthlyVariants: [39_000, 49_000, 59_000] }).ok).toBe(true);
+    const seen = new Set<number>(); for (let i = 0; i < 60; i++) { const p = c.priceOf("plus:monthly", "user" + i)!; seen.add(p); expect([39_000, 49_000, 59_000]).toContain(p); expect(c.priceOf("plus:yearly", "user" + i)).toBe(p * 10); expect(c.priceOf("plus:monthly", "user" + i)).toBe(p); }
+    expect(seen.size).toBe(3); expect(c.catalog("user1").plus.monthly).toBe(c.priceOf("plus:monthly", "user1"));
+    expect(c.setConfig({ plusMonthlyVariants: [0] }).ok).toBe(false); expect(c.setConfig({ plusMonthlyVariants: [1, 2, 3, 4, 5, 6] }).ok).toBe(false);
+  });
+  it("tashkilot murojaati: tekshiruv, kuniga 3 ta, holat; hisobni o'chirishda ketadi", async () => {
+    const now = { t: T0 }; const c = await mk(now).load();
+    expect(c.addInquiry("u", { org: "A", seats: 10, contact: "+998901234567" }).ok).toBe(false);
+    expect(c.addInquiry("u", { org: "Maktab 5", seats: 0, contact: "+998901234567" })).toEqual({ ok: false, error: "bad_inq_seats" });
+    expect(c.addInquiry("u", { org: "Maktab 5", seats: 50, contact: "123" })).toEqual({ ok: false, error: "bad_contact" });
+    const r = c.addInquiry("u", { org: "Maktab 5", seats: 50, contact: "+998901234567", note: "Sinf uchun" }); expect(r.ok).toBe(true);
+    c.addInquiry("u", { org: "Maktab 5", seats: 50, contact: "+998901234567" }); c.addInquiry("u", { org: "Maktab 5", seats: 50, contact: "+998901234567" });
+    expect(c.addInquiry("u", { org: "Maktab 5", seats: 50, contact: "+998901234567" })).toEqual({ ok: false, error: "rate_limited" });
+    now.t += 2 * DAYMS; expect(c.addInquiry("u", { org: "Maktab 5", seats: 50, contact: "+998901234567" }).ok).toBe(true);
+    if (r.ok) { expect(c.setInquiryStatus(r.inquiry.id, "contacted")).toBe(true); expect(c.setInquiryStatus(r.inquiry.id, "x")).toBe(false); expect(c.inquiries.get(r.inquiry.id)!.status).toBe("contacted"); }
+    c.erase("u"); expect(c.inquiries.values()).toHaveLength(0);
+  });
 });

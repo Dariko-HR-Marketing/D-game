@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, Modal, StyleSheet, useWindowDimensions } from "react-native";
+import { TextInput } from "react-native";
 import { PLAN_ORDER, MATRIX, orgMonthly, orgYearly, yearlySavingPct, limitWindow, type PlanId, type Quota, type OrgTier } from "../billing/catalog";
 import type { PaywallInfo } from "../net/connection";
 import type { Http } from "../net/http";
@@ -31,7 +32,7 @@ const skusOf = (id: PlanId | "coupon", cat: Cat | null): SkuOpt[] => id === "plu
 
 /** Paketlar sahifasi (PILOT): Start, Plus, Premium, Tashkilot. Narxlar va chegaralar serverdagi sozlamadan; bo'sh bo'lsa «Narx aniqlanadi». */
 export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
-  const [cat, setCat] = useState<Cat | null>(null); const [buy, setBuy] = useState<PlanId | "coupon" | null>(null); const [open, setOpen] = useState(false);
+  const [cat, setCat] = useState<Cat | null>(null); const [buy, setBuy] = useState<PlanId | "coupon" | null>(null); const [open, setOpen] = useState(false); const [inq, setInq] = useState(false);
   const { width } = useWindowDimensions(); const wide = width >= 900;
   useEffect(() => { let off = false; http?.shop().then((c: Cat) => { if (!off) setCat(c); }).catch(() => {}); return () => { off = true; }; }, [http]);
   const cur: PlanId = cat?.pkg.plan ?? "start";
@@ -42,7 +43,7 @@ export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
         <View style={s.wrap}>
           <Text style={s.lead}>{K.lead}</Text>
           <View style={[s.grid, wide && { flexWrap: "nowrap" }]} role="list">
-            {PLAN_ORDER.map((id) => <PlanCard key={id} id={id} cat={cat} current={cur === id} onBuy={() => setBuy(id)} />)}
+            {PLAN_ORDER.map((id) => <PlanCard key={id} id={id} cat={cat} current={cur === id} onBuy={() => (id === "org" ? setInq(true) : setBuy(id))} />)}
           </View>
           {cat && <Usage cat={cat} />}
           <View style={s.coupon} testID="pack-coupon">
@@ -57,6 +58,7 @@ export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
         </View>
       </ScrollView>
       {buy && <Checkout http={http} id={buy} cat={cat} onClose={() => setBuy(null)} />}
+      {inq && <Inquiry http={http} onClose={() => setInq(false)} />}
     </View>);
 }
 
@@ -77,7 +79,7 @@ function PlanCard({ id, cat, current, onBuy }: { id: PlanId; cat: Cat | null; cu
       </View>
       <View style={s.pts}>{pts.map((t) => <View key={t} style={s.pt}><Icon name="check" size={16} color={GREEN_TEXT} /><Text style={s.ptT}>{t}</Text></View>)}</View>
       <View style={{ flex: 1 }} />
-      {id === "org" ? <OrgTiers cat={cat} />
+      {id === "org" ? <><OrgTiers cat={cat} /><Button label={K.orgContact} onPress={onBuy} /></>
         : current ? <Text style={s.curT}>{K.current}</Text>
         : id === "start" ? null
         : monthly != null ? <Button label={K.buy} onPress={onBuy} /> : <Text style={s.tbd} testID={`pack-${id}-tbd`}>{K.priceTbd}</Text>}
@@ -108,6 +110,26 @@ function Matrix() {
     <View style={[s.mrow, { borderBottomWidth: 2 }]} role="row"><Text style={[s.mh, { flex: 1.6 }]}>{K.table.feature}</Text>{PLAN_ORDER.map((p) => <Text key={p} style={s.mh}>{K.plans[p].t}</Text>)}</View>
     {MATRIX.map((r) => (<View key={r.key} style={s.mrow} role="row"><Text style={[s.mc, { flex: 1.6, color: color.navy, fontWeight: "700" }]}>{K.rows[r.key]}</Text>{r.v.map((v, i) => <Text key={i} style={[s.mc, v === "yes" && { color: GREEN_TEXT, fontWeight: "800" }]}>{K.cell[v]}</Text>)}</View>))}
   </View>);
+}
+
+/** Tashkilot murojaati: nom, o'rinlar soni, aloqa. Shartnoma va o'rinlar qo'lda (admin «Moliya → Murojaatlar»). */
+function Inquiry({ http, onClose }: { http?: Http; onClose: () => void }) {
+  const Q = K.inq; const [org, setOrg] = useState(""); const [seats, setSeats] = useState(""); const [contact, setContact] = useState(""); const [note, setNote] = useState(""); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null); const [done, setDone] = useState(false);
+  const ok = org.trim().length >= 2 && Number(seats) >= 1 && contact.trim().length >= 5;
+  const send = async () => { if (!http || !ok) return; setBusy(true); setErr(null); try { await http.orgInquiry({ org: org.trim(), seats: Number(seats), contact: contact.trim(), ...(note.trim() ? { note: note.trim() } : {}) }); setDone(true); } catch (e: any) { setErr(String(e?.code ?? "unknown")); } finally { setBusy(false); } };
+  return (
+    <Modal transparent animationType="fade" onRequestClose={onClose}>
+      <View style={s.back2}><View style={s.sheet} role="dialog" aria-label={Q.title} testID="org-inquiry">
+        <Text style={s.cardT} aria-level={2} accessibilityRole="header">{Q.title}</Text>
+        {done ? <><Text style={s.cardD} testID="inq-done">{Q.sent}</Text><Button label={Q.close} onPress={onClose} /></> : <>
+          <Text style={s.l} nativeID="iq1">{Q.org}</Text><TextInput accessibilityLabelledBy="iq1" aria-label={Q.org} value={org} onChangeText={setOrg} maxLength={80} style={s.inp} />
+          <Text style={s.l} nativeID="iq2">{Q.seats}</Text><TextInput accessibilityLabelledBy="iq2" aria-label={Q.seats} value={seats} onChangeText={(t) => setSeats(t.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" style={s.inp} />
+          <Text style={s.l} nativeID="iq3">{Q.contact}</Text><TextInput accessibilityLabelledBy="iq3" aria-label={Q.contact} value={contact} onChangeText={setContact} maxLength={80} autoCapitalize="none" style={s.inp} />
+          <Text style={s.l} nativeID="iq4">{Q.note}</Text><TextInput accessibilityLabelledBy="iq4" aria-label={Q.note} value={note} onChangeText={setNote} maxLength={300} multiline style={[s.inp, { minHeight: 72 }]} />
+          {err && <Text style={[s.tbd, { color: color.red }]} accessibilityRole="alert">{errText(err)}</Text>}
+          <Button label={Q.send} onPress={send} disabled={!ok || busy} /><Button label={Q.close} kind="ghost" onPress={onClose} /></>}
+      </View></View>
+    </Modal>);
 }
 
 /** To'lov oynasi: davr (oylik/yillik), usul (Payme/Click), «To'lash» buyurtma yaratib provayder oynasiga o'tkazadi. Karta ma'lumoti bizda yo'q. */
@@ -180,6 +202,7 @@ const s = StyleSheet.create({
   mrow: { flexDirection: "row", gap: 6, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "#E8EEEA", alignItems: "center" }, mh: { flex: 1, color: color.navy, fontWeight: "800", fontSize: 12 }, mc: { flex: 1, color: color.text2, fontSize: 12 },
   rules: { color: color.text2, fontSize: 12, lineHeight: 18 }, pay: { color: color.text2, fontSize: 12 },
   back2: { flex: 1, backgroundColor: "rgba(8,38,62,0.55)", alignItems: "center", justifyContent: "center", padding: space.lg }, sheet: { width: "100%", maxWidth: 440, gap: space.md, padding: space.xl, borderRadius: radius.xl, backgroundColor: color.white },
+  inp: { minHeight: 48, borderWidth: 1, borderColor: "#7C8FA0", borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.md, color: color.navy, backgroundColor: color.white },
   l: { color: color.text2, fontSize: font.sm, fontWeight: "700" }, row: { flexDirection: "row", gap: space.sm }, seg: { flex: 1, minHeight: 48, borderRadius: radius.md, borderWidth: 2, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, segOn: { backgroundColor: color.green, borderColor: color.green }, segT: { color: color.navy, fontWeight: "800" },
   opt: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 60, paddingHorizontal: space.md, borderRadius: radius.md, borderWidth: 1, borderColor: color.line, backgroundColor: color.white }, optHot: { borderWidth: 2, borderColor: color.green, backgroundColor: "#EAF8F1" },
   optT: { color: color.navy, fontWeight: "800", fontSize: font.md }, rec: { color: GREEN_TEXT, fontSize: 12 }, optD: { color: color.text2, fontSize: 12 }, optP: { color: color.navy, fontWeight: "800", fontSize: font.sm },
