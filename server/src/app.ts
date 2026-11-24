@@ -18,6 +18,7 @@ import { AdminState, AdminAuth, envAdminAuth, registerAdmin } from "./admin";
 import { MemoryStore, Store } from "./store";
 import { RoomManager } from "./rooms";
 import { Commerce, DevProvider, type PaymentProvider } from "./commerce";
+import { Clubs, CLUB_LIMITS } from "./clubs";
 import { PayLedger, PaymeMerchant, ClickMerchant, PaymeProvider, ClickProvider } from "./payments";
 import { ParentConsents } from "./parents";
 import { PhoneLinks } from "./phones";
@@ -82,6 +83,7 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   const ops = opts.ops ?? new Ops(opts.docs); const accounts = opts.accounts ?? new AdminAccounts(opts.docs);
   const edu = opts.edu ?? new Edu(opts.docs); const tournaments = opts.tournaments ?? new Tournaments(opts.docs);
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
+  const clubs = new Clubs(opts.docs);
   const rooms = new RoomManager(registry, store, undefined, undefined, {
     chatRestricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.chatBlocked(ids)])], // erkin chat: 16 yoshgacha va ota-ona o'chirgan
     restricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.loansBlocked(ids)])], // §2.8: 16 yoshgacha va ota-ona o'chirgan bolalar — qarz/sheriklik yopiq
@@ -110,7 +112,7 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
     if (!metricsToken || (req.headers.authorization ?? "") !== `Bearer ${metricsToken}`) return reply.code(metricsToken ? 401 : 404).send({ error: "unauthorized" });
     return reply.header("content-type", "text/plain; version=0.0.4").send(m.render());
   });
-  function eraseUser(uid: string) { profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); adminState.banUntil.delete(uid); revocations.revoke(uid); }
+  function eraseUser(uid: string) { clubs.erase(uid); profiles.delete(uid); commerce.erase(uid); edu.eraseUser(uid); tournaments.eraseUser(uid); consents.erase(uid); phones.erase(uid); adminState.users.delete(uid); adminState.banUntil.delete(uid); revocations.revoke(uid); }
   const legacyAuth = envAdminAuth();
   registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth });
   registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser }); registerAdminInsight(guard, app, { state: adminState, ops, profiles, commerce, consents, rooms, store, sockets: () => openSockets }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }) } });
@@ -332,13 +334,28 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   });
   // Faol o'yin (§7: bir hisob — bitta faol o'yin): ilova yangidan ochilganda «Davom etish» uchun.
   // Ochiq o'yinlar ro'yxati: kutish zalidagi Ochiq va Qulfli xonalar. 16 yoshgacha (yoki ota-ona cheklagan) hisob ro'yxatni ko'rmaydi (SPEC §2.8, OPEN_QUESTIONS 202).
-  const lobbyPayload = (restricted: boolean) => ({ rooms: restricted ? [] : rooms.openRooms(), playing: restricted ? [] : rooms.playingRows(), stats: rooms.lobbyStats(), online: openSockets });
+  const lobbyPayload = (restricted: boolean) => ({ ...(restricted ? { restricted: true } : {}), rooms: restricted ? [] : rooms.openRooms(), playing: restricted ? [] : rooms.playingRows(), stats: rooms.lobbyStats(), online: openSockets });
   app.get("/rooms/open", secured((uid) => lobbyPayload(profiles.restrictedOf([uid]).length > 0)));
   // Jonli ro'yxat: obunachilarga o'zgarish bo'lganda (yig'ilgan) yangilanish yuboriladi. 16 yoshgacha hisoblarga xonalar ro'yxati bo'sh, faqat jami sonlar.
   const lobbySubs = new Set<{ userId: string; send: (s: string) => void }>();
   const pushLobbies = (subs: Iterable<{ userId: string; send: (s: string) => void }>) => { let free: string | null = null, kid: string | null = null; for (const c of subs) { const restricted = profiles.restrictedOf([c.userId]).length > 0; const msg = restricted ? (kid ??= JSON.stringify({ type: "lobbies", ...lobbyPayload(true) })) : (free ??= JSON.stringify({ type: "lobbies", ...lobbyPayload(false) })); try { c.send(msg); } catch { /* yopilgan */ } } };
   rooms.onLobbies(() => pushLobbies(lobbySubs));
 
+  // --- Klublar (Premium yaratadi, hamma bepul qo'shiladi) ---
+  const clubRestricted = (uid: string) => profiles.restrictedOf([uid]).length > 0 || consents.loansBlocked([uid]).length > 0;
+  const CE: Record<string, number> = { premium_required: 402, bad_name: 400, limit_owned: 409, limit_joined: 409, club_full: 409, bad_code: 404, not_found: 404, not_member: 403, restricted: 403, already_member: 409 };
+  const clubPub = (c: { id: string; name: string; code: string; ownerId: string; members: string[] }, uid: string) => ({ id: c.id, name: c.name, members: c.members.length, owner: c.ownerId === uid, ...(c.members.includes(uid) ? { code: c.code } : {}) });
+  app.get("/clubs", secured((uid) => ({ clubs: clubs.mine(uid).map((c) => clubPub(c, uid)), premium: commerce.isPremium(uid), restricted: clubRestricted(uid), limits: CLUB_LIMITS })));
+  app.post("/clubs", secured((uid, req, reply) => { const r = clubs.create(uid, (req.body as any)?.name, commerce.isPremium(uid), clubRestricted(uid)); return r.ok ? { club: clubPub(r.club, uid) } : reply.code(CE[r.error] ?? 400).send({ error: r.error }); }));
+  app.post("/clubs/join", secured((uid, req, reply) => { const r = clubs.join(uid, (req.body as any)?.code, clubRestricted(uid)); return r.ok ? { club: clubPub(r.club, uid) } : reply.code(CE[r.error] ?? 400).send({ error: r.error }); }));
+  app.post("/clubs/:id/leave", secured((uid, req, reply) => { const r = clubs.leave(uid, String((req.params as any).id)); return r.ok ? { ok: true } : reply.code(CE[r.error] ?? 400).send({ error: r.error }); }));
+  app.delete("/clubs/:id", secured((uid, req, reply) => { const r = clubs.remove(uid, String((req.params as any).id)); return r.ok ? { ok: true } : reply.code(CE[r.error] ?? 400).send({ error: r.error }); }));
+  app.get("/clubs/:id/board", secured((uid, req, reply) => {
+    const c = clubs.items.get(String((req.params as any).id)); if (!c || !c.members.includes(uid)) return reply.code(c ? 403 : 404).send({ error: c ? "not_member" : "not_found" });
+    const rows = c.members.map((m) => { const p = profiles.get(m); const st = profiles.stats(m); return { userId: m, name: p?.name ?? "—", color: p?.color ?? 0, level: st.level, games: st.games, wins: st.wins, rating: st.rating, league: st.league }; })
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.wins - a.wins || a.games - b.games || a.name.localeCompare(b.name)).map((x, i) => ({ rank: i + 1, name: x.name, color: x.color, level: x.level, games: x.games, wins: x.wins, rating: x.rating, league: x.league, me: x.userId === uid }));
+    return { club: clubPub(c, uid), board: rows };
+  }));
   app.get("/me/rank", secured((uid) => ({ me: profiles.rankOf(uid) })));
   app.get("/me/active", secured((uid) => {
     const code = rooms.activeRoomOf.get(uid); const r = code ? rooms.rooms.get(code) : undefined;
@@ -375,14 +392,14 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   if (env.PAYME_KEY && env.PAYME_MERCHANT_ID) { const pm = new PaymeMerchant(commerce, payLedger, env.PAYME_KEY); app.post("/pay/payme", async (req) => pm.handle(req.headers.authorization, req.body)); }
   if (env.CLICK_SECRET_KEY && env.CLICK_SERVICE_ID) { const ck = new ClickMerchant(commerce, payLedger, env.CLICK_SERVICE_ID, env.CLICK_SECRET_KEY); for (const u of ["/pay/click", "/pay/click/prepare", "/pay/click/complete"]) app.post(u, async (req) => ck.handle(req.body)); }
   const ageOf = (uid: string) => { const p = profiles.get(uid); return p ? new Date().getFullYear() - p.birthYear : null; };
-  registerBiz({ app, edu, tournaments, ops, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
+  registerBiz({ isPremium: (u) => commerce.isPremium(u), app, edu, tournaments, ops, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
   app.addHook("onResponse", async (req, rep) => { if (rep.statusCode >= 500) ops.logError(`${req.method} ${req.routeOptions?.url ?? req.url}`, `HTTP ${rep.statusCode}`); });
   app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "", build: BUILD_ID }; }); // `build`: server ishga tushgan vaqt (har deploy'da yangilanadi) — ochiq mijoz yangi versiya chiqqanini shundan biladi
-  const ready = Promise.all([phones.load(), consents.load(), commerce.load().then((c) => { if (opts.pilotPrices) c.seedPilot(); return c; }), payLedger.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
+  const ready = Promise.all([clubs.load(), phones.load(), consents.load(), commerce.load().then((c) => { if (opts.pilotPrices) c.seedPilot(); return c; }), payLedger.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
     for (const b of ops.bans.values()) if (b.until) adminState.banUntil.set(b.id, b.until);
     for (const c of ops.cleared.values()) profiles.cleared.add(c.id);
     accounts.bootstrap(process.env.ADMIN_BOOTSTRAP_LOGIN, process.env.ADMIN_BOOTSTRAP_PASSWORD);
   }); // docs jadvalidan tiklash
   const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush(), accounts.queue.flush(), ops.queue.flush()]);
-  return { app, rooms, store, registry, adminState, profiles, analysis, commerce, payLedger, phones, consents, edu, tournaments, accounts, ops, ready, flush };
+  return { app, clubs, rooms, store, registry, adminState, profiles, analysis, commerce, payLedger, phones, consents, edu, tournaments, accounts, ops, ready, flush };
 }

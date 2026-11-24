@@ -19,7 +19,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
   const [polled, setPolled] = useState<Lobbies | null>(null); const [gone, setGone] = useState(false); const [bad, setBad] = useState(false); const [filter, setFilter] = useState<Filter>("all"); const [ask, setAsk] = useState<string | null>(null); const [code, setCode] = useState(""); const [status, setStatus] = useState<"all" | "waiting" | "playing">("all"); const [wide, setWide] = useState(!collapsible); const [direct, setDirect] = useState(""); const [acc, setAcc] = useState(false);
   // Jonli rejim: server o'zgarishlarni WebSocket orqali yuboradi. `watch` berilmasa (yoki ulanmagan bo'lsa) HTTP bilan har 5 soniyada so'raladi.
   useEffect(() => { if (!watch) return; watch(true); return () => watch(false); }, [watch]);
-  useEffect(() => { if (watch && live) return; let off = false; let h: any; const load = async () => { try { const r = await http.openRooms() as any; if (!off) { setPolled({ rooms: r.rooms ?? [], playing: r.playing ?? [], stats: r.stats ?? { playing: { rooms: 0, players: 0 }, waiting: { rooms: 0, players: 0 } }, online: r.online ?? 0 }); setBad(false); } } catch (e: any) { if (!off) { if (e?.status === 404) setGone(true); else setBad(true); } } if (!off) h = setTimeout(load, pollMs); }; load(); return () => { off = true; clearTimeout(h); }; }, [http, pollMs, watch, !!live]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (watch && live) return; let off = false; let h: any; const load = async () => { try { const r = await http.openRooms() as any; if (!off) { setPolled({ restricted: !!r.restricted, rooms: r.rooms ?? [], playing: r.playing ?? [], stats: r.stats ?? { playing: { rooms: 0, players: 0 }, waiting: { rooms: 0, players: 0 } }, online: r.online ?? 0 }); setBad(false); } } catch (e: any) { if (!off) { if (e?.status === 404) setGone(true); else setBad(true); } } if (!off) h = setTimeout(load, pollMs); }; load(); return () => { off = true; clearTimeout(h); }; }, [http, pollMs, watch, !!live]); // eslint-disable-line react-hooks/exhaustive-deps
   const data = watch && live ? live : polled; const rooms = data?.rooms ?? null; const isLive = !!(watch && live);
   if (gone) return null;
   const all: Row[] = [
@@ -43,6 +43,9 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
           : (<ScrollView horizontal showsHorizontalScrollIndicator={false} tabIndex={0} role="region" aria-label={O.colMode} contentContainerStyle={s.chipsRow}>
               <View style={s.chipsRow} role="radiogroup" aria-label={O.colMode}>{typeChips}</View>
             </ScrollView>); })()}
+      {data?.restricted && (<View style={s.kid} testID="kid-code"><Text style={s.mut}>{O.kidCode}</Text><View style={{ flexDirection: "row", gap: space.sm }}>
+        <TextInput aria-label={O.codeFor} placeholder="ABC123" placeholderTextColor="#6B7C8C" value={code} onChangeText={(t) => setCode(t.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} autoCapitalize="characters" style={[s.kidIn, { flex: 1 }]} />
+        <Pressable role="button" accessibilityLabel={O.enter} disabled={code.length !== 6 || !online} onPress={() => onJoin(code)} style={[s.btn, (code.length !== 6 || !online) && { opacity: 0.45 }]}><Text style={s.btnT}>{O.enter}</Text></Pressable></View></View>)}
       {bad && <Text style={s.err} accessibilityRole="alert">{O.err}</Text>}
       {rooms === null && !bad && <Text style={s.mut}>{O.loading}</Text>}
       {rooms !== null && list.length === 0 && <Text style={s.mut} testID="rooms-empty">{O.empty}</Text>}
@@ -94,6 +97,7 @@ export function RoomsList({ http, online, onJoin, pollMs = 5000, live, watch, co
 const HUES = ["#11835A", "#1B6FA8", "#7A4B00", "#4B3FA0", "#8F2434", "#0E5F85"];
 function Avatar2({ name, on }: { name: string; on: boolean }) { const h = HUES[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % HUES.length]; return <View style={[s.av, { backgroundColor: h }]} aria-hidden><Text style={s.avT}>{(name[0] ?? "?").toUpperCase()}</Text><View style={[s.avDot, { backgroundColor: on ? "#34C27A" : "#F2B233" }]} /></View>; }
 const s = StyleSheet.create({
+  kid: { gap: space.sm, padding: space.md, borderRadius: radius.md, backgroundColor: "#F4F7F8" }, kidIn: { minHeight: 48, borderWidth: 1, borderColor: "#7C8FA0", borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, color: color.navy, backgroundColor: color.white },
   lst: { borderRadius: radius.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, overflow: "hidden" }, li: { paddingHorizontal: space.md, paddingVertical: space.sm, gap: 4 }, liSep: { borderTopWidth: 1, borderTopColor: "#EEF2F4" },
   liMain: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 52 }, liHost: { color: color.navy, fontWeight: "800", fontSize: font.md }, liMeta: { color: color.text2, fontSize: 12, marginTop: 1 },
   liSeats: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingLeft: 52 }, liLock: { color: color.text2, fontSize: 12 },

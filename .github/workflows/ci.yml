@@ -81,6 +81,7 @@ jobs:
       - run: pnpm --filter @tajriba24/server exec tsx scripts/modes-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/frontend-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/pay-check.ts
+      - run: pnpm --filter @tajriba24/server exec tsx scripts/club-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/progress-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/catalog-check.ts
       - run: pnpm --filter @tajriba24/server exec tsx scripts/art-check.ts

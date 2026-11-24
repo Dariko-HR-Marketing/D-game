@@ -12,6 +12,7 @@ import { Game } from "./src/ui/Game";
 const ProfileScreen = lazyNamed(() => import("./src/ui/ProfileScreen"), "ProfileScreen");
 import { NameGate } from "./src/ui/NameGate";
 const Result = lazyNamed(() => import("./src/ui/Result"), "Result");
+const ClubScreen = lazyNamed(() => import("./src/ui/ClubScreen"), "ClubScreen");
 const RulesScreen = lazyNamed(() => import("./src/ui/RulesScreen"), "RulesScreen");
 import { Screen } from "./src/ui/Screen";
 import { Banner } from "./src/ui/kit";
@@ -96,7 +97,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const watchLobbies = useCallback((on: boolean) => conn.watchLobbies(on), [conn]); // jonli «Ochiq o'yinlar» ro'yxati (barqaror havola: obuna qayta-qayta o'zgarmasin)
   const [st, setSt] = useState<ConnState>(conn.state);
   const http = useMemo(() => { setAvatarBase(httpBase(SERVER)); return makeHttp(httpBase(SERVER), session.token); }, [session.token]);
-  const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments" | "packs">("home");
+  const [screen, setScreen] = useState<"home" | "profile" | "board" | "rules" | "shop" | "class" | "tournaments" | "packs" | "clubs">("home");
   const [rulesOpen, setRulesOpen] = useState(false); // o'yin davomida ham ochiladi
   // Yangi versiya: server har deploy'da yangi `build` beradi; ochiq (o'ynab turgan) mijoz buni ko'rsa «Yangilash» taklif qiladi (o'yin saqlanadi, qayta yuklagach holat tiklanadi)
   const [stale, setStale] = useState(false);
@@ -147,11 +148,12 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
+        : !room && screen === "clubs" ? <ClubScreen http={http} onBack={() => setScreen("home")} onPacks={() => setScreen("packs")} />
         : !room && screen === "packs" ? <Packs http={http} onBack={() => setScreen("home")} /> : !room && screen === "shop" ? <ShopScreen http={http} onBack={() => setScreen("home")} />
         : !room && screen === "class" ? <ClassScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "tournaments" ? <TournamentScreen http={http} onBack={() => setScreen("home")} onEnterRoom={(c: string) => conn.join(c)} />
         : !room && screen === "board" ? <Leaderboard http={http} onBack={() => setScreen("home")} />
-        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n, m, o) => conn.create(t, c, n, m, o)} onPacks={() => setScreen("packs")} lobbies={st.lobbies} onWatchLobbies={watchLobbies} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
+        : !room ? <><Home http={http} status={st.status} error={st.error} onCreate={(t, c, n, m, o) => conn.create(t, c, n, m, o)} onPacks={() => setScreen("packs")} onClubs={() => setScreen("clubs")} lobbies={st.lobbies} onWatchLobbies={watchLobbies} onJoin={tryJoin} onProfile={() => setScreen("profile")} onLeaderboard={() => setScreen("board")} onShop={() => setScreen("shop")} onClass={() => setScreen("class")} onTournaments={() => setScreen("tournaments")} onRules={() => setScreen("rules")} /></>
         : room.closed ? <Screen title="Xona yopildi" maxWidth={520}><Banner kind="warn">{`Xona administrator tomonidan yopildi: ${room.closed}`}</Banner><Button label="Bosh sahifaga" onPress={() => conn.leave()} /></Screen>
         : !room.state ? <Lobby room={room} userId={userId} error={st.error} onStart={(events) => conn.start(events)} onLeave={() => conn.leave()} onStay={() => conn.stay()} />
         : room.state.phase === "dreams" ? <DreamPick room={room} userId={userId} error={st.error} onPick={(i) => conn.act({ type: "choose_dream", dreamIdx: i })} />

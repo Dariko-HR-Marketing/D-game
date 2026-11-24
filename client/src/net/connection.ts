@@ -11,7 +11,7 @@ export interface ChatMsg { id: number; from: string; at: number; text?: string; 
 export interface LobbyRow { id: string; code?: string; host: string; mode: "standard" | "student" | "corporate"; turnSeconds: 0 | 60 | 120; seats: number; players: number; locked: boolean }
 export interface PlayingRow { id: string; host: string; mode: "standard" | "student" | "corporate"; round: number; players: number }
 /** Jonli ro'yxat: ochiq/qulfli kutayotgan xonalar, hozir o'ynalayotganlar, jami sonlar va onlayn soni (server har o'zgarishda yuboradi). */
-export interface Lobbies { rooms: LobbyRow[]; playing: PlayingRow[]; stats: { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }; online: number }
+export interface Lobbies { restricted?: boolean; rooms: LobbyRow[]; playing: PlayingRow[]; stats: { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }; online: number }
 export interface PaywallInfo { error: "room_limit" | "no_coupon"; detail: { quota: { day: number | null; week: number | null; month: number | null }; usage: { day: number; week: number; month: number; resets: { day: number; week: number; month: number } }; coupons: number; plan: "start" | "plus" | "premium" } }
 export interface ConnState { paywall?: PaywallInfo | null; lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
@@ -53,7 +53,7 @@ export class Connection {
         // Eski holat tufayli rad etilgan harakat: yangi holat kelgach bir marta qayta yuboriladi (server navbat/qoidani baribir tekshiradi).
         if (this.retryNext && this.lastAct && this.lastAct.retries < 3) { this.retryNext = false; this.lastAct.retries++; this.send({ type: "act", seq: m.room.seq, action: this.lastAct.action }); }
       } else if (m.type === "lobbies") {
-        this.set({ lobbies: { rooms: m.rooms ?? [], playing: m.playing ?? [], stats: m.stats, online: m.online ?? 0 } });
+        this.set({ lobbies: { restricted: !!m.restricted, rooms: m.rooms ?? [], playing: m.playing ?? [], stats: m.stats, online: m.online ?? 0 } });
       } else if (m.type === "voice_state") {
         this.set({ voice: Array.isArray(m.members) ? (m.members as string[]) : [] });
       } else if (m.type === "voice_signal") {

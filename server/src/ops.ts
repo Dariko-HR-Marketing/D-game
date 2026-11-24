@@ -14,7 +14,7 @@ export interface CMeta { id: string; status: CStatus; category: "player" | "paym
 export interface Review { version: number; status: "draft" | "submitted" | "rejected"; by?: string; comment?: string; at: number }
 export interface Flags { maintenance: boolean; maintenanceText: string; roomsPaused: boolean; salesPaused: boolean; tournamentsPaused: boolean }
 export const DEFAULT_FLAGS: Flags = { maintenance: false, maintenanceText: "", roomsPaused: false, salesPaused: false, tournamentsPaused: false };
-export interface Announcement { id: string; text: string; kind: "info" | "warn"; audience: "all" | "class" | "tournament"; ref?: string; from: number; until: number; active: boolean; by: string; createdAt: number }
+export interface Announcement { id: string; text: string; kind: "info" | "warn"; audience: "all" | "class" | "tournament" | "premium"; ref?: string; from: number; until: number; active: boolean; by: string; createdAt: number }
 export interface Prize { id: string; tournamentId: string; userId: string; prize: string; status: "pending" | "given"; by: string; at: number }
 export interface CfgLog { id: string; at: number; admin: string; what: string; before: unknown; after: unknown }
 export interface PayEvt { id: string; at: number; orderId: string; amount: number; ok: boolean; error?: string }
@@ -44,7 +44,7 @@ export class Ops {
   wrapSms(inner: SmsSender): SmsSender {
     return { send: async (phone: string, text: string) => { const to = phone.replace(/\d(?=\d{3})/g, "•"); try { await inner.send(phone, text); this.smsLog.push({ at: this.now(), ok: true, to }); } catch (e) { this.smsLog.push({ at: this.now(), ok: false, to }); throw e; } finally { if (this.smsLog.length > 500) this.smsLog.shift(); } } };
   }
-  announcementsFor(ctx: { classIds: string[]; tournamentIds: string[] }): Announcement[] {
-    const t = this.now(); return this.anns.values().filter((a) => a.active && a.from <= t && a.until > t && (a.audience === "all" || (a.audience === "class" && !!a.ref && ctx.classIds.includes(a.ref)) || (a.audience === "tournament" && !!a.ref && ctx.tournamentIds.includes(a.ref)))).sort((a, b) => b.createdAt - a.createdAt);
+  announcementsFor(ctx: { classIds: string[]; tournamentIds: string[]; premium?: boolean }): Announcement[] {
+    const t = this.now(); return this.anns.values().filter((a) => a.active && a.from <= t && a.until > t && (a.audience === "all" || (a.audience === "premium" && !!ctx.premium) || (a.audience === "class" && !!a.ref && ctx.classIds.includes(a.ref)) || (a.audience === "tournament" && !!a.ref && ctx.tournamentIds.includes(a.ref)))).sort((a, b) => b.createdAt - a.createdAt);
   }
 }

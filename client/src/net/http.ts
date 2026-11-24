@@ -37,6 +37,7 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     tRegister: (id: string, parentPhone?: string) => call("POST", `/tournaments/${id}/register`, parentPhone ? { parentPhone } : {}), tUnregister: (id: string) => call("POST", `/tournaments/${id}/unregister`, {}), tRoom: (id: string) => call("POST", `/tournaments/${id}/room`, {}),
     /** Ochiq o'yinlar ro'yxati (kutish zalidagi Ochiq va Qulfli xonalar). Server tomoni ulanmaguncha 404 qaytadi: mijoz bo'limni yashiradi. */
     openRooms: () => call("GET", "/rooms/open") as Promise<{ rooms: OpenRoom[] }>,
+    clubs: () => call("GET", "/clubs"), clubCreate: (name: string) => call("POST", "/clubs", { name }), clubJoin: (code: string) => call("POST", "/clubs/join", { code }), clubLeave: (id: string) => call("POST", `/clubs/${id}/leave`, {}), clubDelete: (id: string) => call("DELETE", `/clubs/${id}`), clubBoard: (id: string) => call("GET", `/clubs/${id}/board`),
     deleteAccount: (confirm: string) => call("DELETE", "/me", { confirm }),
   };
 }

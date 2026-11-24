@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, StyleSheet, useWindowDimensions, Platform } from "react-native";
 import { Card, Pill, SectionTitle, Banner } from "./kit";
 import { Button } from "./Button";
 import { LineChart, type ChartSeries } from "./LineChart";
@@ -172,10 +172,16 @@ function Compare({ data }: { data: ReportData }) { const { width } = useWindowDi
 }
 
 /** O'yin tugagach to'liq hisobot: natija, ko'rsatkichlar, dinamika, maqsad sari yo'l, qarorlar, investitsiyalar, xarajatlar, lahzalar, tavsiyalar va taqqoslash. */
+/** Chop etish uslubi: faqat hisobot chiqadi (brauzerning «PDF sifatida saqlash» oynasi). Bir marta qo'shiladi. */
+function printReport() {
+  const d = (globalThis as any).document; if (!d) return;
+  if (!d.getElementById("t24-print")) { const st = d.createElement("style"); st.id = "t24-print"; st.textContent = "@media print{body *{visibility:hidden!important}[data-print=report],[data-print=report] *{visibility:visible!important}[data-print=report]{position:absolute!important;left:0;top:0;width:100%!important;padding:16px}@page{margin:12mm}}"; d.head.appendChild(st); }
+  (globalThis as any).print?.();
+}
 export function ReportView({ data, onPacks }: { data: ReportData; onPacks?: () => void }) { const me = data.me, f = me.final;
   const outcomeKind = me.outcome === "won" ? "good" : me.outcome === "big" ? "info" : "plain";
   return (
-    <View style={{ gap: space.lg }} testID="report">
+    <View style={{ gap: space.lg }} testID="report" {...({ dataSet: { print: "report" } } as any)}>
       <Card accent={me.outcome === "won" ? "green" : undefined} label={R.forYou}>
         <View style={s.rowBetween}><Text style={s.hName}>{me.name}</Text><Pill label={R.outcome[me.outcome]} kind={outcomeKind as any} /></View>
         <View style={s.kpis}>
@@ -200,7 +206,7 @@ export function ReportView({ data, onPacks }: { data: ReportData; onPacks?: () =
         <Block title={R.sec.invest}><Invest me={me} /></Block>
         <Block title={R.sec.spending}><Spending me={me} /></Block>
         <Block title={R.sec.insights} wide><Insights me={me} /></Block>
-        <Block title={R.adv.title} wide><Advice me={me} onPacks={onPacks} /></Block>
+        <Block title={R.adv.title} wide><Advice me={me} onPacks={onPacks} />{Platform.OS === "web" && !me.adviceLocked && <View style={{ marginTop: space.sm }} testID="report-pdf"><Button label={R.pdf} kind="ghost" onPress={printReport} /></View>}</Block>
         <Block title={R.sec.moments}><Moments me={me} /></Block>
         <Block title={R.sec.compare} wide><Compare data={data} /></Block>
       </View>

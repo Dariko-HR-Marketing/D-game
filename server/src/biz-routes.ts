@@ -15,7 +15,7 @@ import { KeyedLimiter } from "./ratelimit";
 export interface BizDeps {
   ops?: Ops; app: FastifyInstance; edu: Edu; tournaments: Tournaments; consents: ParentConsents; phones: PhoneLinks; profiles: ProfileService; rooms: RoomManager;
   secured: (h: (uid: string, req: any, reply: any) => unknown) => (req: any, reply: any) => unknown;
-  ageOf: (uid: string) => number | null; nameOf: (uid: string) => string | undefined; hashOf: (p: string) => string; dev: boolean; tournamentsPaused?: () => boolean;
+  ageOf: (uid: string) => number | null; nameOf: (uid: string) => string | undefined; hashOf: (p: string) => string; dev: boolean; tournamentsPaused?: () => boolean; isPremium?: (uid: string) => boolean;
 }
 const STATUS: Record<string, number> = { rate_limited: 429, not_found: 404, no_license: 402, forbidden: 403, bad_code: 404, expired: 410, used: 409, already_teacher: 409, seats_full: 409, already_member: 409, limit: 429, paused: 503, closed: 409, full: 409, already: 409, consent_required: 400, adults_only: 403, not_allowed: 403, not_teacher: 403, phone_required: 403, profile_required: 409 };
 const fail = (reply: any, error: string) => reply.code(STATUS[error] ?? 400).send({ error });
@@ -29,7 +29,7 @@ export function registerBiz(d: BizDeps) {
   const kpub = (k: ReturnType<Edu["classesOf"]>[number]) => ({ id: k.id, name: k.name, joinCode: k.joinCode, students: k.students.length, createdAt: k.createdAt });
 
   /** E'lonlar (maqsadli): hammaga, o'z sinfiga yoki ro'yxatdan o'tgan turnirga. */
-  app.get("/me/announcements", d.secured((uid) => ({ announcements: (d.ops?.announcementsFor({ classIds: edu.classesAsStudent(uid).map((k) => k.id).concat(edu.classesOf(uid).map((k) => k.id)), tournamentIds: tn.regs.values().filter((r) => r.userId === uid && r.approved).map((r) => r.tournamentId) }) ?? []).map((a) => ({ id: a.id, text: a.text, kind: a.kind })) })));
+  app.get("/me/announcements", d.secured((uid) => ({ announcements: (d.ops?.announcementsFor({ classIds: edu.classesAsStudent(uid).map((k) => k.id).concat(edu.classesOf(uid).map((k) => k.id)), tournamentIds: tn.regs.values().filter((r) => r.userId === uid && r.approved).map((r) => r.tournamentId), premium: d.isPremium?.(uid) ?? false }) ?? []).map((a) => ({ id: a.id, text: a.text, kind: a.kind, ...(a.audience === "premium" ? { early: true } : {}) })) })));
 
   // --- o'qituvchi ---
   app.get("/edu/me", d.secured((uid) => {

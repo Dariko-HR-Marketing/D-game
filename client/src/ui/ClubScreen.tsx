@@ -1,0 +1,66 @@
+import React, { useEffect, useState } from "react";
+import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { Screen } from "./Screen";
+import { Card, Banner, SectionTitle } from "./kit";
+import { Button } from "./Button";
+import { Acc } from "./Accordion";
+import { Icon } from "./Icon";
+import { Avatar } from "./Avatar";
+import type { Http } from "../net/http";
+import { uz, errText } from "../i18n/uz";
+import { color, font, MIN_TAP, radius, space, tone } from "../theme";
+
+const K = uz.clubs;
+type ClubInfo = { id: string; name: string; members: number; owner: boolean; code?: string };
+type Row = { rank: number; name: string; color: number; level: number; games: number; wins: number; me: boolean };
+
+/** Klublar (Premium yaratadi, hamma bepul qo'shiladi): ro'yxat, kod bilan qo'shilish, klub reytingi. */
+export function ClubScreen({ http, onBack, onPacks }: { http: Http; onBack: () => void; onPacks?: () => void }) {
+  const [list, setList] = useState<ClubInfo[] | null>(null); const [premium, setPremium] = useState(false); const [restricted, setRestricted] = useState(false);
+  const [code, setCode] = useState(""); const [name, setName] = useState(""); const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState<string | null>(null); const [rows, setRows] = useState<Record<string, Row[]>>({});
+  const load = async () => { try { const r = await http.clubs(); setList(r.clubs); setPremium(!!r.premium); setRestricted(!!r.restricted); } catch { setList([]); } };
+  useEffect(() => { void load(); }, [http]);
+  const run = async (f: () => Promise<any>) => { setBusy(true); setErr(null); try { await f(); await load(); } catch (e: any) { setErr(String(e?.code ?? "unknown")); } finally { setBusy(false); } };
+  const toggle = async (id: string) => { const n = open === id ? null : id; setOpen(n); if (n) { try { const r = await http.clubBoard(id); setRows((x) => ({ ...x, [id]: r.board })); } catch { /* ro'yxat bo'sh qoladi */ } } };
+  return (
+    <Screen title={K.title} subtitle={K.lead} onBack={onBack} backLabel={K.back} maxWidth={680}>
+      {err && <Banner kind="bad">{errText(err)}</Banner>}
+      {restricted ? <Banner kind="warn">{K.restricted}</Banner> : (<>
+        <Card>
+          <SectionTitle>{K.join}</SectionTitle>
+          <View style={s.row}>
+            <TextInput aria-label={K.code} placeholder="ABC123" placeholderTextColor="#6B7C8C" value={code} onChangeText={(t) => setCode(t.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} style={[s.input, { flex: 1 }]} autoCapitalize="characters" testID="club-code" />
+            <View style={{ flexShrink: 0 }}><Button label={K.joinBtn} onPress={() => run(async () => { await http.clubJoin(code); setCode(""); })} disabled={busy || code.length !== 6} /></View>
+          </View>
+        </Card>
+        <Card>
+          <SectionTitle>{K.create}</SectionTitle>
+          {premium ? (<View style={s.row}>
+            <TextInput aria-label={K.name} placeholder={K.name} placeholderTextColor="#6B7C8C" value={name} onChangeText={setName} maxLength={30} style={[s.input, { flex: 1 }]} testID="club-name" />
+            <View style={{ flexShrink: 0 }}><Button label={K.createBtn} onPress={() => run(async () => { await http.clubCreate(name.trim()); setName(""); })} disabled={busy || name.trim().length < 2} /></View>
+          </View>) : (<><Text style={s.p}>{K.premiumNeed}</Text>{onPacks && <Button label={K.seePacks} kind="ghost" onPress={onPacks} />}</>)}
+        </Card>
+      </>)}
+      <SectionTitle>{K.mine}</SectionTitle>
+      {list === null ? <Text style={s.p}>{K.loading}</Text> : list.length === 0 ? <Text style={s.p}>{K.empty}</Text> : list.map((c) => (
+        <Acc key={c.id} icon="people" title={c.name} summary={`${K.members.replace("{n}", String(c.members))}${c.owner ? ` · ${K.owner}` : ""}`} open={open === c.id} onToggle={() => toggle(c.id)} testID={`club-${c.id}`}>
+          <View style={{ gap: space.md }}>
+            {c.code && <View style={s.codeBox}><Text style={s.p}>{K.codeIs}</Text><Text style={s.code} testID="club-share-code">{c.code}</Text><Text style={s.hint}>{K.codeHint}</Text></View>}
+            <Text style={s.h}>{K.board}</Text>
+            {(rows[c.id] ?? []).map((r) => (<View key={r.rank + r.name} style={[s.rrow, r.me && s.rme]}><Text style={s.rk}>{r.rank}</Text><Avatar name={r.name} colorIdx={r.color} size={28} /><Text style={s.rn} numberOfLines={1}>{r.name}{r.me ? ` ${K.you}` : ""}</Text><Text style={s.rs}>{r.wins} {K.wins} · {r.games} {K.games}</Text></View>))}
+            <View style={s.row}>
+              <View style={{ flex: 1 }}><Button label={K.leave} kind="ghost" onPress={() => run(() => http.clubLeave(c.id))} disabled={busy} /></View>
+              {c.owner && <View style={{ flex: 1 }}><Button label={K.del} kind="ghost" onPress={() => run(() => http.clubDelete(c.id))} disabled={busy} /></View>}
+            </View>
+          </View>
+        </Acc>))}
+    </Screen>);
+}
+const s = StyleSheet.create({
+  row: { flexDirection: "row", gap: space.sm, alignItems: "stretch" }, p: { color: tone.muted, fontSize: font.md, lineHeight: 22 }, h: { color: color.navy, fontWeight: "800", fontSize: font.md },
+  input: { minHeight: MIN_TAP, minWidth: 0, borderWidth: 1, borderColor: "#7C8FA0", borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, color: color.navy, backgroundColor: color.white },
+  codeBox: { gap: 2, padding: space.md, borderRadius: radius.md, backgroundColor: "#EAF8F1", borderWidth: 1, borderColor: color.green }, code: { color: color.navy, fontSize: 28, fontWeight: "800", letterSpacing: 6 }, hint: { color: tone.muted, fontSize: 12 },
+  rrow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: 6, paddingHorizontal: 8, borderRadius: radius.sm }, rme: { backgroundColor: "#EAF8F1" }, rk: { width: 22, color: color.navy, fontWeight: "800" }, rn: { flex: 1, minWidth: 0, color: color.navy, fontWeight: "700" }, rs: { color: tone.muted, fontSize: 12 },
+});
+void Icon;
