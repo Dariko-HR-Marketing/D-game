@@ -30,6 +30,7 @@ export function registerShop(d: ShopDeps) {
     const r = await commerce.order(uid, b.sku, b.channel === "store" ? "store" : "web", b.parentPhone, typeof b.provider === "string" && /^[a-z]{2,12}$/.test(b.provider) ? b.provider : undefined);
     return r.ok ? { order: pub(r.order), parentRequired: r.parentRequired } : fail(reply, r.error);
   }));
+  app.post("/shop/org-inquiry", d.secured((uid, req, reply) => { const r = commerce.addInquiry(uid, (req.body ?? {}) as any); return r.ok ? { ok: true } : fail(reply, r.error); }));
   app.get("/shop/orders", d.secured((uid) => ({ orders: commerce.ordersOf(uid).map(pub) })));
   app.get("/shop/orders/:id", d.secured((uid, req, reply) => { const o = commerce.orderOf(uid, String(req.params.id)); return o ? { order: pub(o), consent: o.consentId ? { status: consents.get(o.consentId)?.status ?? "expired" } : null } : fail(reply, "not_found"); }));
   app.post("/shop/orders/:id/cancel", d.secured((uid, req, reply) => { const r = commerce.cancel(uid, String(req.params.id)); return r.ok ? { ok: true } : fail(reply, r.error); }));

@@ -144,5 +144,7 @@ export function registerBizAdmin(guard: Guard, app: FastifyInstance, d: { edu: E
   app.get("/admin/shop/config", guard("commerce.read", () => ({ config: d.commerce.config() })));
   app.post("/admin/shop/config", guard(P, (req, who) => { const before = d.commerce.config(); const r = d.commerce.setConfig((req.body ?? {}) as any); if (r.ok) d.ops.log(who.id, "shop.config", before, r.config); return r.ok ? { config: r.config } : { error: r.error }; }, "shop.config"));
   app.get("/admin/shop/orders", guard("commerce.read", () => ({ orders: d.commerce.orders.values().sort((a, b) => b.createdAt - a.createdAt).slice(0, 200).map((o) => ({ id: o.id, user: d.nameOf(o.userId) ?? "—", sku: o.sku, title: o.title, amount: o.amount, status: o.status, channel: o.channel, createdAt: o.createdAt, paidAt: o.paidAt })) })));
+  app.get("/admin/shop/inquiries", guard("commerce.read", () => ({ inquiries: d.commerce.inquiries.values().sort((a, b) => b.at - a.at).slice(0, 200).map((q) => ({ ...q, user: d.nameOf(q.userId) ?? "—" })) })));
+  app.post("/admin/shop/inquiries/:id", guard(P, (req) => (d.commerce.setInquiryStatus(String(req.params.id), (req.body as any)?.status) ? { ok: true } : { error: "not_found" }), "shop.inquiry"));
   void bad;
 }

@@ -35,3 +35,7 @@ Berilgan provayderlar `/shop` katalogida `providers` ro'yxatida chiqadi; mijozda
 - Host-pass, sinf paketi va korporativ paketlar uchun SKU va huquqlar (hozir faqat Plus va kosmetika). Narxlar ham kiritilmagan.
 - Telefon tasdig'i buyurtma uchun hali majburiy (`phone_required`): SMS yoqilguncha to'lov Google/email hisoblari uchun yopiq.
 - Takroriy (avtomatik) to'lov: Plus muddati oldindan to'lanadi.
+
+## To'lov oqimi UX (2026-11-24)
+Mijozda «To'lash» buyurtma yaratadi va **kuzatuv oynasi** (`OrderTracker`) ochiladi: «To'lov oynasini ochish» (yangi oynada), har 3 soniyada holat so'raladi (`GET /shop/orders/:id`), to'lov qabul qilinsa «To'lov qabul qilindi», ota-ona tasdig'i kerak bo'lsa shu aytiladi (SMS ni qayta yuborish), «Holatni tekshirish» va «Buyurtmani bekor qilish». Provayder qaytarish manzili `?tolov=<buyurtma>` bilan keladi: mijoz shu buyurtma holatini ko'rsatadi (`PayResult`). Paketlar sahifasida «Buyurtmalarim». Tekshiruv: `server/scripts/pay-check.ts` (soxta provayder; haqiqiy Payme/Click sandbox'i bilan hali sinalmagan). **Real provayderda sinalishi kerak:** qaytarish manzili (Payme `c=`, Click `return_url`) va `PAY_RETURN_URL`.
+
