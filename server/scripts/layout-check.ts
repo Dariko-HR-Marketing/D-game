@@ -59,7 +59,7 @@ for (const [tag, w, h] of [["tel", 390, 844], ["kmp", 1440, 900]] as [string, nu
   await a.getByRole("button", { name: /^Blank/ }).last().click(); await a.getByTestId("timebar").first().waitFor({ timeout: 4000 });
   const tb = (await a.getByTestId("timebar").first().boundingBox())!, st = (await a.getByRole("group", { name: "Moliyaviy holat" }).first().boundingBox())!;
   check(tb.y < st.y, "o'yin (tel): «Blank» yorlig'ida vaqt paneli moliyaviy holatdan yuqorida");
-  await a.getByRole("button", { name: /^Maydon/ }).last().click();
+  await a.getByRole("button", { name: /^Taxta/ }).last().click();
   check(await a.getByTestId("portfolio-open").count() === 1 && await a.getByTestId("sheet-open").count() === 1 && await a.getByTestId("live-open").count() === 1 && await a.getByTestId("chat-open").count() === 1 && await a.getByTestId("tour-help").count() === 0, "o'yin sarlavhasi (tel): faqat to'rt ikonka (kartalarim, hisob varag'i, tahlil, chat); qolganlari «Profil» menyusida");
   await a.getByTestId("profile-menu-open").click(); check(/Profil/.test(await a.getByTestId("profile-menu-open").innerText()), "o'yin (tel): pastki menyuda «Profil» (Qoidalar o'rniga)");
   for (const id of ["rules-open", "history-open", "sound-toggle", "tour-help", "leave-open"]) check(await a.getByTestId(id).count() === 1, `o'yin (tel): profil menyusida ${id}`);

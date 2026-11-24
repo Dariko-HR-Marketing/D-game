@@ -31,13 +31,13 @@ const txt = async (tab: string, tone: string) => (await dots(tab, tone).count())
 
 // 1) Boshqa bo'limdan navbat menda bo'lganda Maydon belgisi qizil
 turnOf(other); await sync(); await a.getByRole("button", { name: /^Blank/ }).click(); await a.waitForTimeout(300);
-check(await txt("Maydon", "urgent") === null, "navbat menda emas: Maydon belgisi yo'q");
+check(await txt("Taxta", "urgent") === null, "navbat menda emas: Taxta belgisi yo'q");
 turnOf(me); await sync();
-check(await txt("Maydon", "urgent") === "1", "navbat menda: Maydon ustida qizil «1»");
-check(/navbat sizda/.test(await badge("Maydon").getAttribute("aria-label") ?? ""), "ekran o'qish matni: «navbat sizda…»");
+check(await txt("Taxta", "urgent") === "1", "navbat menda: Taxta ustida qizil «1»");
+check(/navbat sizda/.test(await badge("Taxta").getAttribute("aria-label") ?? ""), "ekran o'qish matni: «navbat sizda…»");
 
 // 2) Taklif (qizil) va suyunchi (yashil) — Blank belgisi
-await a.getByRole("button", { name: /^Maydon/ }).click(); turnOf(other);
+await a.getByRole("button", { name: /^Taxta/ }).click(); turnOf(other);
 st.proposals.push({ id: 91, kind: "loan", giver: me.id, receiver: other.id, amount: 100, months: 3 }); await sync();
 check(await txt("Blank", "urgent") === "1", "menga qarz taklifi: Blank ustida qizil «1»");
 st.proposals.push({ id: 92, kind: "suyunchi", parent: other.id, given: [] }); await sync();
@@ -55,10 +55,10 @@ check(ax.length === 0, `axe: buzilish yo'q ${ax.join(", ")}`);
 await badge("O'yinchilar").click(); await a.waitForTimeout(500);
 check(await a.getByText("So'nggi voqealar").count() > 0, "«So'nggi voqealar» endi O'yinchilar bo'limida");
 check(await dots("O'yinchilar", "info").count() === 0, "bo'lim ochilgach O'yinchilar belgisi tozalandi");
-await a.getByRole("button", { name: /^Maydon/ }).click(); await a.waitForTimeout(400);
+await a.getByRole("button", { name: /^Taxta/ }).click(); await a.waitForTimeout(400);
 check(await txt("O'yinchilar", "info") === null, "qaytib chiqqanda ham ko'rilgan voqealar qayta sanalmaydi");
 // 4) Blank ochilganda doimiy bo'lmagan xabar tozalanadi; taklif esa javob berilguncha qoladi
-await a.getByRole("button", { name: /^Blank/ }).click(); await a.waitForTimeout(300); await a.getByRole("button", { name: /^Maydon/ }).click(); await a.waitForTimeout(300);
+await a.getByRole("button", { name: /^Blank/ }).click(); await a.waitForTimeout(300); await a.getByRole("button", { name: /^Taxta/ }).click(); await a.waitForTimeout(300);
 check(await txt("Blank", "urgent") === "2", "taklif javob berilmaguncha belgi saqlanadi (ko'rish yetarli emas)");
 st.proposals = []; await sync();
 check(await txt("Blank", "urgent") === null && await txt("Blank", "info") === null, "taklif muddati tugagach belgi yo'qoladi");

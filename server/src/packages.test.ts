@@ -78,4 +78,12 @@ describe("paketlar (pilot): chegara va kupon", () => {
     if (r.ok) { expect(c.setInquiryStatus(r.inquiry.id, "contacted")).toBe(true); expect(c.setInquiryStatus(r.inquiry.id, "x")).toBe(false); expect(c.inquiries.get(r.inquiry.id)!.status).toBe("contacted"); }
     c.erase("u"); expect(c.inquiries.values()).toHaveLength(0);
   });
+  it("Premium kosmetikasi (eksklyuziv): faqat Premium egalik qiladi va taqadi; muddat tugasa ko'rinmaydi", async () => {
+    const now = { t: T0 }; const c = await mk(now).load();
+    expect(c.owns("u", "pawn-amethyst")).toBe(false); expect(c.equip("u", "pawn-amethyst", "pawn")).toEqual({ ok: false, error: "not_owned" });
+    (c as any).grant({ id: "p", userId: "u", sku: "premium:monthly", title: "", amount: 99_000, channel: "web", status: "paid", createdAt: 0 });
+    expect(c.owns("u", "pawn-amethyst")).toBe(true); expect(c.equip("u", "pawn-amethyst", "pawn")).toEqual({ ok: true }); expect(c.cosmetics("u").pawn).toBe("#7B4FA3");
+    now.t = T0 + 40 * DAYMS; expect(c.isPremium("u")).toBe(false); expect(c.cosmetics("u").pawn).toBeUndefined();
+  });
 });
+

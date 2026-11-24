@@ -1,6 +1,6 @@
 import { buildHistory, type History } from "./history";
 // O'yin tahlili va karta statistikasi: jurnaldan qayta o'ynab hisoblanadi (§5.9, §12).
-import { analyzeGame, buildLive, buildReport, type LiveAnalytics, type Action, type Analysis, type GameReport, type GameState, type PlayerReport } from "@tajriba24/rules";
+import { adviceOf, analyzeGame, buildLive, buildReport, type LiveAnalytics, type Action, type Analysis, type GameReport, type GameState, type PlayerReport } from "@tajriba24/rules";
 import type { ContentRegistry } from "./registry";
 import type { Store } from "./store";
 import type { WriteQueue } from "./persist";
@@ -89,7 +89,7 @@ export type PlayerSummary = Pick<PlayerReport, "id" | "bot" | "rank" | "outcome"
   name: string; isMe: false; peakNetWorth: number; exitMonth: number | null; restarts: number; assets: number; decisions: { shown: number; accepted: number; skipped: number }; netWorthSeries: { month: number; netWorth: number }[];
 };
 /** Mijozga: ishtirokchining o'z hisoboti to'liq; boshqalar — qisqa xulosa (maxfiylik: ism yoki «Bot N» / «O'yinchi N»). `score` — faqat o'ziniki. */
-export function presentReport(r: GameReport, nameOf: (id: string) => string | undefined, me: string, score: { points: { pos: number; neg: number }; xp: number | null } | null) {
+export function presentReport(r: GameReport, nameOf: (id: string) => string | undefined, me: string, score: { points: { pos: number; neg: number }; xp: number | null } | null, advice = false) {
   const label = new Map<string, string>(); let n = 0, nb = 0;
   const nm = (id: string, bot: boolean) => label.get(id) ?? (label.set(id, id === me ? nameOf(id) ?? "Siz" : bot ? `Bot ${++nb}` : nameOf(id) ?? `O'yinchi ${++n}`), label.get(id)!);
   for (const p of r.players) nm(p.id, p.bot); // tartib: o'yinchilar ro'yxati bo'yicha
@@ -101,7 +101,7 @@ export function presentReport(r: GameReport, nameOf: (id: string) => string | un
   }));
   return {
     meta: { rounds: r.rounds, turns: r.turns, months: r.months, mode: r.mode, endReason: r.endReason, winner: r.winner ? label.get(r.winner) ?? null : null, players: r.players.length },
-    me: { ...mine, id: "me", name: label.get(me)!, score }, others, ranking: r.ranking.map((id) => (id === me ? "me" : label.get(id)!)),
+    me: { ...mine, id: "me", name: label.get(me)!, score, advice: advice ? adviceOf(mine) : null, adviceLocked: !advice }, others, ranking: r.ranking.map((id) => (id === me ? "me" : label.get(id)!)),
   };
 }
 

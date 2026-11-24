@@ -33,7 +33,7 @@ for (const [tag, w, h] of sizes.filter(([t]) => !process.env.ONLY || process.env
   const tabBlank = a.getByRole("button", { name: "Blank", exact: true }); if (await tabBlank.count()) { await tabBlank.click(); await a.waitForTimeout(300); await shot(a, "07c-blank"); }
   const acts = a.getByRole("button", { name: /Moliya amallari/ }); await acts.click(); await a.waitForTimeout(300); await a.evaluate(() => window.scrollTo(0, 99999)); await shot(a, "07b-actions");
   const tabP = a.getByRole("button", { name: "O'yinchilar", exact: true }); if (await tabP.count()) { await tabP.click(); await a.waitForTimeout(300); await shot(a, "07d-players"); }
-  const tabF = a.getByRole("button", { name: "Maydon", exact: true }); if (await tabF.count()) await tabF.click();
+  const tabF = a.getByRole("button", { name: "Taxta", exact: true }); if (await tabF.count()) await tabF.click();
   for (let i = 0; i < 400 && !room.state!.pending; i++) { const me = currentPlayer(room.state!).id; await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq); }
   if (room.state!.pending) { const me = currentPlayer(room.state!).id; const pg = me === "ua" + tag ? a : c; await pg.waitForTimeout(700); await shot(pg, "08-card"); }
   room.state!.winner = room.state!.players[0].id; (x.rooms as any).finish(room); (x.rooms as any).emit(room);

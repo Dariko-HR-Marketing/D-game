@@ -173,6 +173,13 @@ export class ProfileService {
       .filter((x) => x.games > 0).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.wins - a.wins || a.games - b.games || a.name.localeCompare(b.name)).slice(0, limit)
       .map((x, i) => ({ rank: i + 1, name: x.name, color: x.color, games: x.games, wins: x.wins, level: x.level, rating: x.rating, league: x.league, donishmand: x.donishmand }));
   }
+  /** Reytingdagi o'rin (hamma o'yin tugatganlar orasida); o'yin tugatmagan bo'lsa `null`. */
+  rankOf(userId: string): { rank: number; total: number; wins: number; games: number; rating?: number | null; league?: string | null } | null {
+    const all = [...this.profiles.values()].map((p) => ({ userId: p.userId, name: p.name, ...this.stats(p.userId) })).filter((x) => x.games > 0)
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.wins - a.wins || a.games - b.games || a.name.localeCompare(b.name));
+    const i = all.findIndex((x) => x.userId === userId); if (i < 0) return null; const x = all[i];
+    return { rank: i + 1, total: all.length, wins: x.wins, games: x.games, rating: x.rating, league: x.league };
+  }
   export(userId: string) { return { profile: this.profiles.get(userId) ?? null, stats: this.stats(userId), history: this.history(userId, 10_000) }; }
   /** Hisobni o'chirish: profil o'chadi, natijalardagi shaxsiy ID anonimlashadi (§7). */
   delete(userId: string) {

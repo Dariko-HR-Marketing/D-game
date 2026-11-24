@@ -301,7 +301,7 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
     if (!commerce.analysisAllowed(uid, !profiles.hasResult(code) || profiles.latestRoomOf(uid) === code)) return reply.code(402).send({ error: "plus_required" });
     const rp = res?.players.find((p) => p.id === uid); const humans = res ? res.players.filter((p) => !p.bot).length : 0;
     const score = res && rp && !rp.bot ? { points: gamePointsV2(res, rp), xp: res.mode === "tutorial" || rp.left ? null : (humans >= BALL.minHumans ? XP.game : XP.botGame) + (rp.xpBonus ?? 0) } : null;
-    const rep = presentReport(r.report, (id) => profiles.get(id)?.name, uid, score);
+    const rep = presentReport(r.report, (id) => profiles.get(id)?.name, uid, score, commerce.isPremium(uid)); // «Qaror tahlili» — Premium
     if ((req.query as any)?.format === "csv") return reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="tajriba24-hisobot-${code}.csv"`).send(reportCsv(rep));
     return rep;
   }));
@@ -339,6 +339,7 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   const pushLobbies = (subs: Iterable<{ userId: string; send: (s: string) => void }>) => { let free: string | null = null, kid: string | null = null; for (const c of subs) { const restricted = profiles.restrictedOf([c.userId]).length > 0; const msg = restricted ? (kid ??= JSON.stringify({ type: "lobbies", ...lobbyPayload(true) })) : (free ??= JSON.stringify({ type: "lobbies", ...lobbyPayload(false) })); try { c.send(msg); } catch { /* yopilgan */ } } };
   rooms.onLobbies(() => pushLobbies(lobbySubs));
 
+  app.get("/me/rank", secured((uid) => ({ me: profiles.rankOf(uid) })));
   app.get("/me/active", secured((uid) => {
     const code = rooms.activeRoomOf.get(uid); const r = code ? rooms.rooms.get(code) : undefined;
     const m = r?.members.find((x) => x.userId === uid);
