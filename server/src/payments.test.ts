@@ -70,8 +70,8 @@ describe("Click Prepare/Complete", () => {
 describe("to'lov oynasi manzillari", () => {
   it("Payme: base64(m;ac.order_id;a tiyinda;l;c); Click: service_id, amount so'mda, transaction_param", async () => {
     const o = mkOrder(); const pu = (await new PaymeProvider("M1", { returnUrl: "https://t24.uz/back" }).checkout(o)).url!;
-    expect(Buffer.from(pu.split("/").pop()!, "base64").toString()).toBe("m=M1;ac.order_id=o1;a=2900000;l=uz;c=https://t24.uz/back");
-    const cu = new URL((await new ClickProvider("S1", "M2", { returnUrl: "https://t24.uz/back" }).checkout(o)).url!); expect(cu.searchParams.get("service_id")).toBe("S1"); expect(cu.searchParams.get("amount")).toBe("29000"); expect(cu.searchParams.get("transaction_param")).toBe("o1");
+    expect(Buffer.from(new URL(pu).pathname.slice(1), "base64").toString()).toBe("m=M1;ac.order_id=o1;a=2900000;l=uz;c=https://t24.uz/back?tolov=o1"); // qaytganda mijoz buyurtma holatini ko'rsatadi
+    const cu = new URL((await new ClickProvider("S1", "M2", { returnUrl: "https://t24.uz/back" }).checkout(o)).url!); expect(cu.searchParams.get("service_id")).toBe("S1"); expect(cu.searchParams.get("amount")).toBe("29000"); expect(cu.searchParams.get("transaction_param")).toBe("o1"); expect(cu.searchParams.get("return_url")).toBe("https://t24.uz/back?tolov=o1");
   });
 });
 

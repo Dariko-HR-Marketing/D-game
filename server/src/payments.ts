@@ -11,15 +11,17 @@ export const TIYIN = 100; // 1 so'm = 100 tiyin (Payme summani tiyinda yuboradi)
 
 // ---------------- Provayderlar (to'lov oynasi manzili) ----------------
 export interface PayCfg { returnUrl: string }
+/** Provayderdan qaytganda mijoz buyurtma holatini ko'rsatishi uchun: `?tolov=<buyurtma>`. */
+export const backTo = (base: string, orderId: string) => `${base}${base.includes("?") ? "&" : "?"}tolov=${orderId}`;
 export class PaymeProvider implements PaymentProvider {
   id = "payme"; channels: ("web" | "store")[] = ["web"];
   constructor(private merchantId: string, private cfg: PayCfg, private base = "https://checkout.paycom.uz") {}
-  async checkout(o: Order) { const p = `m=${this.merchantId};ac.order_id=${o.id};a=${o.amount * TIYIN};l=uz;c=${this.cfg.returnUrl}`; return { ref: "payme-" + o.id, url: `${this.base}/${Buffer.from(p).toString("base64")}` }; }
+  async checkout(o: Order) { const p = `m=${this.merchantId};ac.order_id=${o.id};a=${o.amount * TIYIN};l=uz;c=${backTo(this.cfg.returnUrl, o.id)}`; return { ref: "payme-" + o.id, url: `${this.base}/${Buffer.from(p).toString("base64")}` }; }
 }
 export class ClickProvider implements PaymentProvider {
   id = "click"; channels: ("web" | "store")[] = ["web"];
   constructor(private serviceId: string, private merchantId: string, private cfg: PayCfg, private base = "https://my.click.uz/services/pay") {}
-  async checkout(o: Order) { const q = new URLSearchParams({ service_id: this.serviceId, merchant_id: this.merchantId, amount: String(o.amount), transaction_param: o.id, return_url: this.cfg.returnUrl }); return { ref: "click-" + o.id, url: `${this.base}?${q}` }; }
+  async checkout(o: Order) { const q = new URLSearchParams({ service_id: this.serviceId, merchant_id: this.merchantId, amount: String(o.amount), transaction_param: o.id, return_url: backTo(this.cfg.returnUrl, o.id) }); return { ref: "click-" + o.id, url: `${this.base}?${q}` }; }
 }
 
 // ---------------- Tranzaksiya jurnali ----------------

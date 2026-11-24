@@ -17,7 +17,7 @@ type Usage = { day: number; week: number; month: number; resets: { day: number; 
 export interface Cat {
   plus: { active: boolean; monthly: number | null; yearly: number | null }; premium: { active: boolean; monthly: number | null; yearly: number | null };
   pkg: { plan: "start" | "plus" | "premium"; quotas: Record<"start" | "plus" | "premium", Quota>; usage: Usage; coupons: number; couponPrice: number | null; org: { seatMonthly: number | null; tiers: OrgTier[] } };
-  providers?: string[];
+  providers?: string[]; orders?: Ord[];
 }
 const ICON: Record<PlanId, IconName> = { start: "arrow", plus: "plus", premium: "star", org: "bank" };
 const MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
@@ -32,7 +32,7 @@ const skusOf = (id: PlanId | "coupon", cat: Cat | null): SkuOpt[] => id === "plu
 
 /** Paketlar sahifasi (PILOT): Start, Plus, Premium, Tashkilot. Narxlar va chegaralar serverdagi sozlamadan; bo'sh bo'lsa «Narx aniqlanadi». */
 export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
-  const [cat, setCat] = useState<Cat | null>(null); const [buy, setBuy] = useState<PlanId | "coupon" | null>(null); const [open, setOpen] = useState(false); const [inq, setInq] = useState(false);
+  const [cat, setCat] = useState<Cat | null>(null); const [buy, setBuy] = useState<PlanId | "coupon" | null>(null); const [open, setOpen] = useState(false); const [inq, setInq] = useState(false); const [ordOpen, setOrdOpen] = useState(false); const [track, setTrack] = useState<Ord | null>(null);
   const { width } = useWindowDimensions(); const wide = width >= 900;
   useEffect(() => { let off = false; http?.shop().then((c: Cat) => { if (!off) setCat(c); }).catch(() => {}); return () => { off = true; }; }, [http]);
   const cur: PlanId = cat?.pkg.plan ?? "start";
@@ -54,11 +54,15 @@ export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
           <Acc icon="list" title={K.table.title} summary={K.table.sub} open={open} onToggle={() => setOpen(!open)} testID="packs-table-acc">
             <Matrix />
           </Acc>
+          {cat?.orders && <Acc icon="clock" title={K.track.orders} summary={cat.orders.length ? String(cat.orders.length) : K.track.noOrders} open={ordOpen} onToggle={() => setOrdOpen(!ordOpen)} testID="packs-orders">
+            {cat.orders.length === 0 ? <Text style={s.cardD}>{K.track.noOrders}</Text> : cat.orders.map((o) => <View key={o.id} style={s.ordRow}><View style={{ flex: 1, minWidth: 0 }}><Text style={s.optT}>{o.title}</Text><Text style={s.optD}>{money(o.amount)} so'm{o.createdAt ? ` · ${fmt(o.createdAt)}` : ""}</Text></View><View style={[s.tagBox, o.status === "paid" && { backgroundColor: "#E3F3EB", borderColor: color.green }]}><Text style={s.tagT}>{K.track.st[o.status] ?? o.status}</Text></View>{(o.status === "pending_payment" || o.status === "pending_parent") && <Pressable accessibilityRole="button" accessibilityLabel={K.track.check} onPress={() => setTrack(o)} style={s.ordGo}><Icon name="chevron" size={18} color={color.navy} /></Pressable>}</View>)}
+          </Acc>}
           <Text style={s.rules}>{K.rules}</Text><Text style={s.pay}>{K.pay}</Text>
         </View>
       </ScrollView>
-      {buy && <Checkout http={http} id={buy} cat={cat} onClose={() => setBuy(null)} />}
+      {buy && <Checkout http={http} id={buy} cat={cat} onClose={() => { setBuy(null); http?.shop().then(setCat).catch(() => {}); }} onPaid={() => http?.shop().then(setCat).catch(() => {})} />}
       {inq && <Inquiry http={http} onClose={() => setInq(false)} />}
+      {track && <Modal transparent animationType="fade" onRequestClose={() => setTrack(null)}><View style={s.back2}><View style={s.sheet} role="dialog" aria-label={K.checkout.title}><Text style={s.cardT} aria-level={2} accessibilityRole="header">{K.checkout.title}</Text><OrderTracker http={http} orderId={track.id} first={track} onDone={() => http?.shop().then(setCat).catch(() => {})} onClose={() => { setTrack(null); http?.shop().then(setCat).catch(() => {}); }} /></View></View></Modal>}
     </View>);
 }
 
@@ -132,17 +136,52 @@ function Inquiry({ http, onClose }: { http?: Http; onClose: () => void }) {
     </Modal>);
 }
 
+type Ord = { id: string; title: string; amount: number; status: string; checkout?: string | null; createdAt?: number };
+/** Buyurtma kuzatuvi: har 3 soniyada holatni so'raydi; to'lov qabul qilinsa «rahmat», ota-ona tasdig'ini kutsa shuni aytadi, to'lov oynasini ochish tugmasi. Provayderdan qaytganda ham (`?tolov=`) shu ishlaydi. */
+export function OrderTracker({ http, orderId, first, onDone, onClose }: { http?: Http; orderId: string; first?: Ord | null; onDone?: () => void; onClose: () => void }) {
+  const T = K.track; const [o, setO] = useState<Ord | null>(first ?? null); const [miss, setMiss] = useState(false); const [tries, setTries] = useState(0); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState<string | null>(null);
+  const poll = async () => { if (!http) return; try { const r = await http.orderGet(orderId); setO(r.order); setMiss(false); } catch (e: any) { if (e?.status === 404 || e?.code === "not_found") setMiss(true); } setTries((n) => n + 1); };
+  const st = o?.status; const live = st === "pending_payment" || st === "pending_parent" || !st;
+  useEffect(() => { void poll(); }, [orderId]);
+  useEffect(() => { if (!live || tries > 200) return; const h = setTimeout(() => void poll(), 3000); return () => clearTimeout(h); }, [tries, live]);
+  useEffect(() => { if (st === "paid") onDone?.(); }, [st]);
+  const act = async (f: () => Promise<any>, ok?: string) => { setBusy(true); setMsg(null); try { await f(); if (ok) setMsg(ok); await poll(); } catch (e: any) { setMsg(errText(String(e?.code ?? "unknown"))); } finally { setBusy(false); } };
+  const openPay = () => { const u = o?.checkout; if (u) { const w = (globalThis as any).window; if (!w?.open?.(u, "_blank", "noopener")) (globalThis as any).location?.assign?.(u); } };
+  return (<View style={{ gap: space.md }} testID="order-tracker">
+    {miss ? <Text style={s.cardD}>{T.notFound}</Text> : !o ? <Text style={s.cardD}>{T.checking}</Text> : (<>
+      <View style={[s.trk, st === "paid" && s.trkOk, (st === "cancelled" || st === "rejected" || st === "refunded") && s.trkBad]} role="status" accessibilityLiveRegion="polite">
+        <Text style={s.trkT}>{st === "paid" ? T.paid : st === "pending_payment" ? T.waitingPay : st === "pending_parent" ? T.waitingParent : st === "rejected" ? T.rejected : st === "refunded" ? T.refunded : T.cancelled}</Text>
+        <Text style={s.cardD}>{st === "paid" ? T.paidText : st === "pending_payment" ? T.waitingPayText : st === "pending_parent" ? T.waitingParentText : ""}</Text>
+        <Text style={s.who}>{o.title} · {money(o.amount)} so'm</Text></View>
+      {st === "pending_payment" && o.checkout && <Button label={T.open} onPress={openPay} />}
+      {live && tries > 40 && <Text style={s.tbd}>{T.slow}</Text>}
+      {live && <Button label={busy ? T.checking : T.check} kind="ghost" onPress={() => act(async () => {})} disabled={busy} />}
+      {st === "pending_parent" && <Button label={T.resend} kind="ghost" onPress={() => act(() => http!.orderResend(orderId), T.resent)} disabled={busy} />}
+      {live && <Button label={T.cancel} kind="ghost" onPress={() => act(() => http!.orderCancel(orderId))} disabled={busy} />}
+    </>)}
+    {msg && <Text style={s.tbd} accessibilityRole="alert">{msg}</Text>}
+    <Button label={st === "paid" ? T.done : K.back} kind={st === "paid" ? "primary" : "ghost"} onPress={onClose} />
+  </View>);
+}
+
+/** Provayderdan qaytganda (`?tolov=<buyurtma>`) ko'rsatiladi. */
+export function PayResult({ http, orderId, onClose }: { http?: Http; orderId: string; onClose: () => void }) {
+  return (<View style={s.root}><View style={[s.back2, { backgroundColor: "#FBFAF7" }]}><View style={s.sheet} role="dialog" aria-label={K.checkout.title} testID="pay-result">
+    <Text style={s.cardT} aria-level={1} accessibilityRole="header">{K.checkout.title}</Text><OrderTracker http={http} orderId={orderId} onClose={onClose} /></View></View></View>);
+}
+
 /** To'lov oynasi: davr (oylik/yillik), usul (Payme/Click), «To'lash» buyurtma yaratib provayder oynasiga o'tkazadi. Karta ma'lumoti bizda yo'q. */
-export function Checkout({ http, id, cat, onClose }: { http?: Http; id: PlanId | "coupon"; cat: Cat | null; onClose: () => void }) {
+export function Checkout({ http, id, cat, onClose, onPaid }: { http?: Http; id: PlanId | "coupon"; cat: Cat | null; onClose: () => void; onPaid?: () => void }) {
   const skus = skusOf(id, cat); const providers = (cat?.providers ?? []).filter((x) => x === "payme" || x === "click");
-  const [sku, setSku] = useState(skus[0]?.sku ?? ""); const [method, setMethod] = useState<string>(providers[0] ?? ""); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
+  const [sku, setSku] = useState(skus[0]?.sku ?? ""); const [method, setMethod] = useState<string>(providers[0] ?? ""); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null); const [ord, setOrd] = useState<Ord | null>(null);
   const price = skus.find((k) => k.sku === sku)?.price ?? null; const title = id === "coupon" ? K.coupon.title : K.plans[id].t;
-  const pay = async () => { if (!http || !sku || !method) return; setBusy(true); setErr(null); try { const r = await http.order(sku, undefined, method); const url = r.order?.checkout; if (url) (globalThis as any).location.assign(url); else setErr("unknown"); } catch (e: any) { setErr(String(e?.code ?? e?.message ?? "unknown")); } finally { setBusy(false); } };
+  const pay = async () => { if (!http || !sku || !method) return; setBusy(true); setErr(null); try { const r = await http.order(sku, undefined, method); if (r.order) setOrd(r.order); else setErr("unknown"); } catch (e: any) { setErr(String(e?.code ?? e?.message ?? "unknown")); } finally { setBusy(false); } };
   return (
     <Modal transparent animationType="fade" onRequestClose={onClose}>
       <View style={s.back2}><View style={s.sheet} role="dialog" aria-label={K.checkout.title} testID="checkout">
         <Text style={s.cardT} aria-level={2} accessibilityRole="header">{K.checkout.title}</Text>
         <Text style={s.who}>{K.checkout.order}: {title}</Text>
+        {ord ? <OrderTracker http={http} orderId={ord.id} first={ord} onDone={onPaid} onClose={onClose} /> : <>
         {skus.length > 1 && <View style={s.row} role="radiogroup">{skus.map((k) => <Pressable key={k.sku} role="radio" aria-checked={sku === k.sku} accessibilityLabel={k.label} onPress={() => setSku(k.sku)} style={[s.seg, sku === k.sku && s.segOn]}><Text style={[s.segT, sku === k.sku && { color: color.white }]}>{k.label}</Text></Pressable>)}</View>}
         <Text style={s.cardD}>{K.checkout.total}: {price == null ? K.priceTbd : `${money(price)} so'm`}</Text>
         {providers.length > 0 ? (<><Text style={s.l}>{K.checkout.method}</Text>
@@ -151,7 +190,7 @@ export function Checkout({ http, id, cat, onClose }: { http?: Http; id: PlanId |
         <Button label={K.checkout.pay} onPress={pay} disabled={busy || !http || !sku || !method || price == null} />
         {providers.length === 0 && <Text style={s.tbd}>{K.checkout.unavailable}</Text>}
         {err && <Text style={[s.tbd, { color: color.red }]} accessibilityRole="alert" testID="checkout-err">{errText(err)}</Text>}
-        <Button label={K.back} kind="ghost" onPress={onClose} />
+        <Button label={K.back} kind="ghost" onPress={onClose} /></>}
       </View></View>
     </Modal>);
 }
@@ -203,6 +242,8 @@ const s = StyleSheet.create({
   rules: { color: color.text2, fontSize: 12, lineHeight: 18 }, pay: { color: color.text2, fontSize: 12 },
   back2: { flex: 1, backgroundColor: "rgba(8,38,62,0.55)", alignItems: "center", justifyContent: "center", padding: space.lg }, sheet: { width: "100%", maxWidth: 440, gap: space.md, padding: space.xl, borderRadius: radius.xl, backgroundColor: color.white },
   inp: { minHeight: 48, borderWidth: 1, borderColor: "#7C8FA0", borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.md, color: color.navy, backgroundColor: color.white },
+  trk: { gap: 4, padding: space.md, borderRadius: radius.md, backgroundColor: "#FBF0D3", borderWidth: 1, borderColor: color.gold }, trkOk: { backgroundColor: "#E3F3EB", borderColor: color.green }, trkBad: { backgroundColor: "#FBE6E7", borderColor: color.red }, trkT: { color: color.navy, fontSize: font.lg, fontWeight: "800" },
+  ordRow: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#E8EEEA" }, ordGo: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   l: { color: color.text2, fontSize: font.sm, fontWeight: "700" }, row: { flexDirection: "row", gap: space.sm }, seg: { flex: 1, minHeight: 48, borderRadius: radius.md, borderWidth: 2, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, segOn: { backgroundColor: color.green, borderColor: color.green }, segT: { color: color.navy, fontWeight: "800" },
   opt: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 60, paddingHorizontal: space.md, borderRadius: radius.md, borderWidth: 1, borderColor: color.line, backgroundColor: color.white }, optHot: { borderWidth: 2, borderColor: color.green, backgroundColor: "#EAF8F1" },
   optT: { color: color.navy, fontWeight: "800", fontSize: font.md }, rec: { color: GREEN_TEXT, fontSize: 12 }, optD: { color: color.text2, fontSize: 12 }, optP: { color: color.navy, fontWeight: "800", fontSize: font.sm },

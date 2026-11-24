@@ -23,7 +23,7 @@ import { ConnBanner } from "./src/ui/ConnBanner";
 import { useForeground } from "./src/useForeground";
 import { Login } from "./src/ui/Login";
 import { Landing } from "./src/ui/Landing";
-import { Packs, Paywall } from "./src/ui/Packs";
+import { Packs, Paywall, PayResult } from "./src/ui/Packs";
 import { Tour } from "./src/ui/Tour";
 import { gameTourId, type TourId } from "./src/tours";
 import { isMyTurn } from "./src/model";
@@ -62,7 +62,7 @@ export default function App() {
   const auth = useMemo(() => makeAuth(httpBase(SERVER)), []);
   const [sess, setSess] = useState<Sess | null | undefined>(undefined); // undefined: yuklanmoqda
   const [loginErr, setLoginErr] = useState(false);
-  const [landing, setLanding] = useState(() => { try { const l = (globalThis as any).location; return !!l && !/[?&](kirish|kod)\b/.test(l.search ?? "") && l.pathname === "/" ? true : false; } catch { return false; } }); // ommaviy sahifa faqat veb'da, kirmagan mehmonga; `?kirish` — to'g'ridan-to'g'ri kirish
+  const [landing, setLanding] = useState(() => { try { const l = (globalThis as any).location; return !!l && !/[?&](kirish|kod|tolov)\b/.test(l.search ?? "") && l.pathname === "/" ? true : false; } catch { return false; } }); // ommaviy sahifa faqat veb'da, kirmagan mehmonga; `?kirish` — to'g'ridan-to'g'ri kirish
   useEffect(() => {
     let off = false;
     const saved = store.get("tajriba24-session") ?? sstore.get("tajriba24-session");
@@ -115,6 +115,8 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   // Sinov rejimi (token = qurilma identifikatori): boshlangan o'yinga kod bilan kirilsa-yu, bu qurilma o'yinchisi emas bo'lsa — o'z o'rnini qaytarib olish
   const devMode = session.token === session.userId; const [joinTry, setJoinTry] = useState<string | null>(null); const [claim, setClaim] = useState<string | null>(null);
   const tryJoin = (c: string) => { setJoinTry(c.trim().toUpperCase()); conn.join(c); };
+  const [payId, setPayId] = useState<string | null>(() => { try { const m = /[?&]tolov=([a-f0-9]{8,40})/i.exec((globalThis as any).location?.search ?? ""); return m ? m[1] : null; } catch { return null; } }); // to'lov provayderidan qaytish: buyurtma holati
+  const closePay = () => { setPayId(null); try { (globalThis as any).history?.replaceState?.(null, "", (globalThis as any).location.pathname); } catch { /* mahalliy ilova */ } };
   useEffect(() => { // ulashilgan havola: `/?kod=ABC123` — kirgach xonaga o'zi qo'shiladi (bir marta)
     if (st.status !== "online") return; try { const l = (globalThis as any).location; const m = l && /[?&]kod=([A-Za-z0-9]{6})/.exec(l.search ?? ""); if (!m) return; (globalThis as any).history?.replaceState?.(null, "", l.pathname); tryJoin(m[1]); } catch { /* havola yaroqsiz */ }
   }, [st.status]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -141,6 +143,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
       {stale && (<Pressable accessibilityRole="button" accessibilityLabel={uz.update.label} onPress={() => { try { (globalThis as any).location.reload(); } catch { /* mahalliy ilova */ } }} style={{ backgroundColor: night.brand, paddingVertical: 10, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 44 }} testID="update-banner"><Text style={{ color: night.text, fontWeight: "800" }}>{uz.update.text}</Text><Text style={{ color: night.accent, fontWeight: "800", textDecorationLine: "underline" }}>{uz.update.action}</Text></Pressable>)}
       <View role="main" style={{ flex: 1 }}><Later>
       {hasProfile === null && !room ? null : gated ? <NameGate http={http} initial={signupProfile()} onDone={() => { store.set("tajriba24-signup-profile", null); setHasProfile(true); }} />
+        : payId && !room ? <PayResult http={http} orderId={payId} onClose={closePay} />
         : rulesOpen || (!room && screen === "rules") ? <RulesScreen onBack={() => { setRulesOpen(false); setScreen("home"); }} />
         : !room && claim ? <ClaimSeat http={http} code={claim} onClaim={claimSeat} onCancel={() => { setClaim(null); setJoinTry(null); }} />
         : !room && screen === "profile" ? <ProfileScreen http={http} onBack={() => setScreen("home")} onDeleted={() => { setScreen("home"); onLogout(); }} onLogout={session.token !== session.userId ? onLogout : undefined} />
