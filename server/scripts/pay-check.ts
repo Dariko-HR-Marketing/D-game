@@ -26,9 +26,9 @@ for (const [tag, w, h] of [["kmp", 1280, 900], ["tel", 390, 844]] as const) {
   await p.getByText("To'lov qabul qilindi").first().waitFor({ timeout: 9000 }); check(true, `${tag}: to'lov tasdiqlangach sahifa o'zi yangilanadi («To'lov qabul qilindi»)`);
   check(x.commerce.plan("pay" + tag) === "plus", `${tag}: paket Plus bo'ldi`);
   await p.getByRole("button", { name: "Davom etish" }).click(); await p.getByTestId("packs").waitFor();
-  await p.getByTestId("packs-orders").click(); check(await p.getByText("To'langan").first().isVisible(), `${tag}: buyurtmalarim ro'yxatida «To'langan»`);
+  await p.getByTestId("packs-orders").click(); check(await p.getByText("To'langan").first().waitFor({ timeout: 6000 }).then(() => true, () => false), `${tag}: buyurtmalarim ro'yxatida «To'langan»`);
   // provayderdan qaytish
-  await p.goto(`${WEB}/?tolov=${ord.id}`); await p.getByTestId("pay-result").waitFor({ timeout: 10000 }); check(await p.getByText("To'lov qabul qilindi").first().isVisible(), `${tag}: qaytgach (?tolov=) natija ko'rsatiladi`);
+  await p.goto(`${WEB}/?tolov=${ord.id}`); await p.getByTestId("pay-result").waitFor({ timeout: 10000 }); check(await p.getByText("To'lov qabul qilindi").first().waitFor({ timeout: 8000 }).then(() => true, () => false), `${tag}: qaytgach (?tolov=) natija ko'rsatiladi`);
   // bekor qilish
   const o2 = await x.commerce.order("pay" + tag, "coupon:1", "web", undefined, "payme"); check(o2.ok, `${tag}: kupon buyurtmasi`);
   if (o2.ok) { await p.goto(`${WEB}/?tolov=${o2.order.id}`); await p.getByTestId("pay-result").waitFor(); await p.getByRole("button", { name: "Buyurtmani bekor qilish" }).click(); await p.getByText("Buyurtma bekor qilindi").first().waitFor({ timeout: 6000 }); check(true, `${tag}: buyurtmani bekor qilish`); }
