@@ -10,7 +10,7 @@ import { KeyedLimiter } from "./ratelimit";
 export type Platform = "telegram" | "instagram" | "youtube";
 export const PLATFORMS: Platform[] = ["telegram", "instagram", "youtube"];
 export interface GateConfig {
-  minAge: number; ttlDays: number;
+  minAge: number; ttlDays: number; recheckMin?: number;
   telegram?: { botToken: string; channel: string; botUsername: string; channelUrl: string; webhookSecret: string };
   instagram?: { accessToken: string; appSecret: string; verifyToken: string; handle: string };
   youtube?: { channelId: string; channelUrl: string };
@@ -19,7 +19,7 @@ export interface GateRec { id: string; tg?: number; ig?: string; ok: Partial<Rec
 type F = typeof fetch;
 
 export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
-  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 30) };
+  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 7), recheckMin: Number(e.GATE_RECHECK_MIN ?? 5) };
   if (e.GATE_TG_BOT_TOKEN && e.GATE_TG_CHANNEL && e.GATE_TG_BOT_USERNAME) {
     const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL ?? (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "" };
   }
@@ -41,6 +41,14 @@ export class SubscriptionGate {
   missing(uid: string, age: number | null): Platform[] {
     if (!this.enabled() || (age !== null && age < this.cfg.minAge)) return [];
     const r = this.recs.get(uid); return this.platforms().filter((p) => !r || !this.valid(r, p));
+  }
+  /** Har o'yin boshlashdan oldin: Telegram va Instagram obunasi jonli qayta tekshiriladi (chiqib ketgan qaytariladi); API ishlamasa oldingi tasdiq saqlanadi.
+   *  YouTube tokeni saqlanmaydi, shuning uchun u faqat muddat (ttl) tugagach qayta so'raladi. Tez-tez bosilsa API'ni yuklamaslik uchun `recheckMin` daqiqa kesh. */
+  async ensure(uid: string, age: number | null): Promise<Platform[]> {
+    if (!this.enabled() || (age !== null && age < this.cfg.minAge)) return [];
+    const r = this.recs.get(uid), win = (this.cfg.recheckMin ?? 5) * 60_000;
+    if (r) for (const p of ["telegram", "instagram"] as const) if (this.cfg[p] && this.valid(r, p) && this.now() - (r.ok[p] ?? 0) >= win) await (p === "telegram" ? this.checkTelegram(uid) : this.checkInstagram(uid));
+    return this.missing(uid, age);
   }
   status(uid: string, age: number | null) {
     const r = this.recs.get(uid), miss = this.missing(uid, age);

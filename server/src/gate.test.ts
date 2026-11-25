@@ -36,4 +36,12 @@ describe("obuna darvozasi", () => {
     await g.checkYoutube("u", "tok"); expect(g.missing("u", 30)).toEqual([]); t = 31 * 86400_000; expect(g.missing("u", 30)).toEqual(["youtube"]);
     await g.checkYoutube("u", "tok"); g.erase("u"); expect(g.missing("u", 30)).toEqual(["youtube"]);
   });
+  it("chiqib ketgan qaytariladi: har boshlashda jonli qayta tekshiruv, API yiqilsa tasdiq saqlanadi", async () => {
+    let t = 0, status = "member", down = false;
+    const g = new SubscriptionGate({ ...cfg, instagram: undefined, youtube: undefined, recheckMin: 5 }, undefined, (async () => down ? { ok: false, json: async () => { throw new Error("x"); } } : json({ ok: true, result: { status } })) as any, () => t);
+    const s = g.telegramStart("u")!; g.onTelegramUpdate({ message: { from: { id: 7 }, text: "/start " + s.token } }); await g.checkTelegram("u");
+    t = 60_000; status = "left"; expect(await g.ensure("u", 30)).toEqual([]); // 5 daqiqa ichida kesh
+    t = 6 * 60_000; expect(await g.ensure("u", 30)).toEqual(["telegram"]); // chiqib ketgan: qayta obuna kerak
+    status = "member"; await g.checkTelegram("u"); t += 6 * 60_000; down = true; expect(await g.ensure("u", 30)).toEqual([]); // Telegram ishlamasa to'sib qo'ymaydi
+  });
 });
