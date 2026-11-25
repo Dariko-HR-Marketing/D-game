@@ -52,7 +52,7 @@ describe("HTTP: /auth/google", () => {
   it("token almashinuvi; yoqilmagan provayder 404; yomon token 401", async () => {
     const k = mkKey("k1"); const g = new OidcVerifier(GOOGLE(["client-1"]), async () => ({ keys: [k.jwk as any] }), () => Date.now());
     const x = buildApp({ authSecret: SECRET, oidc: { google: g } });
-    expect((await x.app.inject({ url: "/auth/config" })).json()).toEqual({ sms: false, email: false, google: true, apple: false, dev: false });
+    expect((await x.app.inject({ url: "/auth/config" })).json()).toEqual({ sms: false, email: false, google: true, apple: false, dev: false, gate: false });
     const now = Date.now() / 1000; const nonce = async () => (await x.app.inject({ url: "/auth/nonce" })).json().nonce as string;
     const tok = (n?: string) => sign(k, { ...good, exp: now + 600, iat: now, ...(n ? { nonce: n } : {}) }); const post = (idToken: string, n?: string) => x.app.inject({ method: "POST", url: "/auth/google", payload: { idToken, ...(n ? { nonce: n } : {}) } });
     const n1 = await nonce(); const r = (await post(tok(n1), n1)).json();

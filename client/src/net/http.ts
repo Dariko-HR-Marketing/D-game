@@ -16,6 +16,8 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     complain: (against: string | null, room: string | null, text: string) => call("POST", "/complaints", { against, room, text }),
     /** Ovozli aloqa: STUN/TURN ro'yxati (server sozlamasidan). */
     voiceConfig: () => call("GET", "/voice/config") as Promise<{ iceServers: RTCIceServer[] }>,
+    gate: () => call("GET", "/gate") as Promise<GateStatus>, gateStart: (p: "telegram" | "instagram") => call("POST", `/gate/${p}/start`, {}) as Promise<{ url: string; code?: string }>,
+    gateCheck: (p: "telegram" | "instagram") => call("POST", `/gate/${p}/check`, {}) as Promise<GateCheck>, gateYoutube: (accessToken: string) => call("POST", "/gate/youtube/check", { accessToken }) as Promise<GateCheck>,
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number; gender?: "m" | "f" | null }) => call("PUT", "/me/profile", p),
     uploadAvatar: (image: string) => call("PUT", "/me/avatar", { image }) as Promise<{ photo: string }>, removeAvatar: () => call("DELETE", "/me/avatar"),
     devSeats: (code: string) => call("GET", `/dev/seats/${encodeURIComponent(code)}`) as Promise<{ seats: { userId: string; name: string | null; online: boolean }[] }>,
@@ -72,3 +74,6 @@ export const sameWord = (a: string, b: string = DELETE_WORD) => { const n = (v: 
 export const validName = (n: string) => n.trim().length >= 2 && n.trim().length <= 24 && !/[<>]/.test(n);
 export const validYear = (y: string, now = new Date().getFullYear()) => /^\d{4}$/.test(y) && Number(y) >= 1900 && Number(y) <= now;
 export const isUnder16 = (y: string, now = new Date().getFullYear()) => validYear(y, now) && now - Number(y) < 16;
+
+export interface GateStatus { enabled: boolean; exempt: boolean; missing: string[]; platforms: { id: "telegram" | "instagram" | "youtube"; ok: boolean; linked: boolean; url?: string }[] }
+export interface GateCheck { ok: boolean; result: "ok" | "not_subscribed" | "not_linked" | "unavailable"; status: GateStatus }

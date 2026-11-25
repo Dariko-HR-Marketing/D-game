@@ -13,7 +13,7 @@ export interface PlayingRow { id: string; host: string; mode: "standard" | "stud
 /** Jonli ro'yxat: ochiq/qulfli kutayotgan xonalar, hozir o'ynalayotganlar, jami sonlar va onlayn soni (server har o'zgarishda yuboradi). */
 export interface Lobbies { restricted?: boolean; rooms: LobbyRow[]; playing: PlayingRow[]; stats: { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }; online: number }
 export interface PaywallInfo { error: "room_limit" | "no_coupon"; detail: { quota: { day: number | null; week: number | null; month: number | null }; usage: { day: number; week: number; month: number; resets: { day: number; week: number; month: number } }; coupons: number; plan: "start" | "plus" | "premium" } }
-export interface ConnState { paywall?: PaywallInfo | null; lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
+export interface ConnState { gateN?: number; paywall?: PaywallInfo | null; lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
 
 export class Connection {
@@ -69,6 +69,7 @@ export class Connection {
         if (typeof m.error === "string" && m.error.startsWith("calc_")) this.set({ calcFb: { error: m.error, n: ++this.fbN, detail: m.detail } }); // hisob javobi: shaklda ko'rsatiladi, umumiy xato emas
         else if (m.error === "stale_seq" && this.lastAct && this.lastAct.retries < 3) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
         else if ((m.error === "room_limit" || m.error === "no_coupon") && m.detail) this.set({ paywall: { error: m.error, detail: m.detail } }); // limit tugadi: xato emas, paywall (kupon / Plus / Premium)
+        else if (m.error === "subscription_required") this.set({ error: m.error, gateN: (this.state.gateN ?? 0) + 1 }); // obuna darvozasi: har urinishda qayta ochiladi
         else this.set({ error: m.error });
       }
     };
