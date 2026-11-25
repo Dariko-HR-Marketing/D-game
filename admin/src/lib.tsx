@@ -42,6 +42,7 @@ button.link{border:0;background:none;min-height:0;padding:0;color:#1B3A6B;text-d
 @media(max-width:820px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 12px;gap:8px}aside .who{display:none}nav{flex-direction:row;overflow-x:auto;flex:1 1 100%;order:3}nav button{white-space:nowrap}aside .out{margin:0;padding:8px 12px;font-size:13px}aside .brand{flex:1 1 auto}main{padding:16px}}
 `;
 
+export const CARDS_URL: string = (import.meta as any).env?.VITE_CARD_IMAGES_URL ?? "/cards";
 export const fmtTime = (ms?: number) => (ms ? new Date(ms).toLocaleString("uz", { dateStyle: "short", timeStyle: "short" }) : "—");
 export const fmtDur = (s: number) => (s >= 3600 ? `${Math.floor(s / 3600)} s ${Math.round((s % 3600) / 60)} daq` : `${Math.round(s / 60)} daq`);
 export const errCode = (c: string) => ERRORS[c] ?? c;
@@ -125,4 +126,16 @@ export function Lines({ series, label, cursor, height = 140 }: { series: { name:
     {series.map((s) => <polyline key={s.name} fill="none" stroke={s.color} strokeWidth="2" vectorEffect="non-scaling-stroke" points={s.values.map((v, i) => `${X(i)},${Y(v)}`).join(" ")} />)}
     {cursor !== undefined && <line x1={X(cursor)} x2={X(cursor)} y1="0" y2={height} stroke="#08263E" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />}
   </svg>);
+}
+
+/** Silliq maydonli grafik (24 soatlik onlayn va h.k.). Ma'lumot yo'q bo'lsa — tushuntirish. */
+export function Area({ values, labels, label, color = "#11835A" }: { values: number[]; labels: string[]; label: string; color?: string }) {
+  const W = 640, H = 170, P = 28, max = Math.max(1, ...values), n = Math.max(1, values.length - 1);
+  const pt = (v: number, i: number) => `${P + (i * (W - P - 6)) / n},${H - P - ((H - P - 10) * v) / max}`;
+  const line = values.map((v, i) => pt(v, i)).join(" "); const peak = values.indexOf(Math.max(...values));
+  return (<svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`${label}: eng yuqori ${Math.max(...values)} (${labels[peak] ?? ""})`} style={{ display: "block" }}>
+    {[0, 1, 2].map((k) => <line key={k} x1={P} x2={W - 6} y1={10 + ((H - P - 10) * k) / 2} y2={10 + ((H - P - 10) * k) / 2} stroke="#E6ECF0" />)}
+    <polygon points={`${P},${H - P} ${line} ${W - 6},${H - P}`} fill={color} opacity=".14" /><polyline points={line} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="round" />
+    {[0, 6, 12, 18, 23].map((i) => labels[i] && <text key={i} x={P + (i * (W - P - 6)) / n} y={H - 8} fontSize="11" fill="#4A5B6C" textAnchor={i === 23 ? "end" : i === 0 ? "start" : "middle"}>{labels[i]}</text>)}
+    <text x="2" y="18" fontSize="11" fill="#4A5B6C">{max}</text></svg>);
 }

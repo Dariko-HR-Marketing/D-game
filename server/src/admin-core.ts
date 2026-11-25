@@ -14,6 +14,7 @@ import type { Tournaments } from "./tournaments";
 
 export interface CoreDeps {
   accounts: AdminAccounts; state: AdminState; ops: Ops; rooms: RoomManager; profiles: ProfileService; commerce: Commerce; edu: Edu; tournaments: Tournaments; consents: ParentConsents; phones: PhoneLinks;
+  registry?: { bundle(v?: number): any }; topCards?: () => { id: string; shown: number; accepted: number }[]; onlineSeries?: () => { hours: string[]; values: number[] };
   eraseUser: (uid: string) => void; now?: () => number; legacy?: (token: string | undefined) => AuthWho | null;
 }
 const ERR_STATUS: Record<string, number> = { bad_credentials: 401, locked: 429, disabled: 403, totp_required: 401, bad_totp: 401, not_found: 404, login_taken: 409, last_admin: 409, self_change: 409 };
@@ -98,6 +99,19 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
     }
     if (R("edu.manage")) { const soon = d.edu.orgs.values().filter((o) => o.active && o.licenseUntil > t && o.licenseUntil - t < 30 * 86_400_000).length, gone = d.edu.orgs.values().filter((o) => o.active && o.licenseUntil <= t).length; if (soon) attn.push({ kind: "warn", text: "30 kun ichida tugaydigan litsenziyalar", count: soon, to: "edu" }); if (gone) attn.push({ kind: "bad", text: "Muddati tugagan litsenziyalar", count: gone, to: "edu" }); }
     if (R("system.read")) { const e = ops.errors.filter((x) => t - x.at < 3600_000).length; if (e) attn.push({ kind: "bad", text: "So'nggi soatdagi tizim xatolari", count: e, to: "system" }); const f = ops.smsLog.filter((x) => !x.ok && t - x.at < 3600_000).length; if (f) attn.push({ kind: "bad", text: "Yuborilmagan SMS (1 soat)", count: f, to: "system" }); }
+    if (R("rooms.read") || R("analytics.read")) {
+      const rs = [...rooms.rooms.values()], res = profiles.results, day0 = new Date(t).setHours(0, 0, 0, 0) - 0;
+      const fin = res.filter((r) => r.finishedAt >= t - 86_400_000), left = fin.filter((r) => r.players.some((p) => p.left)).length;
+      const live = rs.filter((r) => r.state && !r.endedAt), real = (r: any) => r.members.filter((m: any) => !m.bot);
+      out.kpi = { gamesToday: res.filter((r) => r.finishedAt >= day0).length + live.length, finishedToday: res.filter((r) => r.finishedAt >= day0).length, ongoing: live.length,
+        avgMinutes: fin.length ? Math.round(fin.reduce((n, r) => n + r.durationMs, 0) / fin.length / 60_000) : null, abandonShare: fin.length ? Math.round((100 * left) / fin.length) : null,
+        offline: rs.reduce((n, r) => n + real(r).filter((m: any) => !m.online).length, 0),
+        where: { playing: live.reduce((n, r) => n + real(r).filter((m: any) => m.online).length, 0), lobby: rs.filter((r) => !r.state).reduce((n, r) => n + real(r).filter((m: any) => m.online).length, 0) } };
+      if (d.onlineSeries) out.online24 = d.onlineSeries();
+      const b = d.registry?.bundle(); const cat: any[] = b?.catalog ?? [];
+      if (cat.length) { const draw = cat.filter((c) => c.publish), noImg = cat.filter((c) => c.publish && !c.file).length; out.content = { catalog: cat.length, live: draw.length, draft: cat.length - draw.length, noImage: noImg, jobs: (b?.cards ?? []).length, dreams: (b?.dreams ?? []).length };
+        const byId = new Map(cat.map((c) => [c.id, c])); out.topCards = (d.topCards?.() ?? []).slice(0, 4).map((c) => { const k = byId.get(c.id); return { id: c.id, title: k?.title ?? c.id, deck: k?.deckName ?? "", file: k?.file ?? null, shown: c.shown, acceptRate: c.shown ? Math.round((100 * c.accepted) / c.shown) : 0 }; }); }
+    }
     out.attention = attn; return out;
   }));
 

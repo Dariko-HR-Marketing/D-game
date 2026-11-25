@@ -1,11 +1,10 @@
 // Kontent: versiyalar (farq, tekshiruv, topshirish/rad etish/nashr/qaytarish) va vizual muharrir (ro'yxat + maydonlar formasi).
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Api } from "./api";
-import { Banner, Empty, Err, FormDialog, PageHead, Pill, Tabs, errText, fmtTime, useLoad } from "./lib";
+import { Banner, CARDS_URL, Empty, Err, FormDialog, PageHead, Pill, Tabs, errText, fmtTime, useLoad } from "./lib";
 import { t } from "./uz";
 import { Catalog, Professions } from "./catalog";
 
-const CARDS_URL: string = (import.meta as any).env?.VITE_CARD_IMAGES_URL ?? "/cards";
 const DECKS: [string, string][] = [["kasb", "Kasblar"], ["kichik", "Kichik biznes"], ["katta", "Katta biznes"], ["bozor", "Bozor"], ["xar", "Xarajat"], ["kxar", "Katta xarajat"], ["hod", "Hodisa"], ["new", "Yangi kartalar"]];
 const keyOf = (x: any, i: number) => String(x?.file ?? x?.code ?? x?.i ?? x?.n ?? x?.name ?? i);
 const labelOf = (x: any, i: number) => String(x?.name ?? x?.text ?? x?.file ?? `#${i + 1}`).slice(0, 60);

@@ -1,9 +1,8 @@
 // Kartalar katalogi (7 to'plam, ro'yxat → ochiladigan tafsilot) va kasblar (xarajat taqsimoti). Faqat o'qish: tahrirlash «Muharrir» bo'limida.
 import React, { useMemo, useState } from "react";
 import type { Api } from "./api";
-import { Empty, Err, Pill, errText, useLoad } from "./lib";
+import { CARDS_URL, Empty, Err, Pill, errText, useLoad } from "./lib";
 
-const CARDS_URL: string = (import.meta as any).env?.VITE_CARD_IMAGES_URL ?? "/cards";
 const fm = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 const EXP_NAMES = ["Kvartira to'lovi", "Ovqatlanish", "Kvartira krediti", "Avtomobil krediti", "Telefon", "Trening", "Kiyim-kechak", "Yo'l / yoqilg'i", "Soliq"];
 const DECKS: Record<number, string> = { 1: "Kasb", 2: "Kichik sarmoya", 3: "Katta sarmoya", 4: "Bozor", 5: "Xarajat", 6: "Katta aylana xarajati", 7: "Kutilmagan hodisa" };

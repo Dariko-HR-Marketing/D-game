@@ -13,7 +13,7 @@ describe("admin API mijozi", () => {
   });
   it("bo'limlar ruxsat bo'yicha: muharrir faqat kontent, tahlilchi shaxsiy ma'lumotsiz, moliyachi do'kon", () => {
     const keys = (p: string[]) => sectionsFor(p).map((n) => n.key);
-    expect(keys(["content.read", "content.write"])).toEqual(["content"]);
+    expect(keys(["content.read", "content.write"])).toEqual(["content", "dreams", "cells"]);
     expect(keys(["analytics.read", "rooms.read"])).not.toContain("users");
     expect(keys(["commerce.read", "analytics.read"])).toContain("shop");
     expect(keys(["users.read"])).toEqual(["users"]);

@@ -55,3 +55,9 @@ Admin → Foydalanuvchilar → **Test hisoblar** (ruxsat `users.manage`, ya'ni f
 1. VPS `.env` ga `ADMIN_BOOTSTRAP_LOGIN` (masalan `owner`) va o'zingiz o'ylab topgan `ADMIN_BOOTSTRAP_PASSWORD` (≥10 belgi, harf+raqam) yozing; parolni hech qayerga (repo, chat) yubormang. `docker compose up -d`.
 2. `https://admin.<domen>` → kirish → parolni almashtiring → 2FA (Google Authenticator) ni yoqing.
 3. «Test hisoblar» bo'limiga o'ting. Tugagach bootstrap o'zgaruvchilarini `.env` dan olib tashlang.
+
+## Prototipga moslash (2026-11-25)
+- **Karta rasmlari admin domenida**: Caddy `ADMIN_DOMAIN` uchun ham `/cards/*` ni `deploy/vps/cards` dan beradi (avval `index.html` qaytib, rasmlar chiqmas edi). Deploy'dan keyin Caddy qayta yuklanadi (`docker compose up -d`).
+- **Boshqaruv paneli**: 9 ko'rsatkich (onlayn, faol/kutayotgan maydon, bugungi o'yin, o'rtacha davomiylik, tashlab ketilgan %, aloqasi uzilganlar, yangi hisoblar, sinf/turnir), 24 soatlik onlayn grafigi (xotirada soatlik eng yuqori; server qayta ishga tushsa yangidan boshlanadi), kontent salomatligi, jonli maydonlar, eng ko'p chiqqan kartalar (rasmli). Baza bo'sh bo'lsa — tushuntirish banneri.
+- **Yangi bo'limlar**: Jonli kuzatuv (5 soniyada yangilanadi), Orzular (soha bo'yicha, g'alaba yo'li), Kataklar (katta aylana 53 katak + kichik aylana qoidalari). Tahrir — «Kontent» bo'limida (versiya + ko'rib chiqish).
+- Hali yo'q (prototipda bor): kartalar bo'yicha «ta'sir/bog'liqlik» paneli, kohort jadvali, ota-ona nazorati ro'yxati, audit filtri tafsilotlari — keyingi bosqich.
