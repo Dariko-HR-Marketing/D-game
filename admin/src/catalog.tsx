@@ -5,6 +5,7 @@ import { CARDS_URL, Empty, Err, Pill, errText, useLoad } from "./lib";
 
 const fm = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 const EXP_NAMES = ["Kvartira to'lovi", "Ovqatlanish", "Kvartira krediti", "Avtomobil krediti", "Telefon", "Trening", "Kiyim-kechak", "Yo'l / yoqilg'i", "Soliq"];
+const DECK_KEYS = ["", "kasb", "kichik", "katta", "bozor", "xar", "kxar", "hod"];
 const DECKS: Record<number, string> = { 1: "Kasb", 2: "Kichik sarmoya", 3: "Katta sarmoya", 4: "Bozor", 5: "Xarajat", 6: "Katta aylana xarajati", 7: "Kutilmagan hodisa" };
 
 function useCards(api: Api) { return useLoad<{ data: any }>(api, "/admin/content/cards"); }
@@ -24,9 +25,10 @@ export function Catalog({ api }: { api: Api }) {
       </div>
       <div className="row" style={{ alignItems: "flex-end" }}><label className="grow">Qidirish<input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nomi, matni yoki raqami (Y201, BZ001…)" /></label>
         <div className="row" role="group" aria-label="Ko'rinish"><button className={!grid ? "p" : ""} aria-pressed={!grid} onClick={() => setGrid(false)}>Ro'yxat</button><button className={grid ? "p" : ""} aria-pressed={grid} onClick={() => setGrid(true)}>Rasmli</button></div></div>
-      {grid && l.data && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 12, marginTop: 12 }}>{rows.slice(0, 60).map((c) => <button key={c.id} onClick={() => { setGrid(false); setOpen(c.id); }} aria-label={`${c.title} (${c.id})`} style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, padding: 8, textAlign: "left", height: "auto" }}>
-        {c.file ? <img src={`${CARDS_URL}/${c.file}`} alt="" loading="lazy" style={{ width: "100%", borderRadius: 8 }} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} /> : <span className="muted" style={{ fontSize: 12 }}>rasm yo'q</span>}
-        <b style={{ fontSize: 13 }}>{c.title}</b><span className="muted" style={{ fontSize: 11 }}>{c.id} · {c.publish ? "Jonli" : "Qoralama"}</span></button>)}</div>}
+      {grid && l.data && (() => { const c = l.data.data; const arr: any[] = deck ? (c[DECK_KEYS[deck]] ?? []) : DECK_KEYS.slice(1).flatMap((k) => c[k] ?? []); const list = arr.filter((x) => !q || `${x.text ?? x.name ?? ""} ${x.file ?? ""}`.toLowerCase().includes(q.toLowerCase()));
+        return <><p className="muted" style={{ fontSize: 13 }}>O'yinda chiqadigan kartalar asl rasmi bilan ({list.length} ta). Katalog yozuvlari («Ro'yxat») alohida meta-ma'lumot.</p><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 12, marginTop: 8 }}>{list.slice(0, 80).map((x, i) => <figure key={`${x.file}${i}`} style={{ margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+          {x.file ? <img src={`${CARDS_URL}/${x.file}`} alt={x.text ?? x.name ?? x.file} loading="lazy" style={{ width: "100%", borderRadius: 8, border: "1px solid var(--line)" }} onError={(e) => ((e.target as HTMLImageElement).style.opacity = ".25")} /> : <span className="muted" style={{ fontSize: 12 }}>rasm yo'q</span>}
+          <figcaption className="muted" style={{ fontSize: 12 }}>{x.file}</figcaption></figure>)}</div>{list.length > 80 && <p className="muted">Birinchi 80 ta ko'rsatildi: qidiruvni toraytiring.</p>}</>; })()}
       {!l.data ? <Empty loading={l.loading} /> : grid ? null : (<div className="stack" style={{ marginTop: 12 }}>
         {rows.slice(0, 100).map((c) => { const on = open === c.id; return (
           <div key={c.id} style={{ border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden", borderColor: on ? "var(--green)" : undefined }}>
@@ -35,7 +37,6 @@ export function Catalog({ api }: { api: Api }) {
               {c.publish ? <Pill kind="good">Jonli</Pill> : <Pill kind="plain">Qoralama</Pill>}<span aria-hidden>{on ? "▾" : "▸"}</span>
             </button>
             {on && <div style={{ padding: "8px 16px 16px", borderTop: "1px solid var(--line)", display: "grid", gap: 8 }}>
-              {c.file && <img src={`${CARDS_URL}/${c.file}`} alt={`Karta: ${c.title}`} loading="lazy" style={{ maxWidth: 200, borderRadius: 8, border: "1px solid var(--line)" }} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />}
               <p style={{ margin: 0 }}>{c.text}</p>
               <dl className="kv">
                 <dt>To'plam</dt><dd>{c.deckName}</dd><dt>Yo'nalish</dt><dd>{c.direction ?? "—"}</dd><dt>Muddat</dt><dd>{c.duration ?? "—"}</dd><dt>Maqsad</dt><dd>{c.goal ?? "—"}</dd><dt>Yosh</dt><dd>{c.age ?? "—"}</dd><dt>Tekshiruv</dt><dd>{c.review ?? "—"}</dd><dt>Rasm</dt><dd>{c.image ?? "—"}</dd>

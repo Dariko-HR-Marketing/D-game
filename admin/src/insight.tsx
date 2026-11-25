@@ -1,11 +1,11 @@
 // Analitika (shaxssiz), audit qidiruvi va tizim salomatligi.
 import React, { useState } from "react";
 import type { Api } from "./api";
-import { Banner, Bars, Empty, Err, Field, Lines, PageHead, Pill, Tabs, csv, download, fmtDur, fmtTime, money, useLoad } from "./lib";
+import { Banner, Bars, Empty, Err, Field, Lines, PageHead, Tile, Pill, Tabs, csv, download, fmtDur, fmtTime, money, useLoad } from "./lib";
 import { t } from "./uz";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)} %`;
-const tile = (k: string, v: React.ReactNode) => <div className="stat" key={k}><b>{v}</b><span>{k}</span></div>;
+const tile = (k: string, v: React.ReactNode) => <Tile key={k} l={k} v={v} />;
 export function Analytics({ api }: { api: Api }) {
   const [tab, setTab] = useState("over"); const [days, setDays] = useState("30");
   const o = useLoad<any>(api, `/admin/analytics/overview?days=${days}`, [days]); const f = useLoad<any>(api, "/admin/analytics/funnel"); const c = useLoad<any[]>(api, "/admin/analytics/cards"); const x = o.data;
@@ -82,14 +82,14 @@ function ContentStats({ api }: { api: Api }) {
   return (<><Err e={c.err} />{!x ? <Empty loading={c.loading} /> : <>
     <section className="card"><h2>Kartalar to'plamlari</h2><p className="muted" style={{ marginTop: -6 }}>Tortilish ulushi va qabul foizi (qabul faqat tanlanadigan kartalar uchun). Jami ko'rsatilgan: {fmt(x.totalShown)}.</p>
       <div className="tw" tabIndex={0} role="region" aria-label="To'plamlar"><table><thead><tr><th>To'plam</th><th className="num">Karta</th><th className="num">Jonli</th><th className="num">Rasmli</th><th className="num">Ulush</th><th className="num">Qabul</th></tr></thead><tbody>
-        {x.decks.map((d: any) => <tr key={d.deck}><td><b>{d.name}</b></td><td className="num">{d.count}</td><td className="num">{d.live}</td><td className="num">{d.image}</td><td className="num">{d.sharePct} %</td><td className="num">{d.acceptPct === null ? "—" : `${d.acceptPct} %`}</td></tr>)}</tbody></table></div></section>
+        {x.decks.map((d: any) => <tr key={d.deck}><td><b>{d.name}</b></td><td className="num">{d.count}</td><td className="num">{d.live}</td><td className="num">{d.image}/{d.imageOf}</td><td className="num">{d.sharePct} %</td><td className="num">{d.acceptPct === null ? "—" : `${d.acceptPct} %`}</td></tr>)}</tbody></table></div></section>
     <div className="grid2">
       <section className="card"><h2>Eng ko'p tushgan kartalar</h2>{!x.mostShown.length ? <p className="muted">Hali ma'lumot yo'q — o'yinlar tugagach to'ladi.</p> : x.mostShown.map((r: any) => <div className="attn" key={r.id}><span><b>{r.title}</b><br /><span className="muted" style={{ fontSize: 12 }}>{r.id} · {r.deck}</span></span><span>{r.shown} marta · {r.acceptRate} %</span></div>)}</section>
       <section className="card"><h2>Eng kam qabul qilinganlar</h2>{!x.leastAccepted.length ? <p className="muted">Kamida 5 marta tushgan karta hali yo'q.</p> : x.leastAccepted.map((r: any) => <div className="attn" key={r.id}><span><b>{r.title}</b><br /><span className="muted" style={{ fontSize: 12 }}>{r.id} · {r.deck}</span></span><span>{r.acceptRate} % · {r.shown} marta</span></div>)}</section>
     </div>
     <div className="grid2">
       <section className="card"><h2>Eng ko'p ishlatiladigan ta'sirlar</h2>{x.effects.map((e: any) => <div className="attn" key={e.type}><span className="mono">{e.type}</span><b>{e.n}</b></div>)}</section>
-      <section className="card"><h2>Ma'lumot sifati</h2><div className="stats">{[["Jami karta", x.quality.total], ["Nashr qilingan", x.quality.published], ["Tekshiruv «OK»", x.quality.reviewOk], ["Rasmli", x.quality.withImage], ["Hali tushmagan", x.quality.neverShown]].map(([k, v]) => <div className="stat" key={String(k)}><b>{v}</b><span>{k}</span></div>)}</div>
+      <section className="card"><h2>Ma'lumot sifati</h2><div className="stats">{[["Jami karta", x.quality.total], ["Nashr qilingan", x.quality.published], ["Tekshiruv «OK»", x.quality.reviewOk], ["Rasmli (o'yin kartalari)", `${x.quality.withImage}/${x.quality.imageTotal}`], ["Hali tushmagan", x.quality.neverShown]].map(([k, v]) => <div className="stat" key={String(k)}><b>{v}</b><span>{k}</span></div>)}</div>
         </section>
     </div>
     {x.events && <GameEvents e={x.events} />}</>}</>);

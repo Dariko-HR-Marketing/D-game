@@ -17,18 +17,18 @@ export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: Insi
   const { state, profiles, ops } = d; const now = () => (d.now ?? Date.now)();
   /** Kontent analitikasi (shaxssiz): to'plamlar, ta'sir turlari, ma'lumot sifati. Faqat kuzatiladigan narsa: kartaning ko'rsatilishi va qabul/o'tkazilishi. */
   app.get("/admin/analytics/content", guard("analytics.read", () => {
-    const cat: any[] = d.registry?.bundle()?.cards?.catalog ?? []; const st = d.cardStats?.() ?? {};
+    const cards = d.registry?.bundle()?.cards, cat: any[] = cards?.catalog ?? []; const arrays = [cards?.kasb, cards?.kichik, cards?.katta, cards?.bozor, cards?.xar, cards?.kxar, cards?.hod]; const withFile = (n: number) => (arrays[n - 1] ?? []).filter((x: any) => x.file).length; const st = d.cardStats?.() ?? {};
     const decks = new Map<string, { deck: number; name: string; count: number; live: number; image: number; shown: number; accepted: number; skipped: number }>();
-    for (const c of cat) { const k = decks.get(String(c.deck)) ?? { deck: c.deck, name: c.deckName, count: 0, live: 0, image: 0, shown: 0, accepted: 0, skipped: 0 }; k.count++; if (c.publish) k.live++; if (c.file) k.image++; const s = st[c.id]; if (s) { k.shown += s.shown; k.accepted += s.accepted; k.skipped += s.skipped; } decks.set(String(c.deck), k); }
+    for (const c of cat) { const k = decks.get(String(c.deck)) ?? { deck: c.deck, name: c.deckName, count: 0, live: 0, image: 0, shown: 0, accepted: 0, skipped: 0 }; k.count++; if (c.publish) k.live++; const s = st[c.id]; if (s) { k.shown += s.shown; k.accepted += s.accepted; k.skipped += s.skipped; } decks.set(String(c.deck), k); }
     const totalShown = [...decks.values()].reduce((n, x) => n + x.shown, 0);
     const eff = new Map<string, number>(); for (const c of cat) if (c.publish) for (const e of c.effects ?? []) eff.set(e.type, (eff.get(e.type) ?? 0) + 1);
     const byId = new Map(cat.map((c) => [c.id, c])); const row = (id: string) => { const c = byId.get(id), s = st[id]; return { id, title: c?.title ?? id, deck: c?.deckName ?? "", shown: s.shown, acceptRate: s.shown ? Math.round((100 * s.accepted) / s.shown) : 0 }; };
     const seen = Object.keys(st).filter((id) => st[id].shown > 0);
     const count = (f: (c: any) => boolean) => cat.filter(f).length;
-    return { totalShown, decks: [...decks.values()].sort((a, b) => a.deck - b.deck).map((x) => ({ ...x, sharePct: totalShown ? Math.round((100 * x.shown) / totalShown) : 0, acceptPct: x.shown ? Math.round((100 * x.accepted) / x.shown) : null })),
+    return { totalShown, decks: [...decks.values()].sort((a, b) => a.deck - b.deck).map((x) => ({ ...x, image: withFile(x.deck), imageOf: (arrays[x.deck - 1] ?? []).length, sharePct: totalShown ? Math.round((100 * x.shown) / totalShown) : 0, acceptPct: x.shown ? Math.round((100 * x.accepted) / x.shown) : null })),
       effects: [...eff].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([type, n]) => ({ type, n })), mostShown: seen.sort((a, b) => st[b].shown - st[a].shown).slice(0, 10).map(row),
       leastAccepted: seen.filter((id) => st[id].shown >= 5).sort((a, b) => st[a].accepted / st[a].shown - st[b].accepted / st[b].shown).slice(0, 5).map(row),
-      quality: { total: cat.length, published: count((c) => c.publish), reviewOk: count((c) => c.review === "OK"), withImage: count((c) => !!c.file), needsMapping: count((c) => c.needsMapping), neverShown: cat.length - seen.length },
+      quality: { total: cat.length, published: count((c) => c.publish), reviewOk: count((c) => c.review === "OK"), withImage: arrays.flatMap((x) => x ?? []).filter((x: any) => x.file).length, imageTotal: arrays.flatMap((x) => x ?? []).length, needsMapping: count((c) => c.needsMapping), neverShown: cat.length - seen.length },
       events: (() => { const g = d.gameStats?.(); if (!g) return null; const top = (o: Record<string, number>, n = 8) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
         const hits = (o: Record<string, number>) => { const tot = Object.values(o).reduce((a, b) => a + b, 0); return top(o, 10).map(([cell, n]) => ({ cell: Number(cell) + 1, n, pct: tot ? +((100 * n) / tot).toFixed(1) : 0 })); };
         return { games: g.games, cellsSmall: hits(g.cells.small), cellsBig: hits(g.cells.big), exit: { n: g.exits.n, notExited: g.exits.notExited, byRound: Object.entries(g.exits.byRound).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([k, n]) => ({ k, n })), byCell: top(g.exits.byCell).map(([k, n]) => ({ k, n })) },

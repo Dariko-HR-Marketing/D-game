@@ -65,3 +65,12 @@ Admin → Foydalanuvchilar → **Test hisoblar** (ruxsat `users.manage`, ya'ni f
 - Prototipdagi sonlar namunaviy edi; haqiqiy panel faqat serverdagi ma'lumotni ko'rsatadi.
 - **Yakuniy qo'shimchalar (2026-11-25)**: Hisoblar → «Rollar va ruxsatlar» matritsasi; Foydalanuvchilar → «Onlayn» va «Turnir ishtirokchilari» tablari; Maydonlar tablarida hisoblagich va tugagan o'yinlar CSV; Katalog → «Rasmli» ko'rinish va kartaning rasmi; Kataklar → kichik aylana (48) va tushish chastotasi issiqlik xaritasi; Analitika → Kontent: orzu bo'yicha g'alaba ulushi.
 - **Hali yo'q (qaror kutiladi)**: «Tomosha qilish» (kuzatuvchi rejimi), shikoyatda chat matni konteksti (chat faqat xotirada turadi), telefon/email maskalangan ko'rsatish va ko'rish auditi (telefon faqat xesh sifatida saqlanadi).
+
+## UX tartibi (2026-11-25, «hamma joy pala-partish» fikri bo'yicha)
+- **Menyu 5 guruhga**: Kuzatuv (Boshqaruv paneli, Jonli kuzatuv, Maydonlar, Analitika) · Odamlar (Foydalanuvchilar, Shikoyatlar, Test hisoblar) · O'yin mazmuni (Kontent, Orzular, Kataklar) · Tijorat (Moliya, Ta'lim, Turnirlar, E'lonlar) · Tizim (Tizim, Hisoblar, Audit). Har guruh nomi ostida bir qatorli izoh.
+- **Har bo'lim sarlavhasida**: guruh nomi, bir jumlali maqsad va «Qanday ishlatiladi?» (qadamlar + maslahat). Birinchi ko'rishda ochiq, yopilgach eslab qolinadi. Matnlar `admin/src/help.ts` da (bitta joyda tahrirlanadi).
+- **Atamalar**: ko'rsatkich tagida qisqa izoh (DAU, MRR, ARPPU, Konversiya va h.k. — `GLOSSARY`); chap ostidagi «Yordam va atamalar» yon paneli: qoidalar, rollar, lug'at.
+- **Ishga tushirish ro'yxati** (Boshqaruv paneli): 2FA, to'lov provayderi, narxlar, SMS, zaxira nusxa, birinchi o'yin — nima tayyor/yo'qligi va tegishli bo'limga o'tish tugmasi; hammasi tayyor bo'lsa yo'qoladi.
+- **Tizim**: favqulodda bayroqlar qizil «Yoqish» tugmasi o'rniga kalit (yoqilgan/o'chiq) — baribir sabab so'raladi.
+- **Kontent**: nashr jarayoni qadamlari (Qoralama → Tekshiruv → Ko'rib chiqish → Nashr) versiyalar tepasida.
+- Tuzatildi: «Rasmi yo'q» ko'rsatkichi katalog (meta-ma'lumot, rasm bog'lanmagan) o'rniga o'yin kartalari (rasm fayli bor) bo'yicha hisoblanadi.

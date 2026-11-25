@@ -109,7 +109,7 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
         where: { playing: live.reduce((n, r) => n + real(r).filter((m: any) => m.online).length, 0), lobby: rs.filter((r) => !r.state).reduce((n, r) => n + real(r).filter((m: any) => m.online).length, 0) } };
       if (d.onlineSeries) out.online24 = d.onlineSeries();
       const b = d.registry?.bundle(); const cat: any[] = b?.cards?.catalog ?? [];
-      if (cat.length) { const draw = cat.filter((c) => c.publish), noImg = cat.filter((c) => c.publish && !c.file).length; out.content = { catalog: cat.length, live: draw.length, draft: cat.length - draw.length, noImage: noImg, jobs: (b?.cards?.kasb ?? []).length, dreams: (b?.dreams ?? []).length };
+      if (cat.length) { const draw = cat.filter((c) => c.publish), decks = [b?.cards?.kasb, b?.cards?.kichik, b?.cards?.katta, b?.cards?.bozor, b?.cards?.xar, b?.cards?.kxar, b?.cards?.hod].flatMap((x: any) => x ?? []), noImg = decks.filter((c: any) => !c.file).length; out.content = { catalog: cat.length, live: draw.length, draft: cat.length - draw.length, noImage: noImg, jobs: (b?.cards?.kasb ?? []).length, dreams: (b?.dreams ?? []).length };
         const byId = new Map(cat.map((c) => [c.id, c])); out.topCards = (d.topCards?.() ?? []).slice(0, 4).map((c) => { const k = byId.get(c.id); return { id: c.id, title: k?.title ?? c.id, deck: k?.deckName ?? "", file: k?.file ?? null, shown: c.shown, acceptRate: c.shown ? Math.round((100 * c.accepted) / c.shown) : 0 }; }); }
     }
     out.attention = attn; return out;
