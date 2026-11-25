@@ -13,11 +13,12 @@ export function Analytics({ api }: { api: Api }) {
   const steps: [string, number][] = f.data ? [["Kirgan", f.data.registered], ["Profil to'ldirgan", f.data.withProfile], ["Birinchi o'yin", f.data.playedFirstGame], ["3 va undan ko'p o'yin", f.data.playedThreeOrMore], ["Kamida bir g'alaba", f.data.wonAtLeastOnce]] : [];
   return (<>
     <PageHead title={t.analytics}><Field label="Davr"><select value={days} onChange={(e) => setDays(e.target.value)}><option value="7">7 kun</option><option value="30">30 kun</option><option value="90">90 kun</option></select></Field><button onClick={exp} disabled={!x}>CSV</button></PageHead>
-    <Tabs label="Analitika bo'limlari" active={tab} onChange={setTab} items={[["over", "O'sish"], ["quality", "O'yin sifati"], ["audience", "Auditoriya"], ["funnel", "Voronka va kartalar"]]} />
+    <Tabs label="Analitika bo'limlari" active={tab} onChange={setTab} items={[["over", "O'sish"], ["quality", "O'yin sifati"], ["audience", "Auditoriya"], ["funnel", "Voronka va kartalar"], ["content", "Kontent"]]} />
     <Err e={o.err} />{!x ? <Empty loading={o.loading} /> : (<>
       {tab === "over" && <>
         <section className="card"><h2>Faol foydalanuvchilar</h2><div className="stats">{tile("DAU (24 soat)", x.active.dau)}{tile("WAU (7 kun)", x.active.wau)}{tile("MAU (30 kun)", x.active.mau)}{tile("Jami foydalanuvchi", x.commerce.registered)}{tile("To'lagan", x.commerce.payers)}{tile("Konversiya", pct(x.commerce.conversion))}{tile("Faol Plus", x.commerce.plusActive)}</div></section>
         <section className="card"><h2>Ushlab qolish</h2><div className="tw" tabIndex={0} role="region" aria-label="Ushlab qolish jadvali"><table><thead><tr><th>Ro'yxatdan o'tgandan keyin</th><th className="num">Hisoblangan foydalanuvchi</th><th className="num">Qaytgan</th><th>Ulush</th></tr></thead><tbody>{x.retention.map((r: any) => { const p = r.base ? r.kept / r.base : 0; return <tr key={r.day}><td>{r.day} kun</td><td className="num">{r.base}</td><td className="num">{r.kept}</td><td style={{ minWidth: 180 }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><div className="bar" role="img" aria-label={pct(p)}><i style={{ width: `${p * 100}%` }} /></div><span style={{ width: 56 }}>{pct(p)}</span></div></td></tr>; })}</tbody></table></div><p className="muted">{x.note}</p></section>
+        <Cohorts api={api} />
         <div className="grid2"><section className="card"><h2>Yangi foydalanuvchilar</h2><Bars values={x.series.registered} labels={x.series.days} label="Yangi foydalanuvchilar" color="#2C6DB5" /></section><section className="card"><h2>Kunlik faol o'yinchilar</h2><Lines label="Kunlik faol o'yinchilar" series={[{ name: "DAU", values: x.series.dau, color: "#11835A" }]} /></section></div>
       </>}
       {tab === "quality" && <>
@@ -30,6 +31,7 @@ export function Analytics({ api }: { api: Api }) {
       {tab === "audience" && <div className="grid2">
         <section className="card"><h2>Yosh guruhlari</h2><Bars values={x.ages.map((r: any) => r.n)} labels={x.ages.map((r: any) => r.label)} label="Yosh guruhlari" color="#11835A" /><div className="row muted">{x.ages.map((r: any) => <span key={r.label}>{r.label}: {r.n}</span>)}</div></section>
         <section className="card"><h2>Daraja taqsimoti</h2><Bars values={x.levels.map((r: any) => r.n)} labels={x.levels.map((r: any) => r.label)} label="Daraja taqsimoti" color="#F2B233" /><div className="row muted">{x.levels.map((r: any) => <span key={r.label}>{r.label}: {r.n}</span>)}</div></section></div>}
+      {tab === "content" && <ContentStats api={api} />}
       {tab === "funnel" && <>
         <section className="card"><h2>Voronka: kirishdan g'alabagacha</h2><Err e={f.err} />{!f.data ? <Empty loading={f.loading} /> : <><div className="tw" tabIndex={0} role="region" aria-label="Voronka jadvali"><table><thead><tr><th>Bosqich</th><th className="num">Soni</th><th>Kirganlardan</th></tr></thead><tbody>{steps.map(([k, v]) => { const p = f.data.registered ? Math.round((100 * v) / f.data.registered) : 0; return <tr key={k}><td>{k}</td><td className="num"><b>{v}</b></td><td style={{ minWidth: 180 }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><div className="bar" role="img" aria-label={`${p} %`}><i style={{ width: `${p}%` }} /></div><span style={{ width: 44 }}>{p} %</span></div></td></tr>; })}</tbody></table></div><p className="muted">Tugagan o'yinlar: {f.data.gamesFinished} · g'olibli: {Math.round(f.data.winShare * 100)} %</p></>}</section>
         <section className="card"><h2>Kartalar: qabul va o'tkazish</h2><Err e={c.err} />{!c.data?.length ? <Empty loading={c.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Kartalar jadvali"><table><thead><tr><th>Karta</th><th className="num">Ko'rsatilgan</th><th className="num">Qabul</th><th className="num">O'tkazilgan</th><th>Qabul ulushi</th></tr></thead><tbody>{c.data.map((r) => <tr key={r.id}><td className="mono">{r.id}</td><td className="num">{r.shown}</td><td className="num">{r.accepted}</td><td className="num">{r.skipped}</td><td>{pct(r.acceptRate)}</td></tr>)}</tbody></table></div>}</section></>}
@@ -67,3 +69,27 @@ export function Health({ api }: { api: Api }) {
   </>);
 }
 void Banner; void money;
+
+function Cohorts({ api }: { api: Api }) {
+  const c = useLoad<{ cohorts: { start: string; size: number; kept: (number | null)[] }[]; note: string }>(api, "/admin/analytics/cohorts");
+  return (<section className="card"><h2>Ushlab qolish — haftalik kohortalar</h2><Err e={c.err} />{!c.data ? <Empty loading={c.loading} /> : <div className="tw" tabIndex={0} role="region" aria-label="Kohortalar"><table><thead><tr><th>Hafta boshi</th><th className="num">Yangi</th><th className="num">1-hafta</th><th className="num">2</th><th className="num">3</th><th className="num">4</th></tr></thead><tbody>
+    {c.data.cohorts.map((r) => <tr key={r.start}><td>{r.start}</td><td className="num">{r.size}</td>{r.kept.map((v, i) => <td key={i} className="num" style={v === null ? undefined : { background: `rgba(17,131,90,${Math.min(0.6, v / 100 * 0.6)})` }}>{v === null ? "—" : `${v} %`}</td>)}</tr>)}</tbody></table></div>}<p className="muted" style={{ fontSize: 12, margin: "8px 0 0" }}>{c.data?.note}</p></section>);
+}
+
+const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+function ContentStats({ api }: { api: Api }) {
+  const c = useLoad<any>(api, "/admin/analytics/content"); const x = c.data;
+  return (<><Err e={c.err} />{!x ? <Empty loading={c.loading} /> : <>
+    <section className="card"><h2>Kartalar to'plamlari</h2><p className="muted" style={{ marginTop: -6 }}>Tortilish ulushi va qabul foizi (qabul faqat tanlanadigan kartalar uchun). Jami ko'rsatilgan: {fmt(x.totalShown)}.</p>
+      <div className="tw" tabIndex={0} role="region" aria-label="To'plamlar"><table><thead><tr><th>To'plam</th><th className="num">Karta</th><th className="num">Jonli</th><th className="num">Rasmli</th><th className="num">Ulush</th><th className="num">Qabul</th></tr></thead><tbody>
+        {x.decks.map((d: any) => <tr key={d.deck}><td><b>{d.name}</b></td><td className="num">{d.count}</td><td className="num">{d.live}</td><td className="num">{d.image}</td><td className="num">{d.sharePct} %</td><td className="num">{d.acceptPct === null ? "—" : `${d.acceptPct} %`}</td></tr>)}</tbody></table></div></section>
+    <div className="grid2">
+      <section className="card"><h2>Eng ko'p tushgan kartalar</h2>{!x.mostShown.length ? <p className="muted">Hali ma'lumot yo'q — o'yinlar tugagach to'ladi.</p> : x.mostShown.map((r: any) => <div className="attn" key={r.id}><span><b>{r.title}</b><br /><span className="muted" style={{ fontSize: 12 }}>{r.id} · {r.deck}</span></span><span>{r.shown} marta · {r.acceptRate} %</span></div>)}</section>
+      <section className="card"><h2>Eng kam qabul qilinganlar</h2>{!x.leastAccepted.length ? <p className="muted">Kamida 5 marta tushgan karta hali yo'q.</p> : x.leastAccepted.map((r: any) => <div className="attn" key={r.id}><span><b>{r.title}</b><br /><span className="muted" style={{ fontSize: 12 }}>{r.id} · {r.deck}</span></span><span>{r.acceptRate} % · {r.shown} marta</span></div>)}</section>
+    </div>
+    <div className="grid2">
+      <section className="card"><h2>Eng ko'p ishlatiladigan ta'sirlar</h2>{x.effects.map((e: any) => <div className="attn" key={e.type}><span className="mono">{e.type}</span><b>{e.n}</b></div>)}</section>
+      <section className="card"><h2>Ma'lumot sifati</h2><div className="stats">{[["Jami karta", x.quality.total], ["Nashr qilingan", x.quality.published], ["Tekshiruv «OK»", x.quality.reviewOk], ["Rasmli", x.quality.withImage], ["Hali tushmagan", x.quality.neverShown]].map(([k, v]) => <div className="stat" key={String(k)}><b>{v}</b><span>{k}</span></div>)}</div>
+        <p className="muted" style={{ fontSize: 13 }}>Hozircha kuzatilmaydi (alohida qaror kerak): {x.notTracked.join(" · ")}.</p></section>
+    </div></>}</>);
+}

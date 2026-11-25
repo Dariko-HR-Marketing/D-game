@@ -37,6 +37,13 @@ export function Catalog({ api }: { api: Api }) {
                 {c.sector && <><dt>Soha</dt><dd>{c.sector}</dd></>}
               </dl>
               {Array.isArray(c.effects) && c.effects.length > 0 && <div><b>Ta'sirlar</b><ul style={{ margin: "4px 0 0" }}>{c.effects.map((e: any, i: number) => <li key={i} className="mono">{e.type}: {String(e.value)} ({e.target}, {e.duration})</li>)}</ul></div>}
+              {(() => { const first = c.effects?.[0]?.type; const same = cat.filter((o) => o.id !== c.id && o.deck === c.deck && first && o.effects?.some((e: any) => e.type === first)); const dream = (c.effects ?? []).find((e: any) => e.type === "ORZU_SHARTI");
+                return <div><b>Bog'liqliklar</b><ul style={{ margin: "4px 0 0" }}>
+                  <li>To'plam: {c.deckName} ({counts.get(c.deck) ?? 0} ta karta)</li>
+                  {dream && <li>Orzu sharti: <span className="mono">{String(dream.value)}</span> — orzu g'alaba shartiga ta'sir qiladi</li>}
+                  {first && <li>Shu ta'sir turi (<span className="mono">{first}</span>) bor boshqa kartalar: {same.length}{same.length > 0 && <> — {same.slice(0, 3).map((o) => <button key={o.id} className="link" onClick={() => setOpen(o.id)} style={{ marginLeft: 6 }}>{o.id}</button>)}</>}</li>}
+                  {c.needsMapping && <li>Qoidalar dvigatelida ta'sir xaritasi kerak (needsMapping)</li>}
+                </ul></div>; })()}
             </div>}
           </div>); })}
         {rows.length === 0 && <p className="muted">Topilmadi</p>}

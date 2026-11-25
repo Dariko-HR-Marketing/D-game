@@ -9,12 +9,36 @@ import type { ProfileService } from "./profiles";
 import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 
-export interface InsightDeps { state: AdminState; ops: Ops; profiles: ProfileService; commerce: Commerce; consents: ParentConsents; rooms: RoomManager; store: Store; sockets: () => number; now?: () => number }
+export interface InsightDeps { state: AdminState; ops: Ops; profiles: ProfileService; commerce: Commerce; consents: ParentConsents; rooms: RoomManager; store: Store; sockets: () => number; now?: () => number; registry?: { bundle(v?: number): any }; cardStats?: () => Record<string, { shown: number; accepted: number; skipped: number }> }
 const DAY = 86_400_000;
 const hist = (vals: number[], edges: number[], labels: string[]) => { const out = labels.map((l) => ({ label: l, n: 0 })); for (const v of vals) { let i = edges.findIndex((e) => v < e); if (i < 0) i = edges.length; out[i].n++; } return out; };
 
 export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: InsightDeps) {
   const { state, profiles, ops } = d; const now = () => (d.now ?? Date.now)();
+  /** Kontent analitikasi (shaxssiz): to'plamlar, ta'sir turlari, ma'lumot sifati. Faqat kuzatiladigan narsa: kartaning ko'rsatilishi va qabul/o'tkazilishi. */
+  app.get("/admin/analytics/content", guard("analytics.read", () => {
+    const cat: any[] = d.registry?.bundle()?.cards?.catalog ?? []; const st = d.cardStats?.() ?? {};
+    const decks = new Map<string, { deck: number; name: string; count: number; live: number; image: number; shown: number; accepted: number; skipped: number }>();
+    for (const c of cat) { const k = decks.get(String(c.deck)) ?? { deck: c.deck, name: c.deckName, count: 0, live: 0, image: 0, shown: 0, accepted: 0, skipped: 0 }; k.count++; if (c.publish) k.live++; if (c.file) k.image++; const s = st[c.id]; if (s) { k.shown += s.shown; k.accepted += s.accepted; k.skipped += s.skipped; } decks.set(String(c.deck), k); }
+    const totalShown = [...decks.values()].reduce((n, x) => n + x.shown, 0);
+    const eff = new Map<string, number>(); for (const c of cat) if (c.publish) for (const e of c.effects ?? []) eff.set(e.type, (eff.get(e.type) ?? 0) + 1);
+    const byId = new Map(cat.map((c) => [c.id, c])); const row = (id: string) => { const c = byId.get(id), s = st[id]; return { id, title: c?.title ?? id, deck: c?.deckName ?? "", shown: s.shown, acceptRate: s.shown ? Math.round((100 * s.accepted) / s.shown) : 0 }; };
+    const seen = Object.keys(st).filter((id) => st[id].shown > 0);
+    const count = (f: (c: any) => boolean) => cat.filter(f).length;
+    return { totalShown, decks: [...decks.values()].sort((a, b) => a.deck - b.deck).map((x) => ({ ...x, sharePct: totalShown ? Math.round((100 * x.shown) / totalShown) : 0, acceptPct: x.shown ? Math.round((100 * x.accepted) / x.shown) : null })),
+      effects: [...eff].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([type, n]) => ({ type, n })), mostShown: seen.sort((a, b) => st[b].shown - st[a].shown).slice(0, 10).map(row),
+      leastAccepted: seen.filter((id) => st[id].shown >= 5).sort((a, b) => st[a].accepted / st[a].shown - st[b].accepted / st[b].shown).slice(0, 5).map(row),
+      quality: { total: cat.length, published: count((c) => c.publish), reviewOk: count((c) => c.review === "OK"), withImage: count((c) => !!c.file), needsMapping: count((c) => c.needsMapping), neverShown: cat.length - seen.length },
+      notTracked: ["Bankrotlikka olib borgan kartalar", "Kichik aylanadan chiqish turi", "Kasb bo'yicha g'alaba ulushi", "Katakka tushish chastotasi"] };
+  }));
+  /** Haftalik kohortalar: ro'yxatdan o'tgan hafta bo'yicha; «qaytdi» — oxirgi faollik shu haftadan keyin ekani (taxminiy: har kirish alohida yozilmaydi). */
+  app.get("/admin/analytics/cohorts", guard("analytics.read", () => {
+    const t = now(), WEEK = 7 * DAY, mon = (x: number) => { const d0 = new Date(x + TZ_OFFSET); const day = (d0.getUTCDay() + 6) % 7; return Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), d0.getUTCDate() - day) - TZ_OFFSET; };
+    const thisWeek = mon(t), users = [...d.state.users.values()], out: { start: string; size: number; kept: (number | null)[] }[] = [];
+    for (let w = 7; w >= 0; w--) { const start = thisWeek - w * WEEK, us = users.filter((u) => u.firstSeen >= start && u.firstSeen < start + WEEK);
+      out.push({ start: new Date(start + TZ_OFFSET).toISOString().slice(0, 10), size: us.length, kept: [1, 2, 3, 4].map((k) => (start + k * WEEK > t || !us.length ? null : Math.round((100 * us.filter((u) => u.lastSeen >= start + k * WEEK).length) / us.length))) }); }
+    return { cohorts: out, note: "Taxminiy: foydalanuvchining oxirgi faolligi bo'yicha" };
+  }));
   app.get("/admin/analytics/overview", guard("analytics.read", (req) => {
     const t = now(); const days = Math.min(90, Math.max(7, Number((req.query as any).days) || 30)); const since = t - days * DAY;
     const users = [...state.users.values()]; const res = profiles.results.filter((r) => r.finishedAt >= since); const all = profiles.results;
