@@ -1,0 +1,123 @@
+// Obuna darvozasi: o'yin xonasini ochish/qo'shilishdan oldin Telegram, Instagram va YouTube'ga obuna bo'lish.
+// Har platforma o'z yo'li bilan tekshiriladi (taxmin yo'q): Telegram — getChatMember, Instagram — is_user_follow_business (DM-kod orqali bog'lanadi),
+// YouTube — foydalanuvchining Google ruxsati bilan subscriptions.list. Sozlama bo'sh bo'lsa darvoza o'chiq (hech kim to'silmaydi).
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import type { FastifyInstance } from "fastify";
+import { Collection, type DocStore } from "./docs";
+import { WriteQueue } from "./persist";
+import { KeyedLimiter } from "./ratelimit";
+
+export type Platform = "telegram" | "instagram" | "youtube";
+export const PLATFORMS: Platform[] = ["telegram", "instagram", "youtube"];
+export interface GateConfig {
+  minAge: number; ttlDays: number;
+  telegram?: { botToken: string; channel: string; botUsername: string; channelUrl: string; webhookSecret: string };
+  instagram?: { accessToken: string; appSecret: string; verifyToken: string; handle: string };
+  youtube?: { channelId: string; channelUrl: string };
+}
+export interface GateRec { id: string; tg?: number; ig?: string; ok: Partial<Record<Platform, number>>; at: number }
+type F = typeof fetch;
+
+export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
+  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 30) };
+  if (e.GATE_TG_BOT_TOKEN && e.GATE_TG_CHANNEL && e.GATE_TG_BOT_USERNAME) {
+    const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL ?? (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "" };
+  }
+  if (e.GATE_IG_ACCESS_TOKEN && e.GATE_IG_HANDLE && e.GATE_IG_APP_SECRET) c.instagram = { accessToken: e.GATE_IG_ACCESS_TOKEN, appSecret: e.GATE_IG_APP_SECRET, verifyToken: e.GATE_IG_VERIFY_TOKEN ?? "", handle: e.GATE_IG_HANDLE.replace(/^@/, "") };
+  if (e.GATE_YT_CHANNEL_ID) c.youtube = { channelId: e.GATE_YT_CHANNEL_ID, channelUrl: e.GATE_YT_CHANNEL_URL ?? `https://www.youtube.com/channel/${e.GATE_YT_CHANNEL_ID}` };
+  return c;
+}
+
+export class SubscriptionGate {
+  private recs: Collection<GateRec>; readonly queue = new WriteQueue();
+  private tgTokens = new Map<string, { uid: string; exp: number }>(); private igCodes = new Map<string, { uid: string; exp: number }>();
+  constructor(readonly cfg: GateConfig, store?: DocStore, private fetchFn: F = fetch, private now: () => number = Date.now) { this.recs = new Collection("gate", store, this.queue); }
+  async load() { await this.recs.load(); return this; }
+  platforms(): Platform[] { return PLATFORMS.filter((p) => !!this.cfg[p]); }
+  enabled() { return this.platforms().length > 0; }
+  private rec(uid: string): GateRec { return this.recs.get(uid) ?? { id: uid, ok: {}, at: this.now() }; }
+  private valid(r: GateRec, p: Platform) { const t = r.ok[p]; return t !== undefined && this.now() - t < this.cfg.ttlDays * 86400_000; }
+  /** O'yinchiga yetishmayotgan platformalar. 16 yoshgacha (yurist xulosasigacha) darvoza qo'llanmaydi. */
+  missing(uid: string, age: number | null): Platform[] {
+    if (!this.enabled() || (age !== null && age < this.cfg.minAge)) return [];
+    const r = this.recs.get(uid); return this.platforms().filter((p) => !r || !this.valid(r, p));
+  }
+  status(uid: string, age: number | null) {
+    const r = this.recs.get(uid), miss = this.missing(uid, age);
+    return { enabled: this.enabled(), exempt: age !== null && age < this.cfg.minAge, missing: miss, platforms: this.platforms().map((p) => ({ id: p, ok: !!r && this.valid(r, p), linked: p === "telegram" ? r?.tg !== undefined : p === "instagram" ? r?.ig !== undefined : false, url: this.url(p) })) };
+  }
+  url(p: Platform) { return p === "telegram" ? this.cfg.telegram?.channelUrl : p === "instagram" ? `https://instagram.com/${this.cfg.instagram?.handle}` : this.cfg.youtube?.channelUrl; }
+  private mark(uid: string, p: Platform, ok: boolean) { const r = { ...this.rec(uid), ok: { ...this.rec(uid).ok } }; if (ok) r.ok[p] = this.now(); else delete r.ok[p]; this.recs.set(uid, r); return ok; }
+  erase(uid: string) { this.recs.delete(uid); for (const m of [this.tgTokens, this.igCodes]) for (const [k, v] of m) if (v.uid === uid) m.delete(k); }
+  stats() { const v = this.recs.values(); return { enabled: this.enabled(), platforms: this.platforms(), linked: { telegram: v.filter((r) => r.tg !== undefined).length, instagram: v.filter((r) => r.ig !== undefined).length }, verified: Object.fromEntries(PLATFORMS.map((p) => [p, v.filter((r) => this.valid(r, p)).length])), all: v.filter((r) => this.platforms().every((p) => this.valid(r, p))).length, total: v.length }; }
+
+  // ---- Telegram: bot /start <token> orqali Telegram identifikatori bog'lanadi, so'ng kanal a'zoligi getChatMember bilan tekshiriladi.
+  telegramStart(uid: string) { const c = this.cfg.telegram; if (!c) return null; const t = randomBytes(9).toString("base64url"); this.tgTokens.set(t, { uid, exp: this.now() + 15 * 60_000 }); return { token: t, url: `https://t.me/${c.botUsername}?start=${t}` }; }
+  onTelegramUpdate(u: any) { // webhook: {message:{from:{id},text:"/start TOKEN"}}
+    const text = String(u?.message?.text ?? ""), from = u?.message?.from?.id, m = /^\/start\s+([A-Za-z0-9_-]{6,40})$/.exec(text);
+    if (!m || typeof from !== "number") return false; const p = this.tgTokens.get(m[1]); if (!p || p.exp < this.now()) return false;
+    this.tgTokens.delete(m[1]); this.recs.set(p.uid, { ...this.rec(p.uid), tg: from }); return true;
+  }
+  async checkTelegram(uid: string): Promise<boolean | "not_linked" | "unavailable"> {
+    const c = this.cfg.telegram, r = this.recs.get(uid); if (!c) return false; if (r?.tg === undefined) return "not_linked";
+    try { const j: any = await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/getChatMember?chat_id=${encodeURIComponent(c.channel)}&user_id=${r.tg}`)).json();
+      if (!j?.ok) return "unavailable"; return this.mark(uid, "telegram", ["member", "administrator", "creator"].includes(j.result?.status) || (j.result?.status === "restricted" && j.result?.is_member === true));
+    } catch { return "unavailable"; }
+  }
+  // ---- Instagram: o'yinchi bizning professional akkauntga DM orqali kod yuboradi (webhook IGSID beradi), obuna is_user_follow_business bilan tekshiriladi.
+  instagramStart(uid: string) { const c = this.cfg.instagram; if (!c) return null; const code = "T24-" + randomBytes(4).toString("hex").slice(0, 6).toUpperCase(); this.igCodes.set(code, { uid, exp: this.now() + 30 * 60_000 }); return { code, url: `https://ig.me/m/${c.handle}` }; }
+  verifyInstagramSignature(raw: Buffer, header: string | undefined) {
+    const c = this.cfg.instagram; if (!c || !header?.startsWith("sha256=")) return false;
+    const a = Buffer.from(createHmac("sha256", c.appSecret).update(raw).digest("hex")), b = Buffer.from(header.slice(7)); return a.length === b.length && timingSafeEqual(a, b);
+  }
+  onInstagramEvent(body: any) { let n = 0;
+    for (const en of body?.entry ?? []) for (const ev of en?.messaging ?? []) {
+      const sid = ev?.sender?.id, text = String(ev?.message?.text ?? ""), m = /T24-[A-Z0-9]{6}/i.exec(text); if (!sid || !m) continue;
+      const p = this.igCodes.get(m[0].toUpperCase()); if (!p || p.exp < this.now()) continue; this.igCodes.delete(m[0].toUpperCase()); this.recs.set(p.uid, { ...this.rec(p.uid), ig: String(sid) }); n++;
+    } return n; }
+  async checkInstagram(uid: string): Promise<boolean | "not_linked" | "unavailable"> {
+    const c = this.cfg.instagram, r = this.recs.get(uid); if (!c) return false; if (!r?.ig) return "not_linked";
+    try { const j: any = await (await this.fetchFn(`https://graph.instagram.com/v21.0/${encodeURIComponent(r.ig)}?fields=is_user_follow_business&access_token=${encodeURIComponent(c.accessToken)}`)).json();
+      if (typeof j?.is_user_follow_business !== "boolean") return "unavailable"; return this.mark(uid, "instagram", j.is_user_follow_business);
+    } catch { return "unavailable"; }
+  }
+  // ---- YouTube: mijoz Google orqali youtube.readonly ruxsatini oladi; token saqlanmaydi, faqat natija.
+  async checkYoutube(uid: string, accessToken: string): Promise<boolean | "unavailable"> {
+    const c = this.cfg.youtube; if (!c) return false;
+    try { const res = await this.fetchFn(`https://www.googleapis.com/youtube/v3/subscriptions?part=id&mine=true&forChannelId=${encodeURIComponent(c.channelId)}`, { headers: { authorization: `Bearer ${accessToken}` } });
+      if (!res.ok) return "unavailable"; const j: any = await res.json(); return this.mark(uid, "youtube", Array.isArray(j?.items) && j.items.length > 0);
+    } catch { return "unavailable"; }
+  }
+}
+
+export interface GateDeps { app: FastifyInstance; gate: SubscriptionGate; secured: (h: (uid: string, req: any, reply: any) => unknown) => (req: any, reply: any) => unknown; ageOf: (uid: string) => number | null }
+export function registerGate(d: GateDeps) {
+  const { app, gate } = d, lim = new KeyedLimiter(6 / 60, 8);
+  const guard = (uid: string, reply: any) => { if (lim.allow(uid)) return true; reply.code(429).send({ error: "rate_limited" }); return false; };
+  const res = (r: boolean | string) => ({ ok: r === true, result: r === true ? "ok" : r === false ? "not_subscribed" : r });
+  app.get("/gate", d.secured((uid) => gate.status(uid, d.ageOf(uid))));
+  app.post("/gate/telegram/start", d.secured((uid, _q, reply) => guard(uid, reply) ? (gate.telegramStart(uid) ?? reply.code(404).send({ error: "gate_off" })) : undefined));
+  app.post("/gate/telegram/check", d.secured(async (uid, _q, reply) => guard(uid, reply) ? { ...res(await gate.checkTelegram(uid)), status: gate.status(uid, d.ageOf(uid)) } : undefined));
+  app.post("/gate/instagram/start", d.secured((uid, _q, reply) => guard(uid, reply) ? (gate.instagramStart(uid) ?? reply.code(404).send({ error: "gate_off" })) : undefined));
+  app.post("/gate/instagram/check", d.secured(async (uid, _q, reply) => guard(uid, reply) ? { ...res(await gate.checkInstagram(uid)), status: gate.status(uid, d.ageOf(uid)) } : undefined));
+  app.post("/gate/youtube/check", d.secured(async (uid, req, reply) => {
+    if (!guard(uid, reply)) return; const t = (req.body as any)?.accessToken; if (typeof t !== "string" || t.length < 10 || t.length > 4096) return reply.code(400).send({ error: "bad_token" });
+    return { ...res(await gate.checkYoutube(uid, t)), status: gate.status(uid, d.ageOf(uid)) };
+  }));
+  // Webhooklar: Telegram maxfiy sarlavha bilan, Instagram imzo bilan (xom tana kerak — alohida kapsulada).
+  app.register(async (s) => {
+    s.addContentTypeParser("application/json", { parseAs: "buffer" }, (_r, body, done) => { try { done(null, { raw: body, json: JSON.parse((body as Buffer).toString("utf8") || "{}") }); } catch (e) { done(e as Error); } });
+    s.post("/gate/telegram/webhook", async (req, reply) => {
+      const c = gate.cfg.telegram; if (!c || !c.webhookSecret || req.headers["x-telegram-bot-api-secret-token"] !== c.webhookSecret) return reply.code(403).send({ error: "forbidden" });
+      gate.onTelegramUpdate((req.body as any).json); return { ok: true };
+    });
+    s.get("/gate/instagram/webhook", async (req, reply) => {
+      const q = req.query as any, c = gate.cfg.instagram; if (!c?.verifyToken || q["hub.mode"] !== "subscribe" || q["hub.verify_token"] !== c.verifyToken) return reply.code(403).send("forbidden");
+      return reply.type("text/plain").send(String(q["hub.challenge"] ?? ""));
+    });
+    s.post("/gate/instagram/webhook", async (req, reply) => {
+      const b = req.body as { raw: Buffer; json: unknown }; if (!gate.verifyInstagramSignature(b.raw, req.headers["x-hub-signature-256"] as string | undefined)) return reply.code(403).send({ error: "forbidden" });
+      gate.onInstagramEvent(b.json); return { ok: true };
+    });
+  });
+}
