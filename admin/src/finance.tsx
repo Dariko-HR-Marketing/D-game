@@ -1,7 +1,7 @@
 // Moliya: hisobot, buyurtmalar (qo'lda amallar, qaytarish), katalog, narxlar, to'lov provayderi, sozlama tarixi.
 import React, { useEffect, useState } from "react";
 import type { Api } from "./api";
-import { Banner, Bars, Empty, Err, Field, FormDialog, PageHead, Pill, Tabs, csv, download, errText, fmtTime, money, num, useLoad } from "./lib";
+import { Banner, Bars, Empty, Err, Field, FormDialog, PageHead, Tile, Pill, Tabs, csv, download, errText, fmtTime, money, num, useLoad } from "./lib";
 import { t } from "./uz";
 
 const ST: Record<string, [string, "good" | "bad" | "warn" | "info" | "plain"]> = { paid: ["To'langan", "good"], pending_payment: ["To'lov kutilmoqda", "warn"], pending_parent: ["Ota-ona roziligi", "info"], cancelled: ["Bekor", "plain"], rejected: ["Rad etilgan", "bad"], refunded: ["Qaytarilgan", "bad"] };
@@ -26,7 +26,7 @@ function Inquiries({ api, canEdit }: { api: Api; canEdit: boolean }) {
 
 function Report({ api }: { api: Api }) {
   const [from, setFrom] = useState(""); const [to, setTo] = useState(""); const r = useLoad<any>(api, `/admin/finance/summary?from=${from}&to=${to}`, [from, to]); const x = r.data;
-  const tile = (k: string, v: React.ReactNode) => <div className="stat" key={k}><b>{v}</b><span>{k}</span></div>;
+  const tile = (k: string, v: React.ReactNode) => <Tile key={k} l={k} v={v} />;
   return (<>
     <section className="card"><div className="row"><Field label="Boshlanish"><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Field><Field label="Tugash"><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
       <button onClick={() => x && download(`daromad-${x.from}_${x.to}.csv`, csv([["Sana", "Daromad (sh.b.)"], ...x.days.map((d: string, i: number) => [d, x.series[i]])]))} disabled={!x}>CSV</button></div></section>

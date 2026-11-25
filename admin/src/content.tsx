@@ -27,6 +27,7 @@ function Versions({ api, perms, vs, rv }: { api: Api; perms: string[]; vs: Retur
   return (<>
     <Err e={vs.err} />
     <section className="card" aria-labelledby="vh"><h2 id="vh">Versiyalar</h2>
+      <ol className="steps" style={{ flexDirection: "row", flexWrap: "wrap", gap: 18, margin: "0 0 14px" }} aria-label="Nashr jarayoni">{[["Qoralama", "Muharrir o'zgartiradi"], ["Tekshiruv", "Xato va muvozanat avtomatik tekshiriladi"], ["Ko'rib chiqish", "Administrator farqni ko'radi"], ["Nashr", "Faqat administrator; yangi o'yinlarga ta'sir qiladi"]].map(([a, b], i) => <li key={a}><span className="n" aria-hidden>{i + 1}</span><span className="t"><b>{a}</b><span>{b}</span></span></li>)}</ol>
       <div className="tw" tabIndex={0} role="region" aria-label="Versiyalar jadvali"><table><thead><tr><th>Versiya</th><th>Qism</th><th>Izoh</th><th>Muallif</th><th>Sana</th><th>Holat</th><th><span className="sr">Amal</span></th></tr></thead><tbody>
         {vs.data?.versions.slice().reverse().map((v) => { const on = active === v.version; const r = rmap.get(v.version); return (
           <tr key={v.version}><td><b>v{v.version}</b></td><td>{t.parts[v.part]?.[0] ?? v.part}</td><td>{v.note || "—"}</td><td className="mono">{v.author}</td><td className="muted">{fmtTime(v.at)}</td>

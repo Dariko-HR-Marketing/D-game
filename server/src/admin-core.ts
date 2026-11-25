@@ -63,7 +63,7 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
   const ageOf = (id: string) => { const p = profiles.get(id); return p ? year() - p.birthYear : null; };
 
   // --- admin hisoblari ---
-  app.get("/admin/accounts", guard("accounts.manage", () => ({ accounts: accounts.accts.values().map((a) => accounts.pub(a)).sort((x, y) => x.createdAt - y.createdAt), roles: Object.keys(PERMS), sessions: accounts.sessionsOf().length })));
+  app.get("/admin/accounts", guard("accounts.manage", () => ({ accounts: accounts.accts.values().map((a) => accounts.pub(a)).sort((x, y) => x.createdAt - y.createdAt), roles: Object.keys(PERMS), matrix: PERMS, sessions: accounts.sessionsOf().length })));
   app.post("/admin/accounts", guard("accounts.manage", (req, who) => { const r = accounts.create(who.id, (req.body ?? {}) as any); return r.ok ? { account: accounts.pub(r.account) } : { error: r.error }; }, "admin.account.create"));
   app.post("/admin/accounts/:id", guard("accounts.manage", (req, who) => { const r = accounts.update(String((req.params as any).id), (req.body ?? {}) as any, who.id); return r.ok ? { account: accounts.pub(r.account) } : { error: r.error }; }, "admin.account.update"));
   app.post("/admin/accounts/:id/password", guard("accounts.manage", (req) => { const r = accounts.resetPassword(String((req.params as any).id), (req.body as any)?.password); return r.ok ? { ok: true } : { error: r.error }; }, "admin.account.reset_password"));
@@ -108,8 +108,8 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
         offline: rs.reduce((n, r) => n + real(r).filter((m: any) => !m.online).length, 0),
         where: { playing: live.reduce((n, r) => n + real(r).filter((m: any) => m.online).length, 0), lobby: rs.filter((r) => !r.state).reduce((n, r) => n + real(r).filter((m: any) => m.online).length, 0) } };
       if (d.onlineSeries) out.online24 = d.onlineSeries();
-      const b = d.registry?.bundle(); const cat: any[] = b?.catalog ?? [];
-      if (cat.length) { const draw = cat.filter((c) => c.publish), noImg = cat.filter((c) => c.publish && !c.file).length; out.content = { catalog: cat.length, live: draw.length, draft: cat.length - draw.length, noImage: noImg, jobs: (b?.cards ?? []).length, dreams: (b?.dreams ?? []).length };
+      const b = d.registry?.bundle(); const cat: any[] = b?.cards?.catalog ?? [];
+      if (cat.length) { const draw = cat.filter((c) => c.publish), decks = [b?.cards?.kasb, b?.cards?.kichik, b?.cards?.katta, b?.cards?.bozor, b?.cards?.xar, b?.cards?.kxar, b?.cards?.hod].flatMap((x: any) => x ?? []), noImg = decks.filter((c: any) => !c.file).length; out.content = { catalog: cat.length, live: draw.length, draft: cat.length - draw.length, noImage: noImg, jobs: (b?.cards?.kasb ?? []).length, dreams: (b?.dreams ?? []).length };
         const byId = new Map(cat.map((c) => [c.id, c])); out.topCards = (d.topCards?.() ?? []).slice(0, 4).map((c) => { const k = byId.get(c.id); return { id: c.id, title: k?.title ?? c.id, deck: k?.deckName ?? "", file: k?.file ?? null, shown: c.shown, acceptRate: c.shown ? Math.round((100 * c.accepted) / c.shown) : 0 }; }); }
     }
     out.attention = attn; return out;
@@ -122,11 +122,12 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
   };
   app.get("/admin/users", guard("users.read", (req) => {
     const q = req.query as Record<string, string>; const s = (q.q ?? "").toLowerCase();
-    let rows = [...state.users.values()].map(row);
+    let rows = [...state.users.values()].map(row); const all = rows;
+    const counts = { all: all.length, banned: all.filter((u) => u.banned).length, plus: all.filter((u) => u.plus).length, minor: all.filter((u) => u.minor).length, unreliable: all.filter((u) => u.unreliable > 0).length, online: all.filter((u) => now() - u.lastSeen < 5 * 60_000).length, tournament: new Set(d.tournaments.regs.values().map((r) => r.userId)).size };
     if (s) rows = rows.filter((u) => u.id.toLowerCase().includes(s) || (u.name ?? "").toLowerCase().includes(s));
-    if (q.banned === "1") rows = rows.filter((u) => u.banned); if (q.plus === "1") rows = rows.filter((u) => u.plus); if (q.minor === "1") rows = rows.filter((u) => u.minor); if (q.unreliable === "1") rows = rows.filter((u) => u.unreliable > 0);
+    if (q.banned === "1") rows = rows.filter((u) => u.banned); if (q.plus === "1") rows = rows.filter((u) => u.plus); if (q.minor === "1") rows = rows.filter((u) => u.minor); if (q.unreliable === "1") rows = rows.filter((u) => u.unreliable > 0); if (q.online === "1") rows = rows.filter((u) => now() - u.lastSeen < 5 * 60_000); if (q.tournament === "1") { const ids = new Set(d.tournaments.regs.values().map((r) => r.userId)); rows = rows.filter((u) => ids.has(u.id)); }
     rows.sort((a, b) => b.lastSeen - a.lastSeen); const off = Math.max(0, Number(q.offset) || 0);
-    return { total: rows.length, users: rows.slice(off, off + 50) };
+    return { total: rows.length, counts, users: rows.slice(off, off + 50) };
   }));
   app.get("/admin/users/:id", guard("users.read", (req, who) => {
     const id = String((req.params as any).id); const u = state.users.get(id); if (!u) return { error: "no_user" };
@@ -163,6 +164,12 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
 
   // --- shikoyatlar: yangi → ko'rib chiqilmoqda → hal qilindi / rad etildi ---
   const metaOf = (c: { id: number; status: string }) => ops.cmeta.get(String(c.id)) ?? { id: String(c.id), status: (c.status === "open" ? "new" : "resolved") as CStatus, category: "player" as const, notes: [], updatedAt: 0 };
+  /** Ota-ona nazorati: rozilik so'rovlari (to'lov, turnir va h.k.) — ota-onaning telefon raqami ko'rsatilmaydi. */
+  app.get("/admin/parental", guard(["complaints.manage", "users.read"], () => {
+    const rows = d.consents.reqs.values().sort((a, b) => b.createdAt - a.createdAt).slice(0, 100).map((r) => ({ id: r.id, child: profiles.get(r.childId)?.name ?? r.childId, kind: r.kind, title: r.title, status: r.status, at: r.createdAt }));
+    const n = (st: string) => rows.filter((r) => r.status === st).length;
+    return { rows, counts: { pending: n("pending"), approved: n("approved"), rejected: n("rejected"), cancelled: n("cancelled") } };
+  }));
   app.get("/admin/complaints", guard("complaints.manage", (req, who) => {
     const q = req.query as Record<string, string>; const against = new Map<string, number>(); for (const c of state.complaints) if (c.against) against.set(c.against, (against.get(c.against) ?? 0) + 1);
     let rows = state.complaints.map((c) => { const m = metaOf(c); return { ...c, status: m.status, category: m.category, assignee: m.assignee ?? null, assigneeName: m.assignee ? accounts.accts.get(m.assignee)?.name ?? m.assignee : null, notes: m.notes, fromName: nameOf(c.from), againstName: c.against ? nameOf(c.against) : null, againstCount: c.against ? against.get(c.against) ?? 0 : 0 }; });

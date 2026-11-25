@@ -63,6 +63,9 @@ describe("tahlil API", () => {
     const direct = (await x.analysis.analyze(code))!.analysis.cards;
     const total = Object.values(x.analysis.cardStats).reduce((t, c) => t + c.shown, 0);
     expect(total).toBe(Object.values(direct).reduce((t, c) => t + c.shown, 0));
+    const g = x.analysis.gameStats!.agg; for (let i = 0; i < 50 && !g.games; i++) await new Promise((r) => setTimeout(r, 20)); // finish() hisobni orqa fonda boshlaydi
+    expect(g.games).toBe(1); expect(Object.values(g.cells.small).reduce((a, b) => a + b, 0)).toBeGreaterThan(5); // haqiqiy o'yindan katak tushishlari yig'ildi
+    expect(Object.keys(g.jobs).length).toBeGreaterThan(0);
     const r = await x.app.inject({ method: "GET", url: "/admin/analytics/cards", headers: H("NT") });
     expect(r.statusCode).toBe(200); expect(Array.isArray(r.json())).toBe(true);
     expect((await x.app.inject({ method: "GET", url: "/admin/analytics/cards", headers: H("ST") })).statusCode).toBe(403);

@@ -5,6 +5,7 @@ import type { Store } from "./store";
 import type { ContentRegistry, Part } from "./registry";
 import { WriteQueue, type Persist } from "./persist";
 import { loadContent } from "@tajriba24/content";
+import { smallCell } from "@tajriba24/rules";
 
 export type Role = "administrator" | "content_editor" | "support" | "analyst" | "moderator" | "finance" | "edu_manager" | "tournament_manager";
 export type Perm = "content.read" | "content.write" | "content.publish" | "users.read" | "users.ban" | "users.manage" | "rooms.read" | "rooms.close" | "journal.read" | "complaints.manage" | "analytics.read" | "audit.read"
@@ -89,6 +90,8 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
 
   // --- kontent ---
   app.get("/admin/content/versions", guard("content.read", () => ({ active: d.registry.activeVersion, versions: d.registry.infos })));
+  /** Kichik aylana (48 katak, qoidalar kodida): katak turlari ro'yxati. */
+  app.get("/admin/content/board-small", guard("content.read", () => ({ cells: Array.from({ length: 48 }, (_, i) => ({ i, t: smallCell(i) })) })));
   app.get("/admin/content/:part", guard("content.read", (req) => {
     const b = d.registry.bundle(); const part = (req.params as any).part as Part;
     return b && part in b ? { version: d.registry.activeVersion, data: (b as any)[part === "cards" ? "cards" : part] } : { error: "no_part" };

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { GROUPS, HELP, glossaryFor } from "./help";
 import { Api, ApiError } from "./api";
 import { ERRORS, t } from "./uz";
 
@@ -10,9 +11,9 @@ h1,h2,h3{margin:0}h2{font-size:20px}h3{font-size:16px}
 aside{background:var(--navy);color:#fff;padding:20px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;overflow-y:auto}
 aside .brand{font-weight:800;letter-spacing:1px;font-size:17px;padding:0 8px}aside .who{font-size:12px;color:#C9D6E2;padding:0 8px}
 nav{display:flex;flex-direction:column;gap:4px}
-nav button{justify-content:flex-start;text-align:left;background:transparent;color:#fff;border:0;min-height:40px;padding:0 12px;border-radius:10px;font-weight:700}
+nav button{justify-content:flex-start;text-align:left;background:transparent;color:#fff;border:0;min-height:38px;padding:0 12px;border-radius:10px;font-weight:700}
 nav button:hover{background:rgba(255,255,255,.1)}nav button[aria-current=page]{background:#fff;color:var(--navy)}
-aside .out{margin-top:auto;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
+aside .out{margin-top:0;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
 main{padding:28px;max-width:1180px;width:100%;min-width:0}main.login{max-width:none;padding:20px}
 .page-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 button{font:inherit;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;cursor:pointer;color:var(--navy)}
@@ -40,6 +41,21 @@ dialog form{display:flex;flex-direction:column;gap:14px}dialog menu{display:flex
 nav .grp{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#9FB2C6;padding:10px 12px 2px}
 button.link{border:0;background:none;min-height:0;padding:0;color:#1B3A6B;text-decoration:underline;font-weight:700}
 @media(max-width:820px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 12px;gap:8px}aside .who{display:none}nav{flex-direction:row;overflow-x:auto;flex:1 1 100%;order:3}nav button{white-space:nowrap}aside .out{margin:0;padding:8px 12px;font-size:13px}aside .brand{flex:1 1 auto}main{padding:16px}}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--green-t);margin-bottom:2px}
+.page-h{align-items:flex-start}.page-h h1{line-height:1.15}.page-h .sub{margin:4px 0 0;color:var(--t2);font-size:15px;max-width:70ch}
+details.help{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 16px;margin:-6px 0 18px}details.help summary{cursor:pointer;font-weight:800;padding:12px 0;font-size:14px;color:var(--green-t);min-height:44px;display:flex;align-items:center}
+details.help ol{margin:0 0 8px;padding-left:20px;line-height:1.65;font-size:14px}details.help .tip{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:var(--s-info);font-size:14px}
+.stat small{display:block;margin-top:6px;font-size:12px;line-height:1.35;color:var(--t2);font-weight:500}
+.card>h2+.sub{margin:-6px 0 12px;color:var(--t2);font-size:14px}
+.sw{position:relative;display:inline-flex;flex-direction:row!important;flex-wrap:nowrap;white-space:nowrap;align-items:center;gap:10px;font-weight:700;min-height:44px;cursor:pointer}.sw input{position:absolute;opacity:0;width:44px;height:26px;margin:0;cursor:pointer}
+.sw i{width:44px;height:26px;border-radius:999px;background:#9AA8B4;position:relative;transition:background .15s;flex:none}.sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw input:checked+i{background:var(--green)}.sw input:checked+i::after{transform:translateX(18px)}.sw input:focus-visible+i{outline:3px solid #1B3A6B;outline-offset:2px}
+.sw.warn input:checked+i{background:var(--red)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}.steps li{display:flex;gap:12px;align-items:flex-start}
+.steps .n{flex:none;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;background:var(--bg);border:2px solid var(--line);color:var(--t2)}
+.steps .done .n{background:var(--green);border-color:var(--green);color:#fff}.steps .t{flex:1}.steps .t b{display:block}.steps .t span{font-size:13px;color:var(--t2)}
+.drawer::backdrop{background:rgba(8,38,62,.45)}dialog.drawer{margin:0 0 0 auto;height:100vh;max-height:100vh;width:min(480px,100%);max-width:100%;border-radius:16px 0 0 16px;overflow-y:auto}
+nav button .sub{display:none}aside nav .grp small{display:block;font-weight:500;letter-spacing:0;text-transform:none;color:#7F95AA;font-size:11px}
 `;
 
 export const CARDS_URL: string = (import.meta as any).env?.VITE_CARD_IMAGES_URL ?? "/cards";
@@ -58,7 +74,22 @@ export function useLoad<T>(api: Api, path: string, deps: unknown[] = []) {
 export const Banner = ({ kind, children }: { kind: "good" | "bad" | "warn" | "info"; children: React.ReactNode }) => <div className={`banner ${kind}`} role={kind === "bad" ? "alert" : "status"}>{children}</div>;
 export const Pill = ({ kind, children }: { kind: "good" | "bad" | "warn" | "info" | "plain"; children: React.ReactNode }) => <span className={`pill ${kind}`}>{children}</span>;
 export const Err = ({ e }: { e: string | null }) => (e ? <Banner kind="bad">{e}</Banner> : null);
-export const PageHead = ({ title, children }: { title: string; children?: React.ReactNode }) => <div className="page-h"><h1 style={{ fontSize: 26 }}>{title}</h1><div className="row">{children}</div></div>;
+/** Joriy bo'lim kaliti (main.tsx beradi): PageHead shu bo'limning izoh va yo'riqnomasini ko'rsatadi. */
+export const SecCtx = createContext<string>("");
+const seenKey = "help-seen";
+const readSeen = (): string[] => { try { return JSON.parse(localStorage.getItem(seenKey) ?? "[]"); } catch { return []; } };
+export function PageHead({ title, children }: { title: string; children?: React.ReactNode }) {
+  const k = useContext(SecCtx); const h = HELP[k]; const label = k === "me" ? "Mening hisobim" : ((t as any)[k] ?? "");
+  const primary = !!h && !!label && title.toLowerCase().startsWith(String(label).toLowerCase());
+  const [open, setOpen] = useState(() => !readSeen().includes(k));
+  return (<>
+    <header className="page-h"><div style={{ flex: 1, minWidth: 240 }}>{primary && GROUPS[k] && <div className="kicker">{GROUPS[k]}</div>}<h1 style={{ fontSize: 26 }}>{title}</h1>{primary && <p className="sub">{h.sub}</p>}</div><div className="row">{children}</div></header>
+    {primary && <details className="help" open={open} onToggle={(e) => { const o = (e.target as HTMLDetailsElement).open; setOpen(o); if (!o) try { localStorage.setItem(seenKey, JSON.stringify([...new Set([...readSeen(), k])])); } catch { /* ixtiyoriy */ } }}>
+      <summary>Qanday ishlatiladi?</summary><ol>{h.steps.map((x, i) => <li key={i}>{x}</li>)}</ol>{h.tip && <p className="tip"><b>Maslahat:</b> {h.tip}</p>}</details>}
+  </>);
+}
+/** Ko'rsatkich: nom, qiymat va (bo'lsa) atamaning qisqa izohi. */
+export const Tile = ({ l, v, hint, warn }: { l: string; v: React.ReactNode; hint?: string; warn?: boolean }) => { const h = hint ?? glossaryFor(l); return <div className="stat"><b style={warn ? { color: "var(--red)" } : undefined}>{v}</b><span>{l}</span>{h && <small>{h}</small>}</div>; };
 export const Empty = ({ loading }: { loading: boolean }) => <p className="muted" role="status">{loading ? t.loading : t.empty}</p>;
 
 /** Tasdiqlash oynasi (<dialog>: fokus tuzog'i va Esc brauzer tomonidan). `reason` — majburiy sabab maydoni. */

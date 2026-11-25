@@ -9,12 +9,46 @@ import type { ProfileService } from "./profiles";
 import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 
-export interface InsightDeps { state: AdminState; ops: Ops; profiles: ProfileService; commerce: Commerce; consents: ParentConsents; rooms: RoomManager; store: Store; sockets: () => number; now?: () => number }
+export interface InsightDeps { state: AdminState; ops: Ops; profiles: ProfileService; commerce: Commerce; consents: ParentConsents; rooms: RoomManager; store: Store; sockets: () => number; now?: () => number; registry?: { bundle(v?: number): any }; cardStats?: () => Record<string, { shown: number; accepted: number; skipped: number }>; gameStats?: () => import("./gamestats").GameAgg }
 const DAY = 86_400_000;
 const hist = (vals: number[], edges: number[], labels: string[]) => { const out = labels.map((l) => ({ label: l, n: 0 })); for (const v of vals) { let i = edges.findIndex((e) => v < e); if (i < 0) i = edges.length; out[i].n++; } return out; };
 
 export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: InsightDeps) {
   const { state, profiles, ops } = d; const now = () => (d.now ?? Date.now)();
+  /** Kontent analitikasi (shaxssiz): to'plamlar, ta'sir turlari, ma'lumot sifati. Faqat kuzatiladigan narsa: kartaning ko'rsatilishi va qabul/o'tkazilishi. */
+  app.get("/admin/analytics/content", guard("analytics.read", () => {
+    const cards = d.registry?.bundle()?.cards, cat: any[] = cards?.catalog ?? []; const arrays = [cards?.kasb, cards?.kichik, cards?.katta, cards?.bozor, cards?.xar, cards?.kxar, cards?.hod]; const withFile = (n: number) => (arrays[n - 1] ?? []).filter((x: any) => x.file).length; const st = d.cardStats?.() ?? {};
+    const decks = new Map<string, { deck: number; name: string; count: number; live: number; image: number; shown: number; accepted: number; skipped: number }>();
+    for (const c of cat) { const k = decks.get(String(c.deck)) ?? { deck: c.deck, name: c.deckName, count: 0, live: 0, image: 0, shown: 0, accepted: 0, skipped: 0 }; k.count++; if (c.publish) k.live++; const s = st[c.id]; if (s) { k.shown += s.shown; k.accepted += s.accepted; k.skipped += s.skipped; } decks.set(String(c.deck), k); }
+    const totalShown = [...decks.values()].reduce((n, x) => n + x.shown, 0);
+    const eff = new Map<string, number>(); for (const c of cat) if (c.publish) for (const e of c.effects ?? []) eff.set(e.type, (eff.get(e.type) ?? 0) + 1);
+    const byId = new Map(cat.map((c) => [c.id, c])); const row = (id: string) => { const c = byId.get(id), s = st[id]; return { id, title: c?.title ?? id, deck: c?.deckName ?? "", shown: s.shown, acceptRate: s.shown ? Math.round((100 * s.accepted) / s.shown) : 0 }; };
+    const seen = Object.keys(st).filter((id) => st[id].shown > 0);
+    const count = (f: (c: any) => boolean) => cat.filter(f).length;
+    return { totalShown, decks: [...decks.values()].sort((a, b) => a.deck - b.deck).map((x) => ({ ...x, image: withFile(x.deck), imageOf: (arrays[x.deck - 1] ?? []).length, sharePct: totalShown ? Math.round((100 * x.shown) / totalShown) : 0, acceptPct: x.shown ? Math.round((100 * x.accepted) / x.shown) : null })),
+      effects: [...eff].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([type, n]) => ({ type, n })), mostShown: seen.sort((a, b) => st[b].shown - st[a].shown).slice(0, 10).map(row),
+      leastAccepted: seen.filter((id) => st[id].shown >= 5).sort((a, b) => st[a].accepted / st[a].shown - st[b].accepted / st[b].shown).slice(0, 5).map(row),
+      quality: { total: cat.length, published: count((c) => c.publish), reviewOk: count((c) => c.review === "OK"), withImage: arrays.flatMap((x) => x ?? []).filter((x: any) => x.file).length, imageTotal: arrays.flatMap((x) => x ?? []).length, needsMapping: count((c) => c.needsMapping), neverShown: cat.length - seen.length },
+      events: (() => { const g = d.gameStats?.(); if (!g) return null; const top = (o: Record<string, number>, n = 8) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
+        const hits = (o: Record<string, number>) => { const tot = Object.values(o).reduce((a, b) => a + b, 0); return top(o, 10).map(([cell, n]) => ({ cell: Number(cell) + 1, n, pct: tot ? +((100 * n) / tot).toFixed(1) : 0 })); };
+        return { games: g.games, cellsSmall: hits(g.cells.small), cellsBig: hits(g.cells.big), exit: { n: g.exits.n, notExited: g.exits.notExited, byRound: Object.entries(g.exits.byRound).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([k, n]) => ({ k, n })), byCell: top(g.exits.byCell).map(([k, n]) => ({ k, n })) },
+          bankrupt: { n: g.bankrupt.n, byCard: top(g.bankrupt.byCard, 6).map(([id, n]) => ({ id, title: byId.get(id)?.title ?? id, n })) },
+          dreams: Object.entries(g.dreams ?? {}).filter(([, v]) => v.games >= 3).map(([name, v]) => ({ name, games: v.games, winPct: Math.round((100 * v.wins) / v.games) })).sort((a, b) => b.winPct - a.winPct).slice(0, 8),
+          jobs: Object.entries(g.jobs).filter(([, v]) => v.games >= 3).map(([name, v]) => ({ name, games: v.games, winPct: Math.round((100 * v.wins) / v.games) })).sort((a, b) => b.winPct - a.winPct) }; })() };
+  }));
+  /** Katak tushish chastotasi (issiqlik xaritasi): har aylana bo'yicha katak → ulush %. */
+  app.get("/admin/analytics/cells", guard("analytics.read", () => {
+    const g = d.gameStats?.(); const norm = (o: Record<string, number> = {}) => { const tot = Object.values(o).reduce((a, b) => a + b, 0); return Object.fromEntries(Object.entries(o).map(([k, n]) => [k, tot ? +((100 * n) / tot).toFixed(2) : 0])); };
+    return { games: g?.games ?? 0, small: norm(g?.cells.small), big: norm(g?.cells.big) };
+  }));
+  /** Haftalik kohortalar: ro'yxatdan o'tgan hafta bo'yicha; «qaytdi» — oxirgi faollik shu haftadan keyin ekani (taxminiy: har kirish alohida yozilmaydi). */
+  app.get("/admin/analytics/cohorts", guard("analytics.read", () => {
+    const t = now(), WEEK = 7 * DAY, mon = (x: number) => { const d0 = new Date(x + TZ_OFFSET); const day = (d0.getUTCDay() + 6) % 7; return Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), d0.getUTCDate() - day) - TZ_OFFSET; };
+    const thisWeek = mon(t), users = [...d.state.users.values()], out: { start: string; size: number; kept: (number | null)[] }[] = [];
+    for (let w = 7; w >= 0; w--) { const start = thisWeek - w * WEEK, us = users.filter((u) => u.firstSeen >= start && u.firstSeen < start + WEEK);
+      out.push({ start: new Date(start + TZ_OFFSET).toISOString().slice(0, 10), size: us.length, kept: [1, 2, 3, 4].map((k) => (start + k * WEEK > t || !us.length ? null : Math.round((100 * us.filter((u) => u.lastSeen >= start + k * WEEK).length) / us.length))) }); }
+    return { cohorts: out, note: "Taxminiy: foydalanuvchining oxirgi faolligi bo'yicha" };
+  }));
   app.get("/admin/analytics/overview", guard("analytics.read", (req) => {
     const t = now(); const days = Math.min(90, Math.max(7, Number((req.query as any).days) || 30)); const since = t - days * DAY;
     const users = [...state.users.values()]; const res = profiles.results.filter((r) => r.finishedAt >= since); const all = profiles.results;

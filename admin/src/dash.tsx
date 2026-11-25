@@ -1,17 +1,18 @@
 import React from "react";
 import type { Api } from "./api";
-import { Area, Bars, CARDS_URL, Empty, Err, PageHead, Pill, money, useLoad } from "./lib";
+import { Area, Bars, CARDS_URL, Empty, Err, PageHead, Pill, Tile, money, useLoad } from "./lib";
+import { SetupList } from "./setup";
 
-const Kpi = ({ l, v, d, warn }: { l: string; v: React.ReactNode; d?: string; warn?: boolean }) => <div className="stat"><span>{l}</span><b style={warn ? { color: "var(--red)" } : undefined}>{v}</b>{d && <small className="muted">{d}</small>}</div>;
+const Kpi = ({ l, v, d, warn }: { l: string; v: React.ReactNode; d?: string; warn?: boolean }) => <Tile l={l} v={v} hint={d} warn={warn} />;
 
-export function Dashboard({ api, go }: { api: Api; go: (k: string) => void }) {
+export function Dashboard({ api, go, me, perms }: { api: Api; go: (k: string) => void; me?: any; perms?: string[] }) {
   const d = useLoad<any>(api, "/admin/dashboard"); const rooms = useLoad<any[]>(api, "/admin/rooms"); const x = d.data;
   const live = (rooms.data ?? []).filter((r) => !r.ended).slice(0, 6);
   const quiet = x?.live && x.live.online === 0 && !x.kpi?.gamesToday && !(x.today?.users);
   return (<>
     <PageHead title="Boshqaruv paneli"><span className="pill good" role="status">Jonli</span><button onClick={() => { d.reload(); rooms.reload(); }}>Yangilash</button></PageHead>
-    <p className="muted" style={{ marginTop: -8 }}>Hozirgi holat: kim o'ynayapti, kim kutayapti, nimaga e'tibor kerak.</p>
     <Err e={d.err} />{!x ? <Empty loading={d.loading} /> : (<>
+      {perms && <SetupList api={api} perms={perms} me={me} today={x.today} go={go} />}
       {quiet && <div className="banner info" role="status" style={{ marginBottom: 16 }}>Hali o'yinchi va o'yin yo'q: ko'rsatkichlar birinchi o'yindan keyin to'ladi. Sinash uchun «Test hisoblar» bo'limidan foydalaning.</div>}
       {x.live && <section className="card" aria-label="Asosiy ko'rsatkichlar"><div className="stats">
         <Kpi l="Onlayn o'yinchilar" v={x.live.online} /><Kpi l="Faol maydonlar" v={x.live.active} d={x.kpi ? `${x.kpi.where.playing} kishi o'yinda` : undefined} /><Kpi l="Kutish zalida" v={x.live.lobby} d={x.kpi ? `${x.kpi.where.lobby} kishi` : undefined} />

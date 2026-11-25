@@ -29,6 +29,7 @@ import { registerAdminAuth, registerAdminCore } from "./admin-core";
 import { registerAdminGames } from "./admin-games";
 import { registerAdminFinance } from "./admin-finance";
 import { registerAdminTest } from "./admin-test";
+import { GameStats } from "./gamestats";
 import { registerAdminHub } from "./admin-hub";
 import { registerAdminInsight } from "./admin-insight";
 import { Edu } from "./edu";
@@ -84,6 +85,7 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   const ops = opts.ops ?? new Ops(opts.docs); const accounts = opts.accounts ?? new AdminAccounts(opts.docs);
   const edu = opts.edu ?? new Edu(opts.docs); const tournaments = opts.tournaments ?? new Tournaments(opts.docs);
   const analysis = opts.analysis ?? new AnalysisService(store, registry, new WriteQueue());
+  const gameStats = new GameStats(opts.docs); analysis.gameStats = gameStats;
   const clubs = new Clubs(opts.docs);
   const rooms = new RoomManager(registry, store, undefined, undefined, {
     chatRestricted: (ids) => [...new Set([...profiles.restrictedOf(ids), ...consents.chatBlocked(ids)])], // erkin chat: 16 yoshgacha va ota-ona o'chirgan
@@ -121,7 +123,7 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   const sampler = setInterval(sampleOnline, 60_000); sampler.unref(); app.addHook("onClose", async () => clearInterval(sampler));
   const onlineSeries = () => { sampleOnline(); const hours: string[] = [], values: number[] = []; for (let i = 23; i >= 0; i--) { const k = hourKey(Date.now() - i * 3600_000); hours.push(k.slice(11) + ":00"); values.push(onlineHours.get(k) ?? 0); } return { hours, values }; };
   registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth, registry, topCards: () => analysis.topCards(4), onlineSeries });
-  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, registry, topCards: () => analysis.topCards(4), onlineSeries }); registerAdminInsight(guard, app, { state: adminState, ops, profiles, commerce, consents, rooms, store, sockets: () => openSockets }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }); registerAdminTest(guard, app, { commerce, edu, phones, nameOf: (id) => profiles.get(id)?.name, exists: (id) => adminState.users.has(id) }) } });
+  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, registry, topCards: () => analysis.topCards(4), onlineSeries }); registerAdminInsight(guard, app, { state: adminState, ops, profiles, commerce, consents, rooms, store, sockets: () => openSockets, registry, cardStats: () => analysis.cardStats, gameStats: () => gameStats.agg }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }); registerAdminTest(guard, app, { commerce, edu, phones, nameOf: (id) => profiles.get(id)?.name, exists: (id) => adminState.users.has(id) }) } });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -401,11 +403,11 @@ export function buildApp(opts: { pilotPrices?: boolean; emailOtp?: EmailOtp; req
   registerBiz({ isPremium: (u) => commerce.isPremium(u), app, edu, tournaments, ops, consents, phones, profiles, rooms, secured, ageOf, nameOf: (id) => profiles.get(id)?.name, hashOf: (p) => phones.hashOf(p), dev, tournamentsPaused: () => ops.flags().tournamentsPaused || ops.flags().maintenance });
   app.addHook("onResponse", async (req, rep) => { if (rep.statusCode >= 500) ops.logError(`${req.method} ${req.routeOptions?.url ?? req.url}`, `HTTP ${rep.statusCode}`); });
   app.get("/status", async () => { const f = ops.flags(); return { maintenance: f.maintenance, text: f.maintenance ? f.maintenanceText : "", build: BUILD_ID }; }); // `build`: server ishga tushgan vaqt (har deploy'da yangilanadi) — ochiq mijoz yangi versiya chiqqanini shundan biladi
-  const ready = Promise.all([clubs.load(), phones.load(), consents.load(), commerce.load().then((c) => { if (opts.pilotPrices) c.seedPilot(); return c; }), payLedger.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
+  const ready = Promise.all([gameStats.load(), clubs.load(), phones.load(), consents.load(), commerce.load().then((c) => { if (opts.pilotPrices) c.seedPilot(); return c; }), payLedger.load(), edu.load(), tournaments.load(), accounts.load(), ops.load()]).then(() => {
     for (const b of ops.bans.values()) if (b.until) adminState.banUntil.set(b.id, b.until);
     for (const c of ops.cleared.values()) profiles.cleared.add(c.id);
     accounts.bootstrap(process.env.ADMIN_BOOTSTRAP_LOGIN, process.env.ADMIN_BOOTSTRAP_PASSWORD);
   }); // docs jadvalidan tiklash
-  const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush(), accounts.queue.flush(), ops.queue.flush()]);
+  const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush(), accounts.queue.flush(), ops.queue.flush(), gameStats.queue.flush()]);
   return { app, clubs, rooms, store, registry, adminState, profiles, analysis, commerce, payLedger, phones, consents, edu, tournaments, accounts, ops, ready, flush };
 }

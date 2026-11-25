@@ -4,6 +4,7 @@ import { adviceOf, analyzeGame, buildLive, buildReport, type LiveAnalytics, type
 import type { ContentRegistry } from "./registry";
 import type { Store } from "./store";
 import type { WriteQueue } from "./persist";
+import type { GameStats } from "./gamestats";
 
 export type CardStat = { shown: number; accepted: number; skipped: number };
 export interface StatsPersist { loadCardStats(): Promise<Record<string, CardStat>>; addCardStats(delta: Record<string, CardStat>): Promise<void> }
@@ -11,6 +12,7 @@ export interface StatsPersist { loadCardStats(): Promise<Record<string, CardStat
 export class AnalysisService {
   cardStats: Record<string, CardStat> = {};
   private done = new Set<string>(); // xona bo'yicha bir marta hisoblanadi
+  gameStats?: GameStats; // o'yin ichidagi hodisalar jamlamasi (katak, chiqish, bankrotlik, kasb)
   constructor(private store: Store, private registry: ContentRegistry, private writes: WriteQueue, private persist?: StatsPersist) {}
   static async restore(store: Store, registry: ContentRegistry, writes: WriteQueue, persist: StatsPersist) {
     const s = new AnalysisService(store, registry, writes, persist); s.cardStats = await persist.loadCardStats(); return s;
@@ -63,6 +65,23 @@ export class AnalysisService {
       const t = (this.cardStats[id] ??= { shown: 0, accepted: 0, skipped: 0 }); t.shown += c.shown; t.accepted += c.accepted; t.skipped += c.skipped;
     }
     const delta = r.analysis.cards; this.writes.push(async () => this.persist?.addCardStats(delta));
+    try { await this.recordEvents(code, r); } catch { /* jamlama muhim emas: o'yin natijasiga ta'sir qilmaydi */ }
+  }
+
+  /** Katak tushishi, kichik aylanadan chiqish, bankrotlikdan oldingi karta va kasb bo'yicha g'alaba (shaxssiz). */
+  private async recordEvents(code: string, r: { analysis: Analysis; state: GameState }) {
+    if (!this.gameStats) return; const h = await this.history(code); if (!h) return;
+    const ctx = this.registry.ctxFor((await this.store.loadRoom(code))?.meta?.contentVersion ?? this.registry.activeVersion); if (!ctx) return;
+    const events = h.history.events.filter((e) => e.ok); const lastCard = new Map<string, string>();
+    for (const e of events) if (e.card) lastCard.set(e.by, e.card.id);
+    const moves = events.filter((e) => e.move).map((e) => ({ player: e.by, round: e.round, fromCircle: e.move!.fromCircle, toCircle: e.move!.toCircle, to: e.move!.to, cellType: e.move!.cell.t }));
+    // bankrotlik: o'sha o'yinchining restart hodisasi va undan oldingi oxirgi tortilgan karta (taxminiy bog'lanish)
+    const cardAt = new Map<string, string>(); const restarts: { player: string; card: string | null }[] = [];
+    const rs = new Set(r.analysis.events.filter((e) => e.kind === "restart").map((e) => `${e.player}:${e.round}`));
+    for (const e of events) { if (e.card) cardAt.set(e.by, e.card.id); if (rs.has(`${e.by}:${e.round}`)) { restarts.push({ player: e.by, card: cardAt.get(e.by) ?? null }); rs.delete(`${e.by}:${e.round}`); } }
+    for (const k of rs) restarts.push({ player: k.split(":")[0], card: null });
+    const bots = new Set(r.state.bots ?? []);
+    this.gameStats.add({ moves, restarts, players: r.state.players.map((p: any) => ({ id: p.id, bot: bots.has(p.id), job: ctx.kasb[p.profession]?.name ?? "", dream: p.dreamIdx != null ? ctx.dreams[p.dreamIdx]?.name : undefined, restarts: p.restarts ?? 0, won: !!p.won, exited: false })) });
   }
 
   /** Eng ko'p qabul / o'tkazilgan kartalar (admin analitikasi). */
