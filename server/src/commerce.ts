@@ -242,6 +242,18 @@ export class Commerce {
     const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku: `plus:${plan}`, title: `Tajriba24 Plus (${plan === "yearly" ? "yillik" : "oylik"}) — qo'lda`, amount: 0, channel: "web", status: "paid", createdAt: this.now(), paidAt: this.now(), ref: `manual:${by}`, note };
     this.orders.set(o.id, o); this.grant(o); return o;
   }
+  /** Sinov rejimi: Plus/Premium/kuponlar/hammasi — 0 so'mlik «to'langan» buyurtmalar (izoh «test:» bilan boshlanadi), hisobotga daromad bo'lib kirmaydi. */
+  grantTest(uid: string, kind: "plus" | "premium" | "coupons" | "full", days: 30 | 365, by: string, note: string): Order[] {
+    const per = days === 365 ? "yearly" : "monthly", mk = (sku: string, title: string) => { const o: Order = { id: randomBytes(10).toString("hex"), userId: uid, sku, title: `${title} — TEST`, amount: 0, channel: "web", status: "paid", createdAt: this.now(), paidAt: this.now(), ref: `manual:${by}`, note: `test:${note}` }; this.orders.set(o.id, o); this.grant(o); return o; };
+    const out: Order[] = [];
+    if (kind === "plus" || kind === "full") out.push(mk(`plus:${per}`, "Tajriba24 Plus"));
+    if (kind === "premium" || kind === "full") out.push(mk(`premium:${per}`, "Tajriba24 Premium"));
+    if (kind === "coupons" || kind === "full") for (let i = 0; i < 5; i++) out.push(mk("coupon:1", "Bitta o'yin kuponi"));
+    return out;
+  }
+  /** Sinov berilgan huquqlarni qaytarib oladi (faqat «test:» buyurtmalari; haqiqiy xaridlarga tegmaydi). */
+  revokeTest(uid: string, note: string): number { let n = 0; for (const o of this.testGrants(uid)) if (this.refund(o.id, note).ok) n++; return n; }
+  testGrants(uid?: string): Order[] { return this.orders.values().filter((o) => o.status === "paid" && o.note?.startsWith("test:") && (!uid || o.userId === uid)); }
   revokePlus(uid: string, note: string): number { let n = 0; for (const o of this.ordersOf(uid)) if (o.status === "paid" && o.sku.startsWith("plus:")) { this.orders.set(o.id, { ...o, status: "refunded", refundedAt: this.now(), note }); n++; } this.restore(uid); return n; }
   cancelPremium(uid: string) { const e = this.ent(uid); if (this.isPremium(uid)) this.ents.set(uid, { ...e, premiumCancelled: true }); return this.catalog(uid); }
   cancelPlus(uid: string) { const e = this.ent(uid); if (this.isPlus(uid)) this.ents.set(uid, { ...e, plusCancelled: true }); return this.catalog(uid); }

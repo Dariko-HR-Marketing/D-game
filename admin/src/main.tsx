@@ -13,6 +13,7 @@ import { Content } from "./content";
 import { Rooms } from "./games";
 import { Banner, css, PageHead } from "./lib";
 import { Users } from "./users";
+import { TestMode } from "./testmode";
 import { t } from "./uz";
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
     switch (tab) {
       case "dashboard": return <Dashboard api={api} go={setTab} />;
       case "users": return <Users api={api} />;
+      case "testmode": return <TestMode api={api} />;
       case "complaints": return <Complaints api={api} me={me.account.id} />;
       case "rooms": return <Rooms api={api} perms={me.perms} />;
       case "content": return <Content api={api} perms={me.perms} />;
