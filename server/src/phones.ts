@@ -18,6 +18,8 @@ export class PhoneLinks {
     if (this.byUser.values().some((r) => r.hash === hash && r.userId !== userId)) return { ok: false, error: "phone_taken" };
     this.byUser.set(userId, { userId, hash, at: this.now() }); return { ok: true };
   }
+  /** Raqam bo'yicha hisob (faqat admin sinov vositasi uchun). */
+  userOf(phone: string): string | undefined { const hash = this.h(phone); return this.byUser.values().find((r) => r.hash === hash)?.userId; }
   hashFor(userId: string) { return this.byUser.get(userId)?.hash; }
   erase(userId: string) { this.byUser.delete(userId); }
 }

@@ -77,7 +77,7 @@ export function registerAdmin(app: FastifyInstance, d: { auth: AdminAuth; state:
       if (!(Array.isArray(perm) ? perm : [perm]).some((x) => can(who.role, x))) return reply.code(403).send({ error: "forbidden" });
       if (o?.reason) { const r = (req.body as any)?.reason; if (typeof r !== "string" || r.trim().length < 3 || r.length > 300) return reply.code(400).send({ error: "reason_required" }); } // xavfli amal: sabab majburiy
       // Audit: muvaffaqiyatsiz urinish ham yoziladi (":failed"); tafsilot qisqartiriladi (kontent matni jurnalni shishirmasin); parol/kodlar yozilmaydi
-      const detail = (() => { const body = req.body && typeof req.body === "object" ? Object.fromEntries(Object.entries(req.body as object).filter(([k]) => !/pass|token|secret|code$/i.test(k))) : req.body ?? null; const j = JSON.stringify(body); return j && j.length > 2000 ? { truncated: true, size: j.length } : body; })();
+      const detail = (() => { const body = req.body && typeof req.body === "object" ? Object.fromEntries(Object.entries(req.body as object).filter(([k]) => !/pass|token|secret|code$|phone/i.test(k))) : req.body ?? null; const j = JSON.stringify(body); return j && j.length > 2000 ? { truncated: true, size: j.length } : body; })();
       const rec = (suffix: string) => auditAction && d.state.record({ at: now(), ip: req.ip, admin: who.id, role: who.role, action: auditAction + suffix, target: (req.params as any)?.id ?? (req.params as any)?.v, detail });
       let out: unknown;
       try { out = await h(req, who); } catch (e) { rec(":failed"); throw e; }

@@ -42,3 +42,16 @@ Veb panel: `https://admin.<domen>`. Kod: `admin/` (Vite + React), server: `serve
 - Qoida parametrlari (bank, lombard, taymer) hozir kodda; admin faqat `cellRules`, kartalar, orzular va katta aylanani o'zgartiradi.
 - Karta rasmlarini yuklash yo'q (rasmlar `deploy/vps/cards/` da); admin faqat fayl nomini boshqaradi.
 - Avtomatik haftalik hisobot (e-pochta) yo'q — hisobotlar so'rov bo'yicha CSV.
+
+## Test hisoblar (sinov rejimi)
+Admin → Foydalanuvchilar → **Test hisoblar** (ruxsat `users.manage`, ya'ni faqat administrator). Istalgan hisobga to'lovsiz paket vaqtincha ochiladi:
+- **Topish**: telefon raqami (hisob shu raqam bilan SMS orqali kirgan bo'lishi kerak) yoki hisob ID. Raqam faqat so'rov ichida HMAC ga aylantiriladi; jurnalga yozilmaydi.
+- **Paket ochish**: Hammasi (Premium + Plus + 5 kupon + Tashkilot) · Premium · Plus · 5 kupon · Tashkilot (o'qituvchi litsenziyasi, joylar soni bilan); muddat 30 yoki 365 kun; sabab majburiy.
+- **Sinovni qaytarish**: faqat shu yerdan berilgan huquqlarni oladi (`note` «test:» bilan boshlanadigan 0 so'mlik buyurtmalar va «TEST ·» tashkiloti). Haqiqiy xaridga tegmaydi.
+- Daromad hisobotiga kirmaydi (0 so'm). Audit: `test.lookup`, `test.grant`, `test.revoke`.
+- To'liq o'chirish: serverda `ADMIN_TEST_TOOLS=0` (standart: yoqilgan).
+
+### Birinchi marta kirish (ishga tushirgandan so'ng)
+1. VPS `.env` ga `ADMIN_BOOTSTRAP_LOGIN` (masalan `owner`) va o'zingiz o'ylab topgan `ADMIN_BOOTSTRAP_PASSWORD` (≥10 belgi, harf+raqam) yozing; parolni hech qayerga (repo, chat) yubormang. `docker compose up -d`.
+2. `https://admin.<domen>` → kirish → parolni almashtiring → 2FA (Google Authenticator) ni yoqing.
+3. «Test hisoblar» bo'limiga o'ting. Tugagach bootstrap o'zgaruvchilarini `.env` dan olib tashlang.

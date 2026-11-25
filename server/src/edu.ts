@@ -6,7 +6,7 @@ import { Collection, type DocStore } from "./docs";
 import { WriteQueue } from "./persist";
 import type { GameResult } from "./profiles";
 
-export interface Org { id: string; name: string; contact?: string; licenseUntil: number; seats: number | null; active: boolean; createdAt: number }
+export interface Org { id: string; name: string; contact?: string; licenseUntil: number; seats: number | null; active: boolean; createdAt: number; test?: boolean }
 export interface Teacher { userId: string; orgId: string; addedAt: number }
 export interface Invite { code: string; orgId: string; expiresAt: number; usedBy?: string }
 export interface Student { userId: string; consent: boolean; joinedAt: number }

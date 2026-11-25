@@ -17,7 +17,7 @@ export type Api = ReturnType<typeof makeApi>;
 export interface NavItem { key: string; group: string; any: string[] }
 export const NAV: NavItem[] = [
   { key: "dashboard", group: "Asosiy", any: ["rooms.read", "analytics.read", "commerce.read", "complaints.manage", "edu.manage", "tournaments.manage", "system.read"] },
-  { key: "users", group: "Foydalanuvchilar", any: ["users.read"] }, { key: "complaints", group: "Foydalanuvchilar", any: ["complaints.manage"] },
+  { key: "users", group: "Foydalanuvchilar", any: ["users.read"] }, { key: "complaints", group: "Foydalanuvchilar", any: ["complaints.manage"] }, { key: "testmode", group: "Foydalanuvchilar", any: ["users.manage"] },
   { key: "rooms", group: "O'yin", any: ["rooms.read"] }, { key: "content", group: "O'yin", any: ["content.read"] },
   { key: "shop", group: "Tijorat", any: ["commerce.read"] }, { key: "edu", group: "Tijorat", any: ["edu.manage"] }, { key: "tournaments", group: "Tijorat", any: ["tournaments.manage"] },
   { key: "analytics", group: "Tahlil", any: ["analytics.read"] },
