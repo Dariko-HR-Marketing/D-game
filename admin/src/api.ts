@@ -18,7 +18,7 @@ export interface NavItem { key: string; group: string; any: string[] }
 export const NAV: NavItem[] = [
   { key: "dashboard", group: "Kuzatuv", any: ["rooms.read", "analytics.read", "commerce.read", "complaints.manage", "edu.manage", "tournaments.manage", "system.read"] },
   { key: "live", group: "Kuzatuv", any: ["rooms.read"] }, { key: "rooms", group: "Kuzatuv", any: ["rooms.read"] }, { key: "analytics", group: "Kuzatuv", any: ["analytics.read"] },
-  { key: "users", group: "Odamlar", any: ["users.read"] }, { key: "complaints", group: "Odamlar", any: ["complaints.manage"] }, { key: "testmode", group: "Odamlar", any: ["users.manage"] },
+  { key: "users", group: "Odamlar", any: ["users.read"] }, { key: "complaints", group: "Odamlar", any: ["complaints.manage"] }, { key: "testmode", group: "Odamlar", any: ["users.manage"] }, { key: "gate", group: "Odamlar", any: ["users.manage"] },
   { key: "content", group: "O'yin mazmuni", any: ["content.read"] }, { key: "dreams", group: "O'yin mazmuni", any: ["content.read"] }, { key: "cells", group: "O'yin mazmuni", any: ["content.read"] },
   { key: "shop", group: "Tijorat", any: ["commerce.read"] }, { key: "edu", group: "Tijorat", any: ["edu.manage"] }, { key: "tournaments", group: "Tijorat", any: ["tournaments.manage"] }, { key: "announce", group: "Tijorat", any: ["announce.manage"] },
   { key: "system", group: "Tizim", any: ["system.read", "flags.manage"] }, { key: "accounts", group: "Tizim", any: ["accounts.manage"] }, { key: "audit", group: "Tizim", any: ["audit.read"] },

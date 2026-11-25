@@ -44,4 +44,17 @@ describe("obuna darvozasi", () => {
     t = 6 * 60_000; expect(await g.ensure("u", 30)).toEqual(["telegram"]); // chiqib ketgan: qayta obuna kerak
     status = "member"; await g.checkTelegram("u"); t += 6 * 60_000; down = true; expect(await g.ensure("u", 30)).toEqual([]); // Telegram ishlamasa to'sib qo'ymaydi
   });
+  it("ozod qilingan hisob to'silmaydi; to'silganlar hisoblanadi", async () => {
+    const g = new SubscriptionGate(cfg); expect(await g.ensure("u", 30)).toHaveLength(3); expect(g.blocked).toMatchObject({ total: 1, telegram: 1 });
+    g.exempt("u", "admin", "QA"); expect(await g.ensure("u", 30)).toEqual([]); g.unexempt("u"); expect(g.missing("u", 30)).toHaveLength(3);
+    g.exempt("u", "a", "x"); g.erase("u"); expect(g.exemptions()).toEqual([]);
+  });
+  it("Instagram tokeni yangilanadi (30 kunda bir marta), Telegram webhook o'zi ulanadi", async () => {
+    const calls: string[] = []; let t = 0;
+    const g = new SubscriptionGate({ ...cfg, apiUrl: "https://api.x" }, undefined, (async (u: string) => { calls.push(u); return json(u.includes("refresh_access_token") ? { access_token: "NEW", expires_in: 5184000 } : { ok: true }); }) as any, () => t);
+    await g.maintain(); expect(g.health.instagramRefresh?.ok).toBe(true); expect(g.health.telegramWebhook?.ok).toBe(true);
+    const n = calls.length; t = 10 * 86400_000; await g.refreshInstagram(); expect(calls.length).toBe(n); // 30 kun o'tmagan
+    t = 31 * 86400_000; await g.refreshInstagram(); expect(calls.length).toBe(n + 1);
+    calls.length = 0; g.onInstagramEvent({ entry: [{ messaging: [{ sender: { id: "5" }, message: { text: g.instagramStart("u")!.code } }] }] }); await g.checkInstagram("u"); expect(calls[0]).toContain("access_token=NEW"); // yangi token ishlatiladi
+  });
 });
