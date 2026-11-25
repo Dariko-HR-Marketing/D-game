@@ -63,7 +63,7 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
   const ageOf = (id: string) => { const p = profiles.get(id); return p ? year() - p.birthYear : null; };
 
   // --- admin hisoblari ---
-  app.get("/admin/accounts", guard("accounts.manage", () => ({ accounts: accounts.accts.values().map((a) => accounts.pub(a)).sort((x, y) => x.createdAt - y.createdAt), roles: Object.keys(PERMS), sessions: accounts.sessionsOf().length })));
+  app.get("/admin/accounts", guard("accounts.manage", () => ({ accounts: accounts.accts.values().map((a) => accounts.pub(a)).sort((x, y) => x.createdAt - y.createdAt), roles: Object.keys(PERMS), matrix: PERMS, sessions: accounts.sessionsOf().length })));
   app.post("/admin/accounts", guard("accounts.manage", (req, who) => { const r = accounts.create(who.id, (req.body ?? {}) as any); return r.ok ? { account: accounts.pub(r.account) } : { error: r.error }; }, "admin.account.create"));
   app.post("/admin/accounts/:id", guard("accounts.manage", (req, who) => { const r = accounts.update(String((req.params as any).id), (req.body ?? {}) as any, who.id); return r.ok ? { account: accounts.pub(r.account) } : { error: r.error }; }, "admin.account.update"));
   app.post("/admin/accounts/:id/password", guard("accounts.manage", (req) => { const r = accounts.resetPassword(String((req.params as any).id), (req.body as any)?.password); return r.ok ? { ok: true } : { error: r.error }; }, "admin.account.reset_password"));
@@ -123,9 +123,9 @@ export function registerAdminCore(guard: Guard, app: FastifyInstance, d: CoreDep
   app.get("/admin/users", guard("users.read", (req) => {
     const q = req.query as Record<string, string>; const s = (q.q ?? "").toLowerCase();
     let rows = [...state.users.values()].map(row); const all = rows;
-    const counts = { all: all.length, banned: all.filter((u) => u.banned).length, plus: all.filter((u) => u.plus).length, minor: all.filter((u) => u.minor).length, unreliable: all.filter((u) => u.unreliable > 0).length, online: all.filter((u) => now() - u.lastSeen < 5 * 60_000).length };
+    const counts = { all: all.length, banned: all.filter((u) => u.banned).length, plus: all.filter((u) => u.plus).length, minor: all.filter((u) => u.minor).length, unreliable: all.filter((u) => u.unreliable > 0).length, online: all.filter((u) => now() - u.lastSeen < 5 * 60_000).length, tournament: new Set(d.tournaments.regs.values().map((r) => r.userId)).size };
     if (s) rows = rows.filter((u) => u.id.toLowerCase().includes(s) || (u.name ?? "").toLowerCase().includes(s));
-    if (q.banned === "1") rows = rows.filter((u) => u.banned); if (q.plus === "1") rows = rows.filter((u) => u.plus); if (q.minor === "1") rows = rows.filter((u) => u.minor); if (q.unreliable === "1") rows = rows.filter((u) => u.unreliable > 0);
+    if (q.banned === "1") rows = rows.filter((u) => u.banned); if (q.plus === "1") rows = rows.filter((u) => u.plus); if (q.minor === "1") rows = rows.filter((u) => u.minor); if (q.unreliable === "1") rows = rows.filter((u) => u.unreliable > 0); if (q.online === "1") rows = rows.filter((u) => now() - u.lastSeen < 5 * 60_000); if (q.tournament === "1") { const ids = new Set(d.tournaments.regs.values().map((r) => r.userId)); rows = rows.filter((u) => ids.has(u.id)); }
     rows.sort((a, b) => b.lastSeen - a.lastSeen); const off = Math.max(0, Number(q.offset) || 0);
     return { total: rows.length, counts, users: rows.slice(off, off + 50) };
   }));

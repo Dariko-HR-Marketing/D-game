@@ -81,7 +81,7 @@ export class AnalysisService {
     for (const e of events) { if (e.card) cardAt.set(e.by, e.card.id); if (rs.has(`${e.by}:${e.round}`)) { restarts.push({ player: e.by, card: cardAt.get(e.by) ?? null }); rs.delete(`${e.by}:${e.round}`); } }
     for (const k of rs) restarts.push({ player: k.split(":")[0], card: null });
     const bots = new Set(r.state.bots ?? []);
-    this.gameStats.add({ moves, restarts, players: r.state.players.map((p: any) => ({ id: p.id, bot: bots.has(p.id), job: ctx.kasb[p.profession]?.name ?? "", restarts: p.restarts ?? 0, won: !!p.won, exited: false })) });
+    this.gameStats.add({ moves, restarts, players: r.state.players.map((p: any) => ({ id: p.id, bot: bots.has(p.id), job: ctx.kasb[p.profession]?.name ?? "", dream: p.dreamIdx != null ? ctx.dreams[p.dreamIdx]?.name : undefined, restarts: p.restarts ?? 0, won: !!p.won, exited: false })) });
   }
 
   /** Eng ko'p qabul / o'tkazilgan kartalar (admin analitikasi). */

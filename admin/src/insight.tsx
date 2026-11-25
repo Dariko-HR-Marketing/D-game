@@ -106,6 +106,7 @@ function GameEvents({ e }: { e: any }) {
     </div>
     <div className="grid2">
       <section className="card"><h2>Eng ko'p tushadigan kataklar</h2><h3 style={{ margin: "0 0 4px" }}>Kichik aylana</h3>{!e.cellsSmall.length ? <p className="muted">Hali ma'lumot yo'q.</p> : <List rows={e.cellsSmall} a={(r) => `${r.cell}-katak`} b={(r) => `${r.pct} %`} />}<h3 style={{ margin: "10px 0 4px" }}>Katta aylana</h3>{!e.cellsBig.length ? <p className="muted">Hali ma'lumot yo'q.</p> : <List rows={e.cellsBig} a={(r) => `${r.cell}-katak`} b={(r) => `${r.pct} %`} />}</section>
+      <section className="card"><h2>Orzu bo'yicha g'alaba ulushi</h2><p className="muted" style={{ marginTop: -6 }}>Kamida 3 o'yin.</p>{!e.dreams?.length ? <p className="muted">Yetarli ma'lumot yo'q.</p> : <List rows={e.dreams} a={(r) => `${r.name} (${r.games})`} b={(r) => `${r.winPct} %`} />}</section>
       <section className="card"><h2>Kasb bo'yicha g'alaba ulushi</h2><p className="muted" style={{ marginTop: -6 }}>Kasbini almashtirmagan o'yinchilar; kamida 3 o'yin.</p>{!e.jobs.length ? <p className="muted">Yetarli ma'lumot yo'q.</p> : <List rows={e.jobs} a={(r) => `${r.name} (${r.games})`} b={(r) => `${r.winPct} %`} />}</section>
     </div></>);
 }

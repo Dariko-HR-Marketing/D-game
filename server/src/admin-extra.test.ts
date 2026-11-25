@@ -16,9 +16,12 @@ describe("admin: kontent analitikasi, kohortalar, ota-ona nazorati, panel", () =
     s.x.analysis.gameStats!.add({ moves: [{ player: "a", round: 12, fromCircle: "small", toCircle: "big", to: 3, cellType: "D" }, { player: "a", round: 13, fromCircle: "big", toCircle: "big", to: 7, cellType: "T" }], restarts: [{ player: "b", card: "Y206" }],
       players: [{ id: "a", bot: false, job: "Santexnik", restarts: 0, won: true, exited: true }, { id: "b", bot: false, job: "Kranchi", restarts: 1, won: false, exited: false }] });
     const e = (await s.j("/admin/analytics/content")).events; expect(e.games).toBe(1); expect(e.exit).toMatchObject({ n: 1, notExited: 1 }); expect(e.exit.byRound[0]).toEqual({ k: "10–14", n: 1 }); expect(e.bankrupt.byCard[0]).toMatchObject({ id: "Y206", n: 1 }); expect(e.cellsBig[0].cell).toBe(4); expect(e.jobs).toEqual([]);
+    const hm = await s.j("/admin/analytics/cells"); expect(hm.games).toBe(1); expect(hm.big["3"]).toBeGreaterThan(0);
+    const bs = await s.j("/admin/content/board-small"); expect(bs.cells.length).toBe(48); expect(bs.cells[0].t).toBe("S");
+    const ac = await s.j("/admin/accounts"); expect(ac.matrix.administrator).toContain("content.publish"); expect(ac.matrix.content_editor).not.toContain("content.publish");
     const k = await s.j("/admin/analytics/cohorts"); expect(k.cohorts.length).toBe(8); expect(k.cohorts.reduce((n: number, r: any) => n + r.size, 0)).toBe(2);
     const p = await s.j("/admin/parental"); expect(p.counts).toMatchObject({ pending: 0, approved: 0 }); expect(Array.isArray(p.rows)).toBe(true);
-    const u = await s.j("/admin/users"); expect(u.counts).toMatchObject({ all: 2, online: 2, banned: 0 });
+    const u = await s.j("/admin/users"); expect(u.counts).toMatchObject({ all: 2, online: 2, banned: 0, tournament: 0 }); expect((await s.j("/admin/users?online=1")).total).toBe(2); expect((await s.j("/admin/users?tournament=1")).total).toBe(0);
     const d = await s.j("/admin/dashboard"); expect(d.kpi).toMatchObject({ gamesToday: 0, ongoing: 0 }); expect(d.online24.values.length).toBe(24); expect(d.content.catalog).toBe(630); expect(Array.isArray(d.topCards)).toBe(true);
   });
 });

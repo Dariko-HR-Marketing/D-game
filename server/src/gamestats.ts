@@ -9,6 +9,7 @@ export interface GameAgg {
   exits: { n: number; byRound: Record<string, number>; byCell: Record<string, number>; notExited: number };
   bankrupt: { n: number; byCard: Record<string, number> };
   jobs: Record<string, { games: number; wins: number }>; // kasb almashtirmagan o'yinchilar bo'yicha
+  dreams?: Record<string, { games: number; wins: number }>; // tanlangan orzu bo'yicha
 }
 const empty = (): GameAgg => ({ games: 0, cells: { small: {}, big: {} }, exits: { n: 0, byRound: {}, byCell: {}, notExited: 0 }, bankrupt: { n: 0, byCard: {} }, jobs: {} });
 export const roundBucket = (r: number) => (r >= 45 ? "45+" : `${Math.floor(r / 5) * 5}–${Math.floor(r / 5) * 5 + 4}`);
@@ -22,7 +23,7 @@ export class GameStats {
   /** Bir o'yinning natijasini qo'shadi. `events` — o'yin tarixi, `players` — oxirgi holat. */
   add(g: {
     moves: { player: string; round: number; fromCircle: "small" | "big"; toCircle: "small" | "big"; to: number; cellType: string }[];
-    restarts: { player: string; card: string | null }[]; players: { id: string; bot: boolean; job: string; restarts: number; won: boolean; exited: boolean }[];
+    restarts: { player: string; card: string | null }[]; players: { id: string; bot: boolean; job: string; dream?: string; restarts: number; won: boolean; exited: boolean }[];
   }) {
     const a = this.agg; a.games++; const inc = (o: Record<string, number>, k: string, n = 1) => { o[k] = (o[k] ?? 0) + n; };
     for (const m of g.moves) inc(a.cells[m.toCircle], String(m.to));
@@ -31,6 +32,7 @@ export class GameStats {
     for (const p of g.players) if (!p.bot && !done.has(p.id)) a.exits.notExited++;
     for (const r of g.restarts) { a.bankrupt.n++; if (r.card) inc(a.bankrupt.byCard, r.card); }
     for (const p of g.players) if (!p.bot && p.restarts === 0 && p.job) { const j = (a.jobs[p.job] ??= { games: 0, wins: 0 }); j.games++; if (p.won) j.wins++; }
+    for (const p of g.players) if (!p.bot && p.dream) { const dr = ((a.dreams ??= {})[p.dream] ??= { games: 0, wins: 0 }); dr.games++; if (p.won) dr.wins++; }
     this.save();
   }
 }

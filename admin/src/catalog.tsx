@@ -10,7 +10,7 @@ const DECKS: Record<number, string> = { 1: "Kasb", 2: "Kichik sarmoya", 3: "Katt
 function useCards(api: Api) { return useLoad<{ data: any }>(api, "/admin/content/cards"); }
 
 export function Catalog({ api }: { api: Api }) {
-  const l = useCards(api); const [deck, setDeck] = useState(0); const [q, setQ] = useState(""); const [open, setOpen] = useState<string | null>(null);
+  const l = useCards(api); const [deck, setDeck] = useState(0); const [q, setQ] = useState(""); const [open, setOpen] = useState<string | null>(null); const [grid, setGrid] = useState(false);
   const cat: any[] = l.data?.data?.catalog ?? [];
   const counts = useMemo(() => { const m = new Map<number, number>(); cat.forEach((c) => m.set(c.deck, (m.get(c.deck) ?? 0) + 1)); return m; }, [cat]);
   const rows = useMemo(() => cat.filter((c) => (!deck || c.deck === deck) && (!q || `${c.title} ${c.text} ${c.id}`.toLowerCase().includes(q.toLowerCase()))), [cat, deck, q]);
@@ -22,8 +22,12 @@ export function Catalog({ api }: { api: Api }) {
         <button className={deck === 0 ? "p" : ""} aria-pressed={deck === 0} onClick={() => setDeck(0)}>Hammasi ({cat.length})</button>
         {Object.entries(DECKS).map(([k, n]) => <button key={k} className={deck === Number(k) ? "p" : ""} aria-pressed={deck === Number(k)} onClick={() => setDeck(Number(k))}>{n} ({counts.get(Number(k)) ?? 0})</button>)}
       </div>
-      <label>Qidirish<input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nomi, matni yoki raqami (Y201, BZ001…)" /></label>
-      {!l.data ? <Empty loading={l.loading} /> : (<div className="stack" style={{ marginTop: 12 }}>
+      <div className="row" style={{ alignItems: "flex-end" }}><label className="grow">Qidirish<input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nomi, matni yoki raqami (Y201, BZ001…)" /></label>
+        <div className="row" role="group" aria-label="Ko'rinish"><button className={!grid ? "p" : ""} aria-pressed={!grid} onClick={() => setGrid(false)}>Ro'yxat</button><button className={grid ? "p" : ""} aria-pressed={grid} onClick={() => setGrid(true)}>Rasmli</button></div></div>
+      {grid && l.data && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 12, marginTop: 12 }}>{rows.slice(0, 60).map((c) => <button key={c.id} onClick={() => { setGrid(false); setOpen(c.id); }} aria-label={`${c.title} (${c.id})`} style={{ display: "flex", flexDirection: "column", gap: 6, minHeight: 0, padding: 8, textAlign: "left", height: "auto" }}>
+        {c.file ? <img src={`${CARDS_URL}/${c.file}`} alt="" loading="lazy" style={{ width: "100%", borderRadius: 8 }} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} /> : <span className="muted" style={{ fontSize: 12 }}>rasm yo'q</span>}
+        <b style={{ fontSize: 13 }}>{c.title}</b><span className="muted" style={{ fontSize: 11 }}>{c.id} · {c.publish ? "Jonli" : "Qoralama"}</span></button>)}</div>}
+      {!l.data ? <Empty loading={l.loading} /> : grid ? null : (<div className="stack" style={{ marginTop: 12 }}>
         {rows.slice(0, 100).map((c) => { const on = open === c.id; return (
           <div key={c.id} style={{ border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden", borderColor: on ? "var(--green)" : undefined }}>
             <button aria-expanded={on} onClick={() => setOpen(on ? null : c.id)} style={{ display: "flex", width: "100%", gap: 12, alignItems: "center", textAlign: "left", border: 0, background: "#fff", minHeight: 52, padding: "8px 14px" }}>
@@ -31,6 +35,7 @@ export function Catalog({ api }: { api: Api }) {
               {c.publish ? <Pill kind="good">Jonli</Pill> : <Pill kind="plain">Qoralama</Pill>}<span aria-hidden>{on ? "▾" : "▸"}</span>
             </button>
             {on && <div style={{ padding: "8px 16px 16px", borderTop: "1px solid var(--line)", display: "grid", gap: 8 }}>
+              {c.file && <img src={`${CARDS_URL}/${c.file}`} alt={`Karta: ${c.title}`} loading="lazy" style={{ maxWidth: 200, borderRadius: 8, border: "1px solid var(--line)" }} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />}
               <p style={{ margin: 0 }}>{c.text}</p>
               <dl className="kv">
                 <dt>To'plam</dt><dd>{c.deckName}</dd><dt>Yo'nalish</dt><dd>{c.direction ?? "—"}</dd><dt>Muddat</dt><dd>{c.duration ?? "—"}</dd><dt>Maqsad</dt><dd>{c.goal ?? "—"}</dd><dt>Yosh</dt><dd>{c.age ?? "—"}</dd><dt>Tekshiruv</dt><dd>{c.review ?? "—"}</dd><dt>Rasm</dt><dd>{c.image ?? "—"}</dd>

@@ -33,7 +33,13 @@ export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: Insi
         const hits = (o: Record<string, number>) => { const tot = Object.values(o).reduce((a, b) => a + b, 0); return top(o, 10).map(([cell, n]) => ({ cell: Number(cell) + 1, n, pct: tot ? +((100 * n) / tot).toFixed(1) : 0 })); };
         return { games: g.games, cellsSmall: hits(g.cells.small), cellsBig: hits(g.cells.big), exit: { n: g.exits.n, notExited: g.exits.notExited, byRound: Object.entries(g.exits.byRound).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([k, n]) => ({ k, n })), byCell: top(g.exits.byCell).map(([k, n]) => ({ k, n })) },
           bankrupt: { n: g.bankrupt.n, byCard: top(g.bankrupt.byCard, 6).map(([id, n]) => ({ id, title: byId.get(id)?.title ?? id, n })) },
+          dreams: Object.entries(g.dreams ?? {}).filter(([, v]) => v.games >= 3).map(([name, v]) => ({ name, games: v.games, winPct: Math.round((100 * v.wins) / v.games) })).sort((a, b) => b.winPct - a.winPct).slice(0, 8),
           jobs: Object.entries(g.jobs).filter(([, v]) => v.games >= 3).map(([name, v]) => ({ name, games: v.games, winPct: Math.round((100 * v.wins) / v.games) })).sort((a, b) => b.winPct - a.winPct) }; })() };
+  }));
+  /** Katak tushish chastotasi (issiqlik xaritasi): har aylana bo'yicha katak → ulush %. */
+  app.get("/admin/analytics/cells", guard("analytics.read", () => {
+    const g = d.gameStats?.(); const norm = (o: Record<string, number> = {}) => { const tot = Object.values(o).reduce((a, b) => a + b, 0); return Object.fromEntries(Object.entries(o).map(([k, n]) => [k, tot ? +((100 * n) / tot).toFixed(2) : 0])); };
+    return { games: g?.games ?? 0, small: norm(g?.cells.small), big: norm(g?.cells.big) };
   }));
   /** Haftalik kohortalar: ro'yxatdan o'tgan hafta bo'yicha; «qaytdi» — oxirgi faollik shu haftadan keyin ekani (taxminiy: har kirish alohida yozilmaydi). */
   app.get("/admin/analytics/cohorts", guard("analytics.read", () => {
