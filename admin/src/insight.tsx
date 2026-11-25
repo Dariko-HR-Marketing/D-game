@@ -90,6 +90,22 @@ function ContentStats({ api }: { api: Api }) {
     <div className="grid2">
       <section className="card"><h2>Eng ko'p ishlatiladigan ta'sirlar</h2>{x.effects.map((e: any) => <div className="attn" key={e.type}><span className="mono">{e.type}</span><b>{e.n}</b></div>)}</section>
       <section className="card"><h2>Ma'lumot sifati</h2><div className="stats">{[["Jami karta", x.quality.total], ["Nashr qilingan", x.quality.published], ["Tekshiruv «OK»", x.quality.reviewOk], ["Rasmli", x.quality.withImage], ["Hali tushmagan", x.quality.neverShown]].map(([k, v]) => <div className="stat" key={String(k)}><b>{v}</b><span>{k}</span></div>)}</div>
-        <p className="muted" style={{ fontSize: 13 }}>Hozircha kuzatilmaydi (alohida qaror kerak): {x.notTracked.join(" · ")}.</p></section>
-    </div></>}</>);
+        </section>
+    </div>
+    {x.events && <GameEvents e={x.events} />}</>}</>);
+}
+
+function GameEvents({ e }: { e: any }) {
+  const empty = !e.games;
+  const List = ({ rows, a, b }: { rows: any[]; a: (r: any) => React.ReactNode; b: (r: any) => React.ReactNode }) => <>{rows.map((r, i) => <div className="attn" key={i}><span>{a(r)}</span><b>{b(r)}</b></div>)}</>;
+  return (<>
+    <p className="muted" style={{ margin: "0 0 10px" }}>O'yin ichidagi hodisalar — tugagan {e.games} ta o'yin bo'yicha, shaxssiz jamlama.{empty && " Hali tugagan o'yin yo'q: o'yinlar tugagach to'ladi."}</p>
+    <div className="grid2">
+      <section className="card"><h2>Kichik aylanadan chiqish</h2>{e.exit.n === 0 ? <p className="muted">Hali ma'lumot yo'q.</p> : <><p className="muted" style={{ marginTop: -6 }}>Chiqqan: {e.exit.n} · chiqolmagan: {e.exit.notExited}</p><List rows={e.exit.byRound} a={(r) => `${r.k}-tur`} b={(r) => r.n} /><h3 style={{ margin: "10px 0 4px" }}>Qaysi katak orqali</h3><List rows={e.exit.byCell} a={(r) => r.k} b={(r) => r.n} /></>}</section>
+      <section className="card"><h2>Bankrotlikdan oldingi karta</h2><p className="muted" style={{ marginTop: -6 }}>Jami bankrotlik: {e.bankrupt.n}. Bog'lanish taxminiy: o'yinchi oxirgi tortgan karta.</p>{!e.bankrupt.byCard.length ? <p className="muted">Hali ma'lumot yo'q.</p> : <List rows={e.bankrupt.byCard} a={(r) => r.title} b={(r) => r.n} />}</section>
+    </div>
+    <div className="grid2">
+      <section className="card"><h2>Eng ko'p tushadigan kataklar</h2><h3 style={{ margin: "0 0 4px" }}>Kichik aylana</h3>{!e.cellsSmall.length ? <p className="muted">Hali ma'lumot yo'q.</p> : <List rows={e.cellsSmall} a={(r) => `${r.cell}-katak`} b={(r) => `${r.pct} %`} />}<h3 style={{ margin: "10px 0 4px" }}>Katta aylana</h3>{!e.cellsBig.length ? <p className="muted">Hali ma'lumot yo'q.</p> : <List rows={e.cellsBig} a={(r) => `${r.cell}-katak`} b={(r) => `${r.pct} %`} />}</section>
+      <section className="card"><h2>Kasb bo'yicha g'alaba ulushi</h2><p className="muted" style={{ marginTop: -6 }}>Kasbini almashtirmagan o'yinchilar; kamida 3 o'yin.</p>{!e.jobs.length ? <p className="muted">Yetarli ma'lumot yo'q.</p> : <List rows={e.jobs} a={(r) => `${r.name} (${r.games})`} b={(r) => `${r.winPct} %`} />}</section>
+    </div></>);
 }

@@ -9,7 +9,7 @@ import type { ProfileService } from "./profiles";
 import type { RoomManager } from "./rooms";
 import type { Store } from "./store";
 
-export interface InsightDeps { state: AdminState; ops: Ops; profiles: ProfileService; commerce: Commerce; consents: ParentConsents; rooms: RoomManager; store: Store; sockets: () => number; now?: () => number; registry?: { bundle(v?: number): any }; cardStats?: () => Record<string, { shown: number; accepted: number; skipped: number }> }
+export interface InsightDeps { state: AdminState; ops: Ops; profiles: ProfileService; commerce: Commerce; consents: ParentConsents; rooms: RoomManager; store: Store; sockets: () => number; now?: () => number; registry?: { bundle(v?: number): any }; cardStats?: () => Record<string, { shown: number; accepted: number; skipped: number }>; gameStats?: () => import("./gamestats").GameAgg }
 const DAY = 86_400_000;
 const hist = (vals: number[], edges: number[], labels: string[]) => { const out = labels.map((l) => ({ label: l, n: 0 })); for (const v of vals) { let i = edges.findIndex((e) => v < e); if (i < 0) i = edges.length; out[i].n++; } return out; };
 
@@ -29,7 +29,11 @@ export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: Insi
       effects: [...eff].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([type, n]) => ({ type, n })), mostShown: seen.sort((a, b) => st[b].shown - st[a].shown).slice(0, 10).map(row),
       leastAccepted: seen.filter((id) => st[id].shown >= 5).sort((a, b) => st[a].accepted / st[a].shown - st[b].accepted / st[b].shown).slice(0, 5).map(row),
       quality: { total: cat.length, published: count((c) => c.publish), reviewOk: count((c) => c.review === "OK"), withImage: count((c) => !!c.file), needsMapping: count((c) => c.needsMapping), neverShown: cat.length - seen.length },
-      notTracked: ["Bankrotlikka olib borgan kartalar", "Kichik aylanadan chiqish turi", "Kasb bo'yicha g'alaba ulushi", "Katakka tushish chastotasi"] };
+      events: (() => { const g = d.gameStats?.(); if (!g) return null; const top = (o: Record<string, number>, n = 8) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
+        const hits = (o: Record<string, number>) => { const tot = Object.values(o).reduce((a, b) => a + b, 0); return top(o, 10).map(([cell, n]) => ({ cell: Number(cell) + 1, n, pct: tot ? +((100 * n) / tot).toFixed(1) : 0 })); };
+        return { games: g.games, cellsSmall: hits(g.cells.small), cellsBig: hits(g.cells.big), exit: { n: g.exits.n, notExited: g.exits.notExited, byRound: Object.entries(g.exits.byRound).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([k, n]) => ({ k, n })), byCell: top(g.exits.byCell).map(([k, n]) => ({ k, n })) },
+          bankrupt: { n: g.bankrupt.n, byCard: top(g.bankrupt.byCard, 6).map(([id, n]) => ({ id, title: byId.get(id)?.title ?? id, n })) },
+          jobs: Object.entries(g.jobs).filter(([, v]) => v.games >= 3).map(([name, v]) => ({ name, games: v.games, winPct: Math.round((100 * v.wins) / v.games) })).sort((a, b) => b.winPct - a.winPct) }; })() };
   }));
   /** Haftalik kohortalar: ro'yxatdan o'tgan hafta bo'yicha; «qaytdi» — oxirgi faollik shu haftadan keyin ekani (taxminiy: har kirish alohida yozilmaydi). */
   app.get("/admin/analytics/cohorts", guard("analytics.read", () => {
