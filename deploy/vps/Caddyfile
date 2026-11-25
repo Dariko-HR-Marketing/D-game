@@ -50,6 +50,12 @@
 	import security
 	import csp_app
 	encode zstd gzip
+	# Karta rasmlari admin panelda ham ko'rinadi (aks holda /cards/* index.html ga tushib, rasm chiqmaydi)
+	handle_path /cards/* {
+		root * /srv/cards
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
 	root * /srv/admin
 	@hashed path /assets/*
 	header @hashed Cache-Control "public, max-age=31536000, immutable"
