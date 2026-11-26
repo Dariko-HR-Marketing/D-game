@@ -77,7 +77,7 @@ export function buildApp(opts: { gate?: SubscriptionGate; pilotPrices?: boolean;
   const photoSig = (id: string, v: number) => createHmac("sha256", secret).update(`avatar:${id}:${v}`).digest("hex").slice(0, 24);
   const photoUrl = (id: string) => { const v = profiles.photoVersion(id); return v === undefined ? undefined : `/avatar/${encodeURIComponent(id)}?v=${v}&s=${photoSig(id, v)}`; };
   const phones = opts.phones ?? new PhoneLinks(secret, opts.docs);
-  const gate = opts.gate ?? new SubscriptionGate(gateConfigFromEnv(process.env), opts.docs);
+  const gate = opts.gate ?? new SubscriptionGate(gateConfigFromEnv(process.env), opts.docs); if (process.env.SOCIAL_STAR_XP) gate.starXp = Math.max(0, Math.floor(Number(process.env.SOCIAL_STAR_XP)) || 0); profiles.socialXp = (u) => gate.starsOf(u) * gate.starXp;
   const consents = opts.consents ?? new ParentConsents(secret, opts.sms, opts.publicUrl ?? process.env.PUBLIC_URL ?? "http://localhost:3000", opts.docs);
   const payRet = process.env.PAY_RETURN_URL ?? (opts.publicUrl ?? process.env.PUBLIC_URL ?? "http://localhost:3000"); const env = process.env;
   const payProviders: PaymentProvider[] = [...(env.PAYME_MERCHANT_ID && env.PAYME_KEY ? [new PaymeProvider(env.PAYME_MERCHANT_ID, { returnUrl: payRet })] : []), ...(env.CLICK_SERVICE_ID && env.CLICK_MERCHANT_ID && env.CLICK_SECRET_KEY ? [new ClickProvider(env.CLICK_SERVICE_ID, env.CLICK_MERCHANT_ID, { returnUrl: payRet })] : [])]; // karta to'lovi (Humo, Uzcard, korporativ karta): kalitlar berilmaguncha yo'q
