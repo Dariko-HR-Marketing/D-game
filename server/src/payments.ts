@@ -21,11 +21,11 @@ export class PaymeProvider implements PaymentProvider {
 export class ClickProvider implements PaymentProvider {
   id = "click"; channels: ("web" | "store")[] = ["web"];
   constructor(private serviceId: string, private merchantId: string, private cfg: PayCfg, private base = "https://my.click.uz/services/pay") {}
-  async checkout(o: Order) { const q = new URLSearchParams({ service_id: this.serviceId, merchant_id: this.merchantId, amount: String(o.amount), transaction_param: o.id, return_url: backTo(this.cfg.returnUrl, o.id) }); return { ref: "click-" + o.id, url: `${this.base}?${q}` }; }
+  async checkout(o: Order) { const q = new URLSearchParams({ service_id: this.serviceId, merchant_id: this.merchantId, amount: o.amount.toFixed(2), transaction_param: o.id, return_url: backTo(this.cfg.returnUrl, o.id) }); return { ref: "click-" + o.id, url: `${this.base}?${q}` }; }
 }
 
 // ---------------- Tranzaksiya jurnali ----------------
-export interface PTx { id: string; provider: "payme" | "click"; ext: string; orderId: string; amount: number; state: 1 | 2 | -1 | -2; createTime: number; performTime: number; cancelTime: number; reason: number | null }
+export interface PTx { id: string; provider: "payme" | "click"; ext: string; orderId: string; amount: number; state: 1 | 2 | -1 | -2; createTime: number; performTime: number; cancelTime: number; reason: number | null; fiscal?: { perform?: unknown; cancel?: unknown } }
 
 export class PayLedger {
   readonly tx: Collection<PTx>; readonly queue = new WriteQueue();
@@ -37,9 +37,10 @@ export class PayLedger {
 
 // ---------------- Payme Merchant API ----------------
 export const PAYME_TIMEOUT_MS = 12 * 3600_000; // 1-holatdagi tranzaksiya 12 soatdan keyin bekor bo'ladi
-const PERR = { auth: -32504, method: -32601, parse: -32700, amount: -31001, notFound: -31003, cantCancel: -31007, cantPerform: -31008, noOrder: -31050, orderBusy: -31051, pending: -31099 } as const;
+const PERR = { noReceipt: -32001, badParams: -32602, auth: -32504, method: -32601, parse: -32700, amount: -31001, notFound: -31003, cantCancel: -31007, cantPerform: -31008, noOrder: -31050, orderBusy: -31051, pending: -31099 } as const;
 const msg = (uz: string, ru: string, en: string) => ({ uz, ru, en });
 const MSG: Record<number, ReturnType<typeof msg>> = {
+  [PERR.noReceipt]: msg("Chek topilmadi", "Чек с таким id не найден", "Receipt not found"), [PERR.badParams]: msg("Parametrlar noto'g'ri", "Не валидные параметры", "Invalid params"),
   [PERR.auth]: msg("Ruxsat yo'q", "Недостаточно привилегий", "Insufficient privilege"), [PERR.method]: msg("Metod topilmadi", "Метод не найден", "Method not found"), [PERR.parse]: msg("Noto'g'ri so'rov", "Ошибка разбора", "Parse error"),
   [PERR.amount]: msg("Summa noto'g'ri", "Неверная сумма", "Wrong amount"), [PERR.notFound]: msg("Tranzaksiya topilmadi", "Транзакция не найдена", "Transaction not found"),
   [PERR.cantCancel]: msg("Bekor qilib bo'lmaydi", "Невозможно отменить", "Cannot cancel"), [PERR.cantPerform]: msg("Amalni bajarib bo'lmaydi", "Невозможно выполнить операцию", "Cannot perform"),
@@ -64,6 +65,7 @@ export class PaymeMerchant {
         case "PerformTransaction": return { jsonrpc: "2.0", id, result: this.perform(p) };
         case "CancelTransaction": return { jsonrpc: "2.0", id, result: this.cancel(p) };
         case "CheckTransaction": return { jsonrpc: "2.0", id, result: this.view(this.find(p)) };
+        case "SetFiscalData": return { jsonrpc: "2.0", id, result: this.fiscal(p) };
         case "GetStatement": return { jsonrpc: "2.0", id, result: { transactions: this.ledger.tx.values().filter((t) => t.provider === "payme" && t.createTime >= Number(p.from) && t.createTime <= Number(p.to)).sort((a, b) => a.createTime - b.createTime).map((t) => ({ id: t.ext, time: t.createTime, amount: t.amount, account: { order_id: t.orderId }, create_time: t.createTime, perform_time: t.performTime, cancel_time: t.cancelTime, transaction: t.id, state: t.state, reason: t.reason })) } };
         default: throw new RpcError(PERR.method, body.method);
       }
@@ -73,6 +75,13 @@ export class PaymeMerchant {
   private check(p: any) {
     const o = this.order(p); if (o.status !== "pending_payment") throw new RpcError(PERR.orderBusy, "order_id");
     if (!Number.isInteger(p.amount) || p.amount !== o.amount * TIYIN) throw new RpcError(PERR.amount, "amount"); return o;
+  }
+  /** Payme to'lov/bekor chekining fiskal ma'lumotini yuboradi (ixtiyoriy metod): PERFORM va CANCEL alohida saqlanadi. */
+  private fiscal(p: any) {
+    if (p.type !== "PERFORM" && p.type !== "CANCEL") throw new RpcError(PERR.badParams, "type");
+    if (!p.fiscal_data || typeof p.fiscal_data !== "object") throw new RpcError(PERR.badParams, "fiscal_data");
+    const t = this.ledger.byExt("payme", String(p.id ?? "")); if (!t) throw new RpcError(PERR.noReceipt, "id");
+    this.ledger.tx.set(t.id, { ...t, fiscal: { ...t.fiscal, [p.type === "PERFORM" ? "perform" : "cancel"]: p.fiscal_data } }); return { success: true };
   }
   private view(t: PTx) { return { create_time: t.createTime, perform_time: t.performTime, cancel_time: t.cancelTime, transaction: t.id, state: t.state, reason: t.reason }; }
   private find(p: any) { const t = this.ledger.byExt("payme", String(p.id ?? "")); if (!t) throw new RpcError(PERR.notFound, "id"); return t; }

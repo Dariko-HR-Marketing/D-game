@@ -31,6 +31,14 @@ describe("Payme Merchant API", () => {
     expect((await rpc("PerformTransaction", { id: "px1" })).result.state).toBe(2); expect(c.ent("u1").plusUntil).toBe(until); // ikki marta berilmaydi
     expect((await rpc("CheckTransaction", { id: "px1" })).result.state).toBe(2);
   });
+  it("SetFiscalData: PERFORM va CANCEL alohida saqlanadi; noma'lum chek -32001, noto'g'ri tur -32602", async () => {
+    mkOrder(); await rpc("CreateTransaction", { id: "px1", time: t, amount: 2_900_000, account: { order_id: "o1" } }); await rpc("PerformTransaction", { id: "px1" });
+    const fd = { receipt_id: 121, status_code: 0, message: "accepted", qr_code_url: "u" };
+    expect((await rpc("SetFiscalData", { id: "px1", type: "PERFORM", fiscal_data: fd })).result.success).toBe(true);
+    expect((await rpc("SetFiscalData", { id: "px1", type: "CANCEL", fiscal_data: { ...fd, receipt_id: 123 } })).result.success).toBe(true);
+    expect((await rpc("SetFiscalData", { id: "nope", type: "PERFORM", fiscal_data: fd })).error.code).toBe(-32001);
+    expect((await rpc("SetFiscalData", { id: "px1", type: "X", fiscal_data: fd })).error.code).toBe(-32602);
+  });
   it("bitta buyurtmaga ikkinchi tranzaksiya -31099", async () => { mkOrder(); const a = { time: t, amount: 2_900_000, account: { order_id: "o1" } }; await rpc("CreateTransaction", { ...a, id: "p1" }); expect((await rpc("CreateTransaction", { ...a, id: "p2" })).error.code).toBe(-31099); });
   it("12 soatdan keyin tranzaksiya bekor bo'ladi (sabab 4); Perform -31008", async () => {
     mkOrder(); await rpc("CreateTransaction", { id: "p1", time: t, amount: 2_900_000, account: { order_id: "o1" } }); t += PAYME_TIMEOUT_MS + 1;
@@ -71,7 +79,7 @@ describe("to'lov oynasi manzillari", () => {
   it("Payme: base64(m;ac.order_id;a tiyinda;l;c); Click: service_id, amount so'mda, transaction_param", async () => {
     const o = mkOrder(); const pu = (await new PaymeProvider("M1", { returnUrl: "https://t24.uz/back" }).checkout(o)).url!;
     expect(Buffer.from(new URL(pu).pathname.slice(1), "base64").toString()).toBe("m=M1;ac.order_id=o1;a=2900000;l=uz;c=https://t24.uz/back?tolov=o1"); // qaytganda mijoz buyurtma holatini ko'rsatadi
-    const cu = new URL((await new ClickProvider("S1", "M2", { returnUrl: "https://t24.uz/back" }).checkout(o)).url!); expect(cu.searchParams.get("service_id")).toBe("S1"); expect(cu.searchParams.get("amount")).toBe("29000"); expect(cu.searchParams.get("transaction_param")).toBe("o1"); expect(cu.searchParams.get("return_url")).toBe("https://t24.uz/back?tolov=o1");
+    const cu = new URL((await new ClickProvider("S1", "M2", { returnUrl: "https://t24.uz/back" }).checkout(o)).url!); expect(cu.searchParams.get("service_id")).toBe("S1"); expect(cu.searchParams.get("amount")).toBe("29000.00"); expect(cu.searchParams.get("transaction_param")).toBe("o1"); expect(cu.searchParams.get("return_url")).toBe("https://t24.uz/back?tolov=o1");
   });
 });
 
