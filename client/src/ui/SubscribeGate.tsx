@@ -31,7 +31,7 @@ export function SubscribeGate({ http, onClose, onDone }: { http: Http; onClose: 
       <View style={s.list}>{list.map((p) => (
         <View key={p.id} style={[s.item, p.ok && s.itemOk]}>
           <View style={[s.logo, { backgroundColor: p.ok ? color.green : BRAND[p.id] }]} aria-hidden><Icon name={p.ok ? "check" : (p.id as IconName)} size={20} color="#fff" stroke={2} /></View>
-          <View style={{ flex: 1 }}><Text style={s.t}>{(sub as any)[p.id]}</Text><Text style={s.mut}>{p.ok ? "✓" : sub.required}</Text></View>
+          <View style={{ flex: 1 }}><Text style={s.t}>{(sub as any)[p.id]}{p.extraRequired ? " · " + sub.channelGroup : ""}</Text><Text style={s.mut}>{p.ok ? "✓" : sub.required}</Text></View>
         </View>))}</View>
       {viaBot && <Pressable accessibilityRole="button" onPress={openBot} style={({ pressed }) => [s.cta, pressed && { opacity: 0.9 }]}><Icon name="telegram" size={20} color="#fff" /><Text style={s.ctaT}>{sub.openBot}</Text></Pressable>}
       {viaBot && <Text style={s.n}>{sub.botSteps}{ig && !ig.ok ? ` ${sub.igStep}` : ""}</Text>}

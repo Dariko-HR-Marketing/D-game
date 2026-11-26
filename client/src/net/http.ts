@@ -18,6 +18,8 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     voiceConfig: () => call("GET", "/voice/config") as Promise<{ iceServers: RTCIceServer[] }>,
     gate: () => call("GET", "/gate") as Promise<GateStatus>, gateStart: (p: "telegram" | "instagram") => call("POST", `/gate/${p}/start`, {}) as Promise<{ url: string; code?: string }>,
     gateCheck: (p: "telegram" | "instagram") => call("POST", `/gate/${p}/check`, {}) as Promise<GateCheck>, gateYoutube: (accessToken: string) => call("POST", "/gate/youtube/check", { accessToken }) as Promise<GateCheck>,
+    consent: () => call("GET", "/me/consent") as Promise<ConsentInfo>, consentAccept: (version: string) => call("POST", "/me/consent", { version }), consentWithdraw: () => call("DELETE", "/me/consent"),
+    facebookConfirm: () => call("POST", "/me/socials/facebook/confirm", {}) as Promise<SocialsInfo>,
     socials: () => call("GET", "/me/socials") as Promise<SocialsInfo>, socialDisconnect: (p: string) => call("DELETE", `/me/socials/${p}`) as Promise<SocialsInfo>,
     profile: () => call("GET", "/me/profile"), saveProfile: (p: { name: string; color: number; birthYear: number; gender?: "m" | "f" | null }) => call("PUT", "/me/profile", p),
     uploadAvatar: (image: string) => call("PUT", "/me/avatar", { image }) as Promise<{ photo: string }>, removeAvatar: () => call("DELETE", "/me/avatar"),
@@ -76,7 +78,8 @@ export const validName = (n: string) => n.trim().length >= 2 && n.trim().length 
 export const validYear = (y: string, now = new Date().getFullYear()) => /^\d{4}$/.test(y) && Number(y) >= 1900 && Number(y) <= now;
 export const isUnder16 = (y: string, now = new Date().getFullYear()) => validYear(y, now) && now - Number(y) < 16;
 
-export interface GateStatus { enabled: boolean; exempt: boolean; missing: string[]; platforms: { id: "telegram" | "instagram" | "youtube"; ok: boolean; linked: boolean; url?: string; extraUrl?: string }[] }
+export interface GateStatus { enabled: boolean; exempt: boolean; missing: string[]; platforms: { id: "telegram" | "instagram" | "youtube"; ok: boolean; linked: boolean; url?: string; extraUrl?: string; extraRequired?: boolean }[] }
 export interface GateCheck { ok: boolean; result: "ok" | "not_subscribed" | "not_linked" | "unavailable"; status: GateStatus }
-export interface SocialItem { id: "telegram" | "instagram" | "youtube" | "facebook"; configured: boolean; required: boolean; ok: boolean; linked: boolean; url?: string; at: number | null; verifiable: boolean }
+export interface ConsentInfo { required: string | null; accepted: string | null; ok: boolean; links: { offer: string; privacy: string } }
+export interface SocialItem { self?: boolean; groupUrl?: string; groupRequired?: boolean; id: "telegram" | "instagram" | "youtube" | "facebook"; configured: boolean; required: boolean; ok: boolean; linked: boolean; url?: string; at: number | null; verifiable: boolean }
 export interface SocialsInfo { items: SocialItem[]; stars: number; starXp: number; required: string[] }

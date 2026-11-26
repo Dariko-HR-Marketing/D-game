@@ -22,6 +22,7 @@ export function Socials({ http, onInfo }: { http: Http; onInfo?: (i: SocialsInfo
     try {
       if (it.id === "telegram") { const r = await http.gateStart("telegram"); open(r.url); }
       else if (it.id === "instagram") { const r = await http.gateStart("instagram"); if (r.code) setCode(r.code); open(r.url); }
+      else if (it.id === "facebook") { setBusy(it.id); const r = await http.facebookConfirm(); setInfo(r); onInfo?.(r); }
       else if (it.id === "youtube") { setBusy(it.id); const r = await http.gateYoutube(await googleToken()); await load(); if (!r.ok) say(it.id, soc.notYet); }
     } catch (e) { say(it.id, (e as Error).message === "web_only" ? soc.ytWeb : soc.failed); }
     setBusy(null);
@@ -44,8 +45,8 @@ export function Socials({ http, onInfo }: { http: Http; onInfo?: (i: SocialsInfo
               <View style={[s.logo, { backgroundColor: BRAND[it.id] }]} aria-hidden><Icon name={it.id as IconName} size={22} color="#fff" stroke={1.9} /></View>
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={s.nameRow}><Text style={s.name}>{name}</Text>
-                  {live && <Text style={[s.tag, it.required ? s.tagReq : s.tagOpt]}>{it.required ? soc.required : soc.optional}</Text>}</View>
-                <Text style={s.muted}>{it.ok ? `${soc.connected}${it.at ? ` · ${soc.checkedOn}: ${when(it.at)}` : ""}` : live ? soc.notConnected : it.url ? soc.fbNote : soc.soon}</Text>
+                  {(live || (it.self && it.configured)) && <Text style={[s.tag, it.required ? s.tagReq : s.tagOpt]}>{it.required ? soc.required : soc.optional}</Text>}</View>
+                <Text style={s.muted}>{it.ok ? `${it.self ? soc.selfConfirmed : soc.connected}${it.at ? ` · ${when(it.at)}` : ""}` : live ? (it.id === "telegram" && it.groupRequired ? `${soc.notConnected} · ${soc.groupToo}` : soc.notConnected) : it.self && it.configured ? soc.fbNote : soc.soon}</Text>
               </View>
               <Text style={[s.star, { color: it.ok ? "#B8860B" : color.line }]} aria-label={it.ok ? soc.starEarned : soc.starAvail}>{it.ok ? "★" : "☆"}</Text>
             </View>
@@ -54,7 +55,9 @@ export function Socials({ http, onInfo }: { http: Http; onInfo?: (i: SocialsInfo
               {(it.id === "telegram" || it.id === "instagram") && <Btn label={soc.check} onPress={() => check(it)} />}
               {it.url && <Btn label={soc.open} onPress={() => open(it.url)} />}</View>}
             {live && it.ok && <View style={s.row}><Btn label={soc.check} onPress={() => check(it)} /><Btn label={soc.disconnect} onPress={() => drop(it)} danger /></View>}
-            {!live && it.url && <View style={s.row}><Btn label={soc.open} onPress={() => open(it.url)} /></View>}
+            {it.self && it.configured && !it.ok && <View style={s.row}><Btn label={soc.open} onPress={() => open(it.url)} /><Btn label={busy === it.id ? soc.checking : soc.fbConfirm} onPress={() => connect(it)} primary /></View>}
+            {it.self && it.configured && it.ok && <View style={s.row}><Btn label={soc.disconnect} onPress={() => drop(it)} danger /></View>}
+            {live && it.id === "telegram" && it.groupUrl && !it.ok && <View style={s.row}><Btn label={soc.group} onPress={() => open(it.groupUrl)} /></View>}
             {it.id === "instagram" && !it.ok && code && <Text style={s.code} selectable>{soc.igCode}: {code}</Text>}
             {it.ok && it.required && <Text style={s.muted}>{soc.requiredNote}</Text>}
             {!!msg[it.id] && <Text style={s.warn} accessibilityLiveRegion="polite">{msg[it.id]}</Text>}

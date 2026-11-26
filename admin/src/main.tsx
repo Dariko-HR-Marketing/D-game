@@ -17,6 +17,7 @@ import { Live } from "./live";
 import { Cells, Dreams } from "./board";
 import { TestMode } from "./testmode";
 import { Gate } from "./gate";
+import { Consent } from "./consent";
 import { t } from "./uz";
 import { HelpDrawer } from "./helpdrawer";
 import { GROUP_NOTE } from "./help";
@@ -47,6 +48,7 @@ function App() {
       case "users": return <Users api={api} />;
       case "testmode": return <TestMode api={api} />;
       case "gate": return <Gate api={api} />;
+      case "consent": return <Consent api={api} />;
       case "complaints": return <Complaints api={api} me={me.account.id} />;
       case "rooms": return <Rooms api={api} perms={me.perms} />;
       case "content": return <Content api={api} perms={me.perms} />;

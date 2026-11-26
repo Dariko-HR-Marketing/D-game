@@ -56,6 +56,7 @@ services:
       GATE_IG_VERIFY_TOKEN: ${GATE_IG_VERIFY_TOKEN:-}
       GATE_YT_CHANNEL_ID: ${GATE_YT_CHANNEL_ID:-}
       GATE_YT_CHANNEL_URL: ${GATE_YT_CHANNEL_URL:-}
+      OFFER_VERSION: ${OFFER_VERSION:-}   # oferta versiyasi (masalan 2026-11-26): berilsa rozilik o'yin ochish/qo'shilishdan oldin talab qilinadi; bo'sh = talab o'chiq
       GATE_REQUIRED: ${GATE_REQUIRED:-telegram,instagram}   # majburiy tarmoqlar; qolgani (YouTube) ixtiyoriy: faqat yulduzcha
       GATE_FB_URL: ${GATE_FB_URL:-}
       SOCIAL_STAR_XP: ${SOCIAL_STAR_XP:-}   # har tasdiqlangan tarmoq uchun XP (bo'sh = 0, o'chiq)
