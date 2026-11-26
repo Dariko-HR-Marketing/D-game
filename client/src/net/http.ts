@@ -15,7 +15,7 @@ export function makeHttp(base: string, token: string, f: typeof fetch = fetch) {
     /** Shikoyat (chat xabari va h.k.): `against` — o'yinchi ID si, `room` — xona kodi, `text` — nima bo'lgani. */
     complain: (against: string | null, room: string | null, text: string) => call("POST", "/complaints", { against, room, text }),
     /** Ovozli aloqa: STUN/TURN ro'yxati (server sozlamasidan). */
-    voiceConfig: () => call("GET", "/voice/config") as Promise<{ iceServers: RTCIceServer[] }>,
+    voiceConfig: () => call("GET", "/voice/config") as Promise<{ iceServers: RTCIceServer[]; relay?: boolean }>,
     gate: () => call("GET", "/gate") as Promise<GateStatus>, gateStart: (p: "telegram" | "instagram") => call("POST", `/gate/${p}/start`, {}) as Promise<{ url: string; code?: string }>,
     gateCheck: (p: "telegram" | "instagram") => call("POST", `/gate/${p}/check`, {}) as Promise<GateCheck>, gateYoutube: (accessToken: string) => call("POST", "/gate/youtube/check", { accessToken }) as Promise<GateCheck>,
     consent: () => call("GET", "/me/consent") as Promise<ConsentInfo>, consentAccept: (version: string) => call("POST", "/me/consent", { version }), consentWithdraw: () => call("DELETE", "/me/consent"),

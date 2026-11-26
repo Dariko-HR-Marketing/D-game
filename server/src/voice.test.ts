@@ -89,3 +89,13 @@ describe("TURN vaqtinchalik hisob (coturn use-auth-secret)", () => {
   });
 });
 
+
+describe("TURN (relay) tekshiruvi", () => {
+  it("faqat STUN bo'lsa relay yo'q; TURN_URLS+TURN_SECRET yoki turn: manzili bo'lsa bor", async () => {
+    const { hasRelay, DEFAULT_ICE } = await import("./voice");
+    expect(hasRelay(DEFAULT_ICE, {})).toBe(false);
+    expect(hasRelay(DEFAULT_ICE, { TURN_URLS: "turn:t.example.uz:3478", TURN_SECRET: "x".repeat(20) })).toBe(true);
+    expect(hasRelay(DEFAULT_ICE, { TURN_URLS: "turn:t.example.uz:3478", TURN_SECRET: "qisqa" })).toBe(false); // sir juda qisqa: server TURN bermaydi
+    expect(hasRelay([{ urls: ["stun:a:3478", "turns:t.example.uz:5349"], username: "u", credential: "c" }], {})).toBe(true);
+  });
+});

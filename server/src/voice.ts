@@ -28,3 +28,8 @@ export function iceServersFrom(raw: string | undefined): IceServer[] {
     return out;
   } catch { return DEFAULT_ICE; }
 }
+
+/** TURN (relay) bormi: ICE ro'yxatida yoki TURN_URLS orqali. Yo'q bo'lsa NAT/mobil tarmoq orqasidagilar bir-birini eshitmaydi. */
+export function hasRelay(list: IceServer[], env: Record<string, string | undefined> = {}): boolean {
+  return !!turnServerFor(env, "check") || list.some((s) => (Array.isArray(s.urls) ? s.urls : [s.urls]).some((u) => /^turns?:/i.test(u)));
+}

@@ -268,7 +268,7 @@ export const uz = {
     headerOn: "Ovoz yoniq: mikrofonni o'chirish", headerOff: "Ovoz yoniq: mikrofonni yoqish", inCall: "Ovozda: {n}", only: "Siz ovozdasiz. Boshqalar qo'shilishini kuting.", connecting: "Ulanyapti…", connected: "ulangan", failed: "ulanmadi",
     you: "Siz", speaking: "gapiryapti", peerMute: "Jim qilish", peerUnmute: "Ovozini yoqish", settings: "Qurilmalar", input: "Mikrofon", output: "Dinamik yoki naushnik", hint: "Naushnik taqing — aks-sado bo'lmaydi. Audio o'yinchilar o'rtasida to'g'ridan-to'g'ri o'tadi va saqlanmaydi.",
     unsupported: "Ovozli aloqa bu qurilmada hozircha ishlamaydi (veb-versiyada mavjud).", restricted: "Ovozli aloqa 16 yoshgacha yoki ota-ona o'chirgan bolalar uchun yopiq.",
-    errors: { denied: "Mikrofonga ruxsat berilmadi. Brauzer sozlamasidan ruxsat bering yoki faqat tinglang.", no_mic: "Mikrofon topilmadi. Faqat tinglash rejimi.", failed: "Ulanib bo'lmadi. Aloqani tekshirib qayta urinib ko'ring." } as Record<string, string>,
+    errors: { denied: "Mikrofonga ruxsat berilmadi. Brauzer sozlamasidan ruxsat bering yoki faqat tinglang.", no_mic: "Mikrofon topilmadi. Faqat tinglash rejimi.", failed: "Ulanib bo'lmadi. Aloqani tekshirib qayta urinib ko'ring.", no_relay: "Boshqa tarmoqdagi o'yinchi bilan ovoz ulanmadi: serverda ovoz relay (TURN) yoqilmagan. Bu texnik sozlama — administratorga xabar bering. Bir xil Wi-Fi tarmog'ida ishlashi mumkin." } as Record<string, string>,
   },
   chat: {
     title: "Chat", open: "Chat ochish", close: "Chatni yopish", empty: "Hozircha xabar yo'q. Birinchi bo'lib salomlashing!", input: "Xabar yozing…", send: "Yuborish", you: "Siz",
