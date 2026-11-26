@@ -5,8 +5,7 @@ import { Banner, Pill } from "./kit";
 import { Logo } from "./Logo";
 import { Icon, type IconName } from "./Icon";
 import { replayTour } from "./tourStore";
-import { needsTutorial, markTutorialDone } from "../onboarding";
-import { OnboardingFlow } from "./OnboardingFlow";
+import { needsTutorial } from "../onboarding";
 import { RoomsList } from "./RoomsList";
 import { Acc } from "./Accordion";
 import { PrivateToggle } from "./PrivateToggle";
@@ -38,7 +37,7 @@ function Tile({ icon, title, onPress, testID }: { icon: IconName; title: string;
 
 /** Bosh sahifa (maket N05): salom, ro'yxat qatorlari (yangi o'yin, kod bilan qo'shilish, qoidalar), pastki navigatsiya. */
 export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeaderboard, onRules, onShop, onClass, onTournaments, onPacks, onClubs, lobbies, onWatchLobbies }: { status: string; error: string | null; http?: Http; onCreate: (turnSeconds: TurnSeconds, calc: CalcMode, seats: Seats, mode: "standard" | "quick" | "rated" | "tutorial", opts?: RoomOpts) => void; onJoin: (c: string) => void; onProfile: () => void; onLeaderboard: () => void; onRules: () => void; onShop?: () => void; onClass?: () => void; onTournaments?: () => void; onPacks?: () => void; onClubs?: () => void; lobbies?: Lobbies | null; onWatchLobbies?: (on: boolean) => void }) {
-  const [flow, setFlow] = useState(false); const roomsOn = featureOn("rooms"), billingOn = featureOn("billing"); const [ropts, setRopts] = useState<RoomOpts>(() => defaultOpts(getModePref())); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<UiMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [acc, setAcc] = useState<"opts" | "rooms" | null>(null); const optsOpen = acc === "opts"; // akkordionlar: bittasi ochilsa ikkinchisi yopiladi
+  const roomsOn = featureOn("rooms"), billingOn = featureOn("billing"); const [ropts, setRopts] = useState<RoomOpts>(() => defaultOpts(getModePref())); const [turn, setTurn] = useState<TurnSeconds>(getTurnPref); const [calc, setCalc] = useState<CalcMode>(getCalcPref); const [mode, setMode] = useState<UiMode>(getModePref); const [seats, setSeats] = useState<Seats>(() => clampSeats(getModePref(), getSeatsPref())); const [acc, setAcc] = useState<"opts" | "rooms" | null>(null); const optsOpen = acc === "opts"; // akkordionlar: bittasi ochilsa ikkinchisi yopiladi
   const [corp, setCorp] = useState(false); const [orgCode, setOrgCode] = useState(""); const [orgErr, setOrgErr] = useState<string | null>(null); const [orgBusy, setOrgBusy] = useState(false);
   const pickTurn = (v: TurnSeconds) => { setTurn(v); setTurnPref(v); };
   const effTurn: TurnSeconds = turn; // Standart va Student: barcha tezlik, jumladan vaqtsiz
@@ -54,11 +53,10 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
   useEffect(() => { let off = false; Promise.all([http?.announcements().catch(() => ({ announcements: [] })), http?.status().catch(() => null)]).then(([a, st]: any) => { if (off) return; const list = [...(st?.maintenance ? [{ id: "maint", kind: "warn" as const, text: `Texnik ishlar olib borilmoqda${st.text ? `: ${st.text}` : "."}` }] : []), ...(a?.announcements ?? []).map((x: any) => (x.early ? { ...x, text: `${uz.packs.early}: ${x.text}` } : x))]; setNotes(list); }); return () => { off = true; }; }, [http]);
   const gated = needsTutorial(me); const online = status === "online"; const { width: winW, height } = useWindowDimensions(); const compact = height < 700; const wide = winW >= 900; const tiny = winW < 340; // katlanuvchi telefon: sarlavha sig'sin // bitta sahifaga sig'sin: past ekranda qatorlar zichroq
   const SUM = `${uz.home.modes[mode]} · ${uz.home.seatsOpt.replace("{n}", String(seats))} · ${turnLabel(effTurn)}${calcUiEnabled() ? ` · ${calc === "manual" ? uz.ledger.manual : uz.ledger.auto}` : ""}`;
-  if (flow) return <OnboardingFlow onDone={() => { markTutorialDone(); setFlow(false); }} />; // majburiy tanishuv: server xonasisiz, tugagach oddiy o'yin ochiladi
   const roomsNode = roomsOn && http && !gated && !corp ? <RoomsList http={http} online={online} onJoin={onJoin} live={lobbies} watch={onWatchLobbies} collapsible={winW < 1100} open={acc === "rooms"} onToggleOpen={() => setAcc((a) => (a === "rooms" ? null : "rooms"))} /> : null;
   if (winW >= 1100) return <HomeDesktop roomsNode={roomsNode} onClubs={onClubs} onPacks={billingOn ? onPacks : undefined} gated={gated} me={me} online={online} status={status} error={error} notes={notes} active={active} mode={mode} calc={calc} pickCalc={(v) => { setCalc(v); setCalcPref(v); }} corp={corp} seats={seats} turn={turn} effTurn={effTurn} orgCode={orgCode} orgErr={orgErr} orgBusy={orgBusy}
     priv={roomsOn && priv} showPriv={roomsOn} pickPriv={pickPriv} pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
-    create={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} startTutorial={() => setFlow(true)} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
+    create={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} startTutorial={() => {}} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
       <View style={s.header}>
@@ -78,7 +76,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
               <Text style={s.learnH}>{uz.home.desk.learnTitle}</Text>
               {uz.home.desk.learn.map((t: string, i: number) => <View key={t} style={s.learnRow} role="listitem"><View style={s.learnNum} aria-hidden><Text style={s.learnNumT}>{i + 1}</Text></View><Text style={s.learnT}>{t}</Text></View>)}
             </View>)}
-            {gated && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => setFlow(true)} />}
+            {gated && <Row compact={compact} testID="home-tutorial" icon="book" primary title={uz.home.tutorialOffer} sub={uz.home.tutorialSub} onPress={() => {}} />}
             {!gated && (
               <View style={s.accWrap}>
                 <Acc icon="sliders" title={uz.openRooms.accSettings} summary={corp ? uz.home.corporate : SUM} open={optsOpen} onToggle={() => setAcc((a) => (a === "opts" ? null : "opts"))} testID="home-opts" label={`${uz.home.roomSettings}: ${corp ? uz.home.corporate : SUM}`}>
