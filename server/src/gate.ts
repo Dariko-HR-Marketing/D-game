@@ -80,7 +80,7 @@ export class SubscriptionGate {
   /** Telegram webhook'ni o'zi ulaydi (GATE_PUBLIC_API_URL berilsa). */
   async registerTelegramWebhook() {
     const c = this.cfg.telegram; if (!c || !this.cfg.apiUrl || !c.webhookSecret) return;
-    try { const j: any = await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/setWebhook`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: `${this.cfg.apiUrl}/gate/telegram/webhook`, secret_token: c.webhookSecret, allowed_updates: ["message"] }) })).json();
+    try { const j: any = await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/setWebhook`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: `${this.cfg.apiUrl}/gate/telegram/webhook`, secret_token: c.webhookSecret, allowed_updates: ["message", "callback_query"] }) })).json();
       this.health.telegramWebhook = { ok: !!j?.ok, at: this.now(), ...(j?.ok ? {} : { error: String(j?.description ?? "xato").slice(0, 120) }) };
     } catch (e) { this.health.telegramWebhook = { ok: false, at: this.now(), error: (e as Error).message }; }
   }
@@ -102,13 +102,47 @@ export class SubscriptionGate {
     if (!m || typeof from !== "number") return false; const p = this.tgTokens.get(m[1]); if (!p || p.exp < this.now()) return false;
     this.tgTokens.delete(m[1]); this.recs.set(p.uid, { ...this.rec(p.uid), tg: from }); return true;
   }
-  /** Botning javobi: bog'langanda tasdiq, oddiy /start da salom (o'yinchi jim botni ko'rmasin). */
-  async replyTelegram(u: any, linked: boolean) {
-    const c = this.cfg.telegram, chat = u?.message?.chat?.id, text = String(u?.message?.text ?? ""); if (!c || typeof chat !== "number" || !text.startsWith("/start")) return;
-    const ch = c.channelUrl ? `\n\nKanal: ${c.channelUrl}` : "", gr = c.groupUrl ? `\nGuruh: ${c.groupUrl}` : "";
-    const msg = linked ? `Tajriba24 hisobingiz Telegram bilan bog'landi.\n\nEndi kanalga obuna bo'ling, so'ng o'yinga qaytib «Tekshirish» tugmasini bosing.${ch}${gr}`
-      : `Tajriba24 botiga xush kelibsiz!\n\nO'yinga kirish uchun ilovadagi «Obuna» oynasidan «Botni ochish» tugmasini bosing.${ch}${gr}`;
-    try { await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: chat, text: msg, disable_web_page_preview: true }) }); } catch { /* javob yuborilmasa ham bog'lash saqlanadi */ }
+  userByTg(tg: number) { return this.recs.values().find((r) => r.tg === tg)?.id; }
+  private igCodeOf(uid: string) { for (const [k, v] of this.igCodes) if (v.uid === uid && v.exp > this.now()) return k; return this.instagramStart(uid)?.code; }
+  private async tg(method: string, body: unknown) {
+    const c = this.cfg.telegram; if (!c) return null;
+    try { return await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/${method}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })).json(); } catch { return null; }
+  }
+  /** Botdagi yagona obuna paneli: matn + tugmalar. Majburiy bo'lmagan guruh «tavsiya» sifatida chiqadi. */
+  panel(uid: string, age: number | null) {
+    const c = this.cfg.telegram!, r = this.recs.get(uid), ok = (p: Platform) => !!r && this.valid(r, p), miss = this.missing(uid, age);
+    const lines: string[] = [], kb: { text: string; url?: string; callback_data?: string }[][] = [];
+    const line = (done: boolean, t: string) => lines.push(`${done ? "✅" : "⬜"} ${t}`);
+    for (const p of this.platforms()) {
+      if (p === "telegram") { line(ok(p), "Telegram kanali"); if (!ok(p) && c.channelUrl) kb.push([{ text: "Kanalga o'tish", url: c.channelUrl }]); }
+      if (p === "instagram") { line(ok(p), "Instagram sahifasi"); if (!ok(p)) { kb.push([{ text: "Instagramga o'tish", url: this.url(p)! }]); lines.push(`    Sahifaga obuna bo'ling va unga shu kodni xabar qilib yuboring: ${this.igCodeOf(uid)}`); } }
+      if (p === "youtube") { line(ok(p), "YouTube kanali"); if (!ok(p)) { kb.push([{ text: "YouTube'ga o'tish", url: this.url(p)! }]); lines.push("    Obunani tasdiqlash ilovada (veb-versiya) amalga oshadi."); } }
+    }
+    if (c.groupUrl && !c.group) { lines.push("➕ Tavsiya: muhokama guruhimiz"); kb.push([{ text: "Guruhga o'tish (ixtiyoriy)", url: c.groupUrl }]); }
+    if (miss.length) kb.push([{ text: "✅ Tekshirish", callback_data: "chk" }]);
+    const head = miss.length ? "O'yinni boshlash uchun quyidagilarga obuna bo'ling, so'ng «Tekshirish»ni bosing:" : "Tayyor! Hammasi tasdiqlandi. Ilovaga qaytib o'yinni boshlashingiz mumkin.";
+    return { text: `${head}\n\n${lines.join("\n")}`, reply_markup: { inline_keyboard: kb } };
+  }
+  /** Telegram webhook yangilanishi: bog'lash (/start), panel va «Tekshirish» tugmasi. Hamma obuna bitta joyda bot orqali. */
+  async handleTelegram(u: any, ageOf: (uid: string) => number | null = () => null) {
+    const c = this.cfg.telegram; if (!c) return;
+    const cq = u?.callback_query, m = u?.message; const from = cq?.from?.id ?? m?.from?.id, chat = cq?.message?.chat?.id ?? m?.chat?.id;
+    if (typeof from !== "number" || typeof chat !== "number") return;
+    const text = String(m?.text ?? ""); if (!cq && !text.startsWith("/start") && !text.startsWith("/obuna")) return;
+    const linked = !cq && this.onTelegramUpdate(u); let uid = this.userByTg(from);
+    if (!uid) {
+      const msg = "Tajriba24 botiga xush kelibsiz!\n\nBoshlash uchun ilovadagi «Obuna» oynasidan «Telegram orqali obuna bo'lish» tugmasini bosing, shunda hisobingiz shu botga bog'lanadi.";
+      if (cq) await this.tg("answerCallbackQuery", { callback_query_id: cq.id, text: "Avval ilovadan botni oching", show_alert: true }); else await this.tg("sendMessage", { chat_id: chat, text: msg });
+      return;
+    }
+    // Telegram obunasini darrov tekshiramiz; Instagram bog'langan bo'lsa u ham.
+    await this.checkTelegram(uid); if (this.recs.get(uid)?.ig) await this.checkInstagram(uid);
+    const pn = this.panel(uid, ageOf(uid)); const body = { chat_id: chat, text: (linked ? "Hisobingiz botga bog'landi.\n\n" : "") + pn.text, reply_markup: pn.reply_markup, disable_web_page_preview: true };
+    if (cq) {
+      const done = this.missing(uid, ageOf(uid)).length === 0;
+      await this.tg("answerCallbackQuery", { callback_query_id: cq.id, text: done ? "Tayyor!" : "Hali hamma obuna topilmadi" });
+      await this.tg("editMessageText", { ...body, message_id: cq.message?.message_id });
+    } else await this.tg("sendMessage", body);
   }
   async checkTelegram(uid: string): Promise<boolean | "not_linked" | "unavailable"> {
     const c = this.cfg.telegram, r = this.recs.get(uid); if (!c) return false; if (r?.tg === undefined) return "not_linked";
@@ -166,7 +200,7 @@ export function registerGate(d: GateDeps) {
     s.addContentTypeParser("application/json", { parseAs: "buffer" }, (_r, body, done) => { try { done(null, { raw: body, json: JSON.parse((body as Buffer).toString("utf8") || "{}") }); } catch (e) { done(e as Error); } });
     s.post("/gate/telegram/webhook", async (req, reply) => {
       const c = gate.cfg.telegram; if (!c || !c.webhookSecret || req.headers["x-telegram-bot-api-secret-token"] !== c.webhookSecret) return reply.code(403).send({ error: "forbidden" });
-      const upd = (req.body as any).json; void gate.replyTelegram(upd, gate.onTelegramUpdate(upd)); return { ok: true };
+      void gate.handleTelegram((req.body as any).json, d.ageOf); return { ok: true };
     });
     s.get("/gate/instagram/webhook", async (req, reply) => {
       const q = req.query as any, c = gate.cfg.instagram; if (!c?.verifyToken || q["hub.mode"] !== "subscribe" || q["hub.verify_token"] !== c.verifyToken) return reply.code(403).send("forbidden");

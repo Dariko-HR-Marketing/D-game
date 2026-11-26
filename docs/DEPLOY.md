@@ -68,3 +68,9 @@ GATE_TG_WEBHOOK_SECRET=<openssl rand -hex 24 natijasi>
 ```
 `GATE_PUBLIC_API_URL` o'zi `https://$API_DOMAIN` bo'ladi. Guruh tavsiyaviy bo'lsa `GATE_TG_GROUP` bo'sh qoladi. O'zgartirgach: `docker compose up -d server`. Holat: admin panel → «Obuna darvozasi».
 
+Guruh **tavsiyaviy** (majburiy emas) bo'lsa faqat havola beriladi, `GATE_TG_GROUP` yozilmaydi:
+```
+GATE_TG_GROUP_URL=https://t.me/tajriba24_group
+```
+Hamma obuna Telegram botda bitta panelda (kanal, tavsiya guruhi; Instagram/YouTube yoqilsa ular ham). `GATE_PUBLIC_API_URL` o'zgargan yoki bot yangi bo'lsa, server qayta ishga tushganda webhook o'zi qayta ulanadi (`message` va `callback_query`).
+

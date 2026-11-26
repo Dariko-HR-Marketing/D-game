@@ -64,9 +64,20 @@ describe("obuna darvozasi", () => {
     expect(await g.checkTelegram("u")).toBe(false); st["@guruh"] = "member"; expect(await g.checkTelegram("u")).toBe(true);
     expect(g.status("u", 30).platforms[0]).toMatchObject({ ok: true, extraUrl: "https://t.me/guruh" });
   });
-  it("bot /start ga javob beradi: bog'langanda tasdiq, oddiy /start da salom", async () => {
+  it("bot: /start bog'laydi va yagona panel yuboradi; «Tekshirish» tugmasi qayta tekshiradi va paneli yangilaydi", async () => {
+    const calls: { m: string; b: any }[] = []; let status = "left";
+    const g = new SubscriptionGate({ ...cfg, instagram: undefined, youtube: undefined, telegram: { ...cfg.telegram!, groupUrl: "https://t.me/guruh" } }, undefined,
+      (async (u: string, i?: any) => { if (u.includes("getChatMember")) return json({ ok: true, result: { status } }); calls.push({ m: u.split("/").pop()!, b: JSON.parse(i.body) }); return json({ ok: true }); }) as any);
+    const t = g.telegramStart("u")!;
+    await g.handleTelegram({ message: { from: { id: 7 }, chat: { id: 7 }, text: "/start " + t.token } });
+    expect(calls[0].m).toBe("sendMessage"); expect(calls[0].b.text).toContain("bog'landi"); expect(calls[0].b.text).toContain("⬜ Telegram kanali"); expect(calls[0].b.text).toContain("guruhimiz");
+    expect(JSON.stringify(calls[0].b.reply_markup)).toContain("chk"); expect(g.missing("u", 30)).toEqual(["telegram"]);
+    status = "member"; await g.handleTelegram({ callback_query: { id: "cb1", from: { id: 7 }, message: { chat: { id: 7 }, message_id: 9 } } });
+    expect(calls.map((c) => c.m)).toEqual(["sendMessage", "answerCallbackQuery", "editMessageText"]); expect(calls[2].b.text).toContain("✅ Telegram kanali"); expect(calls[2].b.text).toContain("Tayyor"); expect(g.missing("u", 30)).toEqual([]);
+  });
+  it("bot: ilovadan bog'lanmagan odamga yo'riqnoma; begona xabarlarga jim", async () => {
     const sent: any[] = []; const g = new SubscriptionGate(cfg, undefined, (async (_u: string, i: any) => { sent.push(JSON.parse(i.body)); return json({ ok: true }); }) as any);
-    await g.replyTelegram({ message: { chat: { id: 5 }, text: "/start abc" } }, true); await g.replyTelegram({ message: { chat: { id: 5 }, text: "/start" } }, false); await g.replyTelegram({ message: { chat: { id: 5 }, text: "salom" } }, false);
-    expect(sent).toHaveLength(2); expect(sent[0].text).toContain("bog'landi"); expect(sent[1].text).toContain("xush kelibsiz"); expect(sent[0].chat_id).toBe(5);
+    await g.handleTelegram({ message: { from: { id: 1 }, chat: { id: 1 }, text: "/start" } }); await g.handleTelegram({ message: { from: { id: 1 }, chat: { id: 1 }, text: "salom" } });
+    expect(sent).toHaveLength(1); expect(sent[0].text).toContain("ilovadagi");
   });
 });
