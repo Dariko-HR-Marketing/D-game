@@ -19,7 +19,22 @@ export function Flags({ api, canEdit }: { api: Api; canEdit: boolean }) {
       onOk={async (v) => { const body: any = { ...dlg!.patch, reason: v.reason }; if ("maintenanceText" in body) body.maintenanceText = v.maintenanceText; const r = await api.post("/admin/flags", body); if (r.error) throw new Error(r.error); setDlg(null); f.reload(); }} />
   </section>);
 }
+/** SMS (Eskiz) tayyorligi: SMS orqali kirish haqiqiy foydalanuvchilar uchun ishlashi uchun nima yetishmasligini ko'rsatadi. Hech narsa yuborilmaydi. */
+export function SmsReady({ api }: { api: Api }) {
+  const l = useLoad<any>(api, "/admin/sms/status"); const d = l.data;
+  const item = (ok: boolean, text: string, hint?: string) => <div className="attn" key={text}><div><b>{ok ? "✓" : "○"} {text}</b>{hint && !ok && <div className="muted" style={{ fontSize: 13 }}>{hint}</div>}</div><Pill kind={ok ? "good" : "warn"}>{ok ? "Tayyor" : "Kerak"}</Pill></div>;
+  return (<section className="card" aria-labelledby="smsh"><h2 id="smsh">SMS orqali kirish (Eskiz)</h2><Err e={l.err} />{!d ? <Empty loading={l.loading} /> : d.kind !== "eskiz" ? <Banner kind="info">SMS provayder: {d.kind === "http" ? "HTTP shlyuz" : d.kind === "none" ? "ulanmagan" : "boshqa"}. Eskiz tayyorlik tekshiruvi faqat <code>SMS_PROVIDER=eskiz</code> bilan ishlaydi.</Banner> : (<>
+    <Banner kind={d.ready ? "good" : "warn"}>{d.ready ? "Eskiz haqiqiy SMS yuborishga tayyor." : "Eskiz hali haqiqiy SMS uchun tayyor emas: pastdagi yetishmayotgan qadamlarni bajaring."}{d.error ? ` Xato: ${d.error}` : ""}</Banner>
+    {item(!d.testFrom, `Jo'natuvchi nomi: ${d.from}`, "4546 — Eskiz sinov nomi. O'z nomingizni Eskiz'da tasdiqlating va ESKIZ_FROM ga yozing.")}
+    {item(!!d.fromApproved, "Jo'natuvchi nomi Eskiz'da tasdiqlangan", `Tasdiqlangan nomlar: ${(d.nicks ?? []).join(", ") || "yo'q"}`)}
+    {item(d.approvedTemplates > 0, `Tasdiqlangan shablonlar: ${d.approvedTemplates}`, "Eskiz kabinetida pastdagi shablon matnlarini yuboring va tasdiqlanishini kuting.")}
+    {item((d.balance ?? 0) > 0, `Balans: ${d.balance ?? "—"}`, "Hisobni to'ldiring.")}
+    <p className="sub">Sinov holatida Eskiz faqat quyidagi matnlarni yuboradi: {(d.testTexts ?? []).map((x: string) => `«${x}»`).join(", ")}. Haqiqiy matn uchun hisob faollashtirilgan bo'lishi kerak.</p>
+    <details className="help"><summary><b>Tasdiqlatish uchun SMS shablonlari</b></summary><ul style={{ paddingLeft: 20, lineHeight: 1.6 }}>{(d.templates ?? []).map((x: any) => <li key={x.key}><b>{x.title}:</b> <code>{x.text}</code></li>)}</ul></details>
+    {(d.eskizTemplates ?? []).length > 0 && <details className="help"><summary><b>Eskiz'dagi shablonlar ({d.eskizTemplates.length})</b></summary><ul style={{ paddingLeft: 20, lineHeight: 1.6 }}>{d.eskizTemplates.map((x: any) => <li key={x.id}>#{x.id} · <Pill kind={x.status === "service" || x.status === "reklama" ? "good" : x.status === "rejected" ? "bad" : "plain"}>{x.status}</Pill> {x.text}</li>)}</ul></details>}
+  </>)}</section>);
+}
 export function System({ api, perms }: { api: Api; perms: string[] }) {
-  return (<><PageHead title={t.system} />{perms.includes("system.read") && <Health api={api} />}{perms.includes("system.read") || perms.includes("flags.manage") ? <Flags api={api} canEdit={perms.includes("flags.manage")} /> : null}{perms.includes("system.read") && <Log api={api} />}</>);
+  return (<><PageHead title={t.system} />{perms.includes("system.read") && <Health api={api} />}{perms.includes("system.read") && <SmsReady api={api} />}{perms.includes("system.read") || perms.includes("flags.manage") ? <Flags api={api} canEdit={perms.includes("flags.manage")} /> : null}{perms.includes("system.read") && <Log api={api} />}</>);
 }
 void errText;

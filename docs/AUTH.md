@@ -44,3 +44,17 @@
 - **Google nonce:** `GET /auth/nonce` bir martalik imzolangan qiymat beradi (5 daqiqa); mijoz uni Google'ga beradi, ID token ichida qaytadi; `POST /auth/google {idToken, nonce}` faqat nonce mos kelsa va birinchi marta ishlatilsa qabul qilinadi (`bad_nonce`). Token qayta ishlatilishi (replay) shu bilan to'xtatiladi. Mijoz tugmasi `EXPO_PUBLIC_GOOGLE_CLIENT_ID` (Docker: `GOOGLE_CLIENT_ID`) bilan yoqiladi; server `GOOGLE_CLIENT_IDS` da shu ID bo'lishi shart.
 - **Email kodi:** `POST /auth/email/request {email}` va `/auth/email/verify {email, code}`: SMS bilan bir xil himoya (1 daqiqada 1 ta, soatiga 5 ta, 5 xatodan keyin 15 daqiqa blok, kod faqat xesh). Manzil saqlanmaydi (ID HMAC). Yuboruvchi: `EMAIL_HTTP_URL` + `EMAIL_HTTP_TOKEN` (JSON `{to, subject, text}`) yoki dasturlashda `EMAIL_PROVIDER=console`. Sozlanmasa 404 va kirish sahifasi emailni «tez orada» deydi. `/auth/config` da `email` bayrog'i.
 - Google va email bilan kirgan hisob telefon bilan avtomatik bog'lanmaydi (alohida ID); hisoblarni bog'lash ochiq masala.
+
+## Eskiz: haqiqiy SMS yoqish (hujjat: documenter.getpostman.com/view/663428/RzfmES4z)
+Kod Eskiz hujjatiga mos (`server/src/auth.ts`, `EskizSms`): `POST notify.eskiz.uz/api/auth/login` (form-data `email`, `password`) → Bearer token (30 kun; 401 bo'lsa o'zi qayta kiradi), `POST /api/message/sms/send` (form-data `mobile_phone` `998…` plyussiz, `message`, `from`). Tayyorlikni admin panelda ko'rasiz: **Tizim → «SMS orqali kirish (Eskiz)»** (balans, jo'natuvchi nomi, shablon holatlari; hech narsa yuborilmaydi, parol ko'rsatilmaydi; `GET /admin/sms/status`).
+
+Haqiqiy foydalanuvchilarga SMS yetib borishi uchun (Eskiz hujjatiga ko'ra):
+1. **Hisob:** eskiz.uz/sms da yuridik shaxs ("DARIKO KONSALTING" MChJ) bilan ro'yxatdan o'tish, shartnoma, balansni to'ldirish. Kabinetdagi **email va yashirin kalit** (`ESKIZ_EMAIL`, `ESKIZ_PASSWORD`) — faqat serverning `.env` ida.
+2. **Sinov holati:** hisob faollashtirilguncha Eskiz FAQAT shu matnlarni yuboradi: «Bu Eskiz dan test», «This is test from Eskiz», «Это тест от Eskiz». Real kod matni yuborilmaydi.
+3. **Jo'natuvchi nomi (nik):** `4546` — Eskiz sinov nomi. O'z nomingizni (masalan `Tajriba24`) Eskiz'da tasdiqlating (`GET /api/nick/me` ro'yxatida chiqadi), so'ng `ESKIZ_FROM=<nom>`.
+4. **Shablonlar:** matn Eskiz'da moderatsiyadan o'tgan shablonga mos bo'lishi kerak (holatlar: moderation → service/reklama/rejected). Tasdiqlatiladigan matnlar admin panelda («Tasdiqlatish uchun SMS shablonlari»): kirish kodi va ota-ona so'rovi.
+5. **Matn belgilari:** hamma matn ASCII (apostrof `'` va `"` bilan), shuning uchun bitta SMS qismi (160 belgigacha) va arzon. Maxsus belgi (`’`, `€`, kirill/xitoy) qo'shilsa, SMS ikki-uch qismga bo'linadi va qimmatlashadi (Eskiz `normalizer` API'si shuni ko'rsatadi).
+6. **Server sozlamasi:** `.env` ga `SMS_PROVIDER=eskiz`, `ESKIZ_EMAIL`, `ESKIZ_PASSWORD`, `ESKIZ_FROM`; `SMS_PROVIDER=fixed` yoki `console` bo'lmasin. `docker compose up -d server`.
+7. **Sinov:** admin panelda «Eskiz haqiqiy SMS yuborishga tayyor» yozuvini ko'ring, so'ng o'z raqamingiz bilan kirib ko'ring.
+
+Hali kodda yo'q (ixtiyoriy): yetkazib berish holati (`callback_url`, `DELIVRD`/`UNDELIV`), balans past bo'lganda ogohlantirish.
