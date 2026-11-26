@@ -2,7 +2,7 @@
 
 > **Bu hujjat advokat/huquqshunos tomonidan ko'rib chiqilmagan qoralama.** Ommaga e'lon qilishdan oldin O'zbekiston qonunchiligiga (shaxsiy ma'lumotlar to'g'risidagi qonun, ma'lumotlarni mahalliy saqlash talablari, voyaga yetmaganlar) mosligi tekshirilishi shart. `[...]` — to'ldirilishi kerak bo'lgan joylar.
 
-**Operator:** [yuridik shaxs nomi, STIR, manzil] · **Aloqa:** [email/telefon]
+**Operator:** "DARIKO KONSALTING" MChJ, STIR 313 485 118, Buxoro viloyati, Vobkent tumani, Vobkent, Charmgaron MFY, G'alaba ko'chasi, 293-uy (ro'yxatdan o'tgan 2026-11-15) · **Aloqa:** khikmatulloturaev@gmail.com, +998 91 405 35 08. Ommaviy sahifa: `client/public/maxfiylik.html` (`/maxfiylik.html`).
 
 ## 1. Qanday ma'lumotlar yig'iladi (haqiqatda kodda nima bor)
 | Ma'lumot | Nima uchun | Qayerda |
@@ -36,7 +36,7 @@ Reklama identifikatorlari, joylashuv, kontaktlar va karta ma'lumotlari **yig'ilm
 Yoqilganda, 16 yoshdan katta o'yinchi o'yin ochish yoki qo'shilishdan oldin bizning Telegram kanali/guruhi, Instagram sahifasi va YouTube kanalimizga obuna bo'lishi kerak. Telegram va Instagram obunasi har safar o'yin boshlashdan oldin qayta tekshiriladi; YouTube har 7 kunda. Obunadan chiqsangiz, o'yinni davom ettirish uchun qayta obuna bo'lishingiz kerak. Bu tekshiruv uchun faqat yuqoridagi identifikatorlar va natija saqlanadi. Hisob o'chirilsa, bu ma'lumot ham o'chadi. 16 yoshgacha foydalanuvchilarga bu talab qo'llanmaydi.
 
 ## 5. Uchinchi tomonlar
-Hosting: [provayder]. SMS yuborish: [provayder] (faqat telefon raqami va kod matni). To'lov: Payme va Click (karta ma'lumotlarini ular qabul qiladi, biz ko'rmaymiz). Obuna tekshiruvi: Telegram, Meta (Instagram) va Google (YouTube). Boshqa hech kimga ma'lumot sotilmaydi va berilmaydi, qonuniy talablar bundan mustasno.
+Hosting: [provayder]. SMS yuborish: Eskiz.uz (faqat telefon raqami va kod matni). To'lov: Payme va Click (karta ma'lumotlarini ular qabul qiladi, biz ko'rmaymiz). Obuna tekshiruvi: Telegram, Meta (Instagram) va Google (YouTube). Boshqa hech kimga ma'lumot sotilmaydi va berilmaydi, qonuniy talablar bundan mustasno.
 
 ## 6. Xavfsizlik
 Aloqa HTTPS/WSS; kodlar xesh ko'rinishida va qisqa muddatli; kirish tezligi cheklangan; administratorlar rollar bo'yicha cheklangan, harakatlari jurnalga yoziladi.
