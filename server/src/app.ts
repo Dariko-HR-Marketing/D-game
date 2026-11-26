@@ -22,7 +22,7 @@ import { Clubs, CLUB_LIMITS } from "./clubs";
 import { PayLedger, PaymeMerchant, ClickMerchant, PaymeProvider, ClickProvider } from "./payments";
 import { ParentConsents } from "./parents";
 import { PhoneLinks } from "./phones";
-import { SubscriptionGate, gateConfigFromEnv, registerGate } from "./gate";
+import { SubscriptionGate, gateConfigFromEnv, registerGate, registerGateAdmin } from "./gate";
 import { registerShop } from "./shop-routes";
 import { AdminAccounts } from "./adminAccounts";
 import { Ops } from "./ops";
@@ -122,10 +122,11 @@ export function buildApp(opts: { gate?: SubscriptionGate; pilotPrices?: boolean;
   // Soatlik eng yuqori onlayn (xotirada, 24 soat): qayta ishga tushganda boshlanadi — jonli ko'rsatkich, tarix emas
   const onlineHours = new Map<string, number>(); const hourKey = (t: number) => new Date(t + 5 * 3600_000).toISOString().slice(0, 13);
   const sampleOnline = () => { const n = [...rooms.rooms.values()].reduce((a, r) => a + r.members.filter((m) => !m.bot && m.online).length, 0), k = hourKey(Date.now()); onlineHours.set(k, Math.max(onlineHours.get(k) ?? 0, n)); for (const key of [...onlineHours.keys()]) if (key < hourKey(Date.now() - 25 * 3600_000)) onlineHours.delete(key); };
+  const gateTimer = setInterval(() => void gate.maintain(), 24 * 3600_000); gateTimer.unref(); app.addHook("onClose", async () => clearInterval(gateTimer));
   const sampler = setInterval(sampleOnline, 60_000); sampler.unref(); app.addHook("onClose", async () => clearInterval(sampler));
   const onlineSeries = () => { sampleOnline(); const hours: string[] = [], values: number[] = []; for (let i = 23; i >= 0; i--) { const k = hourKey(Date.now() - i * 3600_000); hours.push(k.slice(11) + ":00"); values.push(onlineHours.get(k) ?? 0); } return { hours, values }; };
   registerAdminAuth(app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, legacy: legacyAuth, registry, topCards: () => analysis.topCards(4), onlineSeries });
-  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { app.get("/admin/gate", guard("users.read", () => gate.stats())); registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, registry, topCards: () => analysis.topCards(4), onlineSeries }); registerAdminInsight(guard, app, { state: adminState, ops, profiles, commerce, consents, rooms, store, sockets: () => openSockets, registry, cardStats: () => analysis.cardStats, gameStats: () => gameStats.agg }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }); registerAdminTest(guard, app, { commerce, edu, phones, nameOf: (id) => profiles.get(id)?.name, exists: (id) => adminState.users.has(id) }) } });
+  registerAdmin(app, { auth: opts.adminAuth ?? ((t) => accounts.resolve(t) ?? legacyAuth(t)), state: adminState, registry, rooms, store, cards: () => analysis.topCards(), funnel: (n) => profiles.funnel(n), nameOf: (id) => profiles.get(id)?.name, extend: (guard) => { registerGateAdmin(guard, app, gate, (id) => !!profiles.get(id)); registerAdminGames(guard, app, { ops, registry, rooms, profiles, store, nameOf: (id) => profiles.get(id)?.name }); registerAdminCore(guard, app, { accounts, state: adminState, ops, rooms, profiles, commerce, edu, tournaments, consents, phones, eraseUser, registry, topCards: () => analysis.topCards(4), onlineSeries }); registerAdminInsight(guard, app, { state: adminState, ops, profiles, commerce, consents, rooms, store, sockets: () => openSockets, registry, cardStats: () => analysis.cardStats, gameStats: () => gameStats.agg }); registerAdminHub(guard, app, { edu, tournaments, ops, profiles, consents, nameOf: (id) => profiles.get(id)?.name, ageOf: (id) => { const p = profiles.get(id); return p ? new Date().getFullYear() - p.birthYear : null; } }); registerAdminFinance(guard, app, { commerce, ops, consents, nameOf: (id) => profiles.get(id)?.name, registered: () => adminState.users.size }); registerBizAdmin(guard, app, { edu, tournaments, commerce, ops, nameOf: (id) => profiles.get(id)?.name }); registerAdminTest(guard, app, { commerce, edu, phones, nameOf: (id) => profiles.get(id)?.name, exists: (id) => adminState.users.has(id) }) } });
   const sockets = new Map<string, Set<{ userId: string; send(s: string): void }>>();
 
   rooms.on((code, ev) => {
@@ -411,6 +412,7 @@ export function buildApp(opts: { gate?: SubscriptionGate; pilotPrices?: boolean;
     for (const c of ops.cleared.values()) profiles.cleared.add(c.id);
     accounts.bootstrap(process.env.ADMIN_BOOTSTRAP_LOGIN, process.env.ADMIN_BOOTSTRAP_PASSWORD);
   }); // docs jadvalidan tiklash
+  void ready.then(() => gate.maintain());
   const flush = () => Promise.all([commerce.queue?.flush(), edu.queue.flush(), tournaments.queue.flush(), accounts.queue.flush(), ops.queue.flush(), gameStats.queue.flush(), gate.queue.flush()]);
   return { app, clubs, rooms, store, registry, adminState, profiles, analysis, commerce, payLedger, phones, consents, edu, tournaments, accounts, ops, gate, ready, flush };
 }

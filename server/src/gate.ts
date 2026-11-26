@@ -3,6 +3,7 @@
 // YouTube — foydalanuvchining Google ruxsati bilan subscriptions.list. Sozlama bo'sh bo'lsa darvoza o'chiq (hech kim to'silmaydi).
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
+import type { Guard } from "./admin";
 import { Collection, type DocStore } from "./docs";
 import { WriteQueue } from "./persist";
 import { KeyedLimiter } from "./ratelimit";
@@ -10,16 +11,18 @@ import { KeyedLimiter } from "./ratelimit";
 export type Platform = "telegram" | "instagram" | "youtube";
 export const PLATFORMS: Platform[] = ["telegram", "instagram", "youtube"];
 export interface GateConfig {
-  minAge: number; ttlDays: number; recheckMin?: number;
+  minAge: number; ttlDays: number; recheckMin?: number; apiUrl?: string;
   telegram?: { botToken: string; channel: string; botUsername: string; channelUrl: string; webhookSecret: string };
   instagram?: { accessToken: string; appSecret: string; verifyToken: string; handle: string };
   youtube?: { channelId: string; channelUrl: string };
 }
+export interface GateEx { id: string; by: string; at: number; reason: string }
+export interface GateTok { id: string; token: string; at: number }
 export interface GateRec { id: string; tg?: number; ig?: string; ok: Partial<Record<Platform, number>>; at: number }
 type F = typeof fetch;
 
 export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
-  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 7), recheckMin: Number(e.GATE_RECHECK_MIN ?? 5) };
+  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 7), recheckMin: Number(e.GATE_RECHECK_MIN ?? 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, "") };
   if (e.GATE_TG_BOT_TOKEN && e.GATE_TG_CHANNEL && e.GATE_TG_BOT_USERNAME) {
     const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL ?? (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "" };
   }
@@ -29,26 +32,29 @@ export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
 }
 
 export class SubscriptionGate {
-  private recs: Collection<GateRec>; readonly queue = new WriteQueue();
+  private recs: Collection<GateRec>; private ex: Collection<GateEx>; private tok: Collection<GateTok>; readonly queue = new WriteQueue();
+  blocked = { total: 0, telegram: 0, instagram: 0, youtube: 0 }; since = Date.now(); health: { telegramWebhook?: { ok: boolean; at: number; error?: string }; instagramRefresh?: { ok: boolean; at: number; error?: string } } = {};
   private tgTokens = new Map<string, { uid: string; exp: number }>(); private igCodes = new Map<string, { uid: string; exp: number }>();
-  constructor(readonly cfg: GateConfig, store?: DocStore, private fetchFn: F = fetch, private now: () => number = Date.now) { this.recs = new Collection("gate", store, this.queue); }
-  async load() { await this.recs.load(); return this; }
+  constructor(readonly cfg: GateConfig, store?: DocStore, private fetchFn: F = fetch, private now: () => number = Date.now) { this.recs = new Collection("gate", store, this.queue); this.ex = new Collection("gateex", store, this.queue); this.tok = new Collection("gatetok", store, this.queue); }
+  async load() { await this.recs.load(); await this.ex.load(); await this.tok.load(); return this; }
   platforms(): Platform[] { return PLATFORMS.filter((p) => !!this.cfg[p]); }
   enabled() { return this.platforms().length > 0; }
   private rec(uid: string): GateRec { return this.recs.get(uid) ?? { id: uid, ok: {}, at: this.now() }; }
   private valid(r: GateRec, p: Platform) { const t = r.ok[p]; return t !== undefined && this.now() - t < this.cfg.ttlDays * 86400_000; }
   /** O'yinchiga yetishmayotgan platformalar. 16 yoshgacha (yurist xulosasigacha) darvoza qo'llanmaydi. */
   missing(uid: string, age: number | null): Platform[] {
-    if (!this.enabled() || (age !== null && age < this.cfg.minAge)) return [];
-    const r = this.recs.get(uid); return this.platforms().filter((p) => !r || !this.valid(r, p));
+    if (!this.enabled() || (age !== null && age < this.cfg.minAge) || this.ex.get(uid)) return [];
+    const r = this.recs.get(uid), m = this.platforms().filter((p) => !r || !this.valid(r, p));
+    return m;
   }
   /** Har o'yin boshlashdan oldin: Telegram va Instagram obunasi jonli qayta tekshiriladi (chiqib ketgan qaytariladi); API ishlamasa oldingi tasdiq saqlanadi.
    *  YouTube tokeni saqlanmaydi, shuning uchun u faqat muddat (ttl) tugagach qayta so'raladi. Tez-tez bosilsa API'ni yuklamaslik uchun `recheckMin` daqiqa kesh. */
   async ensure(uid: string, age: number | null): Promise<Platform[]> {
-    if (!this.enabled() || (age !== null && age < this.cfg.minAge)) return [];
+    if (!this.enabled() || (age !== null && age < this.cfg.minAge) || this.ex.get(uid)) return [];
     const r = this.recs.get(uid), win = (this.cfg.recheckMin ?? 5) * 60_000;
     if (r) for (const p of ["telegram", "instagram"] as const) if (this.cfg[p] && this.valid(r, p) && this.now() - (r.ok[p] ?? 0) >= win) await (p === "telegram" ? this.checkTelegram(uid) : this.checkInstagram(uid));
-    return this.missing(uid, age);
+    const m = this.missing(uid, age); if (m.length) { this.blocked.total++; for (const p of m) this.blocked[p]++; }
+    return m;
   }
   status(uid: string, age: number | null) {
     const r = this.recs.get(uid), miss = this.missing(uid, age);
@@ -56,8 +62,38 @@ export class SubscriptionGate {
   }
   url(p: Platform) { return p === "telegram" ? this.cfg.telegram?.channelUrl : p === "instagram" ? `https://instagram.com/${this.cfg.instagram?.handle}` : this.cfg.youtube?.channelUrl; }
   private mark(uid: string, p: Platform, ok: boolean) { const r = { ...this.rec(uid), ok: { ...this.rec(uid).ok } }; if (ok) r.ok[p] = this.now(); else delete r.ok[p]; this.recs.set(uid, r); return ok; }
-  erase(uid: string) { this.recs.delete(uid); for (const m of [this.tgTokens, this.igCodes]) for (const [k, v] of m) if (v.uid === uid) m.delete(k); }
-  stats() { const v = this.recs.values(); return { enabled: this.enabled(), platforms: this.platforms(), linked: { telegram: v.filter((r) => r.tg !== undefined).length, instagram: v.filter((r) => r.ig !== undefined).length }, verified: Object.fromEntries(PLATFORMS.map((p) => [p, v.filter((r) => this.valid(r, p)).length])), all: v.filter((r) => this.platforms().every((p) => this.valid(r, p))).length, total: v.length }; }
+  erase(uid: string) { this.recs.delete(uid); this.ex.delete(uid); for (const m of [this.tgTokens, this.igCodes]) for (const [k, v] of m) if (v.uid === uid) m.delete(k); }
+  /** Sinov/QA hisoblarini darvozadan ozod qilish (admin, sabab bilan). */
+  exempt(uid: string, by: string, reason: string) { this.ex.set(uid, { id: uid, by, at: this.now(), reason }); }
+  unexempt(uid: string) { this.ex.delete(uid); }
+  exemptions() { return this.ex.values().sort((a, b) => b.at - a.at); }
+  /** Instagram tokeni 60 kun yashaydi: saqlangan token (yoki muhitdagisi) har 30 kunda yangilanadi. */
+  private igToken() { return this.tok.get("ig")?.token ?? this.cfg.instagram?.accessToken ?? ""; }
+  async refreshInstagram(force = false) {
+    const c = this.cfg.instagram; if (!c) return; const t = this.tok.get("ig");
+    if (!force && t && this.now() - t.at < 30 * 86400_000) return;
+    try { const j: any = await (await this.fetchFn(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${encodeURIComponent(this.igToken())}`)).json();
+      if (typeof j?.access_token !== "string") throw new Error(String(j?.error?.message ?? "no_token").slice(0, 120));
+      this.tok.set("ig", { id: "ig", token: j.access_token, at: this.now() }); this.health.instagramRefresh = { ok: true, at: this.now() };
+    } catch (e) { this.health.instagramRefresh = { ok: false, at: this.now(), error: (e as Error).message }; }
+  }
+  /** Telegram webhook'ni o'zi ulaydi (GATE_PUBLIC_API_URL berilsa). */
+  async registerTelegramWebhook() {
+    const c = this.cfg.telegram; if (!c || !this.cfg.apiUrl || !c.webhookSecret) return;
+    try { const j: any = await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/setWebhook`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: `${this.cfg.apiUrl}/gate/telegram/webhook`, secret_token: c.webhookSecret, allowed_updates: ["message"] }) })).json();
+      this.health.telegramWebhook = { ok: !!j?.ok, at: this.now(), ...(j?.ok ? {} : { error: String(j?.description ?? "xato").slice(0, 120) }) };
+    } catch (e) { this.health.telegramWebhook = { ok: false, at: this.now(), error: (e as Error).message }; }
+  }
+  /** Ishga tushganda va kuniga bir marta chaqiriladi. */
+  async maintain() { await this.registerTelegramWebhook(); await this.refreshInstagram(); }
+  /** Sozlama holati (admin uchun): qaysi o'zgaruvchilar yetishmaydi — qiymatlarsiz. */
+  setup() {
+    const e = process.env, miss = (names: string[]) => names.filter((n) => !e[n]);
+    return { telegram: { on: !!this.cfg.telegram, missing: miss(["GATE_TG_BOT_TOKEN", "GATE_TG_BOT_USERNAME", "GATE_TG_CHANNEL", "GATE_TG_WEBHOOK_SECRET"]), webhook: this.cfg.apiUrl ? `${this.cfg.apiUrl}/gate/telegram/webhook` : null },
+      instagram: { on: !!this.cfg.instagram, missing: miss(["GATE_IG_HANDLE", "GATE_IG_ACCESS_TOKEN", "GATE_IG_APP_SECRET", "GATE_IG_VERIFY_TOKEN"]), webhook: this.cfg.apiUrl ? `${this.cfg.apiUrl}/gate/instagram/webhook` : null },
+      youtube: { on: !!this.cfg.youtube, missing: miss(["GATE_YT_CHANNEL_ID"]) }, apiUrlSet: !!this.cfg.apiUrl, minAge: this.cfg.minAge, ttlDays: this.cfg.ttlDays, recheckMin: this.cfg.recheckMin ?? 5 };
+  }
+  stats() { const v = this.recs.values(); return { enabled: this.enabled(), platforms: this.platforms(), blocked: this.blocked, since: this.since, health: this.health, setup: this.setup(), exemptions: this.exemptions(), linked: { telegram: v.filter((r) => r.tg !== undefined).length, instagram: v.filter((r) => r.ig !== undefined).length }, verified: Object.fromEntries(PLATFORMS.map((p) => [p, v.filter((r) => this.valid(r, p)).length])), all: v.filter((r) => this.platforms().every((p) => this.valid(r, p))).length, total: v.length }; }
 
   // ---- Telegram: bot /start <token> orqali Telegram identifikatori bog'lanadi, so'ng kanal a'zoligi getChatMember bilan tekshiriladi.
   telegramStart(uid: string) { const c = this.cfg.telegram; if (!c) return null; const t = randomBytes(9).toString("base64url"); this.tgTokens.set(t, { uid, exp: this.now() + 15 * 60_000 }); return { token: t, url: `https://t.me/${c.botUsername}?start=${t}` }; }
@@ -85,7 +121,7 @@ export class SubscriptionGate {
     } return n; }
   async checkInstagram(uid: string): Promise<boolean | "not_linked" | "unavailable"> {
     const c = this.cfg.instagram, r = this.recs.get(uid); if (!c) return false; if (!r?.ig) return "not_linked";
-    try { const j: any = await (await this.fetchFn(`https://graph.instagram.com/v21.0/${encodeURIComponent(r.ig)}?fields=is_user_follow_business&access_token=${encodeURIComponent(c.accessToken)}`)).json();
+    try { const j: any = await (await this.fetchFn(`https://graph.instagram.com/v21.0/${encodeURIComponent(r.ig)}?fields=is_user_follow_business&access_token=${encodeURIComponent(this.igToken())}`)).json();
       if (typeof j?.is_user_follow_business !== "boolean") return "unavailable"; return this.mark(uid, "instagram", j.is_user_follow_business);
     } catch { return "unavailable"; }
   }
@@ -128,4 +164,14 @@ export function registerGate(d: GateDeps) {
       gate.onInstagramEvent(b.json); return { ok: true };
     });
   });
+}
+
+export function registerGateAdmin(guard: Guard, app: FastifyInstance, gate: SubscriptionGate, exists: (id: string) => boolean) {
+  app.get("/admin/gate", guard("users.read", () => gate.stats()));
+  app.post("/admin/gate/exempt", guard("users.manage", (req, who) => {
+    const b = (req.body ?? {}) as { userId?: unknown; reason?: unknown }, id = String(b.userId ?? "").trim(), reason = String(b.reason ?? "").trim();
+    if (!exists(id)) return { error: "no_user" }; gate.exempt(id, who.id, reason.slice(0, 200)); return { ok: true, exemptions: gate.exemptions() };
+  }, "gate.exempt", { reason: true }));
+  app.post("/admin/gate/unexempt", guard("users.manage", (req) => { gate.unexempt(String(((req.body ?? {}) as any).userId ?? "")); return { ok: true, exemptions: gate.exemptions() }; }, "gate.unexempt", { reason: true }));
+  app.post("/admin/gate/maintain", guard("users.manage", async () => { await gate.registerTelegramWebhook(); await gate.refreshInstagram(true); return { ok: true, health: gate.health }; }, "gate.maintain"));
 }
