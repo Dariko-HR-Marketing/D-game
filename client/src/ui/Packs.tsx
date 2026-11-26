@@ -16,7 +16,7 @@ const K = uz.packs;
 type Usage = { day: number; week: number; month: number; resets: { day: number; week: number; month: number } };
 export interface Cat {
   plus: { active: boolean; monthly: number | null; yearly: number | null }; premium: { active: boolean; monthly: number | null; yearly: number | null };
-  pkg: { plan: "start" | "plus" | "premium"; quotas: Record<"start" | "plus" | "premium", Quota>; usage: Usage; coupons: number; couponPrice: number | null; org: { seatMonthly: number | null; tiers: OrgTier[] } };
+  pkg: { trial?: { active: boolean; until: number | null; days: number }; plan: "start" | "plus" | "premium"; quotas: Record<"start" | "plus" | "premium", Quota>; usage: Usage; coupons: number; couponPrice: number | null; org: { seatMonthly: number | null; tiers: OrgTier[] } };
   providers?: string[]; orders?: Ord[];
 }
 const ICON: Record<PlanId, IconName> = { start: "arrow", plus: "plus", premium: "star", org: "bank" };
@@ -45,6 +45,7 @@ export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
           <View style={[s.grid, wide && { flexWrap: "nowrap" }]} role="list">
             {PLAN_ORDER.map((id) => <PlanCard key={id} id={id} cat={cat} current={cur === id} onBuy={() => (id === "org" ? setInq(true) : setBuy(id))} />)}
           </View>
+          {cat?.pkg.trial?.active && cat.pkg.trial.until && <View style={s.leadBox} testID="pack-trial"><Text style={s.leadT}>{K.trial.replace("{d}", String(cat.pkg.trial.days)).replace("{n}", String(Math.max(1, Math.ceil((cat.pkg.trial.until - Date.now()) / 86400000))))}</Text></View>}
           {cat && <Usage cat={cat} />}
           <View style={s.coupon} testID="pack-coupon">
             <View style={s.couponIco} aria-hidden><Icon name="dice" size={22} color={color.white} /></View>

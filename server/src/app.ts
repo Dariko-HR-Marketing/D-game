@@ -284,7 +284,9 @@ export function buildApp(opts: { offer?: OfferConsents; gate?: SubscriptionGate;
   const year = () => new Date().getFullYear();
   app.get("/me/profile", secured((uid) => { const p = profiles.get(uid); return { profile: p ?? null, photo: photoUrl(uid) ?? null, restricted: p ? profiles.restrictedOf([uid]).length > 0 : false, stats: profiles.stats(uid) }; }));
   app.put("/me/profile", secured((uid, req, reply) => {
+    const isNew = !profiles.get(uid);
     const r = profiles.put(uid, req.body); if (!r.ok) return reply.code(400).send({ error: r.error });
+    if (isNew) commerce.startTrial(uid);
     return { profile: r.profile, restricted: profiles.restrictedOf([uid]).length > 0, year: year() };
   }));
   app.put("/me/avatar", secured((uid, req, reply) => {

@@ -163,7 +163,7 @@ describe("to'lov xavfsizligi", () => {
 
 describe("Plus chegaralari", () => {
   it("bepul tarif: kuniga N xona; Plus — cheksiz; tarix va tahlil chegaralanadi", async () => {
-    const { x, prof, post } = await setup(); await prof("a", 1990); x.commerce.setConfig({ quotas: { start: { day: 2, week: null, month: null }, plus: { day: null, week: null, month: null }, premium: { day: null, week: null, month: null } }, freeHistory: 3 });
+    const { x, prof, post } = await setup(); x.commerce.trialDays = 0; await prof("a", 1990); x.commerce.setConfig({ quotas: { start: { day: 2, week: null, month: null }, plus: { day: null, week: null, month: null }, premium: { day: null, week: null, month: null } }, freeHistory: 3 });
     expect(x.commerce.createCheck("a").ok).toBe(true); x.commerce.commitStart("R1", "a"); x.commerce.commitStart("R2", "a"); expect(x.commerce.createCheck("a").ok).toBe(false);
     const o = (await post("a", "/shop/order", { sku: "plus:monthly" })).json().order; await post("a", `/dev/pay/${o.id}`); expect(x.commerce.createCheck("a").ok).toBe(true);
     expect(x.commerce.historyLimit("a")).toBeNull(); expect(x.commerce.historyLimit("nobody")).toBe(3); expect(x.commerce.analysisAllowed("nobody", false)).toBe(false); expect(x.commerce.analysisAllowed("nobody", true)).toBe(true);
