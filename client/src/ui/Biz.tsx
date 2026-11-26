@@ -42,7 +42,7 @@ export function ShopScreen({ http, onBack }: { http: Http; onBack: () => void })
   const minor = !!a && a.age !== null && a.age < 18;
   const buy = (sku: string) => run(async () => { const r = await http.order(sku, minor ? parentPhone : undefined); if (r.order?.checkout) (globalThis as any).window?.open?.(r.order.checkout, "_blank", "noopener"); }, "Buyurtma yaratildi");
   return (
-    <Screen title="Do'kon va Plus" subtitle="Ko'rinish uchun narsalar. Ular o'yin natijasiga ta'sir qilmaydi." onBack={onBack} maxWidth={720}>
+    <Screen title="Do'kon va Plus" subtitle="Ko'rinish uchun narsalar. Ular o'yin natijasiga ta'sir qilmaydi." onBack={onBack} maxWidth={720} icon="star" chips={d ? [{ label: "Plus", value: d.plus.active ? "Faol" : "Yo'q", good: d.plus.active }, { label: "Sizda bor", value: String(d.items.filter((i: any) => i.owned).length) }, { label: "Jami", value: String(d.items.length) }] : undefined}>
       <Msg e={err || shop.err} />{note && <Banner kind="good">{note}</Banner>}
       {a && !a.phoneVerified && (
         <Card label="Telefon tasdig'i" accent="gold"><SectionTitle>Telefonni tasdiqlang</SectionTitle>
@@ -84,7 +84,7 @@ export function ShopScreen({ http, onBack }: { http: Http; onBack: () => void })
           <View style={s.grid}>
             {d.items.filter((i: any) => i.kind === tab).map((i: any) => {
               const usable = i.owned && (i.source !== "plus" || d.plus.active) && (i.source !== "premium" || d.premium?.active);
-              return (<View key={i.id} style={[s.item, i.equipped && { borderColor: color.green, borderWidth: 2 }]} accessible accessibilityLabel={`${i.name}. ${i.desc}`}>
+              return (<View key={i.id} style={[s.item, i.equipped && { borderColor: color.green, borderWidth: 2, backgroundColor: "#F3FAF6" }]} accessible accessibilityLabel={`${i.name}. ${i.desc}`}>
                 <View style={[s.swatch, { backgroundColor: i.color }]} aria-hidden />
                 <Text style={s.itemT}>{i.name}</Text><Text style={s.small}>{i.desc}</Text>
                 {i.equipped ? <Pill label="Tanlangan" kind="good" /> : usable ? <Button kind="ghost" label="Tanlash" onPress={() => run(() => http.equip(i.kind, i.id))} />
@@ -109,7 +109,7 @@ export function ClassScreen({ http, onBack, onEnterRoom }: { http: Http; onBack:
   if (open) return <TeacherClass http={http} id={open} onBack={() => { setOpen(null); me.reload(); }} onEnterRoom={onEnterRoom} />;
   const t = me.data?.teacher;
   return (
-    <Screen title="Sinf" subtitle="Maktab va o'quv markazlari uchun. O'quvchi to'lamaydi." onBack={onBack} maxWidth={720}>
+    <Screen title="Sinf" subtitle="Maktab va o'quv markazlari uchun. O'quvchi to'lamaydi." onBack={onBack} maxWidth={720} icon="book" chips={me.data ? [{ label: "Sinflarim", value: String((me.data.classes ?? []).length) }, ...(t ? [{ label: "O'qituvchi", value: t.active ? "Faol" : "Tugagan", good: t.active }] : [])] : undefined}>
       <Msg e={err || me.err} />{note && <Banner kind="good">{note}</Banner>}
       <Card label="Sinfga qo'shilish"><SectionTitle>Sinfga qo'shilish</SectionTitle>
         <Text style={s.p}>O'qituvchi bergan sinf kodini kiriting. O'qituvchi faqat sinf xonalarida o'ynalgan o'yinlar natijasini ko'radi.</Text>
@@ -142,7 +142,7 @@ function TeacherClass({ http, id, onBack, onEnterRoom }: { http: Http; id: strin
   const d = c.data;
   const csv = async () => { try { const text = await http.classCsv(id); const w: any = globalThis; const url = w.URL.createObjectURL(new w.Blob([text], { type: "text/csv;charset=utf-8" })); const a = w.document.createElement("a"); a.href = url; a.download = "sinf-hisobot.csv"; a.click(); w.URL.revokeObjectURL(url); } catch (e) { setErr(code(e)); } };
   return (
-    <Screen title={d?.class.name ?? "Sinf"} subtitle={d ? `Sinf kodi: ${d.class.joinCode} · ${d.class.students} o'quvchi` : undefined} onBack={onBack} backLabel="Sinflar" maxWidth={920}>
+    <Screen title={d?.class.name ?? "Sinf"} subtitle={d ? `Sinf kodi: ${d.class.joinCode} · ${d.class.students} o'quvchi` : undefined} onBack={onBack} backLabel="Sinflar" maxWidth={920} icon="book" chips={d ? [{ label: "O'quvchi", value: String(d.class.students) }, { label: "Topshiriq", value: String(d.assignments.length) }] : undefined}>
       <Msg e={err || c.err} />
       {d && (<>
         <Card label="Sinf xonasi"><SectionTitle>Sinf xonasi</SectionTitle>
@@ -179,7 +179,7 @@ export function TournamentScreen({ http, onBack, onEnterRoom }: { http: Http; on
   if (open) return <TournamentDetail http={http} id={open} onBack={() => { setOpen(null); l.reload(); }} onEnterRoom={onEnterRoom} />;
   const st: Record<string, string> = { open: "Ro'yxat ochiq", running: "Davom etmoqda", finished: "Yakunlangan" };
   return (
-    <Screen title="Turnirlar" subtitle="Homiylar bilan musobaqalar. Turnir ballari umumiy reytingga ta'sir qilmaydi." onBack={onBack} maxWidth={720}>
+    <Screen title="Turnirlar" subtitle="Homiylar bilan musobaqalar. Turnir ballari umumiy reytingga ta'sir qilmaydi." onBack={onBack} maxWidth={720} icon="trophy" chips={l.data ? [{ label: "Turnirlar", value: String(l.data.tournaments.length) }, { label: "Faol", value: String(l.data.tournaments.filter((x: any) => x.status === "running").length), good: l.data.tournaments.some((x: any) => x.status === "running") }] : undefined}>
       <Msg e={l.err} />
       {(orgs.data?.rooms ?? []).length > 0 && (<Card label={uz.corp.orgTitle}><Text style={s.p}>{uz.corp.orgHint}</Text>
         {orgs.data.rooms.map((r: any) => (<Pressable key={r.id} accessibilityRole="button" accessibilityLabel={`${r.title}. ${uz.corp.orgStatusName[r.status] ?? r.status}`} onPress={() => setOrgOpen(r.id)} style={s.classRow}>
@@ -253,8 +253,8 @@ const s = StyleSheet.create({
   p: { color: tone.muted, fontSize: font.md, lineHeight: 21 }, small: { color: tone.muted, fontSize: font.sm, lineHeight: 18 }, label: { color: color.navy, fontWeight: "700", fontSize: font.sm },
   input: { minHeight: MIN_TAP, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.md, color: color.navy, backgroundColor: color.white },
   rowW: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, alignItems: "flex-end" }, rowB: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.sm, flexWrap: "wrap" },
-  tabs: { flexDirection: "row", gap: space.xs, flexWrap: "wrap" }, tab: { minHeight: MIN_TAP, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, justifyContent: "center", backgroundColor: color.white }, tabOn: { backgroundColor: color.navy, borderColor: color.navy }, tabT: { fontWeight: "700", color: color.navy, fontSize: font.sm },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md }, item: { width: 200, flexGrow: 1, gap: space.xs, padding: space.md, borderRadius: radius.md, borderWidth: 1, borderColor: color.line, alignItems: "flex-start" },
-  swatch: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: color.line }, itemT: { fontWeight: "800", color: color.navy, fontSize: font.md },
-  classRow: { minHeight: MIN_TAP, padding: space.md, borderRadius: radius.md, borderWidth: 1, borderColor: color.line, gap: 2 }, student: { gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: color.line },
+  tabs: { flexDirection: "row", gap: 4, flexWrap: "wrap", backgroundColor: "#EEF2F5", padding: 4, borderRadius: radius.pill, alignSelf: "flex-start" }, tab: { minHeight: MIN_TAP, paddingHorizontal: space.lg, borderRadius: radius.pill, justifyContent: "center", backgroundColor: "transparent" }, tabOn: { backgroundColor: color.navy }, tabT: { fontWeight: "700", color: color.navy, fontSize: font.sm },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md }, item: { width: 200, flexGrow: 1, gap: space.xs, padding: space.lg, borderRadius: radius.xl, borderWidth: 1, borderColor: color.line, alignItems: "flex-start", backgroundColor: "#FBFCFD" },
+  swatch: { width: 56, height: 56, borderRadius: 28, borderWidth: 3, borderColor: color.white, shadowColor: "#08263E", shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, marginBottom: 4 }, itemT: { fontWeight: "800", color: color.navy, fontSize: font.md },
+  classRow: { minHeight: MIN_TAP, padding: space.lg, borderRadius: radius.xl, borderWidth: 1, borderColor: color.line, gap: 4, backgroundColor: color.white }, student: { gap: space.sm, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: color.line },
 });
