@@ -519,11 +519,22 @@ export const uz = {
   } as Record<string, string>,
 } as const;
 export const sub = {
-  title: "O'ynashdan oldin obuna bo'ling", lead: "Hamma obuna Telegram botimizda, bitta joyda. Botni oching, u sizga kerakli obunalarni ko'rsatadi va o'zi tekshiradi.",
-  telegram: "Telegram kanali", instagram: "Instagram sahifasi", youtube: "YouTube kanali",
-  openBot: "Telegram orqali obuna bo'lish", botSteps: "Botda «Start»ni bosing, kanalga obuna bo'ling va «Tekshirish»ni bosing. Shundan keyin shu oynaga qaytsangiz, u o'zi yopiladi.",
+  title: "O'ynashdan oldin obuna bo'ling", lead: "Yangiliklar, yangi kartalar va o'yin maslahatlari shu sahifalarda. Obuna bo'lgach o'yin darrov ochiladi.",
+  telegram: "Telegram", instagram: "Instagram", youtube: "YouTube", required: "Majburiy", progress: "tayyor",
+  openBot: "Telegram orqali obuna bo'lish", botSteps: "Botda «Start»ni bosing, kanalga obuna bo'ling, «Tekshirish»ni bosing. Shu oyna o'zi yopiladi.",
+  igStep: "Instagram obunasi ham shu botda: u sizga sahifa havolasi va kod beradi.", extra: "Qo'shimcha tarmoqlar (YouTube, Facebook) profilingizda yulduzcha beradi.",
   ytStep: "YouTube obunasi veb-versiyada Google ruxsati bilan tasdiqlanadi (faqat obunalarni ko'rish; hech narsa saqlanmaydi).", ytOpen: "Kanalga o'tish", ytWebOnly: "YouTube tekshiruvi hozircha veb-versiyada ishlaydi.",
   check: "Tekshirish", checkAll: "Qayta tekshirish", checking: "Tekshirilmoqda...", notYet: "Hali obuna topilmadi. Botda obuna bo'lib, «Tekshirish»ni bosing.",
-  not_subscribed: "Obuna topilmadi. Obuna bo'lib, yana tekshiring", not_linked: "Avval botni oching", unavailable: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring", close: "Yopish",
+  not_subscribed: "Obuna topilmadi. Obuna bo'lib, yana tekshiring", not_linked: "Avval botni oching", unavailable: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring", close: "Keyinroq",
+};
+export const soc = {
+  title: "Ijtimoiy tarmoqlar", lead: "Sahifalarimizga obuna bo'ling: har bir tasdiqlangan tarmoq uchun profilingizga yulduzcha qo'shiladi.",
+  names: { telegram: "Telegram", instagram: "Instagram", youtube: "YouTube", facebook: "Facebook" } as Record<string, string>,
+  required: "Majburiy", optional: "Qo'shimcha", connected: "Ulangan", notConnected: "Ulanmagan", soon: "Tez orada",
+  connect: "Ulash", check: "Tekshirish", checking: "Tekshirilmoqda...", disconnect: "Uzish", open: "Sahifaga o'tish",
+  starEarned: "Yulduzcha olingan", starAvail: "Obuna bo'lib yulduzcha oling", xpNote: "Har bir tasdiqlangan tarmoq daraja uchun XP ham beradi.",
+  checkedOn: "Tekshirilgan", igCode: "Instagram sahifamizga shu kodni xabar qilib yuboring, so'ng «Tekshirish»ni bosing", ytWeb: "YouTube obunasi hozircha veb-versiyada tasdiqlanadi.",
+  fbNote: "Facebook obunasini tekshirib bo'lmaydi, shuning uchun u yulduzcha bermaydi.", notYet: "Hali obuna topilmadi. Obuna bo'lib, yana tekshiring.", failed: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring.",
+  disconnected: "Uzildi", requiredNote: "Uzsangiz, o'yin boshlashdan oldin yana obuna bo'lishingiz kerak.",
 };
 export const errText = (code: string) => uz.errors[code] ?? uz.errors.unknown;

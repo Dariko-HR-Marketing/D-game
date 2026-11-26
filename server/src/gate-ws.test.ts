@@ -39,4 +39,13 @@ describe("obuna darvozasi: xona ochish/qo'shilish", () => {
     expect((await x.app.inject({ url: "/gate/instagram/webhook?hub.mode=subscribe&hub.verify_token=bad&hub.challenge=123" })).statusCode).toBe(403);
     await x.app.close();
   });
+  it("profil: /me/socials ro'yxati, yulduzcha XP ga qo'shiladi (SOCIAL_STAR_XP), uzish ishlaydi", async () => {
+    const gate = new SubscriptionGate({ ...cfg, telegram: { botToken: "T", channel: "@k", botUsername: "b", channelUrl: "", webhookSecret: "s" }, youtube: { channelId: "UC1", channelUrl: "https://youtube.com/c" }, required: ["telegram"] }, undefined, (async () => ({ ok: true, json: async () => ({ items: [{ id: 1 }] }) })) as any);
+    gate.starXp = 120; const x = buildApp({ gate }); await x.ready; x.profiles.put("alice", { name: "Alisa", color: 0, birthYear: 1990 } as any);
+    const h = { authorization: "Bearer alice" }, get = async (u: string, m: "GET" | "POST" | "DELETE" = "GET", payload?: any) => (await x.app.inject({ method: m, url: u, headers: h, payload })).json();
+    const before = x.profiles.stats("alice").xp; let me = await get("/me/socials"); expect(me.stars).toBe(0); expect(me.items.map((i: any) => i.id)).toEqual(["telegram", "instagram", "youtube", "facebook"]); expect(me.required).toEqual(["telegram"]);
+    await get("/gate/youtube/check", "POST", { accessToken: "ya29.token-token" }); me = await get("/me/socials"); expect(me.stars).toBe(1); expect(x.profiles.stats("alice").xp).toBe(before + 120);
+    me = await get("/me/socials/youtube", "DELETE"); expect(me.stars).toBe(0); expect(x.profiles.stats("alice").xp).toBe(before); expect((await x.app.inject({ method: "DELETE", url: "/me/socials/zzz", headers: h })).statusCode).toBe(400);
+    await x.app.close();
+  });
 });

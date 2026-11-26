@@ -24,7 +24,7 @@ export function ClubScreen({ http, onBack, onPacks }: { http: Http; onBack: () =
   const run = async (f: () => Promise<any>) => { setBusy(true); setErr(null); try { await f(); await load(); } catch (e: any) { setErr(String(e?.code ?? "unknown")); } finally { setBusy(false); } };
   const toggle = async (id: string) => { const n = open === id ? null : id; setOpen(n); if (n) { try { const r = await http.clubBoard(id); setRows((x) => ({ ...x, [id]: r.board })); } catch { /* ro'yxat bo'sh qoladi */ } } };
   return (
-    <Screen title={K.title} subtitle={K.lead} onBack={onBack} backLabel={K.back} maxWidth={680}>
+    <Screen title={K.title} subtitle={K.lead} onBack={onBack} backLabel={K.back} maxWidth={680} icon="people" chips={list ? [{ label: "Klublarim", value: String(list.length) }, ...(premium ? [{ label: "Premium", value: "Faol", good: true }] : [])] : undefined}>
       {err && <Banner kind="bad">{errText(err)}</Banner>}
       {restricted ? <Banner kind="warn">{K.restricted}</Banner> : (<>
         <Card>
@@ -43,7 +43,7 @@ export function ClubScreen({ http, onBack, onPacks }: { http: Http; onBack: () =
         </Card>
       </>)}
       <SectionTitle>{K.mine}</SectionTitle>
-      {list === null ? <Text style={s.p}>{K.loading}</Text> : list.length === 0 ? <Text style={s.p}>{K.empty}</Text> : list.map((c) => (
+      {list === null ? <Text style={s.p}>{K.loading}</Text> : list.length === 0 ? <View style={s.empty}><View style={s.emptyIco} aria-hidden><Icon name="people" size={28} color={color.navy} /></View><Text style={s.p}>{K.empty}</Text></View> : list.map((c) => (
         <Acc key={c.id} icon="people" title={c.name} summary={`${K.members.replace("{n}", String(c.members))}${c.owner ? ` · ${K.owner}` : ""}`} open={open === c.id} onToggle={() => toggle(c.id)} testID={`club-${c.id}`}>
           <View style={{ gap: space.md }}>
             {c.code && <View style={s.codeBox}><Text style={s.p}>{K.codeIs}</Text><Text style={s.code} testID="club-share-code">{c.code}</Text><Text style={s.hint}>{K.codeHint}</Text></View>}
@@ -58,6 +58,7 @@ export function ClubScreen({ http, onBack, onPacks }: { http: Http; onBack: () =
     </Screen>);
 }
 const s = StyleSheet.create({
+  empty: { alignItems: "center", gap: space.sm, padding: space.xl, borderRadius: radius.xl, borderWidth: 1, borderStyle: "dashed", borderColor: color.line, backgroundColor: color.white }, emptyIco: { width: 56, height: 56, borderRadius: 18, backgroundColor: "#EEF2F5", alignItems: "center", justifyContent: "center" },
   row: { flexDirection: "row", gap: space.sm, alignItems: "stretch" }, p: { color: tone.muted, fontSize: font.md, lineHeight: 22 }, h: { color: color.navy, fontWeight: "800", fontSize: font.md },
   input: { minHeight: MIN_TAP, minWidth: 0, borderWidth: 1, borderColor: "#7C8FA0", borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, color: color.navy, backgroundColor: color.white },
   codeBox: { gap: 2, padding: space.md, borderRadius: radius.md, backgroundColor: "#EAF8F1", borderWidth: 1, borderColor: color.green }, code: { color: color.navy, fontSize: 28, fontWeight: "800", letterSpacing: 6 }, hint: { color: tone.muted, fontSize: 12 },
