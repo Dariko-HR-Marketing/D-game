@@ -102,6 +102,14 @@ export class SubscriptionGate {
     if (!m || typeof from !== "number") return false; const p = this.tgTokens.get(m[1]); if (!p || p.exp < this.now()) return false;
     this.tgTokens.delete(m[1]); this.recs.set(p.uid, { ...this.rec(p.uid), tg: from }); return true;
   }
+  /** Botning javobi: bog'langanda tasdiq, oddiy /start da salom (o'yinchi jim botni ko'rmasin). */
+  async replyTelegram(u: any, linked: boolean) {
+    const c = this.cfg.telegram, chat = u?.message?.chat?.id, text = String(u?.message?.text ?? ""); if (!c || typeof chat !== "number" || !text.startsWith("/start")) return;
+    const ch = c.channelUrl ? `\n\nKanal: ${c.channelUrl}` : "", gr = c.groupUrl ? `\nGuruh: ${c.groupUrl}` : "";
+    const msg = linked ? `Tajriba24 hisobingiz Telegram bilan bog'landi.\n\nEndi kanalga obuna bo'ling, so'ng o'yinga qaytib «Tekshirish» tugmasini bosing.${ch}${gr}`
+      : `Tajriba24 botiga xush kelibsiz!\n\nO'yinga kirish uchun ilovadagi «Obuna» oynasidan «Botni ochish» tugmasini bosing.${ch}${gr}`;
+    try { await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: chat, text: msg, disable_web_page_preview: true }) }); } catch { /* javob yuborilmasa ham bog'lash saqlanadi */ }
+  }
   async checkTelegram(uid: string): Promise<boolean | "not_linked" | "unavailable"> {
     const c = this.cfg.telegram, r = this.recs.get(uid); if (!c) return false; if (r?.tg === undefined) return "not_linked";
     try {
@@ -158,7 +166,7 @@ export function registerGate(d: GateDeps) {
     s.addContentTypeParser("application/json", { parseAs: "buffer" }, (_r, body, done) => { try { done(null, { raw: body, json: JSON.parse((body as Buffer).toString("utf8") || "{}") }); } catch (e) { done(e as Error); } });
     s.post("/gate/telegram/webhook", async (req, reply) => {
       const c = gate.cfg.telegram; if (!c || !c.webhookSecret || req.headers["x-telegram-bot-api-secret-token"] !== c.webhookSecret) return reply.code(403).send({ error: "forbidden" });
-      gate.onTelegramUpdate((req.body as any).json); return { ok: true };
+      const upd = (req.body as any).json; void gate.replyTelegram(upd, gate.onTelegramUpdate(upd)); return { ok: true };
     });
     s.get("/gate/instagram/webhook", async (req, reply) => {
       const q = req.query as any, c = gate.cfg.instagram; if (!c?.verifyToken || q["hub.mode"] !== "subscribe" || q["hub.verify_token"] !== c.verifyToken) return reply.code(403).send("forbidden");

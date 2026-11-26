@@ -64,4 +64,9 @@ describe("obuna darvozasi", () => {
     expect(await g.checkTelegram("u")).toBe(false); st["@guruh"] = "member"; expect(await g.checkTelegram("u")).toBe(true);
     expect(g.status("u", 30).platforms[0]).toMatchObject({ ok: true, extraUrl: "https://t.me/guruh" });
   });
+  it("bot /start ga javob beradi: bog'langanda tasdiq, oddiy /start da salom", async () => {
+    const sent: any[] = []; const g = new SubscriptionGate(cfg, undefined, (async (_u: string, i: any) => { sent.push(JSON.parse(i.body)); return json({ ok: true }); }) as any);
+    await g.replyTelegram({ message: { chat: { id: 5 }, text: "/start abc" } }, true); await g.replyTelegram({ message: { chat: { id: 5 }, text: "/start" } }, false); await g.replyTelegram({ message: { chat: { id: 5 }, text: "salom" } }, false);
+    expect(sent).toHaveLength(2); expect(sent[0].text).toContain("bog'landi"); expect(sent[1].text).toContain("xush kelibsiz"); expect(sent[0].chat_id).toBe(5);
+  });
 });
