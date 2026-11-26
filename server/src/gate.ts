@@ -22,12 +22,12 @@ export interface GateRec { id: string; tg?: number; ig?: string; ok: Partial<Rec
 type F = typeof fetch;
 
 export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
-  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 7), recheckMin: Number(e.GATE_RECHECK_MIN ?? 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, "") };
+  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE || 16), ttlDays: Number(e.GATE_TTL_DAYS || 7), recheckMin: Number(e.GATE_RECHECK_MIN || 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, "") };
   if (e.GATE_TG_BOT_TOKEN && e.GATE_TG_CHANNEL && e.GATE_TG_BOT_USERNAME) {
-    const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL ?? (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "", group: e.GATE_TG_GROUP || undefined, groupUrl: e.GATE_TG_GROUP_URL || (e.GATE_TG_GROUP?.startsWith("@") ? `https://t.me/${e.GATE_TG_GROUP.slice(1)}` : undefined) };
+    const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL || (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "", group: e.GATE_TG_GROUP || undefined, groupUrl: e.GATE_TG_GROUP_URL || (e.GATE_TG_GROUP?.startsWith("@") ? `https://t.me/${e.GATE_TG_GROUP.slice(1)}` : undefined) };
   }
   if (e.GATE_IG_ACCESS_TOKEN && e.GATE_IG_HANDLE && e.GATE_IG_APP_SECRET) c.instagram = { accessToken: e.GATE_IG_ACCESS_TOKEN, appSecret: e.GATE_IG_APP_SECRET, verifyToken: e.GATE_IG_VERIFY_TOKEN ?? "", handle: e.GATE_IG_HANDLE.replace(/^@/, "") };
-  if (e.GATE_YT_CHANNEL_ID) c.youtube = { channelId: e.GATE_YT_CHANNEL_ID, channelUrl: e.GATE_YT_CHANNEL_URL ?? `https://www.youtube.com/channel/${e.GATE_YT_CHANNEL_ID}` };
+  if (e.GATE_YT_CHANNEL_ID) c.youtube = { channelId: e.GATE_YT_CHANNEL_ID, channelUrl: e.GATE_YT_CHANNEL_URL || `https://www.youtube.com/channel/${e.GATE_YT_CHANNEL_ID}` };
   return c;
 }
 

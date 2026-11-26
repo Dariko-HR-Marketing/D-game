@@ -58,3 +58,13 @@ Audio o'yinchilar o'rtasida **to'g'ridan-to'g'ri** (P2P) o'tadi; server faqat si
 4. Tekshirish: ikki turli tarmoqdan (masalan, Wi-Fi va mobil internet) o'yinga kirib, chatdagi «Ovozga qo'shilish» ni bosing; ikkala tomonda «ulangan» ko'rinishi kerak.
 Native ilovalar (iOS/Android) uchun ovoz keyingi bosqich: `react-native-webrtc` va Expo dev client kerak; hozir ovoz veb-versiyada (telefon brauzerida ham ishlaydi).
 
+## Obuna darvozasi (majburiy obuna) sozlamasi
+Maxfiy kalitlar **repoga va GitHub'ga yozilmaydi**: ular faqat serverdagi `deploy/vps/.env` faylida turadi (GitHub Secrets faqat serverga ulanish uchun, ilova kalitlari uchun emas). Telegram uchun:
+```
+GATE_TG_BOT_TOKEN=<BotFather tokeni>
+GATE_TG_BOT_USERNAME=Tajriba24_bot
+GATE_TG_CHANNEL=@tajriba24_uz
+GATE_TG_WEBHOOK_SECRET=<openssl rand -hex 24 natijasi>
+```
+`GATE_PUBLIC_API_URL` o'zi `https://$API_DOMAIN` bo'ladi. Guruh tavsiyaviy bo'lsa `GATE_TG_GROUP` bo'sh qoladi. O'zgartirgach: `docker compose up -d server`. Holat: admin panel → «Obuna darvozasi».
+
