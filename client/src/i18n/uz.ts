@@ -412,6 +412,7 @@ export const uz = {
     } as Record<string, string[]>,
     orgHead: "Tashkilot: o'rinlar bo'yicha", orgSeats: "{n} o'rin", orgMonth: "oyiga {v}", orgYear: "yiliga {v} (10 oy to'lanadi)", orgNote: "Ulanish va shartnoma uchun murojaat qiling: hisobni tashkilot to'laydi, ishtirokchilar bepul qatnashadi.", orgContact: "Murojaat qoldirish", inq: { title: "Tashkilot uchun murojaat", org: "Tashkilot nomi", seats: "Taxminiy o'rinlar soni", contact: "Aloqa (telefon, email yoki Telegram)", note: "Izoh (ixtiyoriy)", send: "Yuborish", sent: "Murojaatingiz qabul qilindi. Siz bilan bog'lanamiz.", close: "Yopish" }, orgSeat: "Bir o'rin oyiga {v}, hajm chegirmasi {p}", orgPlay: "O'yinchilar uchun",
     usage: { title: "O'yin ochish hisobingiz", day: "Bugun", week: "Shu hafta", month: "Shu oy", of: "{a} / {b}", unlimited: "cheklovsiz", resets: "yangilanish: {t}", coupons: "Kuponlaringiz: {n}" },
+    trial: "Yangi o'yinchi sovg'asi: {d} kun davomida o'yin ochish cheklovsiz. Tugagach tanlangan paket chegarasi amal qiladi. Qoldi: {n} kun.",
     coupon: { title: "O'yin kuponi", text: "Bitta kupon = bitta o'yin maydonini ochish. Obuna kerak emas, limit tugasa ham ishlaydi. O'yin boshlanganda sarflanadi.", buy: "Kupon sotib olish", have: "Sizda {n} ta kupon" },
     table: { title: "Imkoniyatlar jadvali", sub: "Paketlarni solishtiring", feature: "Imkoniyat" },
     cell: { yes: "✓", no: "—", limited: "Limitli", more: "Ko'proq", unlimited: "Cheklovsiz", last: "Oxirgi o'yinlar", full: "To'liq", export: "To'liq + eksport", group: "Guruh bo'yicha", personal: "Shaxsiy", join: "Qatnashish", small: "Kichik turnir", basic: "Asosiy", set: "+ to'plam", exclusive: "+ eksklyuziv", brand: "Tashkilot brendi", normal: "Oddiy", priority: "Ustuvor", manager: "Alohida menejer", none: "Yo'q" } as Record<string, string>,
@@ -496,7 +497,7 @@ export const uz = {
   errors: {
     bad_photo: "Rasm o'qilmadi. JPEG yoki PNG rasm tanlang", photo_too_big: "Rasm juda katta. Kichikroq rasm tanlang", no_photo: "Rasm topilmadi",
     calc_wrong: "Hisob noto'g'ri. Qayta hisoblang", calc_required: "Avval hisobni kiriting", calc_due: "Avval hisobingizni yangilang", maintenance: "Texnik ishlar olib borilmoqda. Birozdan keyin urinib ko'ring", sales_paused: "Xaridlar vaqtincha to'xtatilgan. Keyinroq urinib ko'ring", paused: "Bu amal vaqtincha to'xtatilgan",
-    subscription_required: "O'ynash uchun avval bizning sahifalarga obuna bo'ling", premium_required: "Bu imkoniyat Premium paketda", limit_owned: "Siz yaratgan klublar chegarasiga yetdingiz", limit_joined: "Siz a'zo bo'lgan klublar chegarasiga yetdingiz", club_full: "Klub to'lgan", restricted: "Bu imkoniyat 16 yoshgacha yopiq", room_limit: "O'yin ochish limiti tugadi. Kupon yoki Plus/Premium bilan davom eting", no_coupon: "Kuponingiz yo'q", bad_org: "Tashkilot nomini kiriting (2–80 belgi)", bad_inq_seats: "O'rinlar sonini to'g'ri kiriting", bad_contact: "Aloqa ma'lumotini kiriting (telefon, email yoki Telegram)", bad_note: "Izoh juda uzun", not_allowed: "Bu maydonga faqat sinf yoki turnir a'zolari kira oladi", plus_required: "Bu imkoniyat Tajriba24 Plus uchun", price_unset: "Bu mahsulot narxi hali belgilanmagan",
+    offer_required: "Davom etish uchun oferta va maxfiylik siyosatiga rozilik bering", subscription_required: "O'ynash uchun avval bizning sahifalarga obuna bo'ling", premium_required: "Bu imkoniyat Premium paketda", limit_owned: "Siz yaratgan klublar chegarasiga yetdingiz", limit_joined: "Siz a'zo bo'lgan klublar chegarasiga yetdingiz", club_full: "Klub to'lgan", restricted: "Bu imkoniyat 16 yoshgacha yopiq", room_limit: "O'yin ochish limiti tugadi. Kupon yoki Plus/Premium bilan davom eting", no_coupon: "Kuponingiz yo'q", bad_org: "Tashkilot nomini kiriting (2–80 belgi)", bad_inq_seats: "O'rinlar sonini to'g'ri kiriting", bad_contact: "Aloqa ma'lumotini kiriting (telefon, email yoki Telegram)", bad_note: "Izoh juda uzun", not_allowed: "Bu maydonga faqat sinf yoki turnir a'zolari kira oladi", plus_required: "Bu imkoniyat Tajriba24 Plus uchun", price_unset: "Bu mahsulot narxi hali belgilanmagan",
     payments_unavailable: "To'lov hozircha ulanmagan. Keyinroq urinib ko'ring", phone_required: "Avval telefon raqamingizni tasdiqlang", profile_required: "Avval profilni to'ldiring", parent_phone_required: "Ota-onangizning telefon raqamini kiriting", same_phone: "Ota-ona raqami sizning raqamingizdan farq qilishi kerak",
      phone_taken: "Bu raqam boshqa hisobga bog'langan",  sms_unavailable: "SMS xizmati hozircha ulanmagan",  unavailable: "Bu mahsulot hozircha sotilmaydi", already_owned: "Bu narsa sizda bor", not_owned: "Bu narsa sizda yo'q", not_plus: "Bu imkoniyat Plus egalari uchun", already_claimed: "Bu oyning sovg'asi olingan", plus_already_long: "Plus muddati yetarlicha uzun",
       used: "Bu kod ishlatilgan", already_teacher: "Siz allaqachon o'qituvchisiz", not_teacher: "Siz o'qituvchi sifatida ulanmagansiz", no_license: "Maktab litsenziyasi faol emas", seats_full: "Maktabda o'rinlar tugagan", already_member: "Siz bu sinfdasiz", teacher_cannot_join: "O'qituvchi o'z sinfiga o'quvchi bo'lib qo'shilmaydi", closed: "Ro'yxatdan o'tish yopiq", full: "Turnirda joy qolmagan", already: "Siz ro'yxatdan o'tgansiz", consent_required: "16 yoshgacha ota-ona roziligi kerak", bad_sku: "Mahsulot topilmadi", bad_item: "Narsa noto'g'ri", not_pending: "Buyurtma kutish holatida emas",
@@ -519,7 +520,7 @@ export const uz = {
   } as Record<string, string>,
 } as const;
 export const sub = {
-  title: "O'ynashdan oldin obuna bo'ling", lead: "Yangiliklar, yangi kartalar va o'yin maslahatlari shu sahifalarda. Obuna bo'lgach o'yin darrov ochiladi.",
+  channelGroup: "kanal va guruh", title: "O'ynashdan oldin obuna bo'ling", lead: "Yangiliklar, yangi kartalar va o'yin maslahatlari shu sahifalarda. Obuna bo'lgach o'yin darrov ochiladi.",
   telegram: "Telegram", instagram: "Instagram", youtube: "YouTube", required: "Majburiy", progress: "tayyor",
   openBot: "Telegram orqali obuna bo'lish", botSteps: "Botda «Start»ni bosing, kanalga obuna bo'ling, «Tekshirish»ni bosing. Shu oyna o'zi yopiladi.",
   igStep: "Instagram obunasi ham shu botda: u sizga sahifa havolasi va kod beradi.", extra: "Qo'shimcha tarmoqlar (YouTube, Facebook) profilingizda yulduzcha beradi.",
@@ -527,14 +528,20 @@ export const sub = {
   check: "Tekshirish", checkAll: "Qayta tekshirish", checking: "Tekshirilmoqda...", notYet: "Hali obuna topilmadi. Botda obuna bo'lib, «Tekshirish»ni bosing.",
   not_subscribed: "Obuna topilmadi. Obuna bo'lib, yana tekshiring", not_linked: "Avval botni oching", unavailable: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring", close: "Keyinroq",
 };
+export const offer = {
+  title: "Shartlar va maxfiylik", lead: "O'ynashdan oldin oferta (foydalanish shartnomasi) va maxfiylik siyosati bilan tanishing va rozilik bering.",
+  points: ["Faqat zarur ma'lumot yig'iladi: telefon xeshi, ism, tug'ilgan yil, o'yin natijalari.", "Telegram, Instagram, YouTube, Facebook'dan faqat identifikator va obuna natijasi olinadi (ism, email, telefon olinmaydi).", "Hisobni istalgan payt o'chirish va rozilikni qaytarib olish mumkin (Profil).", "Karta ma'lumotlari bizda saqlanmaydi: to'lov Payme/Click sahifasida."],
+  profileTitle: "Rozilik va maxfiylik", acceptedVersion: "Qabul qilingan oferta versiyasi", notAccepted: "Hali rozilik berilmagan", notRequired: "Rozilik talabi hozircha yoqilmagan", withdraw: "Rozilikni qaytarib olish", withdrawn: "Rozilik qaytarib olindi", withdrawNote: "Qaytarib olsangiz, o'ynash uchun yana rozilik berishingiz kerak. Ma'lumotni yuklab olish va hisobni o'chirish: shu sahifaning pastida.",
+  offerLink: "Ofertani o'qish", privacyLink: "Maxfiylik siyosatini o'qish", agree: "Oferta va maxfiylik siyosati bilan tanishdim va roziman", accept: "Roziman, davom etaman", later: "Keyinroq", saving: "Saqlanmoqda...", failed: "Saqlab bo'lmadi. Birozdan keyin urinib ko'ring.", version: "Versiya",
+};
 export const soc = {
   title: "Ijtimoiy tarmoqlar", lead: "Sahifalarimizga obuna bo'ling: har bir tasdiqlangan tarmoq uchun profilingizga yulduzcha qo'shiladi.",
   names: { telegram: "Telegram", instagram: "Instagram", youtube: "YouTube", facebook: "Facebook" } as Record<string, string>,
-  required: "Majburiy", optional: "Qo'shimcha", connected: "Ulangan", notConnected: "Ulanmagan", soon: "Tez orada",
+  required: "Majburiy", optional: "Tavsiya", connected: "Ulangan", notConnected: "Ulanmagan", soon: "Tez orada",
   connect: "Ulash", check: "Tekshirish", checking: "Tekshirilmoqda...", disconnect: "Uzish", open: "Sahifaga o'tish",
   starEarned: "Yulduzcha olingan", starAvail: "Obuna bo'lib yulduzcha oling", xpNote: "Har bir tasdiqlangan tarmoq daraja uchun XP ham beradi.",
   checkedOn: "Tekshirilgan", igCode: "Instagram sahifamizga shu kodni xabar qilib yuboring, so'ng «Tekshirish»ni bosing", ytWeb: "YouTube obunasi hozircha veb-versiyada tasdiqlanadi.",
-  fbNote: "Facebook obunasini tekshirib bo'lmaydi, shuning uchun u yulduzcha bermaydi.", notYet: "Hali obuna topilmadi. Obuna bo'lib, yana tekshiring.", failed: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring.",
+  fbNote: "Facebook obunasini tekshirib bo'lmaydi: o'zingiz tasdiqlaysiz, yulduzcha \"tasdiqlanmagan\" deb belgilanadi.", fbConfirm: "Obuna bo'ldim", selfConfirmed: "O'zi tasdiqlagan", groupToo: "Kanal va guruh", group: "Guruhga o'tish", notYet: "Hali obuna topilmadi. Obuna bo'lib, yana tekshiring.", failed: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring.",
   disconnected: "Uzildi", requiredNote: "Uzsangiz, o'yin boshlashdan oldin yana obuna bo'lishingiz kerak.",
 };
 export const errText = (code: string) => uz.errors[code] ?? uz.errors.unknown;

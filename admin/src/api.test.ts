@@ -16,6 +16,6 @@ describe("admin API mijozi", () => {
     expect(keys(["content.read", "content.write"])).toEqual(["content", "dreams", "cells"]);
     expect(keys(["analytics.read", "rooms.read"])).not.toContain("users");
     expect(keys(["commerce.read", "analytics.read"])).toContain("shop");
-    expect(keys(["users.read"])).toEqual(["users"]);
+    expect(keys(["users.read"])).toEqual(["users", "consent"]);
   });
 });

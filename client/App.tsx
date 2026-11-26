@@ -12,6 +12,8 @@ import { Game } from "./src/ui/Game";
 const ProfileScreen = lazyNamed(() => import("./src/ui/ProfileScreen"), "ProfileScreen");
 import { NameGate } from "./src/ui/NameGate";
 import { SubscribeGate } from "./src/ui/SubscribeGate";
+import { ConsentGate } from "./src/ui/ConsentGate";
+import type { ConsentInfo } from "./src/net/http";
 const Result = lazyNamed(() => import("./src/ui/Result"), "Result");
 const ClubScreen = lazyNamed(() => import("./src/ui/ClubScreen"), "ClubScreen");
 const RulesScreen = lazyNamed(() => import("./src/ui/RulesScreen"), "RulesScreen");
@@ -132,6 +134,9 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   useEffect(() => { let off = false; http.profile().then((r: any) => { if (!off) setHasProfile(!!r.profile); }).catch(() => { if (!off) setHasProfile(true); }); return () => { off = true; }; }, [http]); // tarmoq xatosida to'smaymiz: server baribir tekshiradi
   useEffect(() => { if (st.error === "profile_required") setHasProfile(false); }, [st.error]);
+  const [consent, setConsent] = useState<ConsentInfo | null>(null); const [consentOpen, setConsentOpen] = useState(false);
+  useEffect(() => { let off = false; http.consent().then((c) => { if (!off) { setConsent(c); setConsentOpen(!!c.required && !c.ok); } }).catch(() => {}); return () => { off = true; }; }, [http]); // oferta roziligi: talab yoqilgan va rozilik yo'q bo'lsa oyna chiqadi
+  useEffect(() => { if (st.error === "offer_required") { http.consent().then((c) => { setConsent(c); setConsentOpen(true); }).catch(() => {}); } }, [st.error, st.gateN]); // eslint-disable-line react-hooks/exhaustive-deps
   const [subGate, setSubGate] = useState(false);
   useEffect(() => { if (st.error === "subscription_required") setSubGate(true); }, [st.error, st.gateN]);
   // Sahifa yo'riqnomasi: har sahifada birinchi kirishda bir marta; o'yinda — o'yinchi turgan aylana uchun alohida (kichik/katta)
@@ -145,6 +150,7 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
       <ConnBanner st={st} />
       {st.paywall && !room && <Paywall http={http} info={st.paywall} onCoupon={() => conn.createWithCoupon()} onLater={() => conn.clearPaywall()} />}
       {stale && (<Pressable accessibilityRole="button" accessibilityLabel={uz.update.label} onPress={() => { try { (globalThis as any).location.reload(); } catch { /* mahalliy ilova */ } }} style={{ backgroundColor: night.brand, paddingVertical: 10, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 44 }} testID="update-banner"><Text style={{ color: night.text, fontWeight: "800" }}>{uz.update.text}</Text><Text style={{ color: night.accent, fontWeight: "800", textDecorationLine: "underline" }}>{uz.update.action}</Text></Pressable>)}
+      {consentOpen && consent?.required && <ConsentGate http={http} info={consent} onClose={() => setConsentOpen(false)} onDone={() => { setConsentOpen(false); setConsent({ ...consent, ok: true, accepted: consent.required }); }} />}
       {subGate && <SubscribeGate http={http} onClose={() => setSubGate(false)} onDone={() => setSubGate(false)} />}
       <View role="main" style={{ flex: 1 }}><Later>
       {hasProfile === null && !room ? null : gated ? <NameGate http={http} initial={signupProfile()} onDone={() => { store.set("tajriba24-signup-profile", null); setHasProfile(true); }} />

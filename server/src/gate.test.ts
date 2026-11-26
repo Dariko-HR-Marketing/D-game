@@ -83,12 +83,22 @@ describe("obuna darvozasi", () => {
   it("majburiy: Telegram va Instagram; YouTube ixtiyoriy (o'yinni to'smaydi, faqat yulduzcha beradi)", async () => {
     let items: unknown[] = []; const g = new SubscriptionGate({ ...cfg, required: ["telegram", "instagram"] }, undefined, (async (u: string) => u.includes("googleapis") ? json({ items }) : json({ ok: true, result: { status: "member" }, is_user_follow_business: true })) as any);
     expect(g.missing("u", 30)).toEqual(["telegram", "instagram"]); expect(g.enforced()).toEqual(["telegram", "instagram"]);
-    expect(g.socials("u").map((x) => [x.id, x.required, x.ok])).toEqual([["telegram", true, false], ["instagram", true, false], ["youtube", false, false], ["facebook", false, false]]);
+    expect(g.socials("u").map((x) => [x.id, x.required, x.ok])).toEqual([["telegram", true, false], ["instagram", true, false], ["youtube", false, false], ["facebook", false, false]]); expect(g.socials("u")[3]).toMatchObject({ configured: false, verifiable: false, self: true });
     items = [{ id: 1 }]; await g.checkYoutube("u", "tok"); expect(g.starsOf("u")).toBe(1); expect(g.missing("u", 30)).toEqual(["telegram", "instagram"]); // YouTube to'smaydi ham, o'tkazmaydi ham
     const s = g.telegramStart("u")!; g.onTelegramUpdate({ message: { from: { id: 7 }, text: "/start " + s.token } }); await g.checkTelegram("u");
     expect(g.starsOf("u")).toBe(2); expect(g.status("u", 30).platforms.map((p) => p.id)).toEqual(["telegram", "instagram"]);
   });
-  it("Facebook faqat havola: yulduzcha bermaydi; uzish tasdiqni va bog'lashni o'chiradi", async () => {
+  it("Telegram kanal va guruh birgalikda majburiy: bot paneli ikkalasini ko'rsatadi", async () => {
+    const g = new SubscriptionGate({ ...cfg, instagram: undefined, youtube: undefined, telegram: { ...cfg.telegram!, group: "@guruh", groupUrl: "https://t.me/guruh" } }, undefined, (async () => json({ ok: true, result: { status: "member" } })) as any);
+    const pn = g.panel("u", 30); expect(pn.text).toContain("Telegram kanali va guruhi"); expect(JSON.stringify(pn.reply_markup)).toContain("Guruhga o'tish"); expect(JSON.stringify(pn.reply_markup)).not.toContain("ixtiyoriy");
+    expect(g.socials("u")[0]).toMatchObject({ groupUrl: "https://t.me/guruh", groupRequired: true });
+  });
+  it("Facebook: o'zi tasdiqlaydi (tekshirib bo'lmaydi), yulduzcha beradi, majburiy emas; uzish o'chiradi", async () => {
+    const g = new SubscriptionGate({ ...cfg, telegram: undefined, instagram: undefined, youtube: undefined, facebookUrl: "https://facebook.com/t24" });
+    expect(g.starsOf("u")).toBe(0); expect(g.confirmFacebook("u")).toBe(true); expect(g.starsOf("u")).toBe(1); expect(g.socials("u")[3]).toMatchObject({ ok: true, self: true, verifiable: false, required: false });
+    g.disconnect("u", "facebook"); expect(g.starsOf("u")).toBe(0); expect(new SubscriptionGate(cfg).confirmFacebook("u")).toBe(false);
+  });
+  it("Facebook havolasi yulduzcha bermaydi (tasdiqlanmaguncha); uzish tasdiqni va bog'lashni o'chiradi", async () => {
     const g = new SubscriptionGate({ ...cfg, instagram: undefined, youtube: undefined, facebookUrl: "https://facebook.com/tajriba24" }, undefined, (async () => json({ ok: true, result: { status: "member" } })) as any);
     const s = g.telegramStart("u")!; g.onTelegramUpdate({ message: { from: { id: 7 }, text: "/start " + s.token } }); await g.checkTelegram("u");
     expect(g.socials("u").find((x) => x.id === "facebook")).toMatchObject({ url: "https://facebook.com/tajriba24", ok: false, verifiable: false }); expect(g.starsOf("u")).toBe(1);

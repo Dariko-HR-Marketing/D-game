@@ -9,8 +9,9 @@ import { GenderPicker, type Gender } from "./GenderPicker";
 import { Avatar } from "./Avatar";
 import { Acc } from "./Accordion";
 import { Socials, socialSummary } from "./Socials";
+import { ConsentCard } from "./ConsentGate";
 import { PhotoPicker } from "./PhotoPicker";
-import { uz, errText, soc } from "../i18n/uz";
+import { uz, errText, soc, offer } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, MIN_TAP, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
 import { sameWord, Http, HttpError, isUnder16, validName, validYear, type SocialsInfo } from "../net/http";
@@ -78,6 +79,8 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
       </Acc>
 
       <Acc icon="star" title={soc.title} summary={socialSummary(socInfo) || undefined} open={open === "soc"} onToggle={() => tog("soc")} testID="prof-soc"><Socials http={http} onInfo={setSocInfo} /></Acc>
+
+      <Acc icon="shield" title={offer.profileTitle} open={open === "consent"} onToggle={() => tog("consent")} testID="prof-consent"><ConsentCard http={http} /></Acc>
 
       {stats?.achievements && (
         <Acc icon="trophy" title={uz.profile.achievements} summary={`${stats.achievements.length}/${Object.keys(uz.achievements).length}`} open={open === "ach"} onToggle={() => tog("ach")} testID="prof-ach"

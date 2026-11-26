@@ -59,7 +59,7 @@ export const PILOT_CONFIG: Partial<CatalogConfig> = {
 
 /** Tashkilot paketi uchun murojaat (onlayn sotib olish hali yo'q: shartnoma va o'rinlar qo'lda). */
 export interface Inquiry { id: string; userId: string; org: string; seats: number; contact: string; note: string; at: number; status: "new" | "contacted" | "closed" }
-export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; premiumUntil?: number | null; premiumPlan?: "monthly" | "yearly"; premiumCancelled?: boolean; coupons?: number; starts?: number[]; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
+export interface Ent { userId: string; plusUntil: number | null; plusPlan?: "monthly" | "yearly"; plusCancelled?: boolean; premiumUntil?: number | null; premiumPlan?: "monthly" | "yearly"; premiumCancelled?: boolean; coupons?: number; starts?: number[]; /** Yangi o'yinchining cheklovsiz sinov davri tugashi (profil yaratilganda boshlanadi) */ trialUntil?: number; owned: string[]; equipped: { pawn?: string; frame?: string; avatar?: string }; claimedMonth?: string }
 export type OrderStatus = "pending_parent" | "pending_payment" | "paid" | "cancelled" | "rejected" | "refunded";
 export interface Order { id: string; userId: string; sku: string; title: string; amount: number; channel: "web" | "store"; provider?: string; status: OrderStatus; createdAt: number; paidAt?: number; ref?: string; checkout?: string; consentId?: string; refundedAt?: number; note?: string }
 
@@ -138,7 +138,7 @@ export class Commerce {
       plus: { active: plus, until: plus ? e.plusUntil : null, plan: plus ? e.plusPlan ?? null : null, cancelled: !!e.plusCancelled, monthly: this.priceOf("plus:monthly", uid) ?? null, yearly: this.priceOf("plus:yearly", uid) ?? null, claimedThisMonth: e.claimedMonth === ym(this.now()),
         features: { rooms: this.quotaOf(uid), history: paid ? null : c.freeHistory, analysis: paid ? "all" : "last", ads: !paid } },
       premium: { active: prem, until: prem ? e.premiumUntil ?? null : null, plan: prem ? e.premiumPlan ?? null : null, cancelled: !!e.premiumCancelled, monthly: c.premiumMonthly, yearly: c.premiumYearly },
-      pkg: { plan: this.plan(uid), quotas: c.quotas, usage: this.usage(uid), coupons: e.coupons ?? 0, couponPrice: c.coupon, org: { seatMonthly: c.orgSeatMonthly, tiers: c.orgTiers } },
+      pkg: { trial: { active: this.inTrial(uid), until: this.ents.get(uid)?.trialUntil ?? null, days: this.trialDays }, plan: this.plan(uid), quotas: c.quotas, usage: this.usage(uid), coupons: e.coupons ?? 0, couponPrice: c.coupon, org: { seatMonthly: c.orgSeatMonthly, tiers: c.orgTiers } },
       items: ITEMS.filter((i) => !(c.hidden ?? []).includes(i.id) || this.owns(uid, i.id)).map((i) => ({ ...i, owned: this.owns(uid, i.id), price: i.source === "shop" ? c.items[i.id] ?? null : null, equipped: e.equipped[i.kind as "pawn" | "frame" | "avatar"] === i.id })),
       equipped: e.equipped, paymentsReady: (this.d.providers ?? []).length > 0, providers: (this.d.providers ?? []).filter((p) => p.channels.includes("web")).map((p) => p.id),
     };
@@ -276,7 +276,12 @@ export class Commerce {
 
   // --- Paket imkoniyatlari: o'yin maydonini ochish chegarasi (kun / hafta / oy, Toshkent vaqti), kupon ---
   /** Joriy paketning chegarasi. */
-  quotaOf(uid: string): Quota { return this.config().quotas[this.plan(uid)]; }
+  quotaOf(uid: string): Quota { return this.inTrial(uid) ? NO_QUOTA : this.config().quotas[this.plan(uid)]; }
+  /** Yangi o'yinchiga ro'yxatdan o'tganda beriladigan cheklovsiz kunlar (TRIAL_DAYS, standart 7; 0 = o'chiq). */
+  trialDays = (() => { const n = Number(process.env.TRIAL_DAYS ?? 7); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 7; })();
+  inTrial(uid: string) { const t = this.ents.get(uid)?.trialUntil; return !!t && t > this.now(); }
+  /** Profil birinchi marta yaratilganda bir marta chaqiriladi; mavjud o'yinchilarga ta'sir qilmaydi. */
+  startTrial(uid: string): boolean { const e = this.ent(uid); if (!this.trialDays || e.trialUntil) return false; this.ents.set(uid, { ...e, trialUntil: this.now() + this.trialDays * DAY }); return true; }
   /** Oynalar chegarasi (Toshkent UTC+5: kun 00:00, hafta dushanba, oy 1-sana). */
   private windows() { const L = this.now() + TZ, d = new Date(L), day = Math.floor(L / DAY) * DAY, wd = (d.getUTCDay() + 6) % 7, month = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1); return { day: day - TZ, week: day - wd * DAY - TZ, month: month - TZ, nextDay: day + DAY - TZ, nextWeek: day - wd * DAY + 7 * DAY - TZ, nextMonth: Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) - TZ }; }
   usage(uid: string) { const w = this.windows(), st = this.ents.get(uid)?.starts ?? []; return { day: st.filter((t) => t >= w.day).length, week: st.filter((t) => t >= w.week).length, month: st.filter((t) => t >= w.month).length, resets: { day: w.nextDay, week: w.nextWeek, month: w.nextMonth } }; }
@@ -294,7 +299,7 @@ export class Commerce {
     const e = this.ent(hostId), t = this.now();
     if (this.couponRooms.get(code) === hostId) { this.couponRooms.delete(code); this.ents.set(hostId, { ...e, coupons: Math.max(0, (e.coupons ?? 0) - 1) }); return; }
     this.couponRooms.delete(code);
-    if (this.isPremium(hostId)) return; // chegarasiz paketda hisoblagich kerak emas
+    if (this.isPremium(hostId) || this.inTrial(hostId)) return; // sinov davrida hisoblanmaydi; chegarasiz paketda hisoblagich kerak emas
     this.ents.set(hostId, { ...e, starts: [...(e.starts ?? []).filter((x) => x >= t - 40 * DAY), t] });
   }
   historyLimit(uid: string): number | null { return this.isPaid(uid) ? null : this.config().freeHistory; }
