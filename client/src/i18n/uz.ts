@@ -519,11 +519,11 @@ export const uz = {
   } as Record<string, string>,
 } as const;
 export const sub = {
-  title: "O'ynashdan oldin obuna bo'ling", hint: "Tajriba24 yangiliklari, yangi kartalar va o'yin maslahatlari shu sahifalarda. Uchalasiga obuna bo'lgach o'yin ochiladi.",
-  telegram: "Telegram kanali va chatbot", instagram: "Instagram sahifasi", youtube: "YouTube kanali", done: "Obuna tasdiqlandi", open: "Ochish", check: "Tekshirish", checking: "Tekshirilmoqda...",
-  tgStep: "1) «Botni ochish» tugmasini bosib, botda «Start»ni bosing. 2) Kanalga obuna bo'ling. 3) «Tekshirish»ni bosing.", tgBot: "Botni ochish", tgChannel: "Kanalga o'tish", tgGroup: "Guruhga o'tish",
-  igStep: "1) Instagram sahifamizga obuna bo'ling. 2) Quyidagi kodni sahifamizga xabar qilib yuboring. 3) «Tekshirish»ni bosing.", igCode: "Kod", igOpen: "Instagramni ochish",
-  ytStep: "YouTube kanalimizga obuna bo'ling, so'ng «Tekshirish»ni bosing va Google ruxsatini bering (faqat obunalarni ko'rish uchun; hech narsa saqlanmaydi).", ytOpen: "Kanalga o'tish", ytWebOnly: "YouTube tekshiruvi hozircha veb-versiyada ishlaydi.",
-  not_subscribed: "Obuna topilmadi. Obuna bo'lib, yana tekshiring", not_linked: "Avval yuqoridagi qadamni bajaring", unavailable: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring", close: "Yopish",
+  title: "O'ynashdan oldin obuna bo'ling", lead: "Hamma obuna Telegram botimizda, bitta joyda. Botni oching, u sizga kerakli obunalarni ko'rsatadi va o'zi tekshiradi.",
+  telegram: "Telegram kanali", instagram: "Instagram sahifasi", youtube: "YouTube kanali",
+  openBot: "Telegram orqali obuna bo'lish", botSteps: "Botda «Start»ni bosing, kanalga obuna bo'ling va «Tekshirish»ni bosing. Shundan keyin shu oynaga qaytsangiz, u o'zi yopiladi.",
+  ytStep: "YouTube obunasi veb-versiyada Google ruxsati bilan tasdiqlanadi (faqat obunalarni ko'rish; hech narsa saqlanmaydi).", ytOpen: "Kanalga o'tish", ytWebOnly: "YouTube tekshiruvi hozircha veb-versiyada ishlaydi.",
+  check: "Tekshirish", checkAll: "Qayta tekshirish", checking: "Tekshirilmoqda...", notYet: "Hali obuna topilmadi. Botda obuna bo'lib, «Tekshirish»ni bosing.",
+  not_subscribed: "Obuna topilmadi. Obuna bo'lib, yana tekshiring", not_linked: "Avval botni oching", unavailable: "Tekshirib bo'lmadi. Birozdan keyin urinib ko'ring", close: "Yopish",
 };
 export const errText = (code: string) => uz.errors[code] ?? uz.errors.unknown;
