@@ -1,5 +1,6 @@
 // Admin 5-bosqich: chuqur analitika (shaxssiz), tizim salomatligi, audit qidiruvi.
 import { statSync } from "node:fs";
+import { hasRelay, iceServersFrom } from "./voice";
 import type { FastifyInstance } from "fastify";
 import type { AdminState, Guard } from "./admin";
 import type { Commerce } from "./commerce";
@@ -81,7 +82,7 @@ export function registerAdminInsight(guard: Guard, app: FastifyInstance, d: Insi
     return { at: t, uptimeSec: Math.round((t - ops.startedAt) / 1000), node: process.version, env: process.env.NODE_ENV ?? "development", memory: { rss: m.rss, heapUsed: m.heapUsed }, db, sockets: d.sockets(),
       rooms: { active: rs.filter((r) => r.state && !r.endedAt).length, lobby: rs.filter((r) => !r.state).length, ended: rs.filter((r) => r.endedAt).length }, online: rs.reduce((n, r) => n + r.members.filter((x) => !x.bot && x.online).length, 0),
       sms: { last24h: { sent: sms.filter((x) => x.ok).length, failed: sms.filter((x) => !x.ok).length }, recent: ops.smsLog.slice(-20).reverse() }, consents: { pending: cons.filter((c) => c.status === "pending" && c.expiresAt > t).length, expired: cons.filter((c) => c.status === "pending" && c.expiresAt <= t).length, approved: cons.filter((c) => c.status === "approved").length, rejected: cons.filter((c) => c.status === "rejected").length },
-      errors: ops.errors.slice(-50).reverse(), errors1h: ops.errors.filter((e) => t - e.at < 3600_000).length, flags: ops.flags(), backup };
+      errors: ops.errors.slice(-50).reverse(), errors1h: ops.errors.filter((e) => t - e.at < 3600_000).length, flags: ops.flags(), backup, voice: { relay: hasRelay(iceServersFrom(process.env.ICE_SERVERS), process.env) } };
   }));
 
   /** Audit qidiruvi: admin, amal, matn, sana oralig'i; sahifalash. */

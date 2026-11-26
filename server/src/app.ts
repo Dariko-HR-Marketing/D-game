@@ -1,4 +1,4 @@
-import { iceServersFrom, turnServerFor } from "./voice";
+import { hasRelay, iceServersFrom, turnServerFor } from "./voice";
 import { OtpService, type SmsSender, normalizePhone, phoneError, verifyToken, parseToken, issueSession, userIdOfSub, Revocations } from "./auth";
 import { NonceStore, type OidcVerifier } from "./oidc";
 import { normalizeEmail, type EmailOtp } from "./email-auth";
@@ -166,9 +166,10 @@ export function buildApp(opts: { offer?: OfferConsents; gate?: SubscriptionGate;
   app.register(websocket, { options: { maxPayload: 16 * 1024, perMessageDeflate: { threshold: 1024, zlibDeflateOptions: { level: 3 }, serverNoContextTakeover: true, clientNoContextTakeover: true, concurrencyLimit: 8 } } }); // holat xabarlari 5–13 KB JSON: siqilsa mobil trafik ~4× kam (kontekst saqlanmaydi — xotira cheklangan)
   app.get("/health", async () => ({ ok: true }));
   const iceServers = iceServersFrom(process.env.ICE_SERVERS);
+  if (!hasRelay(iceServers, process.env)) app.log.warn("ovozli aloqa: TURN sozlanmagan (TURN_URLS/TURN_SECRET yoki ICE_SERVERS) — turli tarmoqdagi o'yinchilar bir-birini eshitmasligi mumkin");
   app.get("/voice/config", async (req, reply) => { // STUN/TURN sozlamasi: faqat kirgan foydalanuvchiga
     const uid = auth((req.headers.authorization ?? "").replace(/^Bearer /, "") || undefined); if (!uid) return reply.code(401).send({ error: "unauthorized" });
-    const turn = turnServerFor(process.env, uid); return { iceServers: turn ? [...iceServers, turn] : iceServers }; // TURN vaqtinchalik hisob bilan (NAT orqasidagilar uchun)
+    const turn = turnServerFor(process.env, uid); return { iceServers: turn ? [...iceServers, turn] : iceServers, relay: hasRelay(iceServers, process.env) }; // TURN vaqtinchalik hisob bilan (NAT orqasidagilar uchun)
   });
   // --- kirish (SMS bir martalik kod) ---
   const authLimit = new KeyedLimiter(10 / 60, 10); // IP bo'yicha ~10 so'rov/daqiqa

@@ -1,7 +1,7 @@
 // Ovozli aloqa (veb): WebRTC mesh — har bir juftlik o'rtasida to'g'ridan-to'g'ri audio (server faqat signal uzatadi). Native (iOS/Android) uchun alohida modul kerak (react-native-webrtc) — hozircha qo'llanmaydi.
 // Signalizatsiya: har bir juftlikda taklifni DOIM bir tomon (ID si kichigi) yuboradi — taklif to'qnashuvi (glare) bo'lmaydi; ikkinchi tomon javob beradi va o'z mikrofonini javobga qo'shadi.
 export type VoiceStatus = "off" | "connecting" | "on";
-export type VoiceError = null | "unsupported" | "denied" | "no_mic" | "restricted" | "failed";
+export type VoiceError = null | "unsupported" | "denied" | "no_mic" | "restricted" | "failed" | "no_relay";
 export interface PeerView { id: string; state: "connecting" | "connected" | "failed"; speaking: boolean; muted: boolean }
 export interface DeviceView { id: string; label: string }
 export interface VoiceSnapshot { status: VoiceStatus; error: VoiceError; hasMic: boolean; muted: boolean; speaking: boolean; peers: PeerView[]; inputs: DeviceView[]; outputs: DeviceView[]; inputId: string; outputId: string; canPickOutput: boolean }
@@ -12,11 +12,12 @@ export interface VoiceDeps {
   iceServers: () => Promise<RTCIceServer[]>;
 }
 const SPEAK_RMS = 0.015; // gapirish sezgisi (0…1 amplituda); shovqin chegarasi
+const CONNECT_MS = 15_000; // ulanish shuncha cho'zilsa — «ulanmadi» (odatda TURN yo'qligi yoki tarmoq to'sig'i)
 const HANG_MS = 450; // gapirish tugagandan keyin belgi shuncha turadi (miltillamasin)
 
 export const voiceSupported = () => typeof globalThis !== "undefined" && typeof (globalThis as any).RTCPeerConnection === "function" && !!(globalThis as any).navigator?.mediaDevices?.getUserMedia;
 
-interface Peer { id: string; pc: RTCPeerConnection; initiator: boolean; stream: MediaStream | null; audio: HTMLAudioElement | null; speak: Meter | null; muted: boolean; state: PeerView["state"]; failures: number; q: Promise<void> }
+interface Peer { id: string; pc: RTCPeerConnection; initiator: boolean; stream: MediaStream | null; audio: HTMLAudioElement | null; speak: Meter | null; muted: boolean; state: PeerView["state"]; failures: number; since: number; q: Promise<void> }
 class Meter { // MediaStream ovoz balandligini o'lchaydi
   private ctx: AudioContext | null = null; private an: AnalyserNode | null = null; private buf: Float32Array | null = null; private last = 0; speaking = false;
   constructor(stream: MediaStream, ctx: AudioContext) { try { this.ctx = ctx; const src = ctx.createMediaStreamSource(stream); this.an = ctx.createAnalyser(); this.an.fftSize = 512; src.connect(this.an); this.buf = new Float32Array(this.an.fftSize); } catch { this.an = null; } }
@@ -30,7 +31,7 @@ class Meter { // MediaStream ovoz balandligini o'lchaydi
 export class VoiceEngine {
   private peers = new Map<string, Peer>(); private local: MediaStream | null = null; private joined = false; private status: VoiceStatus = "off"; private error: VoiceError = null;
   private muted = false; private listeners = new Set<() => void>(); private members: string[] = []; private ctx: AudioContext | null = null; private selfMeter: Meter | null = null; private timer: ReturnType<typeof setInterval> | null = null;
-  private inputs: DeviceView[] = []; private outputs: DeviceView[] = []; private inputId = ""; private outputId = ""; private ice: RTCIceServer[] | null = null; private rejoinAt = 0; private snap: VoiceSnapshot | null = null; private early = new Map<string, Array<{ sdp?: { type: "offer" | "answer"; sdp: string }; candidate?: RTCIceCandidateInit }>>();
+  private inputs: DeviceView[] = []; private outputs: DeviceView[] = []; private inputId = ""; private outputId = ""; private ice: RTCIceServer[] | null = null; private relay = false; private retryPlay = false; private rejoinAt = 0; private snap: VoiceSnapshot | null = null; private early = new Map<string, Array<{ sdp?: { type: "offer" | "answer"; sdp: string }; candidate?: RTCIceCandidateInit }>>();
   constructor(private d: VoiceDeps) {}
 
   subscribe(f: () => void) { this.listeners.add(f); return () => { this.listeners.delete(f); }; }
@@ -81,9 +82,10 @@ export class VoiceEngine {
   }
   private async connect(id: string) {
     if (!this.ice) { try { this.ice = await this.d.iceServers(); } catch { this.ice = [{ urls: "stun:stun.l.google.com:19302" }]; } }
+    this.relay = this.ice.some((x) => (Array.isArray(x.urls) ? x.urls : [x.urls]).some((u) => /^turns?:/i.test(u)));
     if (!this.joined || this.peers.has(id)) return;
     const pc = new RTCPeerConnection({ iceServers: this.ice });
-    const p: Peer = { id, pc, initiator: this.d.selfId < id, stream: null, audio: null, speak: null, muted: false, state: "connecting", failures: 0, q: Promise.resolve() };
+    const p: Peer = { id, pc, initiator: this.d.selfId < id, stream: null, audio: null, speak: null, muted: false, state: "connecting", failures: 0, since: Date.now(), q: Promise.resolve() };
     try { p.muted = !!JSON.parse(localStorage.getItem("tajriba24-voice-muted") ?? "[]").includes(id); } catch { /* xotira yopiq */ }
     this.peers.set(id, p);
     for (const d of this.early.get(id) ?? []) this.enqueue(p, d); this.early.delete(id); // peer yaratilguncha kelgan signallar
@@ -93,18 +95,26 @@ export class VoiceEngine {
     pc.ontrack = (e) => { p.stream = e.streams[0] ?? new MediaStream([e.track]); this.attach(p); };
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
-      if (s === "connected") { p.state = "connected"; p.failures = 0; } else if (s === "failed") { p.state = "failed"; if (p.initiator && ++p.failures <= 2) { try { pc.restartIce(); } catch { /* yopiq */ } } } else if (s === "connecting" || s === "new") p.state = "connecting";
+      if (s === "connected") { p.state = "connected"; p.failures = 0; } else if (s === "failed") { p.state = "failed"; this.noteFailed(); if (p.initiator && ++p.failures <= 2) { try { pc.restartIce(); } catch { /* yopiq */ } } } else if (s === "connecting" || s === "new") p.state = "connecting";
       this.emit();
     };
     this.emit();
   }
+  /** Ulanmagan juftlik: TURN bo'lmasa sabab aniq aytiladi (mikrofon xatosini bosib ketmaydi). */
+  private noteFailed() { if (this.error === "denied" || this.error === "no_mic") return; this.error = this.relay ? "failed" : "no_relay"; }
   private sendSdp(to: string, d: RTCSessionDescription | null) { if (d) this.d.send({ type: "voice", op: "signal", to, sdp: { type: d.type, sdp: d.sdp } }); }
   private attach(p: Peer) {
     if (!p.stream) return;
     if (!p.audio) { const a = document.createElement("audio"); a.autoplay = true; (a as any).playsInline = true; a.style.display = "none"; document.body.appendChild(a); p.audio = a; }
     p.audio.srcObject = p.stream; p.audio.muted = p.muted; if (this.outputId && (p.audio as any).setSinkId) void (p.audio as any).setSinkId(this.outputId).catch(() => {});
-    void p.audio.play().catch(() => {}); if (this.ctx && !p.speak) p.speak = new Meter(p.stream, this.ctx);
+    void p.audio.play().catch(() => this.retryOnGesture()); if (this.ctx && !p.speak) p.speak = new Meter(p.stream, this.ctx);
     this.emit();
+  }
+  /** Brauzer audioni avtomatik boshlashga ruxsat bermasa (iOS/Safari): keyingi bosishda qayta uriniladi. */
+  private retryOnGesture() {
+    if (this.retryPlay || typeof document === "undefined") return; this.retryPlay = true;
+    const go = () => { this.retryPlay = false; document.removeEventListener("pointerdown", go, true); void this.ctx?.resume?.(); for (const p of this.peers.values()) void p.audio?.play().catch(() => {}); };
+    document.addEventListener("pointerdown", go, true);
   }
   /** Server orqali kelgan signal (taklif/javob/ICE). */
   onSignal(from: string, data: { sdp?: { type: "offer" | "answer"; sdp: string }; candidate?: RTCIceCandidateInit }) {
@@ -130,7 +140,7 @@ export class VoiceEngine {
   private closePeer(p: Peer) { try { p.pc.onicecandidate = p.pc.ontrack = p.pc.onnegotiationneeded = p.pc.onconnectionstatechange = null; p.pc.close(); } catch { /* yopiq */ } if (p.audio) { p.audio.srcObject = null; p.audio.remove(); } }
   private tick() {
     const now = Date.now(); let ch = this.selfMeter ? this.selfMeter.tick(now, !this.muted && !!this.local) : false;
-    for (const p of this.peers.values()) if (p.speak?.tick(now, !p.muted)) ch = true;
+    for (const p of this.peers.values()) { if (p.speak?.tick(now, !p.muted)) ch = true; if (p.state === "connecting" && now - p.since > CONNECT_MS) { p.state = "failed"; this.noteFailed(); ch = true; } }
     if (ch) this.emit();
   }
 
