@@ -49,6 +49,20 @@ export class EskizSms implements SmsSender {
   private post(token: string, phone: string, text: string) {
     return this.f(`${this.base}/message/sms/send`, { signal: AbortSignal.timeout(this.timeoutMs), method: "POST", headers: { authorization: `Bearer ${token}` }, body: new URLSearchParams({ mobile_phone: phone.replace(/^\+/, ""), message: text, from: this.from }) });
   }
+  /** Tayyorlik (admin): balans, tasdiqlangan jo'natuvchi nomlari, shablon holatlari. Hujjat: GET /auth/user, /nick/me, /user/templates. Hech narsa yuborilmaydi. */
+  async info(): Promise<{ from: string; testFrom: boolean; balance: number | null; nicks: string[]; templates: { id: number; text: string; status: string }[]; error?: string }> {
+    const base = { from: this.from, testFrom: this.from === "4546", balance: null as number | null, nicks: [] as string[], templates: [] as { id: number; text: string; status: string }[] };
+    try {
+      let t = this.token ?? (await this.auth());
+      const get = async (path: string) => { let r = await this.f(`${this.base}${path}`, { signal: AbortSignal.timeout(this.timeoutMs), headers: { authorization: `Bearer ${t}` } }); if (r.status === 401) { this.token = null; t = await this.auth(); r = await this.f(`${this.base}${path}`, { signal: AbortSignal.timeout(this.timeoutMs), headers: { authorization: `Bearer ${t}` } }); } return r.ok ? r.json() : null; };
+      const [u, n, tp] = await Promise.all([get("/auth/user"), get("/nick/me"), get("/user/templates")]) as any[];
+      const bal = Number(u?.data?.balance); if (u?.data && Number.isFinite(bal)) base.balance = bal;
+      if (Array.isArray(n)) base.nicks = n.map(String); else if (Array.isArray(n?.data)) base.nicks = n.data.map(String);
+      const list = Array.isArray(tp?.result) ? tp.result : [];
+      base.templates = list.slice(0, 50).map((x: any) => ({ id: Number(x.id), text: String(x.original_text ?? x.template ?? "").slice(0, 200), status: String(x.status ?? "") }));
+      return base;
+    } catch (e) { return { ...base, error: String((e as Error).message).slice(0, 80) }; }
+  }
   async send(phone: string, text: string) {
     let r = await this.post(this.token ?? (await this.auth()), phone, text);
     if (r.status === 401) { this.token = null; r = await this.post(await this.auth(), phone, text); }
