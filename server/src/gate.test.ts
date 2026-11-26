@@ -57,4 +57,16 @@ describe("obuna darvozasi", () => {
     t = 31 * 86400_000; await g.refreshInstagram(); expect(calls.length).toBe(n + 1);
     calls.length = 0; g.onInstagramEvent({ entry: [{ messaging: [{ sender: { id: "5" }, message: { text: g.instagramStart("u")!.code } }] }] }); await g.checkInstagram("u"); expect(calls[0]).toContain("access_token=NEW"); // yangi token ishlatiladi
   });
+  it("Telegram guruhi ham talab qilinsa, ikkalasida a'zo bo'lish kerak", async () => {
+    const st: Record<string, string> = { "@kanal": "member", "@guruh": "left" };
+    const g = new SubscriptionGate({ ...cfg, instagram: undefined, youtube: undefined, telegram: { ...cfg.telegram!, group: "@guruh", groupUrl: "https://t.me/guruh" } }, undefined, (async (u: string) => json({ ok: true, result: { status: st[decodeURIComponent(/chat_id=([^&]+)/.exec(u)![1])] } })) as any);
+    const s = g.telegramStart("u")!; g.onTelegramUpdate({ message: { from: { id: 7 }, text: "/start " + s.token } });
+    expect(await g.checkTelegram("u")).toBe(false); st["@guruh"] = "member"; expect(await g.checkTelegram("u")).toBe(true);
+    expect(g.status("u", 30).platforms[0]).toMatchObject({ ok: true, extraUrl: "https://t.me/guruh" });
+  });
+  it("bot /start ga javob beradi: bog'langanda tasdiq, oddiy /start da salom", async () => {
+    const sent: any[] = []; const g = new SubscriptionGate(cfg, undefined, (async (_u: string, i: any) => { sent.push(JSON.parse(i.body)); return json({ ok: true }); }) as any);
+    await g.replyTelegram({ message: { chat: { id: 5 }, text: "/start abc" } }, true); await g.replyTelegram({ message: { chat: { id: 5 }, text: "/start" } }, false); await g.replyTelegram({ message: { chat: { id: 5 }, text: "salom" } }, false);
+    expect(sent).toHaveLength(2); expect(sent[0].text).toContain("bog'landi"); expect(sent[1].text).toContain("xush kelibsiz"); expect(sent[0].chat_id).toBe(5);
+  });
 });

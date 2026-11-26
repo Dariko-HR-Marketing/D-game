@@ -41,6 +41,24 @@ services:
       TURN_URLS: ${TURN_URLS:-}       # TURN (coturn) manzillari: turn:host:3478?transport=udp,turns:host:5349 — vaqtinchalik hisob (REST/HMAC) bilan
       TURN_SECRET: ${TURN_SECRET:-}   # coturn bilan umumiy sir (kamida 16 belgi); mijozga hech qachon berilmaydi
       ICE_SERVERS: ${ICE_SERVERS:-}   # ovozli aloqa: STUN/TURN (JSON). Bo'sh bo'lsa ommaviy STUN; barqaror aloqa uchun TURN kerak (docs/DEPLOY.md)
+      # Obuna darvozasi (majburiy obuna). Hammasi bo'sh bo'lsa darvoza o'chiq. Maxfiylari faqat shu .env da, repoda emas (docs/DEPLOY.md).
+      GATE_TG_BOT_TOKEN: ${GATE_TG_BOT_TOKEN:-}
+      GATE_TG_BOT_USERNAME: ${GATE_TG_BOT_USERNAME:-}
+      GATE_TG_CHANNEL: ${GATE_TG_CHANNEL:-}
+      GATE_TG_CHANNEL_URL: ${GATE_TG_CHANNEL_URL:-}
+      GATE_TG_GROUP: ${GATE_TG_GROUP:-}
+      GATE_TG_GROUP_URL: ${GATE_TG_GROUP_URL:-}
+      GATE_TG_WEBHOOK_SECRET: ${GATE_TG_WEBHOOK_SECRET:-}
+      GATE_PUBLIC_API_URL: ${GATE_PUBLIC_API_URL:-https://${API_DOMAIN}}
+      GATE_IG_HANDLE: ${GATE_IG_HANDLE:-}
+      GATE_IG_ACCESS_TOKEN: ${GATE_IG_ACCESS_TOKEN:-}
+      GATE_IG_APP_SECRET: ${GATE_IG_APP_SECRET:-}
+      GATE_IG_VERIFY_TOKEN: ${GATE_IG_VERIFY_TOKEN:-}
+      GATE_YT_CHANNEL_ID: ${GATE_YT_CHANNEL_ID:-}
+      GATE_YT_CHANNEL_URL: ${GATE_YT_CHANNEL_URL:-}
+      GATE_MIN_AGE: ${GATE_MIN_AGE:-16}
+      GATE_TTL_DAYS: ${GATE_TTL_DAYS:-7}
+      GATE_RECHECK_MIN: ${GATE_RECHECK_MIN:-5}
       LOG_LEVEL: info
       PORT: "3000"
       TRUST_PROXY: "1" # Caddy ortida: haqiqiy mijoz IP (tezlik cheklovi uchun)

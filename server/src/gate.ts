@@ -12,7 +12,7 @@ export type Platform = "telegram" | "instagram" | "youtube";
 export const PLATFORMS: Platform[] = ["telegram", "instagram", "youtube"];
 export interface GateConfig {
   minAge: number; ttlDays: number; recheckMin?: number; apiUrl?: string;
-  telegram?: { botToken: string; channel: string; botUsername: string; channelUrl: string; webhookSecret: string };
+  telegram?: { botToken: string; channel: string; botUsername: string; channelUrl: string; webhookSecret: string; group?: string; groupUrl?: string };
   instagram?: { accessToken: string; appSecret: string; verifyToken: string; handle: string };
   youtube?: { channelId: string; channelUrl: string };
 }
@@ -22,12 +22,12 @@ export interface GateRec { id: string; tg?: number; ig?: string; ok: Partial<Rec
 type F = typeof fetch;
 
 export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
-  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE ?? 16), ttlDays: Number(e.GATE_TTL_DAYS ?? 7), recheckMin: Number(e.GATE_RECHECK_MIN ?? 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, "") };
+  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE || 16), ttlDays: Number(e.GATE_TTL_DAYS || 7), recheckMin: Number(e.GATE_RECHECK_MIN || 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, "") };
   if (e.GATE_TG_BOT_TOKEN && e.GATE_TG_CHANNEL && e.GATE_TG_BOT_USERNAME) {
-    const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL ?? (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "" };
+    const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL || (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "", group: e.GATE_TG_GROUP || undefined, groupUrl: e.GATE_TG_GROUP_URL || (e.GATE_TG_GROUP?.startsWith("@") ? `https://t.me/${e.GATE_TG_GROUP.slice(1)}` : undefined) };
   }
   if (e.GATE_IG_ACCESS_TOKEN && e.GATE_IG_HANDLE && e.GATE_IG_APP_SECRET) c.instagram = { accessToken: e.GATE_IG_ACCESS_TOKEN, appSecret: e.GATE_IG_APP_SECRET, verifyToken: e.GATE_IG_VERIFY_TOKEN ?? "", handle: e.GATE_IG_HANDLE.replace(/^@/, "") };
-  if (e.GATE_YT_CHANNEL_ID) c.youtube = { channelId: e.GATE_YT_CHANNEL_ID, channelUrl: e.GATE_YT_CHANNEL_URL ?? `https://www.youtube.com/channel/${e.GATE_YT_CHANNEL_ID}` };
+  if (e.GATE_YT_CHANNEL_ID) c.youtube = { channelId: e.GATE_YT_CHANNEL_ID, channelUrl: e.GATE_YT_CHANNEL_URL || `https://www.youtube.com/channel/${e.GATE_YT_CHANNEL_ID}` };
   return c;
 }
 
@@ -58,7 +58,7 @@ export class SubscriptionGate {
   }
   status(uid: string, age: number | null) {
     const r = this.recs.get(uid), miss = this.missing(uid, age);
-    return { enabled: this.enabled(), exempt: age !== null && age < this.cfg.minAge, missing: miss, platforms: this.platforms().map((p) => ({ id: p, ok: !!r && this.valid(r, p), linked: p === "telegram" ? r?.tg !== undefined : p === "instagram" ? r?.ig !== undefined : false, url: this.url(p) })) };
+    return { enabled: this.enabled(), exempt: age !== null && age < this.cfg.minAge, missing: miss, platforms: this.platforms().map((p) => ({ id: p, ok: !!r && this.valid(r, p), linked: p === "telegram" ? r?.tg !== undefined : p === "instagram" ? r?.ig !== undefined : false, url: this.url(p), ...(p === "telegram" && this.cfg.telegram?.groupUrl ? { extraUrl: this.cfg.telegram.groupUrl } : {}) })) };
   }
   url(p: Platform) { return p === "telegram" ? this.cfg.telegram?.channelUrl : p === "instagram" ? `https://instagram.com/${this.cfg.instagram?.handle}` : this.cfg.youtube?.channelUrl; }
   private mark(uid: string, p: Platform, ok: boolean) { const r = { ...this.rec(uid), ok: { ...this.rec(uid).ok } }; if (ok) r.ok[p] = this.now(); else delete r.ok[p]; this.recs.set(uid, r); return ok; }
@@ -102,10 +102,23 @@ export class SubscriptionGate {
     if (!m || typeof from !== "number") return false; const p = this.tgTokens.get(m[1]); if (!p || p.exp < this.now()) return false;
     this.tgTokens.delete(m[1]); this.recs.set(p.uid, { ...this.rec(p.uid), tg: from }); return true;
   }
+  /** Botning javobi: bog'langanda tasdiq, oddiy /start da salom (o'yinchi jim botni ko'rmasin). */
+  async replyTelegram(u: any, linked: boolean) {
+    const c = this.cfg.telegram, chat = u?.message?.chat?.id, text = String(u?.message?.text ?? ""); if (!c || typeof chat !== "number" || !text.startsWith("/start")) return;
+    const ch = c.channelUrl ? `\n\nKanal: ${c.channelUrl}` : "", gr = c.groupUrl ? `\nGuruh: ${c.groupUrl}` : "";
+    const msg = linked ? `Tajriba24 hisobingiz Telegram bilan bog'landi.\n\nEndi kanalga obuna bo'ling, so'ng o'yinga qaytib «Tekshirish» tugmasini bosing.${ch}${gr}`
+      : `Tajriba24 botiga xush kelibsiz!\n\nO'yinga kirish uchun ilovadagi «Obuna» oynasidan «Botni ochish» tugmasini bosing.${ch}${gr}`;
+    try { await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: chat, text: msg, disable_web_page_preview: true }) }); } catch { /* javob yuborilmasa ham bog'lash saqlanadi */ }
+  }
   async checkTelegram(uid: string): Promise<boolean | "not_linked" | "unavailable"> {
     const c = this.cfg.telegram, r = this.recs.get(uid); if (!c) return false; if (r?.tg === undefined) return "not_linked";
-    try { const j: any = await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/getChatMember?chat_id=${encodeURIComponent(c.channel)}&user_id=${r.tg}`)).json();
-      if (!j?.ok) return "unavailable"; return this.mark(uid, "telegram", ["member", "administrator", "creator"].includes(j.result?.status) || (j.result?.status === "restricted" && j.result?.is_member === true));
+    try {
+      for (const chat of [c.channel, ...(c.group ? [c.group] : [])]) {
+        const j: any = await (await this.fetchFn(`https://api.telegram.org/bot${c.botToken}/getChatMember?chat_id=${encodeURIComponent(chat)}&user_id=${r.tg}`)).json();
+        if (!j?.ok) return "unavailable";
+        if (!(["member", "administrator", "creator"].includes(j.result?.status) || (j.result?.status === "restricted" && j.result?.is_member === true))) return this.mark(uid, "telegram", false);
+      }
+      return this.mark(uid, "telegram", true);
     } catch { return "unavailable"; }
   }
   // ---- Instagram: o'yinchi bizning professional akkauntga DM orqali kod yuboradi (webhook IGSID beradi), obuna is_user_follow_business bilan tekshiriladi.
@@ -153,7 +166,7 @@ export function registerGate(d: GateDeps) {
     s.addContentTypeParser("application/json", { parseAs: "buffer" }, (_r, body, done) => { try { done(null, { raw: body, json: JSON.parse((body as Buffer).toString("utf8") || "{}") }); } catch (e) { done(e as Error); } });
     s.post("/gate/telegram/webhook", async (req, reply) => {
       const c = gate.cfg.telegram; if (!c || !c.webhookSecret || req.headers["x-telegram-bot-api-secret-token"] !== c.webhookSecret) return reply.code(403).send({ error: "forbidden" });
-      gate.onTelegramUpdate((req.body as any).json); return { ok: true };
+      const upd = (req.body as any).json; void gate.replyTelegram(upd, gate.onTelegramUpdate(upd)); return { ok: true };
     });
     s.get("/gate/instagram/webhook", async (req, reply) => {
       const q = req.query as any, c = gate.cfg.instagram; if (!c?.verifyToken || q["hub.mode"] !== "subscribe" || q["hub.verify_token"] !== c.verifyToken) return reply.code(403).send("forbidden");

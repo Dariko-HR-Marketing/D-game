@@ -75,5 +75,5 @@ export const validName = (n: string) => n.trim().length >= 2 && n.trim().length 
 export const validYear = (y: string, now = new Date().getFullYear()) => /^\d{4}$/.test(y) && Number(y) >= 1900 && Number(y) <= now;
 export const isUnder16 = (y: string, now = new Date().getFullYear()) => validYear(y, now) && now - Number(y) < 16;
 
-export interface GateStatus { enabled: boolean; exempt: boolean; missing: string[]; platforms: { id: "telegram" | "instagram" | "youtube"; ok: boolean; linked: boolean; url?: string }[] }
+export interface GateStatus { enabled: boolean; exempt: boolean; missing: string[]; platforms: { id: "telegram" | "instagram" | "youtube"; ok: boolean; linked: boolean; url?: string; extraUrl?: string }[] }
 export interface GateCheck { ok: boolean; result: "ok" | "not_subscribed" | "not_linked" | "unavailable"; status: GateStatus }

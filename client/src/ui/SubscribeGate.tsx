@@ -32,7 +32,7 @@ export function SubscribeGate({ http, onClose, onDone }: { http: Http; onClose: 
   return (
     <Modal transparent animationType="fade" onRequestClose={onClose}><View style={s.back}><View style={s.box}><ScrollView contentContainerStyle={{ gap: space.md }}>
       <Text style={s.h} accessibilityRole="header">{sub.title}</Text><Text style={s.n}>{sub.hint}</Text>
-      {row("telegram", sub.telegram, sub.tgStep, <><Btn label={sub.tgBot} onPress={() => begin("telegram")} /><Btn label={sub.tgChannel} onPress={() => open(st?.platforms.find((x) => x.id === "telegram")?.url)} /></>)}
+      {row("telegram", sub.telegram, sub.tgStep, <><Btn label={sub.tgBot} onPress={() => begin("telegram")} /><Btn label={sub.tgChannel} onPress={() => open(st?.platforms.find((x) => x.id === "telegram")?.url)} />{!!st?.platforms.find((x) => x.id === "telegram")?.extraUrl && <Btn label={sub.tgGroup} onPress={() => open(st?.platforms.find((x) => x.id === "telegram")?.extraUrl)} />}</>)}
       {row("instagram", sub.instagram, sub.igStep + (code ? `  ${sub.igCode}: ${code}` : ""), <><Btn label={sub.igOpen} onPress={() => begin("instagram")} /></>)}
       {row("youtube", sub.youtube, sub.ytStep, <Btn label={sub.ytOpen} onPress={() => open(st?.platforms.find((x) => x.id === "youtube")?.url)} />)}
       <Btn label={sub.close} onPress={onClose} />
