@@ -39,3 +39,11 @@ Berilgan provayderlar `/shop` katalogida `providers` ro'yxatida chiqadi; mijozda
 ## To'lov oqimi UX (2026-11-24)
 Mijozda «To'lash» buyurtma yaratadi va **kuzatuv oynasi** (`OrderTracker`) ochiladi: «To'lov oynasini ochish» (yangi oynada), har 3 soniyada holat so'raladi (`GET /shop/orders/:id`), to'lov qabul qilinsa «To'lov qabul qilindi», ota-ona tasdig'i kerak bo'lsa shu aytiladi (SMS ni qayta yuborish), «Holatni tekshirish» va «Buyurtmani bekor qilish». Provayder qaytarish manzili `?tolov=<buyurtma>` bilan keladi: mijoz shu buyurtma holatini ko'rsatadi (`PayResult`). Paketlar sahifasida «Buyurtmalarim». Tekshiruv: `server/scripts/pay-check.ts` (soxta provayder; haqiqiy Payme/Click sandbox'i bilan hali sinalmagan). **Real provayderda sinalishi kerak:** qaytarish manzili (Payme `c=`, Click `return_url`) va `PAY_RETURN_URL`.
 
+
+
+## Click hujjati bo'yicha tekshiruv (docs.click.uz, 2026-11-26)
+Hujjatning SHOP API (`/shop-api/requests`, `/shop-api/errors`) va to'lov tugmasi (`/click-button`) bo'limlari bilan solishtirildi:
+- Imzo: Prepare — `md5(click_trans_id + service_id + SECRET_KEY + merchant_trans_id + amount + action + sign_time)`; Complete — `merchant_prepare_id` `merchant_trans_id` dan keyin qo'shiladi. Kodda shunday (`ClickMerchant.signOk`).
+- Xato kodlari `0…-9` va matnlari hujjatga mos; Complete'da to'langan tranzaksiya `-4`, bekor qilingan `-9`; Click manfiy `error` yuborsa tranzaksiya bekor qilinib `-9` qaytadi.
+- To'lov havolasi: `https://my.click.uz/services/pay/?service_id&merchant_id&amount&transaction_param&return_url`. **Tuzatildi:** `amount` endi `N.NN` formatida (`9000.00`); `transaction_param` = buyurtma ID (`merchant_trans_id`). Ixtiyoriy `merchant_user_id` va `card_type` (uzcard/humo) yuborilmaydi.
+- **Hali yo'q (qaror/ma'lumot kerak):** (a) *Fiskalizatsiya* (Merchant API `payment/ofd_data/submit_items` va `submit_qrcode`, `Auth: merchant_user_id:sha1(timestamp+secret):timestamp`): har bir pozitsiya uchun IKPU kodi, o'ram kodi, QQS foizi va summasi, tashkilot STIR/JSHSHIR kerak — bular bizda yo'q, taxmin qilinmaydi. (b) *Qaytarish* (`payment/reversal`): Complete'dan keyin xizmat berib bo'lmasa to'lovni qaytarish — hozir qo'lda admin orqali. (c) Click shartnomasi: `service_id`, `merchant_id`, `merchant_user_id`, `SECRET_KEY`.

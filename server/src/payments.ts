@@ -21,7 +21,7 @@ export class PaymeProvider implements PaymentProvider {
 export class ClickProvider implements PaymentProvider {
   id = "click"; channels: ("web" | "store")[] = ["web"];
   constructor(private serviceId: string, private merchantId: string, private cfg: PayCfg, private base = "https://my.click.uz/services/pay") {}
-  async checkout(o: Order) { const q = new URLSearchParams({ service_id: this.serviceId, merchant_id: this.merchantId, amount: String(o.amount), transaction_param: o.id, return_url: backTo(this.cfg.returnUrl, o.id) }); return { ref: "click-" + o.id, url: `${this.base}?${q}` }; }
+  async checkout(o: Order) { const q = new URLSearchParams({ service_id: this.serviceId, merchant_id: this.merchantId, amount: o.amount.toFixed(2), transaction_param: o.id, return_url: backTo(this.cfg.returnUrl, o.id) }); return { ref: "click-" + o.id, url: `${this.base}?${q}` }; }
 }
 
 // ---------------- Tranzaksiya jurnali ----------------
