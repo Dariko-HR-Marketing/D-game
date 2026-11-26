@@ -32,31 +32,11 @@ for (const [tag, w, h] of [["kmp", 1440, 900], ["tel", 390, 844]] as [string, nu
   check((room.state!.mode ?? "standard") === "standard", `${tag} o'yin holatida rejim «standart»`);
   check(await a.getByTestId("coach").count() === 0, `${tag} standart o'yinda yo'l-yo'riq yo'q`);
   await a.context().close();
-  // 2b) Yangi o'yinchi (o'yini yo'q): bosh sahifada «O'quv o'yini» taklifi
-  const nw = await open("newmd" + tag); await nw.getByTestId("home-tutorial").waitFor({ timeout: 6000 }).catch(() => {}); check(await nw.getByTestId("home-tutorial").count() === 1, `${tag} yangi o'yinchi: bosh sahifada «Birinchi tanishuv» taklifi`);
-  check(await nw.getByTestId("home-new").count() === 0 && await nw.getByTestId("mode-standard").count() === 0 && await nw.getByTestId("mode-corporate").count() === 0, `${tag} yangi o'yinchi: oddiy o'yin va tur tanlovi yopiq (majburiy o'quv)`);
-  check(await nw.getByText(/Avval qisqa tanishuv/).count() > 0, `${tag} yangi o'yinchi: «Avval qisqa tanishuv» tushuntirishi bor`);
-  // 3) Majburiy tanishuv (o'yin emas): server xonasi ochilmaydi, har qadamda namuna tugma bosiladi, tugagach oddiy o'yin ochiladi
-  const t = nw; const roomsBefore = x.rooms.rooms.size;
-  await t.getByTestId("home-tutorial").click(); await t.getByTestId("flow-root").waitFor({ timeout: 6000 });
-  check(x.rooms.rooms.size === roomsBefore, `${tag} tanishuv: server xonasi ochilmadi (o'yin emas)`);
-  const nextBtn = t.getByRole("button", { name: "Keyingisi" }); let steps = 0, gated = 0, blocked = false;
-  for (let k = 0; k < 20; k++) {
-    if (await t.getByRole("button", { name: "Tushundim, o'yinga o'tish" }).count()) break;
-    steps++;
-    if (await t.getByTestId("flow-must").count()) {
-      gated++; if (await nextBtn.isDisabled()) blocked = true;
-      if (await t.locator("[data-testid^=flow-tab-]").count()) { for (const id of ["field", "blank", "cards", "hist", "ana", "chat"]) await t.getByTestId(`flow-tab-${id}`).click(); }
-      else await t.locator("[data-testid^=flow-act-]").first().click();
-      await t.getByTestId("flow-must").waitFor({ state: "detached", timeout: 3000 });
-    }
-    await nextBtn.click(); await t.waitForTimeout(120);
-  }
-  check(gated >= 6 && blocked, `${tag} tanishuv: tugma bosilmaguncha «Keyingisi» yopiq (${gated} ta qadam)`);
-  const fin = t.getByRole("button", { name: "Tushundim, o'yinga o'tish" }); check(await fin.count() === 1 && steps >= 10, `${tag} tanishuv: ketma-ket ${steps + 1} qadam o'tildi`);
-  await fin.click(); await t.getByTestId("home-new").waitFor({ timeout: 6000 }).catch(() => {});
-  check(await t.getByTestId("home-new").count() === 1 && await t.getByTestId("home-tutorial").count() === 0, `${tag} tanishuv tugagach oddiy o'yin ochildi`);
-  check(await t.evaluate(() => localStorage.getItem("tajriba24-tutorial-done")) === "1", `${tag} tanishuv tugagach qurilmada «o'tildi» belgisi qo'yildi`);
-  await t.context().close();
+  // 2b) Yangi o'yinchi (o'yini yo'q): alohida majburiy onboarding YO'Q — oddiy o'yin va tur tanlovi darrov ochiq
+  const nw = await open("newmd" + tag); await nw.getByTestId("home-new").waitFor({ timeout: 6000 }).catch(() => {});
+  check(await nw.getByTestId("home-tutorial").count() === 0, `${tag} yangi o'yinchi: «Birinchi tanishuv» taklifi yo'q (alohida onboarding olib tashlangan)`);
+  check(await nw.getByTestId("home-new").count() === 1 && await nw.getByTestId("mode-standard").count() === 1, `${tag} yangi o'yinchi: oddiy o'yin va tur tanlovi darrov ochiq`);
+  check(await nw.getByText(/Avval qisqa tanishuv/).count() === 0, `${tag} yangi o'yinchi: «Avval qisqa tanishuv» to'sig'i yo'q`);
+  await nw.context().close();
 }
 await b.close(); await x.app.close(); console.log(failed ? `MODES: ${failed} ta xato` : "MODES: hammasi to'g'ri"); process.exit(failed ? 1 : 0);

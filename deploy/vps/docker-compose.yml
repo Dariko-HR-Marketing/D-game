@@ -56,6 +56,9 @@ services:
       GATE_IG_VERIFY_TOKEN: ${GATE_IG_VERIFY_TOKEN:-}
       GATE_YT_CHANNEL_ID: ${GATE_YT_CHANNEL_ID:-}
       GATE_YT_CHANNEL_URL: ${GATE_YT_CHANNEL_URL:-}
+      GATE_REQUIRED: ${GATE_REQUIRED:-telegram,instagram}   # majburiy tarmoqlar; qolgani (YouTube) ixtiyoriy: faqat yulduzcha
+      GATE_FB_URL: ${GATE_FB_URL:-}
+      SOCIAL_STAR_XP: ${SOCIAL_STAR_XP:-}   # har tasdiqlangan tarmoq uchun XP (bo'sh = 0, o'chiq)
       GATE_MIN_AGE: ${GATE_MIN_AGE:-16}
       GATE_TTL_DAYS: ${GATE_TTL_DAYS:-7}
       GATE_RECHECK_MIN: ${GATE_RECHECK_MIN:-5}

@@ -8,17 +8,18 @@ import { Screen } from "./Screen";
 import { GenderPicker, type Gender } from "./GenderPicker";
 import { Avatar } from "./Avatar";
 import { Acc } from "./Accordion";
+import { Socials, socialSummary } from "./Socials";
 import { PhotoPicker } from "./PhotoPicker";
-import { uz, errText } from "../i18n/uz";
+import { uz, errText, soc } from "../i18n/uz";
 import { color, font, PLAYER_COLORS, MIN_TAP, radius, space, tone } from "../theme";
 import { readableOn } from "../contrast";
-import { sameWord, Http, HttpError, isUnder16, validName, validYear } from "../net/http";
+import { sameWord, Http, HttpError, isUnder16, validName, validYear, type SocialsInfo } from "../net/http";
 
 export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Http; onBack: () => void; onDeleted: () => void; onLogout?: () => void }) {
   const [name, setName] = useState(""); const [col, setCol] = useState(0); const [year, setYear] = useState(""); const [photo, setPhoto] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null); const [hist, setHist] = useState<any[]>([]); const [loaded, setLoaded] = useState(false);
   const [msg, setMsg] = useState<string | null>(null); const [err, setErr] = useState<string | null>(null);
-  const [gender, setGender] = useState<Gender>(null); const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false); const [tourReset, setTourReset] = useState(false); const [open, setOpen] = useState<string | null>(null); const tog = (k: string) => setOpen((o) => (o === k ? null : k));
+  const [gender, setGender] = useState<Gender>(null); const [word, setWord] = useState(""); const [showDelete, setShowDelete] = useState(false); const [tourReset, setTourReset] = useState(false); const [open, setOpen] = useState<string | null>(null); const [socInfo, setSocInfo] = useState<SocialsInfo | null>(null); const tog = (k: string) => setOpen((o) => (o === k ? null : k));
 
   useEffect(() => { (async () => {
     try { const r = await http.profile(); setPhoto(r.photo ?? null); if (r.profile) { setName(r.profile.name); setCol(r.profile.color); setYear(String(r.profile.birthYear)); setGender(r.profile.gender ?? null); } setStats(r.stats); setHist(await http.history()); } catch (e) { setErr((e as HttpError).code ?? "network"); }
@@ -75,6 +76,8 @@ export function ProfileScreen({ http, onBack, onDeleted, onLogout }: { http: Htt
           {err && <Banner kind="bad">{errText(err)}</Banner>}
         </View>
       </Acc>
+
+      <Acc icon="star" title={soc.title} summary={socialSummary(socInfo) || undefined} open={open === "soc"} onToggle={() => tog("soc")} testID="prof-soc"><Socials http={http} onInfo={setSocInfo} /></Acc>
 
       {stats?.achievements && (
         <Acc icon="trophy" title={uz.profile.achievements} summary={`${stats.achievements.length}/${Object.keys(uz.achievements).length}`} open={open === "ach"} onToggle={() => tog("ach")} testID="prof-ach"

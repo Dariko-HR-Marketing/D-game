@@ -32,7 +32,7 @@ export function Tour({ id, onRules, defer }: { id: TourId | null; onRules: () =>
   // `defer`: o'yinda o'z navbatingiz davomida yo'riqnoma ochilmaydi (server taymeri to'xtamaydi); navbat o'tgach ochiladi. Ochiq yo'riqnoma yopilmaydi.
   useEffect(() => {
     const changed = prevId.current !== id; prevId.current = id; const want = !!id && steps.length > 0 && !defer && !diceBusyFlag.get() && shouldShowTour(tourKV, id); // kubik natijasi ko'rsatilayotganda ochilmaydi
-    if (changed) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(want); } else if (want) setOpen(true);
+    if (changed) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(want); } else if (want) setOpen(true); else if (defer) setOpen(false); // o'z navbatingiz boshlansa yo'riqnoma yopiladi (ko'rilgan deb belgilanmaydi): o'yin va taymer uni kutmaydi
   }, [id, defer, diceBusy]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => onReplay(() => { if (id && steps.length) { setI(0); setBox((b) => ({ ...b, ready: false })); setOpen(true); } }), [id, steps.length]);
   const close = () => { if (id) markTourSeen(tourKV, id); setOpen(false); };

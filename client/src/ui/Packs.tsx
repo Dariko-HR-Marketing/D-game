@@ -41,7 +41,7 @@ export function Packs({ http, onBack }: { http?: Http; onBack: () => void }) {
       <View style={s.bar}><Pressable accessibilityRole="button" accessibilityLabel={K.back} onPress={onBack} style={s.back}><Icon name="back" size={20} color={color.navy} /><Text style={s.backT}>{K.back}</Text></Pressable><Text style={s.title} aria-level={1} accessibilityRole="header">{K.title}</Text><View style={s.pilot}><Text style={s.pilotT}>{K.pilot}</Text></View></View>
       <ScrollView contentContainerStyle={s.scroll} {...({ tabIndex: 0 } as any)} aria-label={K.title}>
         <View style={s.wrap}>
-          <Text style={s.lead}>{K.lead}</Text>
+          <View style={s.leadBox}><View style={s.leadIco} aria-hidden><Icon name="star" size={22} color={color.white} /></View><Text style={s.leadT}>{K.lead}</Text></View>
           <View style={[s.grid, wide && { flexWrap: "nowrap" }]} role="list">
             {PLAN_ORDER.map((id) => <PlanCard key={id} id={id} cat={cat} current={cur === id} onBuy={() => (id === "org" ? setInq(true) : setBuy(id))} />)}
           </View>
@@ -72,7 +72,7 @@ function PlanCard({ id, cat, current, onBuy }: { id: PlanId; cat: Cat | null; cu
   const monthly = sk[0]?.price ?? null, yearly = sk[1]?.price ?? null, save = yearlySavingPct(monthly, yearly);
   const hot = id === "plus", q = id === "org" ? null : cat?.pkg.quotas[id];
   return (
-    <View style={[s.card, hot && s.hot, current && s.cur, id === "org" && s.org]} role="listitem" testID={`pack-${id}`}>
+    <View style={[s.card, hot && s.hot, id === "premium" && s.prem, current && s.cur, id === "org" && s.org]} role="listitem" testID={`pack-${id}`}>
       <View style={s.cardHead}><View style={[s.ico, id === "premium" && { backgroundColor: "#FBF0D3" }]} aria-hidden><Icon name={ICON[id]} size={22} color={id === "premium" ? "#8A5A00" : GREEN_TEXT} /></View><View style={s.tagBox}><Text style={s.tagT}>{hot && !current ? uz.packs.paywall.rec : current ? K.current : P.tag}</Text></View></View>
       <Text style={s.cardT} aria-level={2} accessibilityRole="header">{P.t}</Text><Text style={s.who}>{P.who}</Text>
       <View style={s.priceBox}>
@@ -226,12 +226,14 @@ const s = StyleSheet.create({
   scroll: { padding: space.lg, alignItems: "center" }, wrap: { width: "100%", maxWidth: 1180, gap: space.lg },
   lead: { color: color.text2, fontSize: font.md, lineHeight: 22, maxWidth: 760 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md, alignItems: "stretch" },
-  card: { flexGrow: 1, flexBasis: 250, minWidth: 240, gap: space.sm, padding: space.lg, borderRadius: radius.xl, backgroundColor: color.white, borderWidth: 1, borderColor: color.line },
-  hot: { borderWidth: 2, borderColor: color.green }, cur: { backgroundColor: "#EAF8F1" }, org: { backgroundColor: "#EEF3F7" },
+  leadBox: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.lg, borderRadius: 22, backgroundColor: color.navy }, leadIco: { width: 44, height: 44, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" }, leadT: { flex: 1, color: "#E3EBF1", fontSize: font.md, lineHeight: 22 },
+  card: { flexGrow: 1, flexBasis: 250, minWidth: 240, gap: space.sm, padding: space.xl, borderRadius: 24, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, shadowColor: "#08263E", shadowOpacity: 0.07, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } },
+  prem: { borderWidth: 2, borderColor: color.gold, backgroundColor: "#FFFCF4" },
+  hot: { borderWidth: 2, borderColor: color.green, shadowOpacity: 0.14 }, cur: { backgroundColor: "#EAF8F1" }, org: { backgroundColor: "#EEF3F7" },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, ico: { width: 40, height: 40, borderRadius: 13, backgroundColor: "#E4F4EC", alignItems: "center", justifyContent: "center" },
   tagBox: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: "#F3F6F4", borderWidth: 1, borderColor: color.line }, tagT: { color: color.navy, fontSize: 12, fontWeight: "800" },
   cardT: { color: color.navy, fontSize: font.xl, fontWeight: "800" }, cardD: { color: color.text2, fontSize: font.md, lineHeight: 22 }, who: { color: color.text2, fontSize: font.sm, fontWeight: "600" },
-  priceBox: { gap: 2, paddingVertical: space.xs }, price: { color: color.navy, fontSize: 26, fontWeight: "800" }, price2: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, per: { color: color.text2, fontSize: font.sm, fontWeight: "600" }, yr: { color: GREEN_TEXT, fontSize: font.sm, fontWeight: "700" }, quota: { color: color.text2, fontSize: 12, fontWeight: "700" },
+  priceBox: { gap: 2, paddingVertical: space.xs }, price: { color: color.navy, fontSize: 30, fontWeight: "800" }, price2: { color: color.navy, fontSize: font.lg, fontWeight: "800" }, per: { color: color.text2, fontSize: font.sm, fontWeight: "600" }, yr: { color: GREEN_TEXT, fontSize: font.sm, fontWeight: "700" }, quota: { color: color.text2, fontSize: 12, fontWeight: "700" },
   pts: { gap: 7 }, pt: { flexDirection: "row", gap: 8, alignItems: "flex-start" }, ptT: { color: color.navy, fontSize: font.sm, lineHeight: 19, flex: 1 },
   curT: { color: GREEN_TEXT, fontWeight: "800", fontSize: font.md, paddingVertical: space.sm }, tbd: { color: color.text2, fontWeight: "700", fontSize: font.sm },
   orgH: { color: color.navy, fontSize: font.sm, fontWeight: "800" }, orgRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 }, orgS: { color: color.text2, fontSize: 13 }, orgV: { color: color.navy, fontSize: 13, fontWeight: "800" }, orgN: { color: color.text2, fontSize: 12, lineHeight: 17 },

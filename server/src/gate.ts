@@ -11,7 +11,7 @@ import { KeyedLimiter } from "./ratelimit";
 export type Platform = "telegram" | "instagram" | "youtube";
 export const PLATFORMS: Platform[] = ["telegram", "instagram", "youtube"];
 export interface GateConfig {
-  minAge: number; ttlDays: number; recheckMin?: number; apiUrl?: string;
+  minAge: number; ttlDays: number; recheckMin?: number; apiUrl?: string; required?: Platform[]; facebookUrl?: string;
   telegram?: { botToken: string; channel: string; botUsername: string; channelUrl: string; webhookSecret: string; group?: string; groupUrl?: string };
   instagram?: { accessToken: string; appSecret: string; verifyToken: string; handle: string };
   youtube?: { channelId: string; channelUrl: string };
@@ -22,7 +22,8 @@ export interface GateRec { id: string; tg?: number; ig?: string; ok: Partial<Rec
 type F = typeof fetch;
 
 export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
-  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE || 16), ttlDays: Number(e.GATE_TTL_DAYS || 7), recheckMin: Number(e.GATE_RECHECK_MIN || 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, "") };
+  const c: GateConfig = { minAge: Number(e.GATE_MIN_AGE || 16), ttlDays: Number(e.GATE_TTL_DAYS || 7), recheckMin: Number(e.GATE_RECHECK_MIN || 5), apiUrl: e.GATE_PUBLIC_API_URL?.replace(/\/$/, ""),
+    required: (e.GATE_REQUIRED ?? "telegram,instagram").split(",").map((x) => x.trim()).filter((x): x is Platform => (PLATFORMS as string[]).includes(x)), facebookUrl: e.GATE_FB_URL || undefined };
   if (e.GATE_TG_BOT_TOKEN && e.GATE_TG_CHANNEL && e.GATE_TG_BOT_USERNAME) {
     const ch = e.GATE_TG_CHANNEL; c.telegram = { botToken: e.GATE_TG_BOT_TOKEN, channel: ch, botUsername: e.GATE_TG_BOT_USERNAME.replace(/^@/, ""), channelUrl: e.GATE_TG_CHANNEL_URL || (ch.startsWith("@") ? `https://t.me/${ch.slice(1)}` : ""), webhookSecret: e.GATE_TG_WEBHOOK_SECRET ?? "", group: e.GATE_TG_GROUP || undefined, groupUrl: e.GATE_TG_GROUP_URL || (e.GATE_TG_GROUP?.startsWith("@") ? `https://t.me/${e.GATE_TG_GROUP.slice(1)}` : undefined) };
   }
@@ -33,18 +34,23 @@ export function gateConfigFromEnv(e: NodeJS.ProcessEnv): GateConfig {
 
 export class SubscriptionGate {
   private recs: Collection<GateRec>; private ex: Collection<GateEx>; private tok: Collection<GateTok>; readonly queue = new WriteQueue();
+  /** Har bir tasdiqlangan tarmoq uchun XP (ijtimoiy yulduzcha). SPEC raqam bermagan, shuning uchun standart 0 (o'chiq): SOCIAL_STAR_XP bilan yoqiladi. */
+  starXp = 0;
   blocked = { total: 0, telegram: 0, instagram: 0, youtube: 0 }; since = Date.now(); health: { telegramWebhook?: { ok: boolean; at: number; error?: string }; instagramRefresh?: { ok: boolean; at: number; error?: string } } = {};
   private tgTokens = new Map<string, { uid: string; exp: number }>(); private igCodes = new Map<string, { uid: string; exp: number }>();
   constructor(readonly cfg: GateConfig, store?: DocStore, private fetchFn: F = fetch, private now: () => number = Date.now) { this.recs = new Collection("gate", store, this.queue); this.ex = new Collection("gateex", store, this.queue); this.tok = new Collection("gatetok", store, this.queue); }
   async load() { await this.recs.load(); await this.ex.load(); await this.tok.load(); return this; }
+  /** Sozlangan (tekshirilishi mumkin) platformalar. */
   platforms(): Platform[] { return PLATFORMS.filter((p) => !!this.cfg[p]); }
-  enabled() { return this.platforms().length > 0; }
+  /** Majburiy (o'yin boshlashdan oldin talab qilinadigan) platformalar: sozlangan va `required` ro'yxatida. Qolganlari — ixtiyoriy (yulduzcha uchun). */
+  enforced(): Platform[] { return this.platforms().filter((p) => !this.cfg.required || this.cfg.required.includes(p)); }
+  enabled() { return this.enforced().length > 0; }
   private rec(uid: string): GateRec { return this.recs.get(uid) ?? { id: uid, ok: {}, at: this.now() }; }
   private valid(r: GateRec, p: Platform) { const t = r.ok[p]; return t !== undefined && this.now() - t < this.cfg.ttlDays * 86400_000; }
   /** O'yinchiga yetishmayotgan platformalar. 16 yoshgacha (yurist xulosasigacha) darvoza qo'llanmaydi. */
   missing(uid: string, age: number | null): Platform[] {
     if (!this.enabled() || (age !== null && age < this.cfg.minAge) || this.ex.get(uid)) return [];
-    const r = this.recs.get(uid), m = this.platforms().filter((p) => !r || !this.valid(r, p));
+    const r = this.recs.get(uid), m = this.enforced().filter((p) => !r || !this.valid(r, p));
     return m;
   }
   /** Har o'yin boshlashdan oldin: Telegram va Instagram obunasi jonli qayta tekshiriladi (chiqib ketgan qaytariladi); API ishlamasa oldingi tasdiq saqlanadi.
@@ -58,8 +64,20 @@ export class SubscriptionGate {
   }
   status(uid: string, age: number | null) {
     const r = this.recs.get(uid), miss = this.missing(uid, age);
-    return { enabled: this.enabled(), exempt: age !== null && age < this.cfg.minAge, missing: miss, platforms: this.platforms().map((p) => ({ id: p, ok: !!r && this.valid(r, p), linked: p === "telegram" ? r?.tg !== undefined : p === "instagram" ? r?.ig !== undefined : false, url: this.url(p), ...(p === "telegram" && this.cfg.telegram?.groupUrl ? { extraUrl: this.cfg.telegram.groupUrl } : {}) })) };
+    return { enabled: this.enabled(), exempt: age !== null && age < this.cfg.minAge, missing: miss, platforms: this.enforced().map((p) => ({ id: p, ok: !!r && this.valid(r, p), linked: p === "telegram" ? r?.tg !== undefined : p === "instagram" ? r?.ig !== undefined : false, url: this.url(p), ...(p === "telegram" && this.cfg.telegram?.groupUrl ? { extraUrl: this.cfg.telegram.groupUrl } : {}) })) };
   }
+  /** Profil uchun: hamma tarmoq (Facebook'dan tashqari tekshiriladi) — holat, majburiymi, havola. Yulduzcha faqat TEKSHIRILGAN obuna uchun. */
+  socials(uid: string) {
+    const r = this.recs.get(uid), ids: (Platform | "facebook")[] = ["telegram", "instagram", "youtube", "facebook"];
+    return ids.map((id) => {
+      if (id === "facebook") return { id, configured: false, required: false, ok: false, linked: false, url: this.cfg.facebookUrl, at: null as number | null, verifiable: false };
+      const configured = !!this.cfg[id], ok = !!r && this.valid(r, id);
+      return { id, configured, required: configured && this.enforced().includes(id), ok, linked: id === "telegram" ? r?.tg !== undefined : id === "instagram" ? r?.ig !== undefined : ok, url: this.url(id), at: r?.ok[id] ?? null, verifiable: true };
+    });
+  }
+  starsOf(uid: string) { return this.socials(uid).filter((x) => x.ok).length; }
+  /** Profilda «Uzish»: bog'lash va tasdiq o'chadi; majburiy bo'lsa o'yin boshlashdan oldin qayta so'raladi. */
+  disconnect(uid: string, p: Platform) { const r = this.recs.get(uid); if (!r) return; const n: GateRec = { ...r, ok: { ...r.ok } }; delete n.ok[p]; if (p === "telegram") delete n.tg; if (p === "instagram") delete n.ig; this.recs.set(uid, n); }
   url(p: Platform) { return p === "telegram" ? this.cfg.telegram?.channelUrl : p === "instagram" ? `https://instagram.com/${this.cfg.instagram?.handle}` : this.cfg.youtube?.channelUrl; }
   private mark(uid: string, p: Platform, ok: boolean) { const r = { ...this.rec(uid), ok: { ...this.rec(uid).ok } }; if (ok) r.ok[p] = this.now(); else delete r.ok[p]; this.recs.set(uid, r); return ok; }
   erase(uid: string) { this.recs.delete(uid); this.ex.delete(uid); for (const m of [this.tgTokens, this.igCodes]) for (const [k, v] of m) if (v.uid === uid) m.delete(k); }
@@ -187,6 +205,8 @@ export function registerGate(d: GateDeps) {
   const guard = (uid: string, reply: any) => { if (lim.allow(uid)) return true; reply.code(429).send({ error: "rate_limited" }); return false; };
   const res = (r: boolean | string) => ({ ok: r === true, result: r === true ? "ok" : r === false ? "not_subscribed" : r });
   app.get("/gate", d.secured((uid) => gate.status(uid, d.ageOf(uid))));
+  app.get("/me/socials", d.secured((uid) => ({ items: gate.socials(uid), stars: gate.starsOf(uid), starXp: gate.starXp, required: gate.enforced() })));
+  app.delete("/me/socials/:p", d.secured((uid, req, reply) => { const p = String((req.params as any).p); if (!(PLATFORMS as string[]).includes(p)) return reply.code(400).send({ error: "bad_platform" }); gate.disconnect(uid, p as Platform); return { ok: true, items: gate.socials(uid), stars: gate.starsOf(uid) }; }));
   app.post("/gate/telegram/start", d.secured((uid, _q, reply) => guard(uid, reply) ? (gate.telegramStart(uid) ?? reply.code(404).send({ error: "gate_off" })) : undefined));
   app.post("/gate/telegram/check", d.secured(async (uid, _q, reply) => guard(uid, reply) ? { ...res(await gate.checkTelegram(uid)), status: gate.status(uid, d.ageOf(uid)) } : undefined));
   app.post("/gate/instagram/start", d.secured((uid, _q, reply) => guard(uid, reply) ? (gate.instagramStart(uid) ?? reply.code(404).send({ error: "gate_off" })) : undefined));

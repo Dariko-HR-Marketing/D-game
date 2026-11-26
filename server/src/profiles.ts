@@ -141,10 +141,12 @@ export class ProfileService {
         left: leftIds.includes(p.id) || undefined, assets: p.assets?.length ?? 0, quitJob: p.quitJob || undefined, autos: p.autos || undefined, place: placeOf(st, p.id, leftIds), xpBonus: p.xp || undefined })) });
   }
 
+  /** Ijtimoiy tarmoq yulduzchalari uchun qo'shimcha XP (server ulaydi; berilmasa 0). */
+  socialXp?: (userId: string) => number;
   stats(userId: string): Stats {
     let games = 0, wins = 0, reachedBig = 0, unreliable = 0;
     for (const r of this.results) { const p = r.players.find((x) => x.id === userId); if (p?.unreliable && !this.cleared.has(userId)) unreliable++; if (!p || p.bot) continue; /* bot (yoki chiqib ketgan) statistikaga kirmaydi */ games++; if (p.won) wins++; if (p.circle === "big") reachedBig++; }
-    const now = this.now(), points = pointsOf(this.results, userId, now, this.cleared.has(userId)), xp = xpOf(this.results, userId), lv = levelOfXp(xp);
+    const now = this.now(), points = pointsOf(this.results, userId, now, this.cleared.has(userId)), xp = xpOf(this.results, userId) + Math.max(0, this.socialXp?.(userId) ?? 0), lv = levelOfXp(xp);
     const sk: Skill | undefined = this.skills().skills.get(userId), rating = sk ? displayRating(sk) : null, ratedGames = this.skills().games.get(userId) ?? 0;
     return { achievements: achievementsOf(this.results, userId), stars: starsOf(lv.level), title: titleOf(starsOf(lv.level)), unreliable, games, wins, reachedBig, points, level: lv.level,
       xp, xpInto: lv.into, xpNeed: lv.need, rank: rankOfLevel(lv.level), rating, league: rating === null ? null : leagueOf(rating), ratedGames, donishmand: this.donishmandSet().has(userId), season: seasonOf(now) };
