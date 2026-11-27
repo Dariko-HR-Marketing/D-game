@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { marketOffers } from "../model";
 import { money } from "../format";
+import { offerHowLines } from "../offerHow";
 import { uz } from "../i18n/uz";
 import { color, font, HEADER_H, MIN_TAP, radius, shadow, space, tone } from "../theme";
 
@@ -19,6 +20,7 @@ export function MarketOfferLayer({ room, userId, onAct }: { room: any; userId: s
           <Text style={s.kicker}>{uz.portfolio.offer}</Text>
           <Text style={s.text}>{o.text}</Text>
           <Text style={s.meta}>{o.assetCode} · {uz.coop.sellFor}: {money(o.price)} · {uz.coop.net}: {money(o.net)}</Text>
+          {offerHowLines(o).map((l, i) => <Text key={i} style={s.how} testID="market-offer-how">{l}</Text>)}
           <View style={s.row}>
             <Pressable accessibilityRole="button" onPress={() => onAct({ type: "market_sell", proposalId: o.proposalId, assetCode: o.assetCode })} style={s.go} testID="market-offer-sell"><Text style={s.goT}>{uz.coop.sell} {money(o.price)}</Text></Pressable>
             <Pressable accessibilityRole="button" onPress={() => setHidden((h) => ({ ...h, [`${o.proposalId}:${o.assetCode}`]: true }))} style={s.later} testID="market-offer-later"><Text style={s.laterT}>{uz.portfolio.later}</Text></Pressable>
@@ -34,6 +36,7 @@ const s = StyleSheet.create({
   kicker: { color: color.green, fontSize: font.sm, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.4 },
   text: { color: color.navy, fontSize: font.md, fontWeight: "700" },
   meta: { color: color.text2, fontSize: font.sm },
+  how: { color: color.navy, fontSize: font.sm, fontWeight: "700" },
   row: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" },
   go: { minHeight: MIN_TAP, paddingHorizontal: space.lg, borderRadius: radius.md, backgroundColor: color.green, alignItems: "center", justifyContent: "center" },
   goT: { color: color.white, fontSize: font.md, fontWeight: "800" },

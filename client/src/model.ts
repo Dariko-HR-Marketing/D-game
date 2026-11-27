@@ -17,7 +17,7 @@ export function exitProgress(p: any, mode?: GameMode | null) {
   return { checks, passive, expenses: exp, cashflow: playerCashflow(p), debt, canExit: canExitSmallCircle({ cash: p.cash, salary: p.salary, passiveIncome: passive, expenses: exp, bankDebt: p.bankDebt, otherDebt: debt - p.bankDebt, openPartnerships: openPartnerships(p) }, mode), need };
 }
 
-import { RULES, mutualLoanLimit, assetMatches, marketPrice, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice, offerPrice, CRISIS_KINDS } from "@tajriba24/rules";
+import { RULES, mutualLoanLimit, assetMatches, marketPrice, saleBase, maxBankLoan, allDebt, pledgeable, voluntarySellable, voluntarySalePrice, offerPrice, CRISIS_KINDS } from "@tajriba24/rules";
 
 /** Hozir olish mumkin bo'lgan eng katta bank krediti (garov 120 %, 2 000–5 000); 0 — kredit yo'q. */
 export const bankRoom = (p: any) => maxBankLoan({ salary: 0, ...p, assets: p.assets ?? [], bankLoans: p.bankLoans ?? [], bankDebt: p.bankDebt ?? 0 });
@@ -81,23 +81,29 @@ export const loanWitnessOptions = (room: any, userId: string, giverId: string): 
 export const myPartneredAssets = (p: any): any[] => p.assets.filter((a: any) => a.partnerId);
 
 /** Bozor taklifi: menda sotiladigan mos aktiv bormi va qanday narxda (hamma o'yinchiga ochiq, navbatdan mustaqil). */
-export function marketOffers(room: any, userId: string): { proposalId: number; text: string; assetCode: string; price: number; net: number }[] {
+/** Taklif narxi qanday hisoblangani (oynada ko'rsatiladi): `unit` — «sotixiga» × sotix; `pct` — sotib olingan narx + foiz; `fixed` — qat'iy narx. */
+export type OfferHow = { kind: "unit"; per: number; units: number } | { kind: "pct"; base: number; bought: number; pct: number } | { kind: "fixed" } | { kind: "plain" };
+export interface MarketOffer { proposalId: number; text: string; assetCode: string; price: number; net: number; how: OfferHow; crisis: boolean }
+export function marketOffers(room: any, userId: string): MarketOffer[] {
   const p = me(room, userId), st = room?.state; if (!p || !st) return [];
-  const out: any[] = [];
+  const out: MarketOffer[] = []; const crisis = (a: any) => (p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(a.kind); // inqirozda ko'chmas mulk/aksiya narxi yarim (server ham shunday)
   for (const pr of st.proposals) {
     if ((pr.kind !== "market" && pr.kind !== "offer") || pr.sold.includes(userId)) continue;
     const card = room.marketCards?.[pr.id]; const e = card?.effect;
-    if (e?.kind === "sellOffer") { // katalog taklifi: eng yaxshi narxli mos aktiv (server ham shunday tanlaydi); inqirozda ko'chmas mulk/aksiya narxi yarim
-      let best: { a: any; price: number } | null = null;
-      for (const a of p.assets) { const raw = offerPrice(e, p, a); if (raw === null) continue; const price = Math.round(raw * ((p.crisisMonths ?? 0) > 0 && CRISIS_KINDS.includes(a.kind) ? 0.5 : 1)); if (!best || price > best.price) best = { a, price }; }
-      if (best) out.push({ proposalId: pr.id, text: card.text, assetCode: best.a.code, price: best.price, net: best.price - best.a.credit });
+    if (e?.kind === "sellOffer") { // katalog taklifi: eng yaxshi narxli mos aktiv (server ham shunday tanlaydi)
+      let best: { a: any; price: number; cut: boolean } | null = null;
+      for (const a of p.assets) { const raw = offerPrice(e, p, a); if (raw === null) continue; const cut = crisis(a); const price = Math.round(raw * (cut ? 0.5 : 1)); if (!best || price > best.price) best = { a, price, cut }; }
+      if (best) out.push({ proposalId: pr.id, text: card.text, assetCode: best.a.code, price: best.price, net: best.price - best.a.credit, crisis: best.cut,
+        how: e.mode === "pct" ? { kind: "pct", base: saleBase(p, best.a), bought: best.a.price, pct: e.value } : { kind: "fixed" } });
       continue;
     }
     if (e?.kind !== "marketSale") continue;
     for (const a of p.assets) {
-      if (a.partnerId || a.stakeOf || !assetMatches(e.targets, a)) continue;
-      const price = marketPrice(e.amount, a); if (price === null) continue;
-      out.push({ proposalId: pr.id, text: card.text, assetCode: a.code, price, net: price - a.credit }); break;
+      if (a.partnerId || a.stakeOf || a.pledged || !assetMatches(e.targets, a)) continue;
+      const raw = marketPrice(e.amount, a); if (raw === null) continue;
+      const cut = crisis(a), price = Math.round(raw * (cut ? 0.5 : 1));
+      out.push({ proposalId: pr.id, text: card.text, assetCode: a.code, price, net: price - a.credit, crisis: cut,
+        how: typeof e.amount === "number" && a.units && !a.shares ? { kind: "unit", per: e.amount, units: a.units } : { kind: "plain" } }); break;
     }
   }
   return out;

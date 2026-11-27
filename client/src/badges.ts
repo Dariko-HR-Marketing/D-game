@@ -8,13 +8,13 @@ export type BadgeTab = "field" | "blank" | "players";
 export interface Badge { count: number; tone: "urgent" | "info"; temp: boolean; urgent: number; info: number }
 export type Badges = Record<BadgeTab, Badge | null>;
 /** Foydalanuvchi allaqachon ko'rgan narsalar (bo'lim ochilganda yangilanadi). */
-export interface Seen { logN: number; reactions: number[]; notices: number[] }
+export interface Seen { logN: number; notices: number[] }
 
 /** Yangi voqealar soni: jami hisoblagich farqi (jurnal kesilgani uchun log.length emas). */
 export const newEvents = (state: any, seen: Seen): number => Math.max(0, (state?.logN ?? 0) - seen.logN);
 const noticesFor = (state: any, userId: string): any[] => (state?.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1);
 
-export function tabBadges(o: { room: any; userId: string; myTurnAction: boolean; seen: Seen; reactions: { id: number; from: string }[] }): Badges {
+export function tabBadges(o: { room: any; userId: string; myTurnAction: boolean; seen: Seen }): Badges {
   const { room, userId, myTurnAction, seen } = o; const st = room.state;
   const mk = (urgent: number, info: number, temp: boolean): Badge | null => urgent + info === 0 ? null : { count: urgent + info, tone: urgent > 0 ? "urgent" : "info", temp, urgent, info };
   // Maydon: navbat menda (kubik yoki karta qarori) — vaqt cheklangan
@@ -25,9 +25,8 @@ export function tabBadges(o: { room: any; userId: string; myTurnAction: boolean;
   const urgent = pr.loansToAccept.length + pr.partnerToAccept.length + reminders;
   const info = marketOffers(room, userId).length + pr.suyunchi.length + others;
   const blank = mk(urgent, info, pr.loansToAccept.length + pr.partnerToAccept.length + marketOffers(room, userId).length + pr.suyunchi.length > 0);
-  // O'yinchilar: yangi voqealar va boshqalardan kelgan reaksiyalar
-  const reacts = o.reactions.filter((r) => r.from !== userId && !seen.reactions.includes(r.id)).length;
-  const players = mk(0, newEvents(st, seen) + reacts, false);
+  // O'yinchilar: yangi voqealar
+  const players = mk(0, newEvents(st, seen), false);
   return { field, blank, players };
 }
 
