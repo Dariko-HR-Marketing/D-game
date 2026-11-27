@@ -44,6 +44,7 @@ import { OnboardingPlan } from "./OnboardingPlan";
 import { QuizResult } from "./QuizResult";
 import { Actions } from "./Actions";
 import { Avatar } from "./Avatar";
+import { MarketOfferLayer } from "./MarketOfferLayer";
 import { ProfileMenu, RequestModal, useRequestModal, useRequests } from "./RequestCenter";
 import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
@@ -290,7 +291,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   if (wide) return (
     <View style={{ height, overflow: "hidden" as any }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MarketOfferLayer room={room} userId={userId} onAct={onAct} /><MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 6, left: Math.max(0, (width - 1440) / 2) + space.lg, width: sideW - space.sm }} /><BirthLayer room={room} userId={userId} />
       {room.mode === "tutorial" && !state.winner && <OnboardingPlan />}{portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
@@ -345,7 +346,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
 
   return (
     <View style={{ flex: 1, backgroundColor: color.white }}>
-      <MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
+      <MarketOfferLayer room={room} userId={userId} onAct={onAct} /><MomentLayer moments={mom.shown} dismiss={mom.dismiss} onHeight={setMomH} offset={wide ? 0 : Math.min(fx.chips.length, 5) * 54} /><DiceModal room={room} userId={userId} prompt={rollPrompt} />{(state.recaps?.length ?? 0) > 0 && <LaterOverlay><RecapLayer room={room} userId={userId} onAck={(id) => onAct({ type: "ack_restart", id })} onBreak={() => onBreak?.()} onLeave={onLeave} /></LaterOverlay>}{auctionOpen && <LaterOverlay><AuctionLayer room={room} userId={userId} onAct={onAct as any} /></LaterOverlay>}{chatNode}<CardToast room={room} userId={userId} hold={!settled} offset={momH} /><GambleToast room={room} userId={userId} hold={!settled} offset={momH} />
       <FxLayer chips={fx.chips} reduced={fx.reduced} style={{ top: HEADER_H + 10, left: space.lg, right: space.lg }} /><BirthLayer room={room} userId={userId} />
       {room.mode === "tutorial" && !state.winner && <OnboardingPlan />}{portfolioOpen && <PortfolioDetail room={room} userId={userId} onClose={() => setPortfolioOpen(false)} />}
       {sheetView && <LaterOverlay><SheetDetail room={room} userId={userId} onClose={() => setSheetView(false)} /></LaterOverlay>}
@@ -370,7 +371,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
       {/* §9: telefonda qaror pastki varaqda (bottom sheet) */}
       {sheetOpen && mine && sheetMin && miniBar(false)}
       {sheetShown && mine && (
-        <View style={[s.sheet, height < 520 && { maxHeight: "58%" as any }]} accessibilityViewIsModal>
+        <View style={[s.sheet, height < 520 && { maxHeight: "58%" as any }, tablet && { left: Math.max(0, (width - SHEET_T) / 2), right: Math.max(0, (width - SHEET_T) / 2), borderRadius: 24 }]} accessibilityViewIsModal>
           <Pressable accessibilityRole="button" accessibilityLabel={uz.deck.minimize} onPress={() => setSheetMin(true)} style={s.grabBtn} testID="decision-minimize"><View style={s.grab} aria-hidden /><Text style={s.grabT}>{uz.deck.minimize} ▼</Text></Pressable>
           <CardEnter id={card!.id} from={48} style={{ flexShrink: 1, minHeight: 0 }}><DecisionCard card={card} me={mine} bankRoom={bank} turnSeconds={phaseSeconds(room)} calcMode={manualCalc} calcFb={calcFb} onAct={onAct} sheet deadline={room.deadline} die={myDie}
             layout={(body, actions) => (<View style={{ flexShrink: 1, minHeight: 0 }}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flexShrink: 1 }}>{body}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} /></CardEnter>
@@ -387,6 +388,7 @@ function SlideIn({ reduced, style, testID, label, children }: { reduced?: boolea
   useEffect(() => { if (reduced) return; Animated.timing(x, { toValue: 0, duration: 220, useNativeDriver: Platform.OS !== "web" }).start(); }, [reduced, x]);
   return <Animated.View role="dialog" aria-label={label} testID={testID} style={[style, { transform: [{ translateX: x }] }]}>{children}</Animated.View>;
 }
+const SHEET_T = 640; // tik planshet: qaror varag'i butun kenglikka cho'zilmaydi, markazda o'qish uchun qulay kenglikda
 const s = StyleSheet.create({
   avatarBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 22 },
   edge: { position: "absolute", right: 0, top: "42%", width: 44, height: 96, borderTopLeftRadius: 14, borderBottomLeftRadius: 14, backgroundColor: color.navy, alignItems: "center", justifyContent: "center", zIndex: 5, shadowColor: "#08263E", shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: -2, height: 0 }, elevation: 6 }, edgeT: { color: "#fff", fontSize: 22, fontWeight: "800", lineHeight: 24 },

@@ -5,6 +5,7 @@ import { CELL_RULES } from "./cellRules";
 import { money } from "./format";
 import { uz } from "./i18n/uz";
 import type { BigOwner } from "./bigOwners";
+import type { PlacedDream } from "./dreamCells";
 
 export interface CellLine { k: string; v: string }
 export interface CellInfoData { title: string; kind: string; text: string[]; lines: CellLine[]; owners: { id: string; n: number; what: string }[] }
@@ -19,7 +20,7 @@ export function smallCellInfo(i: number): CellInfoData {
 }
 
 /** `viewer`: ko'ruvchining o'yinchi holati (orzu va g'alaba shartlari bo'yicha shaxsiy ko'rsatkich uchun). */
-export function bigCellInfo(i: number, owners: BigOwner[], names: (id: string) => string, viewer?: { cash: number; flow: number; dreamName?: string; dreamPrice?: number }): CellInfoData {
+export function bigCellInfo(i: number, owners: BigOwner[], names: (id: string) => string, viewer?: { cash: number; flow: number; dreamName?: string; dreamPrice?: number }, placed?: PlacedDream | null): CellInfoData {
   const c = BIG_CELLS[i]; const byIndex = (CELL_RULES.big.byIndex as Record<string, { kind: string; share?: number; first?: number }>)[String(i)];
   const lines: CellLine[] = []; const text: string[] = [];
   if (c.t === "T" || c.t === "V") { // orzu katagidagi yozuv/narx faqat bezak: g'alaba shartida o'yinchining O'Z orzusi hisoblanadi (OPEN_QUESTIONS 156)
@@ -35,6 +36,7 @@ export function bigCellInfo(i: number, owners: BigOwner[], names: (id: string) =
   if (c.t === "T" || c.t === "V") lines.push({ k: uz.cell.owner, v: biz ? names(biz.id) : uz.cell.free });
   if (c.t === "O") {
     text.push(fill(uz.cell.dream, { flow: money(RULES.winCashflow) }));
+    if (placed) lines.push({ k: uz.cell.dreamHere, v: placed.name }, { k: uz.cell.dreamValue, v: money(placed.price) }, { k: uz.cell.dreamBy, v: names(placed.by) }); else text.push(uz.cell.dreamEmpty);
     if (viewer?.dreamName) { text.push(fill(uz.cell.dreamMine, { name: viewer.dreamName, price: money(viewer.dreamPrice ?? 0) })); lines.push({ k: uz.cell.yourFlow, v: `${money(viewer.flow)} / ${money(RULES.winCashflow)}` }, { k: uz.cell.yourCash, v: `${money(viewer.cash)} / ${money(viewer.dreamPrice ?? 0)}` }); }
   }
   if (c.t === "Y") text.push(uz.cell.yana);
