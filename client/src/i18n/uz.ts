@@ -179,7 +179,7 @@ export const uz = {
     title: "Mening kartalarim", open: "Batafsil va tahlil", close: "Yopish", empty: "Hali aktiv yo'q. Karta sotib olsangiz, shu yerda ko'rinadi.", count: "ta",
     kinds: { buy: "Aktiv", business: "Biznes", shares: "Aksiyalar", partner_stake: "Sheriklik ulushi", other: "Aktiv" } as Record<string, string>,
     subs: { small_business: "Kichik biznes", business: "Biznes", land: "Yer", dacha: "Dacha", apartment: "Kvartira", car: "Avtomobil", collectible: "Kolleksiya" } as Record<string, string>,
-    perMonth: "oyiga", sharesWord: "dona", pledged: "Garovda", partner: "Sherik", stakeOf: "Ulush · egasi", tokens: "fishka", offer: "Bozor taklifi", sell: "Sotish",
+    perMonth: "oyiga", sharesWord: "dona", pledged: "Garovda", partner: "Sherik", stakeOf: "Ulush · egasi", tokens: "fishka", offer: "Bozor taklifi", later: "Keyinroq", sell: "Sotish",
     sumAssets: "Aktivlar qiymati", sumPassive: "Passiv daromad", sumPayments: "Kredit to'lovi", sumNet: "Sof passiv", sumDebt: "Qarzlar", sumLent: "Berilgan qarz", sumWorth: "Taxminiy sof boylik", worthNote: "Naqd + aktivlar (sotib olish narxida) − qarzlar + berilgan qarzlar",
     colCard: "Karta", colKind: "Turi", colPrice: "Narxi", colIncome: "Daromad / oy", colPayment: "Kredit / oy", colCredit: "Qarz qoldig'i", colYield: "Yillik daromad", colPayback: "Qoplanish", colState: "Holat", months: "oy",
     assets: "Aktivlar va kartalar", debts: "Qarzlar", lentTitle: "Men bergan qarzlar", owedTitle: "Men olgan qarzlar", bankTitle: "Bank krediti (murobaha)", lombardTitle: "Lombard (rahn)", oweTitle: "To'lanmagan qarz", leftMonths: "oy qoldi",
