@@ -41,7 +41,7 @@ for (const [tag, w, h] of [["n", 390, 844], ["d", 1440, 900]] as [string, number
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" }); await ctx.addInitScript(() => { localStorage.setItem("tajriba24-tours-off", "1"); localStorage.setItem("tajriba24-tutorial-done", "1"); }); const p = await ctx.newPage(); await p.goto(WEB + "/?kirish=1");
   await p.getByRole("tab", { name: "Ro'yxatdan o'tish" }).click(); await p.getByLabel("Ismingiz").fill("Madina"); await p.getByLabel("Telefon yoki Email").fill("93 456 78 90"); await p.getByLabel("Tug'ilgan yil").fill("1999");
   const cta = p.getByRole("button", { name: "Ro'yxatdan o'tish" }).last(); if (!(await cta.isDisabled())) { total++; console.log("XATO: rozilik bermasdan tugma faol"); }
-  await p.getByRole("checkbox", { name: /Foydalanish shartlari/ }).click(); await cta.click();
+  await p.getByRole("checkbox", { name: /Ommaviy oferta/ }).click(); await cta.click();
   await p.getByLabel("SMS kodi (6 raqam)").waitFor(); await p.getByLabel("SMS kodi (6 raqam)").fill(last);
   const home = p.getByRole("button", { name: /^Yangi o'yin/ }); const gate = p.getByTestId("gate-name");
   await Promise.race([home.waitFor({ timeout: 15000 }).catch(() => {}), gate.waitFor({ timeout: 15000 }).catch(() => {})]);
