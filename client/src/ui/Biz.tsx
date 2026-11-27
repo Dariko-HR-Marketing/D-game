@@ -1,4 +1,5 @@
 // Plus/do'kon (maket N44–N48, N53), sinf va o'qituvchi paneli (D10), homiy turniri (D11).
+import { qText } from "./Packs";
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { Screen } from "./Screen";
@@ -54,7 +55,7 @@ export function ShopScreen({ http, onBack }: { http: Http; onBack: () => void })
         <Card label="Tajriba24 Plus" accent={d.plus.active ? "green" : undefined}>
           <SectionTitle right={<Pill label={d.plus.active ? "Faol" : "Faol emas"} kind={d.plus.active ? "good" : "plain"} />}>Tajriba24 Plus</SectionTitle>
           <Text style={s.p}>Cheklovsiz xonalar, to'liq o'yin tarixi va barcha o'yinlar tahlili, reklamasiz, har oy bitta Plus narsa. O'yin kuchiga ta'sir qilmaydi.</Text>
-          <Row l="Bepul tarifda" v={`kuniga ${d.plus.features.rooms ?? "∞"} xona, oxirgi ${d.plus.features.history ?? "∞"} o'yin`} />
+          <Row l="Bepul tarifda" v={`maydon: ${typeof d.plus.features.rooms === "object" && d.plus.features.rooms ? qText(d.plus.features.rooms) : "cheklovsiz"}; tarix: oxirgi ${d.plus.features.history ?? "∞"} o'yin`} />
           {d.plus.active ? (<>
             <Row l="Amal qiladi" v={`${date(d.plus.until)} gacha`} />
             {d.plus.cancelled ? <Banner kind="info">Avtomatik uzaytirish o'chirilgan. Muddat tugaguncha foydalanasiz.</Banner> : <Button kind="ghost" label="Uzaytirishni to'xtatish" onPress={() => run(() => http.cancelPlus(), "Uzaytirish to'xtatildi")} />}
