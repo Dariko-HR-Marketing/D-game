@@ -36,7 +36,7 @@ export function HomeDesktop(p: DesktopProps) {
     ...(p.onTournaments ? [{ k: "tour", label: D.tournaments, icon: "flag" as IconName, on: p.onTournaments }] : []), { k: "rules", label: uz.hud.tabs.rules, icon: "book", on: p.onRules },
   ];
   return (
-    <View style={{ flex: 1, flexDirection: "row", backgroundColor: color.bg }}>
+    <View style={{ flex: 1, flexDirection: "row" }}>{/* fon — AppBackdrop (matoviy rasm); kartalar va yon panel o'zi oq */}
       <View style={s.side} role="navigation" aria-label={uz.home.nav}>
         <View style={s.brand}><View style={{ gap: 4 }}><Logo height={46} /><Text style={s.brandS}>{D.brandSub}</Text></View></View>
         <View style={{ gap: 4, marginTop: space.lg }}>{nav.map((n) => (
