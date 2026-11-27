@@ -19,13 +19,13 @@
 1. **Oferta faqat ro'yxatdan o'tish paytida, qat'iy, bir marta**: yangi ro'yxatdan o'tgan odam rozilik beradi. **Boshqa hech qachon, hech qayerda oferta/rozilik chiqmaydi** (mavjud o'yinchilarga ham, o'yin ochish/qo'shilishda ham).
 2. **Obuna (Instagram va Telegram) — faqat o'yin boshlashdan oldin**, ro'yxatdan o'tishda emas.
 3. ⚠ **Hozirgi jonli holat qarorga zid:** (a) server o'yin ochish/qo'shilishda rozilikni talab qiladi (`offer_required`), (b) mavjud o'yinchilarga rozilik oynasi chiqadi (`ConsentGate`), (c) `OFFER_VERSION=2026-11-27` standart qiymati bilan yoqilgan, (d) profilda «Rozilik va maxfiylik» bo'limi bor. **Tuzatish («Boshla»da birinchilardan):** talab va oyna olib tashlanadi; ro'yxatdan o'tishdagi katak va uning serverga yozilishi qoladi. Rozilikni qaytarib olish/hisobni o'chirish bo'limini qoldirish yoki olib tashlash — ❓.
-4. ❓ **Google bilan yangi ro'yxatdan o'tish:** Google tugmasi katakdan oldin bosilishi mumkin. Tavsiya: «Ro'yxatdan o'tish» yorlig'ida Google tugmasi **rozilik belgilanmaguncha o'chiq**; «Kirish» yorlig'ida (mavjud hisob) oferta yo'q.
+4. ✅ **Google bilan yangi ro'yxatdan o'tish (2026-11-27):** oferta roziligi **Google tugmasi bosilishidan oldin** belgilanadi; «Ro'yxatdan o'tish» yorlig'ida Google tugmasi rozilik belgilanmaguncha o'chiq; «Kirish» yorlig'ida (mavjud hisob) oferta yo'q.
 
 ## D. OVOZ (TURN)
 - ✅ Kod tayyor va jonli: `deploy/vps/enable-turn.sh` (serverda bor). Buyurtmachi o'zi serverda ishga tushiradi: `cd /opt/tajriba24/deploy/vps && bash enable-turn.sh`. Provayder paneldagi devorda 3478 (udp+tcp) va 49152–49452 (udp) ochiladi.
 
 ## E. QARZ VA SHERIKLIK (✅ qarorlar)
-1. **Qarz so'rovi eskirishi:** so'rov **1 yil** davomida turadi, keyin o'zi yo'qoladi. ❓ «1 yil» = real taqvim yili yoki o'yin ichidagi yil (12 o'yin oyi)? (Tavsiya: o'yin tugasa hamma ochiq so'rov yo'qoladi; taymer real vaqt.)
+1. **Qarz so'rovi eskirishi (✅ 2026-11-27, aniqlashtirildi):** so'rov **1 aylana = 4 o'yin oyi** davomida turadi (so'ralgan paytdan hisoblanadi), keyin o'zi yo'qoladi. (Oldingi «1 yil» — noto'g'ri tushunish; o'yin ichidagi aylana.)
 2. **3 ta guvoh shart** (kamroq bo'lsa so'rov yuborilmaydi — Q4 = yopiq). Oluvchi 3 guvohni o'zi tanlaydi.
 3. **Guvohga modal chiqadi** (kim kimdan qarz so'rayotgani yozilgan): tugmalar **«Guvohman»** va **«Keyinroq»**.
    - **«Guvohman»** — darrov guvohlik tasdiqlanadi.
@@ -48,14 +48,16 @@
 10. **Profil** — shu davrda qayta ishlash.
 11. **O'zaro qarz va sheriklik** — juda qulay UX/UI, mantiq, **infografik**, chiroyli bezak.
 12. **Bank, lombard, kredit** — akkordionga olinib, **infografik va animatsiya** bilan professional.
-13. **Voqealar (event feed):** barcha **oxirgi voqealarni real va to'liq** ko'rsatish — masalan kubik tashlandi, nechta tushdi, nima bo'ldi (hozirgi voqea ro'yxatini o'rganib, to'liq qilish).
+13. **Voqealar (event feed) — batafsil (2026-11-27):** har yurish uchun: **kim yurdi, kubikda nechta tushdi, qaysi karta chiqdi (nom), nima bo'ldi, pul qancha kamaydi/ko'paydi va nima uchun** (sabab); aniq ko'rinishi kerak. Sig'masa kattaroq va **aylanuvchi (scroll)** bo'lishi mumkin; professional ko'rinish. Hozirgi tasma juda qisqa («orzular tanlandi», «kubik bo'yicha birinchi yuradi»).
 14. **Katta aylana UX/UI** barcha qurilmalarga moslab joylashtirish (A.2).
 
-## G. TUZATILADIGAN XATOLAR (oldingi hujjatlardan)
-- **Bozor taklifi narxi:** yer «sotixiga» narx sotixga ko'paytirilmaydi; transport (+40 %) taklifida hisob qatori yo'q — `XATO_BOZOR_NARX.md`.
+## G. BAJARILDI (2026-11-27, PR #95)
+- ✅ **Bozor taklifi narxi:** yer «sotixiga» narx sotixga ko'paytiriladi; transport (+40 %) taklifida hisob qatori; inqiroz/garov mijoz–server mosligi (`XATO_BOZOR_NARX.md`, OPEN_QUESTIONS 236).
+- ✅ **Reaksiyalar olib tashlandi** (mijoz, server, testlar, SPEC) — OPEN_QUESTIONS 237.
+- ✅ **O'yinchilar tepada, voqealar pastda** — hamma qurilmada (OQ 237).
 
 ## H. «Boshla»da tavsiya etilgan tartib
-1. **Shoshilinch:** G (bozor narxi xatosi) va C.3 (oferta talabini olib tashlash).
+1. **Shoshilinch:** C.3 (oferta talabini olib tashlash; yangi o'yinchi uchun Google rozilik tartibi).
 2. **Orzu serverda** (B) — qoidalar dvigateli + testlar.
 3. **Qarz/sheriklik/bank/lombard** (E, F.11–12) — `PLAN_QARZ_SHERIKLIK_UX.md` bo'yicha.
 4. **Header, profil, katak ma'lumoti, voqealar** (F.1–3, F.13).
