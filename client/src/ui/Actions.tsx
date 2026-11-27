@@ -5,6 +5,7 @@ import { Button } from "./Button";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, MIN_TAP } from "../theme";
+import { offerHowLines } from "../offerHow";
 import { nameOf, bankRoom, pledgeableAssets, sellableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, loanWitnessOptions, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
 import type { RoomView } from "../net/connection";
 
@@ -39,6 +40,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
         <Box key={`${o.proposalId}${o.assetCode}`} title={`${uz.coop.market}: ${o.assetCode}`}>
           <Text style={s.note}>{o.text}</Text>
           <Text style={s.note}>{uz.coop.sellFor}: {money(o.price)} · {uz.coop.net}: {money(o.net)}</Text>
+          {offerHowLines(o).map((l, i) => <Text key={i} style={s.note}>{l}</Text>)}
           <Button label={`${uz.coop.sell} ${money(o.price)}`} onPress={() => onAct({ type: "market_sell", proposalId: o.proposalId, assetCode: o.assetCode })} />
         </Box>))}
       {pr.suyunchi.map((x: any) => (

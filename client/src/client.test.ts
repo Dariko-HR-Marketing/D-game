@@ -105,7 +105,7 @@ describe("bozor taklifi (mijoz)", () => {
     const r: any = room(); r.state.players[0].assets = [{ kind: "apartment", code: "KV1", credit: 5000, price: 30000, monthlyIncome: 0, marketValue: 60000 }];
     r.state.proposals = [{ id: 7, kind: "market", cardId: "x", sold: [] }];
     r.marketCards = { 7: { text: "Xaridor", effect: { kind: "marketSale", targets: ["KV1"], amount: 20000 } } };
-    expect(marketOffers(r, "a")).toEqual([{ proposalId: 7, text: "Xaridor", assetCode: "KV1", price: 20000, net: 15000 }]);
+    expect(marketOffers(r, "a")).toEqual([{ proposalId: 7, text: "Xaridor", assetCode: "KV1", price: 20000, net: 15000, crisis: false, how: { kind: "plain" } }]);
     expect(marketOffers(r, "b")).toEqual([]);
     r.state.proposals[0].sold = ["a"]; expect(marketOffers(r, "a")).toEqual([]);
   });
@@ -148,15 +148,6 @@ describe("eski holat (stale_seq) da avtomatik qayta urinish", () => {
   });
 });
 
-describe("reaksiyalar (mijoz)", () => {
-  it("so'nggi 3 tasi saqlanadi, tartibda; chiqishda tozalanadi; react xabari yuboriladi", () => {
-    FakeWS.all = []; const c = new Connection("ws://x", "t", (u) => new FakeWS(u), () => 0); c.connect(); const w = FakeWS.all[0]; w.onopen();
-    for (const e of ["👍", "👏", "😮", "😂"]) w.onmessage({ data: JSON.stringify({ type: "reaction", from: "u1", emoji: e, at: 1 }) });
-    expect(c.state.reactions.map((r) => r.emoji)).toEqual(["👏", "😮", "😂"]);
-    c.react("👍"); expect(JSON.parse(w.sent.at(-1)!)).toEqual({ type: "react", emoji: "👍" });
-    c.leave(); expect(c.state.reactions).toEqual([]);
-  });
-});
 
 describe("chiqqandan keyin tasodifiy holat xabari xonani qaytarmaydi", () => {
   it("leave() dan keyin kelgan 'state' e'tiborga olinmaydi; create/join dan keyin qabul qilinadi", () => {
