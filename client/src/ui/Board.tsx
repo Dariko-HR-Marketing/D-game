@@ -1,3 +1,4 @@
+import { dreamCells, type PlacedDream } from "../dreamCells";
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Easing } from "react-native";
 import { useReducedMotion } from "../motion";
@@ -89,10 +90,11 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
   const offset = g.shape.offset; // to'rtta daromad katagi burchaklarda (boardLayout.ringShape)
   const tiles = React.useMemo(() => ringTiles(g.shape, W, H, c), [g.shape, W, H, c]);
   const owners = circle === "big" ? bigOwners(players) : null; // katta aylana: kim qaysi biznesni (va orzuni) sotib olgan
+  const placedDreams = React.useMemo(() => (circle === "big" ? dreamCells(room.code, BIG_CELLS.flatMap((c, i) => (c.t === "O" ? [i] : [])), players, room.dreams) : new Map<number, PlacedDream>()), [circle, room.code, room.dreams, players]);
   const [sel, setSel] = useState<number | null>(null); const openCell = React.useCallback((i: number) => setSel(i), []);
   const info: CellInfoData | null = sel === null ? null : circle === "small" ? smallCellInfo(sel) : (() => { // bosilgan katak tushuntirishi
     const me = players.find((p) => p.id === userId); const dr = me && me.dreamIdx !== null && me.dreamIdx !== undefined ? room.dreams?.[me.dreamIdx] : null;
-    return bigCellInfo(sel, owners?.get(sel) ?? [], (id) => nameOf(room, id), me ? { cash: me.cash, flow: Math.max(exitProgress(me, room.state.mode).cashflow, me.lockedFlow ?? 0), dreamName: dr?.name, dreamPrice: dr?.price } : undefined); })();
+    return bigCellInfo(sel, owners?.get(sel) ?? [], (id) => nameOf(room, id), me ? { cash: me.cash, flow: Math.max(exitProgress(me, room.state.mode).cashflow, me.lockedFlow ?? 0), dreamName: dr?.name, dreamPrice: dr?.price } : undefined, placedDreams.get(sel)); })();
   const mixed = players.some((p) => p.circle === other);
   // Aralash o'yin: boshqa aylana o'yinchilari uchun ichki halqa (kichik nuqtalar); asosiy taxta — ko'ruvchining o'z aylanasi
   const inset = c + 6, iW = W - 2 * inset, iH = H - 2 * inset, ic = Math.max(8, Math.round(c * 0.28));
