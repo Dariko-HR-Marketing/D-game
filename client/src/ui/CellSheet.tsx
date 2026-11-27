@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, Modal } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView, Modal, useWindowDimensions } from "react-native";
 import { Icon } from "./Icon";
 import { Button } from "./Button";
 import { color, font, radius, shadow, space, tone } from "../theme";
@@ -9,14 +9,15 @@ import type { CellInfoData } from "../cellInfo";
 /** Katak tushuntirishi: tur, nom, narx/daromad, qoida va egasi. Telefonda pastdan, kompyuterda markazda; fon, «Yopish» yoki Esc bilan yopiladi. */
 export function CellSheet({ info, names, onClose }: { info: CellInfoData; names: (id: string) => string; onClose: () => void }) {
   useEffect(() => { const d = (globalThis as any).document; if (!d?.addEventListener) return; const k = (e: any) => { if (e.key === "Escape") onClose(); }; d.addEventListener("keydown", k); return () => d.removeEventListener("keydown", k); }, [onClose]);
+  const { height } = useWindowDimensions(), bodyMax = Math.max(100, Math.min(320, height - 190)); // past ekranda (yotiq telefon) oyna sig'sin: «Yopish» doim ko'rinadi
   return (
     <Modal transparent animationType="none" visible onRequestClose={onClose}>{/* butun ekran ustida (taxta ichida emas): xabarlar va boshqa qatlamlar to'smasin */}
     <View style={s.layer} testID="cell-sheet">
       <Pressable style={s.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel={uz.cell.close} />
-      <View style={s.card} role="dialog" aria-modal={true} aria-label={`${info.kind}: ${info.title}`}>
+      <View style={[s.card, { maxHeight: height - 8 }]} role="dialog" aria-modal={true} aria-label={`${info.kind}: ${info.title}`}>
         <View style={s.head}><View style={{ flex: 1 }}><Text style={s.kind}>{info.kind}</Text><Text style={s.title} aria-level={2} accessibilityRole="header">{info.title}</Text></View>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={uz.cell.close} style={s.x} testID="cell-close"><Icon name="close" size={20} color={color.navy} /></Pressable></View>
-        <ScrollView style={{ maxHeight: 320 }} contentContainerStyle={{ gap: space.sm }} {...({ tabIndex: 0 } as any)} aria-label={info.title}>
+        <ScrollView style={{ maxHeight: bodyMax }} contentContainerStyle={{ gap: space.sm }} {...({ tabIndex: 0 } as any)} aria-label={info.title}>
           {info.text.map((t, i) => <Text key={i} style={s.text}>{t}</Text>)}
           {info.lines.length > 0 && <View style={s.lines}>{info.lines.map((l, i) => <View key={i} style={s.line}><Text style={s.lk}>{l.k}</Text><Text style={s.lv}>{l.v}</Text></View>)}</View>}
           {info.owners.length > 0 && <View style={s.lines}><Text style={s.lk}>{uz.cell.owners}</Text>{info.owners.map((o, i) => <View key={i} style={s.line}><Text style={s.lv}>{o.n}. {names(o.id)}</Text><Text style={s.lk}>{o.what}</Text></View>)}</View>}
