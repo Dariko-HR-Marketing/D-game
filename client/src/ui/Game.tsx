@@ -50,7 +50,7 @@ import { uz, errText } from "../i18n/uz";
 import { money } from "../format";
 import { GREEN_TEXT, color, font, HEADER_H, radius, space, tone } from "../theme";
 import { bankRoom, phaseSeconds, untimed, currentId, exitProgress, humanize, isMyTurn, marketOffers, me, myProposals, nameOf } from "../model";
-import { REACTIONS, type ChatMsg, type Reaction, type RoomView } from "../net/connection";
+import type { ChatMsg, RoomView } from "../net/connection";
 import { RULES } from "@tajriba24/rules";
 import { useMovement } from "../useMovement";
 import { useGameSounds, useSoundPrefs } from "../useGameSounds";
@@ -94,10 +94,10 @@ function Seg({ ui, children, label }: { ui: HUi; children: React.ReactNode; labe
   return ui.flat ? <>{children}</> : <View style={s.seg} role="group" aria-label={label}>{children}</View>;
 }
 
-export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, onBreak, chat, onChat, voice, reactions, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onReact: (e: string) => void; onLeave: () => void; reactions: Reaction[]; onRules: () => void }) {
+export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, chat, onChat, voice, onRules, error, status, calcFb }: { onBreak?: () => void; chat?: ChatMsg[]; onChat?: (m: { text: string } | { phrase: number }) => void; voice?: VoiceEngine; http?: Http; calcFb?: CalcFeedback | null; error?: string | null; status?: string; room: RoomView; userId: string; onAct: (a: Record<string, unknown>) => void; onResume?: () => void; onLeave: () => void; onRules: () => void }) {
   const [drawerOpen, setDrawerOpen] = useState(false); const [seenLog, setSeenLog] = useState(0); // kompyuter: o'ng panel (vaqt, voqealar, o'yinchilar, reaksiyalar) yon oyna bo'lib ochiladi
   const [menuOpen, setMenuOpen] = useState(false); const [portfolioOpen, setPortfolioOpen] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [liveOpen, setLiveOpen] = useState(false); const [sheetView, setSheetView] = useState(false);
-  const [tab, setTab] = useState<"field" | "blank" | "players">("field"); const [reactOpen, setReactOpen] = useState(false);
+  const [tab, setTab] = useState<"field" | "blank" | "players">("field");
   const chatList = chat ?? []; const [chatOpen, setChatOpen] = useState(false); const lastChat = chatList[chatList.length - 1]?.id ?? 0; const [seenChat, setSeenChat] = useState(lastChat);
   useEffect(() => { if (chatOpen) setSeenChat(lastChat); }, [chatOpen, lastChat]);
   const chatNew = chatList.filter((m) => m.id > seenChat && m.from !== userId && !getMuted().has(m.from)); const chatUnread = chatOpen ? 0 : chatNew.length;
@@ -156,13 +156,13 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const rollPrompt = promptOpen ? { circle: curP?.circle ?? "small", twoDice: curP?.twoDice, deadline: room.deadline, total: phaseSeconds(room), waiting: waitRoll,
     onRoll: () => { setWaitRoll(true); onAct({ type: "roll" }); }, onLater: () => setLaterAt(oppN), onDisable: () => { setRollModalPref(false); setRollModalOn(false); } } : null;
   // Pastki menyu belgilari (telefon): ko'rilgan narsalar bo'lim ochilganda yangilanadi
-  const [seen, setSeen] = useState<Seen>(() => ({ logN: state.logN ?? 0, reactions: reactions.map((r) => r.id), notices: (state.notices ?? []).map((n: any) => n.id) }));
+  const [seen, setSeen] = useState<Seen>(() => ({ logN: state.logN ?? 0, notices: (state.notices ?? []).map((n: any) => n.id) }));
   useEffect(() => {
     if (wide) return;
-    if (tab === "players") setSeen((p) => { const ids = reactions.map((r) => r.id); return p.logN === (state.logN ?? 0) && p.reactions.length === ids.length ? p : { ...p, logN: state.logN ?? 0, reactions: ids }; });
+    if (tab === "players") setSeen((p) => (p.logN === (state.logN ?? 0) ? p : { ...p, logN: state.logN ?? 0 }));
     if (tab === "blank") setSeen((p) => { const ids = (state.notices ?? []).map((n: any) => n.id); return p.notices.length === ids.length ? p : { ...p, notices: ids }; });
-  }, [wide, tab, state.logN, state.notices, reactions]);
-  const badges = useMemo(() => tabBadges({ room, userId, myTurnAction: mineTurn && !state.winner && (canRoll || !!cardRaw || due), seen, reactions }), [room, userId, mineTurn, state.winner, canRoll, cardRaw, due, seen, reactions]);
+  }, [wide, tab, state.logN, state.notices]);
+  const badges = useMemo(() => tabBadges({ room, userId, myTurnAction: mineTurn && !state.winner && (canRoll || !!cardRaw || due), seen }), [room, userId, mineTurn, state.winner, canRoll, cardRaw, due, seen]);
   const navBadge = (k: "field" | "blank" | "players") => { const b = badges[k]; return b ? { count: b.count, tone: b.tone, temp: b.temp, label: badgeLabel(k, b) } : null; };
   const myDie = (state.lastRoll && state.lastRoll.playerId === userId ? state.lastRoll.die : null) as number | null;
   useEffect(() => { // kompyuterda probel — kubik tashlash (tugma/matn maydoni fokusda bo'lmasa)
@@ -211,9 +211,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
     <Card>
       <SectionTitle>{uz.game.events}</SectionTitle>
       {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : <View style={{ gap: 6 }}>{log.slice(0, nLines).map((l, i) => <LogLine key={i} room={room} line={l} latest={i === 0} lines={wide ? 2 : undefined} />)}</View>}
-      <View accessibilityLiveRegion="polite">{reactions.map((r) => <Text key={r.id} style={s.log}>{r.from === userId ? uz.result.you : nameOf(room, r.from)}: {r.emoji}</Text>)}</View>
     </Card>);
-  const reactRow = (<View style={s.reactRow} role="group" aria-label={uz.react.label}>{REACTIONS.map((e2) => <View key={e2} style={{ minWidth: 56 }}><Button label={e2} kind="ghost" onPress={() => onReact(e2)} /></View>)}</View>);
   // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
   const sideMain = (
     <View style={{ gap: space.md }}>
@@ -232,12 +230,11 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
   const side = ( // telefonda voqealar va reaksiyalar «O'yinchilar» bo'limida (pastki menyudagi belgi shu yerdagi yangiliklarni ko'rsatadi)
     <View style={{ gap: space.md, flex: 1 }}>{sideMain}</View>
   );
-  const reactPanel = (<Card label={uz.react.title}><SectionTitle>{uz.react.title}</SectionTitle>{reactRow}</Card>);
   const rightCol = (
     <ScrollView tabIndex={0} role="region" aria-label={uz.hud.playersTitle} style={{ width: rightW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>
       <TimePanel room={room} userId={userId} settled={settled} />
-      {eventsCard(6)}
       <PlayerList room={room} userId={userId} />
+      {eventsCard(6)}
     </ScrollView>);
   const autoMe = !!room.members.find((m) => m.userId === userId)?.autopilot;
   const banners = (<>
@@ -306,7 +303,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
                 layout={(body, actions) => (<View style={s.decide}><ScrollView tabIndex={0} role="region" aria-label={uz.deck.other} style={{ flex: 1 }} contentContainerStyle={{ gap: space.md }}>{body}{sideMain}</ScrollView>{actions ? <View style={s.decideActions}>{actions}</View> : null}</View>)} />
             </CardEnter>
           </View>
-        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}{compact && reactRow}</ScrollView>}
+        ) : <ScrollView tabIndex={0} role="region" aria-label={uz.game.finance} style={{ width: sideW, flexGrow: 0, flexShrink: 0 }} contentContainerStyle={[s.sideScroll, { gap: space.md }]}>{card && mineTurn && mine && !deckPick && sheetMin ? miniBar(true) : null}{gate}{sideMain}</ScrollView>}
         <ScrollView tabIndex={0} role="region" aria-label={uz.hud.tabs.field} style={{ flex: 1, minWidth: 0 }} contentContainerStyle={s.mainScroll}>
           {banners}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "center" }}><View style={{ flexShrink: 0 }}><PlayersLane room={room} userId={userId} wide /></View>{!timeInSide && <View style={{ flex: 1, minWidth: 0 }}><TimePanel room={room} userId={userId} settled={settled} /></View>}</View>}
@@ -322,7 +319,6 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             </View>)}
           {!tri && !compact && <View style={{ width: boardWidth, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
             {!short && <View style={{ flex: 1 }}>{eventsCard(3)}</View>}
-            <View style={short ? { flex: 1, flexDirection: "row", gap: space.sm, alignItems: "center", justifyContent: "space-between" } : { width: 270, gap: space.sm }}>{reactRow}</View>
           </View>}
         </ScrollView>
       </View>
@@ -335,9 +331,8 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
             <Pressable accessibilityRole="button" accessibilityLabel={uz.hud.drawer.close} onPress={() => setDrawerOpen(false)} style={s.drawerX} testID="players-drawer-close"><Text style={s.drawerXT} aria-hidden>✕</Text></Pressable></View>
           <ScrollView tabIndex={0} role="region" aria-label={uz.hud.playersTitle} style={{ flex: 1 }} contentContainerStyle={[s.sideScroll, { gap: space.md, paddingHorizontal: space.md, paddingTop: space.md, paddingBottom: space.xl }]}>
             <TimePanel room={room} userId={userId} settled={settled} />
-            {eventsCard(8)}
             <PlayerList room={room} userId={userId} accordion />
-            {reactPanel}
+            {eventsCard(8)}
           </ScrollView>
         </SlideIn>
       </>)}
@@ -364,7 +359,7 @@ export function Game({ http, room, userId, onAct, onReact, onLeave, onResume, on
           </View>
         </>)}
         {tab === "blank" && (<View style={{ gap: space.md }}><TimePanel room={room} userId={userId} settled={settled} />{side}</View>)}
-        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} accordion />{eventsCard(6)}<Acc icon="heart" title={uz.react.title} open={reactOpen} onToggle={() => setReactOpen((v) => !v)} testID="react-acc">{reactRow}</Acc></View>)}
+        {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} accordion />{eventsCard(6)}</View>)}
       </ScrollView>
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
       {tab === "field" && canRoll && !promptOpen && (<View style={[s.cta, { position: "relative", zIndex: 95 }]} testID="roll-front"><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
@@ -421,5 +416,4 @@ const s = StyleSheet.create({
   miniBar: { position: "absolute", left: space.md, right: space.md, bottom: 70, minHeight: 56, flexDirection: "row", alignItems: "center", gap: space.md, paddingHorizontal: space.md, borderRadius: radius.lg, backgroundColor: color.white, borderWidth: 2, borderColor: color.gold, shadowColor: "#08263E", shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 10 }, miniK: { color: tone.warn, fontSize: 12, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }, miniT: { color: color.navy, fontWeight: "800", fontSize: font.md }, miniA: { color: GREEN_TEXT, fontWeight: "800", fontSize: font.sm },
   collHead: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }, collTitle: { color: color.navy, fontWeight: "800", fontSize: font.lg },
   muted: { color: tone.muted }, log: { color: tone.muted, fontSize: font.sm, lineHeight: 19 }, cardText: { color: color.navy, fontSize: font.md, lineHeight: 22 },
-  reactRow: { flexDirection: "row", gap: space.sm, flexWrap: "wrap" },
 });
