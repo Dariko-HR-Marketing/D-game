@@ -5,9 +5,9 @@ const room = (st: Record<string, unknown> = {}) => ({
   state: { players: [{ id: "a", circle: "small", assets: [], handDebts: [] }, { id: "b", circle: "small", assets: [], handDebts: [] }], bots: [], proposals: [], notices: [], round: 3, logN: 10, ...st },
   marketCards: {},
 });
-const seen = (o: Partial<Seen> = {}): Seen => ({ logN: 10, reactions: [], notices: [], ...o });
-const run = (r: any, o: { turn?: boolean; seen?: Seen; reactions?: { id: number; from: string }[] } = {}) =>
-  tabBadges({ room: r, userId: "a", myTurnAction: !!o.turn, seen: o.seen ?? seen(), reactions: o.reactions ?? [] });
+const seen = (o: Partial<Seen> = {}): Seen => ({ logN: 10, notices: [], ...o });
+const run = (r: any, o: { turn?: boolean; seen?: Seen } = {}) =>
+  tabBadges({ room: r, userId: "a", myTurnAction: !!o.turn, seen: o.seen ?? seen() });
 
 describe("pastki menyu belgilari", () => {
   it("hech narsa kutmasa — belgi yo'q", () => {
@@ -34,11 +34,11 @@ describe("pastki menyu belgilari", () => {
     const b = run(room({ notices: n })).blank!; expect(b).toMatchObject({ urgent: 1, info: 1, count: 2, tone: "urgent", temp: false });
     expect(run(room({ notices: n }), { seen: seen({ notices: [1, 2] }) }).blank).toBeNull();
   });
-  it("O'yinchilar: yangi voqealar va boshqalarning reaksiyalari (o'zimniki emas); ko'rilgach o'chadi", () => {
+  it("O'yinchilar: yangi voqealar; ko'rilgach o'chadi", () => {
     expect(newEvents({ logN: 14 }, seen())).toBe(4);
-    const b = run(room({ logN: 14 }), { reactions: [{ id: 1, from: "b" }, { id: 2, from: "a" }] }).players!;
-    expect(b).toMatchObject({ count: 5, tone: "info", temp: false }); expect(badgeLabel("players", b)).toBe("5 ta yangilik");
-    expect(run(room({ logN: 14 }), { seen: seen({ logN: 14, reactions: [1] }), reactions: [{ id: 1, from: "b" }] }).players).toBeNull();
+    const b = run(room({ logN: 14 })).players!;
+    expect(b).toMatchObject({ count: 4, tone: "info", temp: false }); expect(badgeLabel("players", b)).toBe("4 ta yangilik");
+    expect(run(room({ logN: 14 }), { seen: seen({ logN: 14 }) }).players).toBeNull();
   });
   it("jurnal hisoblagichi bo'lmagan eski holatda ham xato bermaydi", () => {
     expect(newEvents({}, seen({ logN: 0 }))).toBe(0);

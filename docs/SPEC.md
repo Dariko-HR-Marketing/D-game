@@ -87,7 +87,7 @@ Bu bitta fayl Claude Code'ga Tajriba 24 stol o'yinining onlayn versiyasini profe
 4. Aylanalar bir-birini ko'rmaydi; butun maydon faqat orzu tanlashda ochiq; bozor kartalari hammaga.
 5. Botlar: odam yetmasa qo'shiladi; qarz va sheriklikda qatnashmaydi.
 6. Kubik va dekani aralashtirish serverda, tekshiriladigan tasodifiy manbadan; o'yin jurnali nizo uchun saqlanadi.
-7. Reaksiyalar ochiq; erkin chat 16 yoshgacha yopiq.
+7. ~~Reaksiyalar ochiq;~~ **reaksiyalar olib tashlandi (2026-11-27, buyurtmachi: «hech qayerda kerak emas»)**; erkin chat 16 yoshgacha yopiq.
 
 ## 7. Hisob, kirish, yosh
 - Kirish: telefon (SMS kod), Google, Apple; bitta hisobga bir nechta usul. O'yin uchun istalgani yetadi. Telefon tasdig'i to'lov, o'zaro qarz va guvohlik uchun majburiy.

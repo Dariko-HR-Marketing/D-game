@@ -153,7 +153,6 @@ export function buildApp(opts: { offer?: OfferConsents; gate?: SubscriptionGate;
   const complaintLimit = new KeyedLimiter(1 / 60, 3); // ~1 shikoyat/daqiqa, burst 3
   const voiceLimit = new KeyedLimiter(40, 120); // ICE nomzodlari bir yo'la ko'p keladi
   const chatLimit = new KeyedLimiter(0.5, 4); // ~1 xabar / 2 s, burst 4
-  const reactLimit = new KeyedLimiter(0.7, 3); // ~1 reaksiya / 1.5 s, burst 3
   const wsPingMs = Number(process.env.WS_PING_MS ?? 25_000);
   const httpLimit = new KeyedLimiter(5, 60), adminLimit = new KeyedLimiter(3, 60), wsConnLimit = new KeyedLimiter(Number(process.env.WS_CONNECT_RATE ?? 20), Number(process.env.WS_CONNECT_BURST ?? 300));
   app.addHook("onRequest", async (req, reply) => {
@@ -254,9 +253,6 @@ export function buildApp(opts: { offer?: OfferConsents; gate?: SubscriptionGate;
           case "act": { if (!code) return reply({ type: "error", error: "no_room" });
             const r = await rooms.act(code, userId, { ...m.action, playerId: userId } as any, m.seq);
             if (!r.ok) { if (r.error === "stale_seq") { cActions({ type: m.action.type, result: "stale" }); const rm = rooms.rooms.get(code); if (rm) reply({ type: "state", room: rooms.view(rm) }); } reply({ type: "error", error: r.error, ...("detail" in r && r.detail !== undefined ? { detail: r.detail } : {}) }); } return; }
-          case "react": { if (!code) return reply({ type: "error", error: "no_room" });
-            if (!reactLimit.allow(userId)) { cLimited({ scope: "react" }); return reply({ type: "error", error: "rate_limited" }); }
-            const r = rooms.react(code, userId, m.emoji); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "resume": { if (!code) return reply({ type: "error", error: "no_room" }); const r = rooms.resumePlay(code, userId); if (!r.ok) reply({ type: "error", error: r.error }); return; }
           case "chat": { if (!code) return reply({ type: "error", error: "no_room" });
             if (!chatLimit.allow(userId)) { cLimited({ scope: "chat" }); return reply({ type: "error", error: "rate_limited" }); }

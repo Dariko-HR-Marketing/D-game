@@ -4,7 +4,6 @@ export type WSFactory = (url: string) => WS;
 
 export interface PendingCardView { id: string; text: string; mode: string; effect: any; file: string }
 export interface RoomView { idleAskUntil?: number | null; visibility?: "open" | "locked" | "hidden"; startMode?: "host" | "full" | "bots"; kind?: "standard" | "student" | "corporate"; autoStartAt?: number | null; seats?: number; turnSeconds?: number; timerTotal?: number | null; mode?: "standard" | "quick" | "rated" | "tutorial"; limit?: { leftMs: number; deadline: number | null } | null; calc?: { mode: "auto" | "manual"; due: string[]; ledger?: Record<string, { cash: number; passive: number; flow: number }>; stats: Record<string, { firstTry: number; retried: number }> }; closed?: string; marketCards?: Record<number, { text: string; effect: any }>; names?: Record<string, { name: string; color: number; level?: number; photo?: string; gender?: "m" | "f"; cos?: { pawn?: string; frame?: string; avatar?: string } }>; code: string; members: { userId: string; bot: boolean; online: boolean; left?: boolean; unreliable?: boolean; autopilot?: boolean }[]; state: any | null; seq: number; deadline: number | null; pendingCard: PendingCardView | null; recapCard?: { text: string; title?: string } | null; chatRestricted?: string[]; dreams?: { name: string; price: number; text?: string; sector?: string; horizon?: "Hozirgi" | "Istiqbol" }[]; hostId?: string; professions?: Record<string, string>; lastCard?: { text: string; effect: any; mode: string; file: string; deck?: string; title?: string } | null }
-export interface Reaction { id: number; from: string; emoji: string; at: number }
 /** Chat xabari: erkin matn yoki tayyor ibora tartib raqami (matni `uz.chat.phrases`da). */
 export interface ChatMsg { id: number; from: string; at: number; text?: string; phrase?: number }
 /** `lost`: ulanish uzilgan (yoki ilovadan chiqib qaytilgan) va yangi holat hali kelmagan; `restoredAt`: oxirgi tiklanish vaqti («Aloqa tiklandi» xabari uchun). */
@@ -13,12 +12,11 @@ export interface PlayingRow { id: string; host: string; mode: "standard" | "stud
 /** Jonli ro'yxat: ochiq/qulfli kutayotgan xonalar, hozir o'ynalayotganlar, jami sonlar va onlayn soni (server har o'zgarishda yuboradi). */
 export interface Lobbies { restricted?: boolean; rooms: LobbyRow[]; playing: PlayingRow[]; stats: { playing: { rooms: number; players: number }; waiting: { rooms: number; players: number } }; online: number }
 export interface PaywallInfo { error: "room_limit" | "no_coupon"; detail: { quota: { day: number | null; week: number | null; month: number | null }; usage: { day: number; week: number; month: number; resets: { day: number; week: number; month: number } }; coupons: number; plan: "start" | "plus" | "premium" } }
-export interface ConnState { gateN?: number; paywall?: PaywallInfo | null; lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; reactions: Reaction[]; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
-export const REACTIONS = ["👍", "👏", "😮", "😂"] as const; // server bilan bir xil (server/src/rooms.ts)
+export interface ConnState { gateN?: number; paywall?: PaywallInfo | null; lobbies?: Lobbies | null; status: "connecting" | "online" | "offline"; room: RoomView | null; error: string | null; chat: ChatMsg[]; voice: string[]; lost: boolean; restoredAt: number | null; calcFb: { error: string; n: number; detail?: any } | null }
 
 export class Connection {
-  state: ConnState = { status: "connecting", room: null, error: null, reactions: [], chat: [], voice: [], lost: false, restoredAt: null, calcFb: null };
-  private rid = 0; private fbN = 0;
+  state: ConnState = { status: "connecting", room: null, error: null, chat: [], voice: [], lost: false, restoredAt: null, calcFb: null };
+  private fbN = 0;
   private ws: WS | null = null;
   private listeners = new Set<(s: ConnState) => void>();
   private retry = 0;
@@ -63,8 +61,6 @@ export class Connection {
       } else if (m.type === "chat") {
         const msg = m.msg as ChatMsg; if (!msg || this.state.chat.some((x) => x.id === msg.id)) return;
         this.set({ chat: [...this.state.chat, msg].slice(-100) });
-      } else if (m.type === "reaction") {
-        this.set({ reactions: [...this.state.reactions, { id: ++this.rid, from: m.from, emoji: m.emoji, at: Date.now() }].slice(-3) }); // so'nggi 3 tasi
       } else if (m.type === "error") {
         if (typeof m.error === "string" && m.error.startsWith("calc_")) this.set({ calcFb: { error: m.error, n: ++this.fbN, detail: m.detail } }); // hisob javobi: shaklda ko'rsatiladi, umumiy xato emas
         else if (m.error === "stale_seq" && this.lastAct && this.lastAct.retries < 3) this.retryNext = true; // xatoni foydalanuvchiga ko'rsatmaymiz
@@ -108,12 +104,11 @@ export class Connection {
   stay() { this.send({ type: "stay" }); }
   /** Jonli «Ochiq o'yinlar» ro'yxatiga obuna bo'lish / chiqish. */
   watchLobbies(on: boolean) { if (this.watching === on) return; this.watching = on; if (!on) this.set({ lobbies: null }); this.send({ type: "lobbies", on }); }
-  leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, reactions: [], chat: [], voice: [] }); }
+  leave() { this.expecting = false; this.rejoinCode = null; this.send({ type: "leave" }); this.set({ room: null, chat: [], voice: [] }); }
   /** «Men qaytdim»: avtopilotni o'chiradi. */
   resumePlay() { this.send({ type: "resume" }); }
   /** «Vaqtincha chiqib turish»: avtopilot yoqiladi (bankrot tahlilidan keyin ham). */
   breakPlay() { this.send({ type: "break" }); }
-  react(emoji: string) { this.send({ type: "react", emoji }); }
   /** Chat: erkin matn yoki tayyor ibora (xona a'zolariga). */
   sendChat(m: { text: string } | { phrase: number }) { return this.send({ type: "chat", ...m }); }
   /** Harakat: mijoz ko'rgan oxirgi `seq` bilan (eski holatdagi harakat serverda rad etiladi). */

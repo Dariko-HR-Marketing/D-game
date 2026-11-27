@@ -47,7 +47,6 @@ export const Message = z.discriminatedUnion("type", [
   z.object({ type: z.literal("lobbies"), on: z.boolean() }).strict(), // jonli «Ochiq o'yinlar» ro'yxatiga obuna/obunadan chiqish
   z.object({ type: z.literal("stay") }).strict(), // «Davom etasizmi?» — ha (xona egasi)
   z.object({ type: z.literal("leave") }).strict(),
-  z.object({ type: z.literal("react"), emoji: z.string().min(1).max(8) }).strict(),
   z.object({ type: z.literal("chat"), text: z.string().min(1).max(1000).optional(), phrase: int(0, 99).optional() }).strict(), // yoki erkin matn, yoki tayyor ibora (ikkalasi birga — serverda rad etiladi)
   z.object({ type: z.literal("act"), seq: int(0, 1e9), action: ActionIn }).strict(),
   z.object({ type: z.literal("resume") }).strict(),
