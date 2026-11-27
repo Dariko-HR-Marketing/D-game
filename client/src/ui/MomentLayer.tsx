@@ -34,7 +34,7 @@ function MomentView({ m, onClose, reduced }: { m: ShownMoment; onClose: () => vo
       <Animated.View style={[s.mark, { backgroundColor: t.edge }, iconStyle as any]} aria-hidden><Icon name={ICON[m.kind]} size={20} color={color.white} /></Animated.View>
       <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
         <Text style={[s.title, { color: t.fg }]} aria-hidden>{m.title}</Text>
-        {m.text ? <Text style={s.text} aria-hidden numberOfLines={2}>{m.text}</Text> : null}
+        {m.text ? <Text style={s.text} aria-hidden>{m.text}</Text> : null}
         {m.note ? <Text style={s.note} aria-hidden>{m.note}</Text> : null}
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={onClose} style={s.x}><Text style={s.xT} aria-hidden>✕</Text></Pressable>

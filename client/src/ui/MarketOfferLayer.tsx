@@ -1,15 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { marketOffers } from "../model";
 import { money } from "../format";
 import { uz } from "../i18n/uz";
 import { color, font, HEADER_H, MIN_TAP, radius, shadow, space, tone } from "../theme";
 
+const OFFER_SHOW_MS = 15000;
 /** Bozor taklifi: karta egasiga (mos aktivi bor o'yinchiga) doim ko'rinadigan oyna — «Moliya amallari» akkordioni yopiq yoki pastda bo'lsa ham yo'qolmaydi.
  *  «Keyinroq» faqat shu oynani yashiradi; taklif «Moliya amallari»da qoladi. Narx va sotish qoidasi serverda (`market_sell`). */
 export function MarketOfferLayer({ room, userId, onAct }: { room: any; userId: string; onAct: (m: any) => void }) {
   const { width } = useWindowDimensions(); const [hidden, setHidden] = useState<Record<string, true>>({});
   const all = marketOffers(room, userId), offers = all.filter((o) => !hidden[`${o.proposalId}:${o.assetCode}`]);
+  const keys = offers.slice(0, 2).map((o) => `${o.proposalId}:${o.assetCode}`).join("|");
+  useEffect(() => { // taklif bir marta ko'rsatiladi va o'zi yopiladi; «Moliya amallari»da qoladi (qaror 2026-11-27)
+    if (!keys) return; const hs = keys.split("|").map((k) => setTimeout(() => setHidden((h) => ({ ...h, [k]: true })), OFFER_SHOW_MS)); return () => hs.forEach(clearTimeout);
+  }, [keys]);
   if (!offers.length) return null;
   const narrow = width < 520;
   return (
