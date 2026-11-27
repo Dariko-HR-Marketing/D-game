@@ -68,7 +68,11 @@ export interface Asset {
 }
 
 // ---------- Faol ta'sirlar (modifikatorlar): muddatli o'zgarishlar o'yinchida saqlanadi ----------
-export type ModBase = { id: number; months: number | null; wait?: boolean; src?: string };
+/** `at` — ta'sir boshlangan o'yin oyi (`monthsPlayed`). Qaror 2026-11-27: sotib olingan aktivga uni olishdan 12 oy (3 aylana) oldingi va keyingi ta'sirlar tegadi, undan eskilari tegmaydi. */
+export type ModBase = { id: number; months: number | null; wait?: boolean; src?: string; at?: number };
+export const MOD_WINDOW_MONTHS = 12;
+/** Ta'sir aktivga tegadimi: aktiv sotib olingan oy noma'lum yoki ta'sir vaqti noma'lum bo'lsa — ha (eski saqlangan o'yinlar). */
+export const modTouches = (m: { at?: number }, since: number | undefined) => m.at === undefined || since === undefined || m.at >= since - MOD_WINDOW_MONTHS;
 /** `months`: qolgan oylar (1 aylana = 4 oy; `null` — doimiy). `wait`: keyingi aylana boshigacha kutadi (alomat), so'ng `months` boshlanadi. */
 export type Mod = ModBase & (
   | { t: "salary"; pct: number } | { t: "salaryZero" } | { t: "monthly"; amount: number } | { t: "expense"; pct: number } | { t: "credit"; pct: number }
@@ -109,7 +113,7 @@ export const salaryOf = (p: WithMods & { salary: number }) => {
 };
 /** Bitta aktivning hozirgi oylik daromadi: faol daromad o'zgarishlari bilan (nol bo'lsa 0; ko'paytma; foizlar yig'indisi). */
 export const assetIncome = (p: WithMods, a: Asset) => {
-  const ms = activeMods(p).filter((m): m is Extract<Mod, { t: "income" }> => m.t === "income" && matches(m.sel, descOf(a))); if (!ms.length) return a.monthlyIncome;
+  const ms = activeMods(p).filter((m): m is Extract<Mod, { t: "income" }> => m.t === "income" && modTouches(m, a.since) && matches(m.sel, descOf(a))); if (!ms.length) return a.monthlyIncome;
   if (ms.some((m) => m.mode === "zero")) return 0;
   const mult = ms.reduce((f, m) => (m.mode === "mult" ? f * m.value : f), 1), pct = ms.reduce((s, m) => s + (m.mode === "pct" ? m.value : 0), 0);
   return Math.round(a.monthlyIncome * mult * (1 + pct / 100));
@@ -335,10 +339,10 @@ export function marketPrice(amount: Sale, a: Asset): number | null {
 
 // ---------- Narx o'zgarishlari va sotish bazasi ----------
 /** Faol narx ta'sirlarining ko'paytmasi (1 = o'zgarishsiz). `side`: «buy» — sotib olish, «sell» — sotish/baholash. */
-export const priceFactor = (p: WithMods, d: AssetDesc, side: "buy" | "sell") =>
-  1 + activeMods(p).reduce((s, m) => s + (m.t === "price" && (m.side === side || m.side === "both") && matches(m.sel, d) ? m.pct : 0), 0) / 100;
+export const priceFactor = (p: WithMods, d: AssetDesc, side: "buy" | "sell", since?: number) =>
+  1 + activeMods(p).reduce((s, m) => s + (m.t === "price" && (m.side === side || m.side === "both") && modTouches(m, since) && matches(m.sel, d) ? m.pct : 0), 0) / 100;
 /** Sotish bazasi: sotib olingan narx × bozor o'zgarishlari (NARX_FOIZ) × faol sotish narx ta'sirlari. Katalogning «Sotish narxi bazasi = sotib olish narxi» qoidasi (TZ §4.2). */
-export const saleBase = (p: WithMods, a: Asset) => Math.round(a.price * (a.adj ?? 1) * priceFactor(p, descOf(a), "sell"));
+export const saleBase = (p: WithMods, a: Asset) => Math.round(a.price * (a.adj ?? 1) * priceFactor(p, descOf(a), "sell", a.since));
 
 /** «Sotish taklifi» (katalog): mos aktivning taklif narxi; mos kelmasa (tur, ushlab turish muddati, garov/sheriklik) — `null`. */
 export function offerPrice(e: Extract<Effect, { kind: "sellOffer" }>, p: Player & { monthsPlayed?: number }, a: Asset): number | null {
@@ -349,7 +353,7 @@ export function offerPrice(e: Extract<Effect, { kind: "sellOffer" }>, p: Player 
 
 // ---------- Faol ta'sirlarni boshqarish ----------
 type DistOmit<M> = M extends unknown ? Omit<M, "id"> : never;
-export const addMod = <T extends Player>(p: T, m: DistOmit<Mod>): T => { const id = (p.modSeq ?? 0) + 1; return { ...p, modSeq: id, mods: [...(p.mods ?? []), { ...m, id } as Mod] }; };
+export const addMod = <T extends Player>(p: T, m: DistOmit<Mod>): T => { const id = (p.modSeq ?? 0) + 1; return { ...p, modSeq: id, mods: [...(p.mods ?? []), { ...m, id, at: monthsOf(p) } as Mod] }; };
 /** Bir oy o'tdi: faol ta'sirlarning qolgan oylari kamayadi, tugaganlari olib tashlanadi (kutayotganlar tegilmaydi). */
 export const tickMods = <T extends Player>(p: T): T => {
   if (!p.mods?.length) return p;
@@ -357,7 +361,7 @@ export const tickMods = <T extends Player>(p: T): T => {
   return { ...p, mods };
 };
 /** Aylana boshi (START dan o'tish): kutayotgan ta'sirlar (alomat) boshlanadi. */
-export const startLap = <T extends Player>(p: T): T => (p.mods?.some((m) => m.wait) ? { ...p, mods: p.mods.map((m) => (m.wait ? { ...m, wait: false } : m)) as Mod[] } : p);
+export const startLap = <T extends Player>(p: T): T => (p.mods?.some((m) => m.wait) ? { ...p, mods: p.mods.map((m) => (m.wait ? { ...m, wait: false, at: monthsOf(p) } : m)) as Mod[] } : p);
 
 // ---------- Sug'urta va depozit ----------
 /** Xavfni qoplaydigan faol polis (bo'lsa). */
