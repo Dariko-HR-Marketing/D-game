@@ -23,7 +23,7 @@ const ICON: Record<PlanId, IconName> = { start: "arrow", plus: "plus", premium: 
 const MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
 /** Toshkent vaqti (UTC+5): «25-noyabr, 00:00». */
 const fmt = (t: number) => { const d = new Date(t + 5 * 3_600_000), p2 = (n: number) => String(n).padStart(2, "0"); return `${d.getUTCDate()}-${MONTHS[d.getUTCMonth()]}, ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`; };
-const qText = (q: Quota) => [q.day !== null ? `${q.day} / ${K.usage.day.toLowerCase()}` : null, q.week !== null ? `${q.week} / ${K.usage.week.toLowerCase()}` : null, q.month !== null ? `${q.month} / ${K.usage.month.toLowerCase()}` : null].filter(Boolean).join(" · ") || K.usage.unlimited;
+export const qText = (q: Quota) => [q.day !== null ? `${q.day} / ${K.usage.day.toLowerCase()}` : null, q.week !== null ? `${q.week} / ${K.usage.week.toLowerCase()}` : null, q.month !== null ? `${q.month} / ${K.usage.month.toLowerCase()}` : null].filter(Boolean).join(" · ") || K.usage.unlimited;
 
 type SkuOpt = { sku: string; label: string; price: number | null };
 const skusOf = (id: PlanId | "coupon", cat: Cat | null): SkuOpt[] => id === "plus" ? [{ sku: "plus:monthly", label: K.checkout.monthly, price: cat?.plus.monthly ?? null }, { sku: "plus:yearly", label: K.checkout.yearly, price: cat?.plus.yearly ?? null }]

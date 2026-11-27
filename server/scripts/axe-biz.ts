@@ -33,12 +33,12 @@ for (const [w, h] of [[390, 844], [1440, 900]] as [number, number][]) {
   const s = await open("stu", w, h); await scan(s, `bosh sahifa ${tag}`);
   await s.getByRole("button", { name: /^Do'kon va Plus/ }).click(); await s.waitForSelector("text=Tajriba24 Plus"); await s.waitForSelector("text=Kumush"); await scan(s, `do'kon ${tag}`);
   await s.getByRole("tab", { name: "Ramkalar" }).click(); await scan(s, `do'kon ramkalar ${tag}`); await back(s);
-  await s.getByRole("button", { name: /^Sinf\./ }).click(); await s.waitForSelector("text=Sinfga qo'shilish"); await s.waitForSelector("text=O'qituvchi: Ismtch"); await scan(s, `sinf o'quvchi ${tag}`); await back(s);
-  await s.getByRole("button", { name: /^Turnirlar\./ }).click(); await s.waitForSelector("text=Kuz kubogi"); await scan(s, `turnirlar ${tag}`);
+  await s.getByRole("button", { name: /^Sinf/ }).click(); await s.waitForSelector("text=Sinfga qo'shilish"); await s.waitForSelector("text=O'qituvchi: Ismtch"); await scan(s, `sinf o'quvchi ${tag}`); await back(s);
+  await s.getByRole("button", { name: /^Turnirlar/ }).click(); await s.waitForSelector("text=Kuz kubogi"); await scan(s, `turnirlar ${tag}`);
   await s.getByRole("button", { name: /^Kuz kubogi/ }).click(); await s.waitForSelector("text=Ro'yxatdan o'tish"); await scan(s, `turnir ${tag}`);
   await s.getByRole("button", { name: "Ro'yxatdan o'tish" }).click(); await s.waitForSelector("text=Siz ro'yxatdasiz"); await scan(s, `turnir ro'yxatda ${tag}`);
   const q = await open("tch", w, h);
-  await q.getByRole("button", { name: /^Sinf\./ }).click(); await q.waitForSelector("text=O'qituvchi paneli"); await scan(q, `o'qituvchi ${tag}`);
+  await q.getByRole("button", { name: /^Sinf/ }).click(); await q.waitForSelector("text=O'qituvchi paneli"); await scan(q, `o'qituvchi ${tag}`);
   await q.getByRole("button", { name: /^7-A/ }).click(); await q.waitForSelector("text=Sinf maydoni"); await scan(q, `sinf paneli ${tag}`);
   if (w > 600) continue; // xona bir marta ochiladi
   await q.getByRole("button", { name: "Sinf maydonini ochish" }).click(); await q.waitForSelector("[data-testid=lobby-code]"); await scan(q, `sinf xonasi lobi ${tag}`);
