@@ -3,6 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cleanText, CHAT_KEEP, PHRASES, type ChatMsg } from "./chat";
 import { MODES, modeOf, type GameMode, passiveIncome, playerCashflow, Action, Ctx, GameState, chooseDream, openPartnerships, crisisAdjusted, slotBlocked, currentPlayer, effectOf, newGame, reduce } from "@tajriba24/rules";
 import { RULES, botAuctionAction, type Auction } from "@tajriba24/rules";
+import { sotixOf } from "@tajriba24/content";
 import type { RoomMeta, RoomTag, Store } from "./store";
 import type { ContentRegistry } from "./registry";
 
@@ -52,8 +53,7 @@ export interface Room {
   closed?: string; // administrator majburan yopgan (sabab xona a'zolariga ko'rinadi)
 }
 /** §6.7: reaksiyalar ochiq. Ruxsat etilgan to'plam kichik va neytral (SPEC to'plamni aytmaydi — OPEN_QUESTIONS #52). */
-export const REACTIONS = ["👍", "👏", "😮", "😂"] as const;
-export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "reaction"; from: string; emoji: string; at: number } | { type: "chat"; msg: ChatMsg } | { type: "voice_state"; members: string[] } | { type: "voice_signal"; from: string; to: string; data: { sdp?: unknown; candidate?: unknown } };
+export type RoomEvent = { type: "state"; room: RoomView } | { type: "error"; error: string } | { type: "chat"; msg: ChatMsg } | { type: "voice_state"; members: string[] } | { type: "voice_signal"; from: string; to: string; data: { sdp?: unknown; candidate?: unknown } };
 /** Mijozga ketadigan holat: tasodifiy urug', RNG holati va deka tartibi YASHIRILADI (aks holda kelgusi kubik va kartalarni oldindan hisoblab aldash mumkin). */
 export function publicState(st: GameState | null) {
   if (!st) return null;
@@ -141,6 +141,7 @@ export class RoomManager {
       if (!ctx) continue; // kontent versiyasi topilmadi — xavfsiz tarafda: tiklanmaydi
       const r: Room = { tag: a.meta.tag, code: a.code, hostId: a.meta.hostId, members: a.meta.members.map((m) => ({ userId: m.userId, bot: m.bot, left: m.left, unreliable: m.unreliable, online: false })), state: a.state, seq: a.meta.seq,
         timer: null, deadline: null, turnSeconds: a.meta.turnSeconds === 60 ? 60 : a.meta.turnSeconds === 120 ? 120 : a.meta.turnSeconds === 0 && modeOf(a.meta.mode) === "standard" ? 0 : 30, calcMode: a.meta.calcMode === "manual" ? "manual" : "auto", mode: modeOf(a.meta.mode), limitLeftMs: a.meta.limitLeftMs ?? null, limitStartedAt: null, ...(a.meta.seats !== undefined ? { seats: a.meta.seats } : {}), ledger: {}, calcTries: {}, calcNotes: {}, calcStats: {}, ctx, contentVersion: a.meta.contentVersion, createdAt: a.meta.createdAt, endedAt: null, offlineSince: this.clock.now() };
+      for (const p of (r.state?.players ?? []) as any[]) p.assets = (p.assets ?? []).map((x: any) => (x.kind === "land" && !x.units && x.cardId ? { ...x, ...sotixOf(ctx.effects[x.cardId]?.text) } : x)); // eski o'yin: yerning sotix soni kartadan tiklanadi («sotixiga» takliflar uchun)
       this.rooms.set(a.code, r);
       for (const m of r.members) if (!m.bot) this.activeRoomOf.set(m.userId, a.code);
       this.ledgerSync(r); this.armProposals(r); this.arm(r); n++;
@@ -476,15 +477,6 @@ export class RoomManager {
 
   /** Qayta ulangan/yangi kirgan a'zoga so'nggi xabarlar. */
   chatLog(code: string): ChatMsg[] { return this.rooms.get(code)?.chat ?? []; }
-
-  /** §6.7 Reaksiya: faqat xona a'zosi, ruxsat etilgan to'plamdan; tezlik cheklovi tashqarida (app). Holatga ta'sir qilmaydi, saqlanmaydi. */
-  react(code: string, userId: string, emoji: string): { ok: true } | { ok: false; error: Err } {
-    const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);
-    if (!r || !m || m.left) return { ok: false, error: "not_member" };
-    if (!(REACTIONS as readonly string[]).includes(emoji)) return { ok: false, error: "bad_reaction" };
-    for (const l of this.listeners) l(r.code, { type: "reaction", from: userId, emoji, at: this.clock.now() });
-    return { ok: true };
-  }
 
   disconnect(code: string, userId: string) {
     const r = this.rooms.get(code); const m = r?.members.find((x) => x.userId === userId);

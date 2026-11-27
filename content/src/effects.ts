@@ -26,6 +26,7 @@ export type Effect =
   | { kind: "profession"; n: number }
   | { kind: "buy"; asset: "small_business" | "business" | "land" | "dacha" | "apartment" | "car" | "collectible"; code: string;
       price: number; down?: number; credit?: number; creditPayment?: number; monthlyIncome?: number; marketValue?: number | null;
+      /** Yer: kartadagi sotix soni («20 sotix yer»). «Yer (sotixiga)» bozor takliflari narxni shu songa ko'paytiradi. */ units?: number;
       /** Katalog kartasi: aktivning nomi va sohasi (bozor kartalari soha/nom bo'yicha nishonlaydi), qo'shimcha belgilar (masalan «ijara»). */
       sector?: string; name?: string; tags?: string[] }
   | { kind: "buyShares"; code: string; pricePerShare: number; min: number; max: number; sector?: string }
@@ -66,6 +67,8 @@ export interface CardEffect { deck: string; id: string; file: string; mode: Mode
 
 const num = (s: string) => Number(s.replace(/[^\d.-]/g, ""));
 const assetOf = (code: string): "apartment" | "dacha" | "land" => (code === "DX" ? "dacha" : code === "E" ? "land" : "apartment");
+/** «20 sotix yer» matnidan sotix soni (bo'lmasa — hech narsa). */
+export const sotixOf = (text: string | undefined): { units?: number } => { const m = /(\d+)\s*sotix/i.exec(text ?? ""); return m && Number(m[1]) > 0 ? { units: Number(m[1]) } : {}; };
 const real = (r: unknown) => (typeof r === "number" ? r : null);
 
 function bozorEffect(c: Cards["bozor"][number]): Effect {
@@ -104,7 +107,7 @@ export function deriveEffects(c: Cards): CardEffect[] {
       case "TD": return push("kichik", id, f, "optional", { kind: "gain", amount: k.amount! });
       case "AV": return push("kichik", id, f, "optional", { kind: "buy", asset: "car", code: k.code, price: k.amount! });
       case "QAR": return push("kichik", id, f, "optional", { kind: "qarOffer", monthlyExpense: k.amount! });
-      case "E": return push("kichik", id, f, "optional", { kind: "buy", asset: "land", code: k.code, price: k.full!, down: k.down, credit: k.credit, creditPayment: k.interest, monthlyIncome: k.rent, marketValue: real(k.real) });
+      case "E": return push("kichik", id, f, "optional", { kind: "buy", asset: "land", code: k.code, price: k.full!, down: k.down, credit: k.credit, creditPayment: k.interest, monthlyIncome: k.rent, marketValue: real(k.real), ...sotixOf(k.text) });
       case "Q":
         if (/qarzga|sarmoya so.rayapti/.test(k.text)) return push("kichik", id, f, "optional", { kind: "lendRequest", amount: k.amount!, returnAmount: 600 });
         return push("kichik", id, f, "optional", { kind: "buy", asset: "collectible", code: k.code, price: k.amount! });
