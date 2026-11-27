@@ -3,6 +3,8 @@
 > Manba: suhbat davomidagi topshiriqlar, `docs/OPEN_QUESTIONS.md`, `docs/PLAN_QARZ_SHERIKLIK_UX.md`, SPEC. Holat belgilari: ✅ bajarilgan va jonli · 🟡 kod tayyor, yoqilmagan/sinalmagan · ⛔ sizdan qaror/material/sozlama kerak · 🔲 hali qilinmagan · ⏸ to'xtatib turilgan.
 > Qoida: SPEC o'zgarmaydi; narx, raqam va qoida o'ylab topilmaydi. «Boshla» deguningizcha yangi katta ish boshlanmaydi.
 
+> **2026-11-27 YANGILANISH:** buyurtmachi qarorlari yagona hujjatda: `docs/BUYURTMACHI_QARORLARI.md` (orzu — asl qoida va 14 katakka joylashtirish; oferta faqat ro'yxatdan o'tishda; qarz qarorlari; yangi UX/UI talablari). «Ishchilar» mexanikasi **yo'q** (oldingi band bekor). Shu hujjat bilan ziddiyat bo'lsa, `BUYURTMACHI_QARORLARI.md` ustun.
+
 ## 0. Hozir jonli (✅, qisqacha)
 Obuna darvozasi va profilda ijtimoiy tarmoqlar (4 tarmoq, yulduzcha) · oferta va rozilik tizimi (yoqilmagan, qarang 🟡) · 7 kunlik cheklovsiz davr (yangi profillarga) · bozor taklifi oynasi · orzular katta aylanadagi «O» kataklarda · tik planshet moslashuvi · Do'kon `[object Object]` xatosi tuzatildi · ovoz uchun aniq xato xabari va admin belgisi · matoviy adaptiv fon · avtomatik deploy (GitHub → server) ishlaydi.
 
@@ -13,8 +15,8 @@ Obuna darvozasi va profilda ijtimoiy tarmoqlar (4 tarmoq, yulduzcha) · oferta v
 | 1 | **TURN serverini yoqish** (serverda `.env`: `TURN_SECRET`, `TURN_URLS`, `TURN_REALM`, `TURN_EXTERNAL_IP`; `docker compose --profile turn up -d turn`; portlar 3478, 5349, 49152–49452) | Turli tarmoqdagi o'yinchilar bir-birini eshitadi |
 | 2 | **Qarz/sheriklik 6 ta savol** (PLAN_QARZ_SHERIKLIK_UX §7): qarz so'rovi eskirishi, bekor qilish, qisman to'lov, nomzod <3, beruvchiga oluvchi holati, sheriklik takliflari vaqti | Qarz va sheriklik UX ni boshlash |
 | 3 | **«Boshla» buyrug'i** qarz/sheriklik uchun | Shu bosqichlar |
-| 4 | **Orzu qoidasi:** birovning orzu katagiga tushsam nima bo'ladi; joylashuv tasodifiymi/qat'iymi (OQ 230) | Orzu kataklari mantig'i |
-| 5 | **Katta aylana «ishchilar»:** nima qilish kerakligini yozma yoki rasmga belgilab | Katta aylana yangi imkoniyati (SPEC'da yo'q) |
+| 4 | ✅ **Orzu qoidasi hal qilindi** (asl qoida, 14 katakka joylashtirish) — `BUYURTMACHI_QARORLARI.md` B | Boshla kutilmoqda |
+| 5 | ✅ «Ishchilar» yo'q (tushunmovchilik); katta aylana — UX/UI va moslashuv | Boshla kutilmoqda |
 | 6 | **Yurist:** oferta + maxfiylik tasdig'i, shaxsiy ma'lumotlar qonuni, bazani ro'yxatdan o'tkazish/lokalizatsiya, 16 yoshgacha | `OFFER_VERSION` ni yoqish |
 | 7 | **Obuna sozlamalari:** `GATE_TG_GROUP` (+ bot guruhda admin), `GATE_FB_URL`, **`SOCIAL_STAR_XP` qiymati** | Guruh majburiyligi, Facebook, yulduzcha XP |
 | 8 | **Instagram:** Meta ilovasi + App Review + kalitlar; **YouTube:** Google tekshiruvi + `GATE_YT_*` | Instagram/YouTube haqiqiy tekshiruvi |
