@@ -24,10 +24,10 @@ for (const [tag, w, h] of [["telefon", 390, 844], ["kompyuter", 1440, 900]] as [
   await p.goto(WEB); await p.getByRole("button", { name: "Yangi o'yin" }).click(); await p.getByRole("button", { name: "O'yinni boshlash" }).click();
   await pickDream(p); await p.waitForSelector("text=Naqd", { timeout: 60000 });
   const skip = p.getByRole("button", { name: "O'tkazib yuborish" }); if (await skip.count()) await skip.click();
-  if (tag === "kompyuter") { // o'ng panel yon oyna: ikonka bosilsa o'yinchilar, voqealar, vaqt va reaksiyalar chiqadi; Esc bilan yopiladi
+  if (tag === "kompyuter") { // o'ng panel yon oyna: ikonka bosilsa o'yinchilar (tepada), so'nggi voqealar (pastda) va vaqt chiqadi; reaksiyalar yo'q; Esc bilan yopiladi
     const open = p.getByTestId("players-drawer-open"); const okBtn = (await open.count()) === 1; if (!okBtn) { failed++; console.log("XATO: kompyuterda «O'yinchilar» ikonkasi yo'q"); } else {
       await open.click(); await p.getByTestId("players-drawer").waitFor({ timeout: 4000 }); const t = await p.getByTestId("players-drawer").innerText();
-      const ok = /O'yinchilar/.test(t) && /Reaksiyalar/.test(t) && /So'nggi voqealar/.test(t); if (!ok) { failed++; console.log("XATO: yon oyna tarkibi to'liq emas"); }
+      const ok = /O'yinchilar/.test(t) && /So'nggi voqealar/.test(t) && !/Reaksiya/.test(t) && t.indexOf("O'yinchilar") < t.indexOf("So'nggi voqealar"); // tartib: o'yinchilar tepada, voqealar pastda; reaksiyalar olib tashlangan if (!ok) { failed++; console.log("XATO: yon oyna tarkibi to'liq emas"); }
       const acc = p.getByTestId("players-drawer").getByTestId("player-acc"); if ((await acc.count()) < 2) { failed++; console.log("XATO: akkordeonda o'yinchilar qatori yo'q"); }
       const dr = p.getByTestId("players-drawer"); if (/Passiv daromad/.test(await dr.getByTestId("player-acc").first().innerText())) { failed++; console.log("XATO: akkordeon boshida yopiq bo'lishi kerak"); }
       await acc.first().getByRole("button").click(); if (!/Passiv daromad/.test(await acc.first().innerText())) { failed++; console.log("XATO: akkordeon ochilmadi"); }

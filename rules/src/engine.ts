@@ -54,6 +54,8 @@ export interface Asset {
   kind: string; code: string; price: number; monthlyIncome: number; creditPayment: number; credit: number;
   cardId?: string; // sotib olingan karta ID si (`code` — karta turi, masalan «KB», 35 ta kichik biznes kartasida bir xil); aktiv qaysi kartadan ekanini ko'rsatish uchun
   shares?: number;
+  /** Yer: sotix soni (kartadan). «Yer (sotixiga)» takliflari narxni shunga ko'paytiradi. */
+  units?: number;
   marketValue?: number | null; // kartadagi haqiqiy qiymat (bozor hodisalari uchun); null = noma'lum
   partnerId?: string; // egasi tomonda: sherik
   stakeOf?: string;   // sherik tomonda: biznes egasi
@@ -253,7 +255,7 @@ export function applyEffect(p: Player, e: Effect): Result {
     case "buy": {
       const upfront = e.down ?? e.price;
       return pay(upfront, { ...p, assets: [...p.assets, { kind: e.asset, code: e.code, price: e.price, monthlyIncome: e.monthlyIncome ?? 0,
-        creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0, marketValue: e.marketValue, ...(e.sector ? { sector: e.sector } : {}), ...(e.name ? { name: e.name } : {}), ...(e.tags ? { tags: e.tags } : {}) }] });
+        creditPayment: -(e.creditPayment ?? 0), credit: e.credit ?? 0, marketValue: e.marketValue, ...(e.units ? { units: e.units } : {}), ...(e.sector ? { sector: e.sector } : {}), ...(e.name ? { name: e.name } : {}), ...(e.tags ? { tags: e.tags } : {}) }] });
     }
     case "buyShares": return { ok: false, reason: "not_applicable" }; // miqdorni o'yinchi tanlaydi: buyShares()
     case "lendRequest": // «Do'stingiz qarzga so'rayapti»: bugun beriladi, keyin «qarz qaytdi» kartasi qaytaradi (§5.10)
@@ -321,7 +323,7 @@ export function assetMatches(targets: string[], a: Asset): boolean {
 type Sale = Extract<Effect, { kind: "marketSale" }>["amount"];
 /** Aktivni sotish narxi. null — bu aktivga narx qo'llanmaydi. */
 export function marketPrice(amount: Sale, a: Asset): number | null {
-  const unit = (v: number | null) => (v === null ? null : a.shares ? v * a.shares : v);
+  const unit = (v: number | null) => (v === null ? null : a.shares ? v * a.shares : a.units ? v * a.units : v); // aksiya — dona soniga, yer — sotix soniga
   if (typeof amount === "number") return unit(amount);
   const room = /^KV(\d)/.exec(a.code)?.[1];
   // Haqiqiy qiymat noma'lum (real = "?") bo'lsa — sotib olish narxi asos qilib olinadi (qaror: OPEN_QUESTIONS #60)
