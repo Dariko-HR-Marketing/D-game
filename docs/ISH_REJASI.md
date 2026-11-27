@@ -35,6 +35,9 @@ Obuna darvozasi va profilda ijtimoiy tarmoqlar (4 tarmoq, yulduzcha) · oferta v
 
 ## 3. 🔲 Bajarilmagan ishlar (men qila oladiganlar; ba'zilari yuqoridagi qarorga bog'liq)
 
+### 3.0 ⚠ TEZ TUZATILADIGAN XATO (birinchi navbat)
+- 🔲 **Bozor taklifi narxi:** yer «sotixiga» taklifi sotix soniga ko'paytirilmaydi (20 sotixli yer 16 000 o'rniga 800 ga sotiladi); transport (+40 %) taklifida hisob qatori ko'rinmaydi. Tahlil: `docs/XATO_BOZOR_NARX.md`. «Boshla» deganda **birinchi** shu tuzatiladi.
+
 ### 3.1 Qarz, sheriklik, bank — shaxsiy UX/UI (eng katta)
 Reja tayyor: `PLAN_QARZ_SHERIKLIK_UX.md` (7 bosqich: asos → qarz oluvchi → beruvchi/guvoh → sheriklik → qarzlarni boshqarish → bank/lombard → yakun). **Boshla** + 6 savol javobi kerak.
 
