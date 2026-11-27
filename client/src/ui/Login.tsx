@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Linking, useWindowDimensions } from "react-native";
 import { Logo } from "./Logo";
 import { Visual } from "./Landing";
+import { markSignupOffer } from "../offerSignup";
 import { Field, Check, Cta, Ghost, StatusBox, s as k, type Status } from "./AuthKit";
 import { uz, errText } from "../i18n/uz";
 import { AUTH_METHODS } from "../authMethods";
@@ -38,7 +39,7 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
   const phoneOk = emailTyped ? emailOn && validEmail(ident) : validPhone(ident); // telefon yoki (server yoqqan bo'lsa) email
   const canSend = !busy && phoneOk && (tab === "login" || (validName(name) && validYear(year) && terms));
   const run = async (f: () => Promise<void>) => { setBusy(true); setStatus(null); try { await f(); } catch (e) { setStatus({ kind: "bad", text: errText(e instanceof HttpError ? e.code : "network") }); } finally { setBusy(false); } };
-  const send = () => run(async () => { await (emailTyped ? auth.emailRequest(ident.trim()) : auth.request(ident)); if (tab === "register") onSignupProfile?.({ name: name.trim(), year }); setStep("code"); setCool(RESEND_S); });
+  const send = () => run(async () => { await (emailTyped ? auth.emailRequest(ident.trim()) : auth.request(ident)); if (tab === "register") { onSignupProfile?.({ name: name.trim(), year }); markSignupOffer(); } setStep("code"); setCool(RESEND_S); });
   const verify = (c = code) => run(async () => onDone(await (emailTyped ? auth.emailVerify(ident.trim(), c) : auth.verify(ident, c)), remember));
   const switchTab = (t: Tab) => { setTab(t); setStatus(null); };
   const [gOn, setGOn] = useState(false); const gRef = useRef<any>(null); const [gKey, setGKey] = useState(0);
@@ -101,7 +102,7 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
               {AUTH_METHODS.password && <Pressable accessibilityRole="button" accessibilityLabel={showPass ? uz.login.hide : uz.login.show} onPress={() => setShowPass(!showPass)} style={s.eye}><Text style={s.eyeT}>{showPass ? uz.login.hide : uz.login.show}</Text></Pressable>}
 
               {tab === "login" && <Check label={uz.login.remember} checked={remember} onChange={setRemember} />}
-              {tab === "register" && <Check label={uz.login.terms} checked={terms} onChange={setTerms} />}
+              {tab === "register" && <OfferCheck checked={terms} onChange={setTerms} />}
               {tab === "register" && !terms && validName(name) && phoneOk && validYear(year) && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.termsNeed}</Text>}
               <Cta label={busy ? uz.login.wait : tab === "login" ? uz.login.submitLogin : uz.login.submitRegister} disabled={!canSend} onPress={send} />
             </>) : (<>
@@ -170,3 +171,19 @@ const s = StyleSheet.create({
   toggle: { gap: space.sm, paddingTop: space.md, borderTopWidth: 1, borderTopColor: authUi.lineSoft },
   toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm, minHeight: MIN_TAP - 8 },
 });
+
+/** Ro'yxatdan o'tishdagi majburiy rozilik: oferta va maxfiylik siyosati havolalari (yangi oynada ochiladi); katak va havolalar alohida bosiladi. */
+function OfferCheck({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  const open = (path: string) => { try { void Linking.openURL(path); } catch { /* ochilmadi */ } };
+  const L = uz.login;
+  return (
+    <View style={k.checkRow} testID="offer-check">
+      <Pressable role="checkbox" aria-checked={checked} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={L.terms} onPress={() => onChange(!checked)} hitSlop={8}>
+        <View style={[k.box, checked && k.boxOn]}>{checked && <Text style={k.boxT}>✓</Text>}</View>
+      </Pressable>
+      <Text style={[k.note, { flex: 1 }]}>{L.termsA}{" "}
+        <Text accessibilityRole="link" style={k.link} onPress={() => open("/oferta.html")} testID="offer-link">{L.termsOffer}</Text>{" "}{L.termsAnd}{" "}
+        <Text accessibilityRole="link" style={k.link} onPress={() => open("/maxfiylik.html")} testID="privacy-link">{L.termsPrivacy}</Text>{" "}{L.termsTail}</Text>
+    </View>
+  );
+}
