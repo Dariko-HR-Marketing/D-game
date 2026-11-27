@@ -58,7 +58,7 @@ export function Home({ status, error, http, onCreate, onJoin, onProfile, onLeade
     priv={roomsOn && priv} showPriv={roomsOn} pickPriv={pickPriv} pickMode={pickMode} pickCorp={() => setCorp(true)} pickSeats={(n) => { setSeats(n as Seats); setSeatsPref(n as Seats); }} pickTurn={pickTurn} setOrgCode={(c) => { setOrgCode(c); setOrgErr(null); }}
     create={() => onCreate(effTurn, calc, seats, serverMode(mode), roomsOn ? ropts : undefined)} startTutorial={() => {}} join={onJoin} orgJoin={orgJoin} onProfile={onProfile} onLeaderboard={onLeaderboard} onRules={onRules} onTournaments={onTournaments} onShop={onShop} onClass={onClass} resume={onJoin} />;
   return (
-    <View style={{ flex: 1, backgroundColor: color.white }}>
+    <View style={{ flex: 1 }}>{/* fon — AppBackdrop (matoviy rasm); kartalar o'zi oq */}
       <View style={s.header}>
         <View style={[s.brand, { flexShrink: 1, minWidth: 0 }]}><Logo height={tiny ? 42 : 46} /></View>
         <View style={{ flex: 1 }} />
@@ -165,7 +165,7 @@ const s = StyleSheet.create({
   seg: { minHeight: MIN_TAP, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1, borderColor: color.line, alignItems: "center", justifyContent: "center", backgroundColor: color.white }, segOn: { backgroundColor: color.green, borderColor: color.green }, segT: { color: color.navy, fontWeight: "800", fontSize: font.sm },
   sr: { position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 },
   h1: { fontSize: 26, fontWeight: "800", color: color.navy, letterSpacing: -0.2 },
-  row: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
+  row: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, backgroundColor: color.white, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" },
   rowIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#F4F7F8", alignItems: "center", justifyContent: "center" }, rowT: { fontSize: 15, fontWeight: "800", color: color.navy }, rowS: { fontSize: 13, color: tone.muted },
   join: { gap: space.sm, paddingVertical: space.md, borderBottomWidth: 1, borderBottomColor: "#E6ECEF" }, label: { color: color.navy, fontWeight: "700", fontSize: font.sm },
   joinRow: { flexDirection: "row", gap: space.sm, alignItems: "stretch" },

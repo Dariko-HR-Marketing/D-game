@@ -5,6 +5,7 @@ import { useFonts, Manrope_400Regular, Manrope_700Bold, Manrope_800ExtraBold } f
 import { Connection, ConnState } from "./src/net/connection";
 import { paced } from "./src/net/paced";
 import { VoiceEngine } from "./src/voice/engine";
+import { AppBackdrop } from "./src/ui/AppBackdrop";
 import { Home } from "./src/ui/Home";
 import { Lobby } from "./src/ui/Lobby";
 import { DreamPick } from "./src/ui/DreamPick";
@@ -145,7 +146,8 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
   const gated = hasProfile === false && !room;
   const tourId: TourId | null = rulesOpen || gated ? null : !room ? SCREEN_TOUR[screen] ?? null : room.closed ? null : !room.state ? "lobby" : room.state.phase === "dreams" ? "dreams" : room.state.winner ? "result" : gameTourId(myCircle);
   return (
-    <SafeAreaView style={s.root}>
+    <SafeAreaView style={s.rootT}>
+      <AppBackdrop />
       <StatusBar style="dark" />
       <ConnBanner st={st} />
       {st.paywall && !room && <Paywall http={http} info={st.paywall} onCoupon={() => conn.createWithCoupon()} onLater={() => conn.clearPaywall()} />}
@@ -174,4 +176,4 @@ function Game_({ session, onLogout }: { session: Sess; onLogout: () => void }) {
     </SafeAreaView>
   );
 }
-const s = StyleSheet.create({ root: { flex: 1, backgroundColor: color.bg } });
+const s = StyleSheet.create({ root: { flex: 1, backgroundColor: color.bg }, rootT: { flex: 1, backgroundColor: color.bg } }); // rootT: fon rasmi (AppBackdrop) ostida; rasm o'zi color.bg bilan to'ldiriladi
