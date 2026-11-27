@@ -51,6 +51,8 @@ Kontent (`content/data/*.json`) kod bilan yetkaziladi, lekin server uni **Postgr
 Tekshirish: admin → kontent versiyalari ro'yxatida eng oxirgi versiya «Paket yangilandi» va faol bo'lishi kerak.
 
 ## Ovozli aloqa (WebRTC): STUN/TURN
+**Tez yoqish (tavsiya):** serverda `cd /opt/tajriba24/deploy/vps && bash enable-turn.sh` — skript sirni yaratadi (ko'rsatmaydi), IP va domenni `.env` ga yozadi, `ufw` bo'lsa portlarni ochadi, coturn va serverni ishga tushiradi va tekshiradi. VPS provayderi paneldagi devorda ham 3478 (udp+tcp) va 49152–49452 (udp) ochilishi kerak. Keyin admin → Tizim sahifasida «TURN yoqilgan» chiqadi.
+
 Audio o'yinchilar o'rtasida **to'g'ridan-to'g'ri** (P2P) o'tadi; server faqat signal uzatadi va audioni saqlamaydi. Ko'p tarmoqlarda to'g'ridan-to'g'ri ulanish ishlaydi, lekin ba'zilarida (korporativ tarmoq, simmetrik NAT, ba'zi mobil operatorlar) **TURN** kerak bo'ladi — aks holda «ulanmadi» deb ko'rinadi.
 1. `deploy/vps/.env` da `ICE_SERVERS` (JSON massiv) bering. Bo'sh bo'lsa ommaviy STUN (`stun.l.google.com`) ishlatiladi — u faqat manzilni aniqlaydi (IP shu xizmatga ko'rinadi).
 2. **TURN (coturn) shu repoda tayyor** (`deploy/vps/docker-compose.yml`, profil `turn`; hujjat bilan tekshirilgan sozlama, lekin haqiqiy tarmoqda qo'lda sinash kerak): `.env` ga `TURN_SECRET` (uzun sir), `TURN_REALM`, `TURN_EXTERNAL_IP` (serverning ochiq IP si) va `TURN_URLS` (masalan `turn:turn.tajriba24.uz:3478?transport=udp,turn:turn.tajriba24.uz:3478?transport=tcp`) yozing; xavfsizlik devorida `3478/udp+tcp` va `49152–49452/udp` oching; `docker compose --profile turn up -d turn` va serverni qayta ishga tushiring.
