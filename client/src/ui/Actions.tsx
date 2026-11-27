@@ -84,7 +84,10 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
         <Box title={uz.auction.listTitle}>
           <Text style={s.note}>{uz.auction.listHint}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{[50, 60, 70, 80, 90, 100].map((v) => (<Button key={v} kind={listPct === v ? "primary" : "ghost"} label={uz.auction.listPct.replace("{p}", String(v))} onPress={() => setListPct(v)} />))}</View>
-          {pledgeableAssets(p).map(({ idx, a }) => (<Button key={`al${idx}`} kind="ghost" label={`${uz.auction.listBtn}: ${a.code} · ${money(Math.ceil((a.price * listPct) / 100 / 100) * 100)}`} onPress={() => onAct({ type: "auction_list", assetIdx: idx, pct: listPct })} />))}
+          {(() => { const rivals = st.players.filter((o: any) => o.id !== userId && o.circle === p.circle && !(st.restricted ?? []).includes(o.id)); const enough = (start: number) => rivals.filter((o: any) => o.cash >= start).length >= RULES.auctionMinBidders; let blocked = false;
+            const btns = pledgeableAssets(p).map(({ idx, a }) => { const start = Math.ceil((a.price * listPct) / 100 / 100) * 100, ok = enough(start); if (!ok) blocked = true;
+              return (<Button key={`al${idx}`} kind="ghost" label={`${uz.auction.listBtn}: ${a.code} · ${money(start)}`} disabled={!ok} onPress={() => onAct({ type: "auction_list", assetIdx: idx, pct: listPct })} />); });
+            return (<>{btns}{blocked && <Text style={s.note} accessibilityRole="alert" testID="auction-few">{uz.auction.listFew.replace("{n}", String(RULES.auctionMinBidders))}</Text>}</>); })()}
         </Box>)}
       {mineTurn && pledgeableAssets(p).length > 0 && (
         <Box title={uz.coop.lombard}>
