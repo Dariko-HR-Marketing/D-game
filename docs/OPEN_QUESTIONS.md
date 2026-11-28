@@ -286,3 +286,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 252. **Bank limiti o'lchagichi (2026-11-28).** «Moliya amallari → Bank» blokida ishlatilgan/jami limit (`RULES.bankLimit`) progress chizig'i (80 % dan oshsa qizil), silliq animatsiya bilan.
 
 253. **Klub «Qanday ishlaydi» diagrammasi (2026-11-28).** Klublar sahifasi tepasida 3 bosqichli diagramma: klub yarating (Premium) → kodni ulashing → klub reytingida raqobat. Narx/limit raqamlari yo'q (konfiguratsiyada bo'sh).
+
+254. **Reyting premium bo'sh holati (2026-11-28).** Reyting sarlavhasida kubok belgisi va chips («Reytingda», «Mening o'rnim»); bo'sh bo'lsa 2–1–3 bo'sh podium kolonnalari va «Birinchi bo'ling» matni. Ko'rik uchun `server/scripts/_pages.ts` (bosh, profil, reyting, do'kon, paketlar, klublar, qoidalar suratlari) qo'shildi.

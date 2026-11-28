@@ -23,10 +23,16 @@ export function Leaderboard({ http, onBack }: { http: Http; onBack: () => void }
   const top = (rows ?? []).slice(0, 3), rest = (rows ?? []).slice(3);
   const order = top.length === 3 ? [top[1], top[0], top[2]] : top; // o'rtada 1-o'rin
   return (
-    <Screen title={uz.profile.leaderboard} subtitle={uz.profile.boardHint} onBack={onBack} maxWidth={720}>
+    <Screen title={uz.profile.leaderboard} subtitle={uz.profile.boardHint} onBack={onBack} maxWidth={720} icon="trophy" chips={rows ? [{ label: uz.profile.boardPlayers, value: String(rows.length) }, ...(me ? [{ label: uz.profile.boardMine, value: `#${me.rank}`, good: true }] : [])] : undefined}>
       {rows === null && <Text style={s.muted} accessibilityLiveRegion="polite">{uz.result.loading}</Text>}
       {err && <Banner kind="bad">{uz.result.failed}</Banner>}
-      {rows && rows.length === 0 && !err && <Card><Text style={s.empty}>{uz.profile.boardEmpty}</Text></Card>}
+      {rows && rows.length === 0 && !err && (
+        <View style={s.emptyWrap} testID="board-empty">
+          <View style={s.ghostRow} aria-hidden>{[{ h: 78, r: 2 }, { h: 108, r: 1 }, { h: 58, r: 3 }].map((g) => (
+            <View key={g.r} style={[s.ghost, { height: g.h, borderColor: MEDAL[g.r - 1] }]}><View style={[s.ghostMedal, { backgroundColor: MEDAL[g.r - 1] }]}>{g.r === 1 ? <Icon name="trophy" size={14} color={color.navy} /> : <Text style={s.medalT}>{g.r}</Text>}</View></View>))}</View>
+          <Text style={s.emptyT}>{uz.profile.boardEmptyTitle}</Text>
+          <Text style={s.empty}>{uz.profile.boardEmpty}</Text>
+        </View>)}
       {me && <View style={s.me} role="status" testID="my-rank" accessibilityLabel={uz.profile.myRank.replace("{r}", String(me.rank)).replace("{n}", String(me.total))}><Text style={s.meT} aria-hidden>{uz.profile.myRank.replace("{r}", String(me.rank)).replace("{n}", String(me.total))}</Text><Text style={s.muted} aria-hidden>{uz.profile.wins}: {me.wins} · {uz.profile.games}: {me.games}</Text></View>}
       {top.length > 0 && (
         <View style={s.podium} role="list" aria-label={uz.profile.leaderboard} testID="board-podium">
@@ -54,6 +60,8 @@ export function Leaderboard({ http, onBack }: { http: Http; onBack: () => void }
   );
 }
 const s = StyleSheet.create({
+  emptyWrap: { alignItems: "center", gap: space.sm, padding: space.xl, borderRadius: radius.lg, backgroundColor: color.white, borderWidth: 1, borderColor: color.line }, emptyT: { color: color.navy, fontWeight: "800", fontSize: font.lg, textAlign: "center" },
+  ghostRow: { flexDirection: "row", alignItems: "flex-end", gap: space.sm, marginBottom: space.sm }, ghost: { width: 78, borderRadius: radius.md, borderWidth: 2, borderStyle: "dashed", alignItems: "center", paddingTop: 8, opacity: 0.75, backgroundColor: "#FAFBFC" }, ghostMedal: { minWidth: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
   muted: { color: tone.muted, fontSize: font.sm }, empty: { color: tone.muted, fontSize: font.md, lineHeight: 22 },
   podium: { flexDirection: "row", alignItems: "flex-end", gap: space.sm }, pc: { flex: 1, minWidth: 0, alignItems: "center", gap: 4, paddingVertical: space.md, paddingHorizontal: space.xs, borderRadius: radius.lg, borderWidth: 2, backgroundColor: color.white },
   pcFirst: { paddingVertical: space.lg, backgroundColor: "#FFFBF0" }, medal: { minWidth: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 }, medalT: { fontWeight: "800", color: color.navy, fontSize: font.sm },
