@@ -393,6 +393,7 @@ export const uz = {
     accSettings: "Maydon turi", accRooms: "Ochiq o'yinlar", kidCode: "Do'stingiz bergan maydon kodini kiriting. Ro'yxat 16 yoshgacha ko'rinmaydi.", 
   },
   clubs: {
+    howTitle: "Klub qanday ishlaydi", how1t: "Klub yarating", how1d: "Premium egasi klub ochadi va nom beradi.", how2t: "Kodni ulashing", how2d: "6 belgili kod bilan do'stlar yoki sinfdoshlar qo'shiladi.", how3t: "Klub reytingida raqobat", how3d: "A'zolar o'yin natijalari bo'yicha klub ichida o'rin egallaydi.",
     title: "Klublar", short: "Do'stlar reytingi", lead: "Do'stlar guruhi va o'z reytingi. Klub yaratish Premium paketda; qo'shilish hamma uchun bepul (kod bilan).", back: "Orqaga",
     join: "Kod bilan qo'shilish", code: "Klub kodi", joinBtn: "Qo'shilish", create: "Klub yaratish", name: "Klub nomi", createBtn: "Yaratish", premiumNeed: "Klub yaratish Premium paketda. Mavjud klubga kod bilan bepul qo'shilasiz.", seePacks: "Paketlarni ko'rish", restricted: "16 yoshgacha klublar yopiq.",
     mine: "Mening klublarim", empty: "Hozircha klubingiz yo'q.", members: "{n} a'zo", owner: "Egasi", codeIs: "Klub kodi", codeHint: "Kodni do'stlaringizga yuboring: ular bepul qo'shiladi.", board: "Klub reytingi", you: "(siz)", leave: "Klubdan chiqish", del: "Klubni o'chirish", wins: "g'alaba", games: "o'yin", loading: "Yuklanmoqda…",

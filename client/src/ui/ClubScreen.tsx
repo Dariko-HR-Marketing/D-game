@@ -11,6 +11,14 @@ import { uz, errText } from "../i18n/uz";
 import { color, font, MIN_TAP, radius, space, tone } from "../theme";
 
 const K = uz.clubs;
+/** Klub qanday ishlaydi: 3 bosqichli gorizontal diagramma (belgi → belgi → belgi); tor ekranda ustma-ust. */
+function HowItWorks() {
+  const steps = [{ icon: "star" as const, t: K.how1t, d: K.how1d }, { icon: "share" as const, t: K.how2t, d: K.how2d }, { icon: "trophy" as const, t: K.how3t, d: K.how3d }];
+  return (<View style={s.how} role="group" aria-label={K.howTitle} testID="club-how"><Text style={s.h}>{K.howTitle}</Text>
+    <View style={s.howRow}>{steps.map((st, i) => (<View key={i} style={s.howStep}>
+      <View style={s.howIco} aria-hidden><Icon name={st.icon} size={22} color="#fff" /></View>
+      <Text style={s.howT}><Text style={{ color: color.green }}>{i + 1}. </Text>{st.t}</Text><Text style={s.howD}>{st.d}</Text></View>))}</View></View>);
+}
 type ClubInfo = { id: string; name: string; members: number; owner: boolean; code?: string };
 type Row = { rank: number; name: string; color: number; level: number; games: number; wins: number; me: boolean };
 
@@ -26,6 +34,7 @@ export function ClubScreen({ http, onBack, onPacks }: { http: Http; onBack: () =
   return (
     <Screen title={K.title} subtitle={K.lead} onBack={onBack} backLabel={K.back} maxWidth={680} icon="people" chips={list ? [{ label: "Klublarim", value: String(list.length) }, ...(premium ? [{ label: "Premium", value: "Faol", good: true }] : [])] : undefined}>
       {err && <Banner kind="bad">{errText(err)}</Banner>}
+      <HowItWorks />
       {restricted ? <Banner kind="warn">{K.restricted}</Banner> : (<>
         <Card>
           <SectionTitle>{K.join}</SectionTitle>
@@ -58,6 +67,9 @@ export function ClubScreen({ http, onBack, onPacks }: { http: Http; onBack: () =
     </Screen>);
 }
 const s = StyleSheet.create({
+  how: { backgroundColor: "#F3FAF6", borderWidth: 1, borderColor: "#BFE3D1", borderRadius: radius.lg, padding: space.lg, gap: space.md }, howRow: { flexDirection: "row", flexWrap: "wrap", gap: space.md },
+  howStep: { flexGrow: 1, flexBasis: 170, gap: 6 }, howIco: { width: 40, height: 40, borderRadius: 13, backgroundColor: color.green, alignItems: "center", justifyContent: "center" },
+  howT: { color: color.navy, fontWeight: "800", fontSize: font.md }, howD: { color: tone.muted, fontSize: font.sm, lineHeight: 19 },
   empty: { alignItems: "center", gap: space.sm, padding: space.xl, borderRadius: radius.xl, borderWidth: 1, borderStyle: "dashed", borderColor: color.line, backgroundColor: color.white }, emptyIco: { width: 56, height: 56, borderRadius: 18, backgroundColor: "#EEF2F5", alignItems: "center", justifyContent: "center" },
   row: { flexDirection: "row", gap: space.sm, alignItems: "stretch" }, p: { color: tone.muted, fontSize: font.md, lineHeight: 22 }, h: { color: color.navy, fontWeight: "800", fontSize: font.md },
   input: { minHeight: MIN_TAP, minWidth: 0, borderWidth: 1, borderColor: "#7C8FA0", borderRadius: radius.md, paddingHorizontal: space.md, fontSize: font.lg, color: color.navy, backgroundColor: color.white },

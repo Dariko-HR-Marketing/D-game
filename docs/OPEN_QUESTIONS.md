@@ -284,3 +284,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 251. **Qoidalar infografikasi (2026-11-28).** Qoidalar sahifasi tepasida «O'yin yo'li» — 4 bosqichli vertikal infografika (kichik aylana → passiv daromad → chiqish → katta aylana/orzu); raqamlar `RULES` dan (chiqish naqd/passiv, g'alaba pul oqimi), qoida matnlari akkordionda o'zgarmadi.
 
 252. **Bank limiti o'lchagichi (2026-11-28).** «Moliya amallari → Bank» blokida ishlatilgan/jami limit (`RULES.bankLimit`) progress chizig'i (80 % dan oshsa qizil), silliq animatsiya bilan.
+
+253. **Klub «Qanday ishlaydi» diagrammasi (2026-11-28).** Klublar sahifasi tepasida 3 bosqichli diagramma: klub yarating (Premium) → kodni ulashing → klub reytingida raqobat. Narx/limit raqamlari yo'q (konfiguratsiyada bo'sh).
