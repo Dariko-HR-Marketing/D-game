@@ -148,7 +148,7 @@ export const uz = {
     tabs: { field: "Taxta", blank: "Blank", players: "O'yinchilar", rules: "Qoidalar", profile: "Profil", nav: "O'yin bo'limlari" },
     autopilot: { title: "Avtopilot yoqilgan", text: "Ketma-ket 3 marta vaqt tugagani yoki 2 daqiqa harakatsiz (yoki aloqasiz) qolganingiz uchun o'yin siz uchun avtomatik davom etmoqda (ixtiyoriy kartalar o'tkaziladi, har safar −2 ball). O'yinni o'zingiz davom ettirish uchun bosing.", back: "Men qaytdim", pill: "Avtopilot", others: "{name} avtopilotda" },
     badge: { myTurn: "navbat sizda: kubik yoki karta qarori kutilmoqda", urgent: "{n} ta javob kutilmoqda", info: "{n} ta yangilik", both: "{u} ta javob kutilmoqda, {i} ta yangilik" },
-    smallCircle: "Kichik aylana", bigCircle: "Katta aylana", turnWord: "tur", toWin: "G'alabagacha", flowMonthly: "Oylik pul oqimi",
+    smallCircle: "Kichik aylana", bigCircle: "Katta aylana", turnHelp: "{n}-tur: stol turi. Har safar hamma o'yinchi bir martadan yurib bo'lgach keyingi tur boshlanadi. Aylana (4 oy) bundan alohida.", turnWord: "tur", toWin: "G'alabagacha", flowMonthly: "Oylik pul oqimi",
     hintSmall: "1 kubik · soat yo'nalishida", hintBig: "2 kubik · soat yo'nalishida", rollSmall: "Kubikni tashlash", rollBig: "Kubiklarni tashlash",
     yourTurn: "Navbatingiz.", mineHintFree: "Kubikni tashlang. Bu maydonda vaqt cheklovi yo'q.", mineHint: "{s} soniyada kubik tashlanmasa, navbat {name}ga o'tadi.", otherHint: "Navbat {name}da. U {s} soniyada tashlamasa, navbat o'tadi.", otherNoTimer: "Navbat {name}da.",
     onTurn: "Navbatda", online: "Onlayn", offline: "Oflayn", autoNote: "qarorlar avtomatik", you: "siz", dream: "Orzu", cashLabel: "Naqd", incomeAll: "Umumiy daromad", expensesAll: "Umumiy xarajat",
