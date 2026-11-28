@@ -71,6 +71,9 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
           </View></Box>))}
       {pr.loansPending.map((x: any) => x.witnesses ? <Text key={`lp${x.id}`} style={s.note} accessibilityLiveRegion="polite">{uz.coop.witnessWait.replace("{n}", String((x.confirmed ?? []).length)).replace("{m}", String(x.witnesses.length))}</Text> : null)}
       {(pr.loansPending.length > 0 || pr.partnerPending.length > 0) && <Text style={s.note}>{uz.coop.waiting}</Text>}
+      {pr.loansPending.map((x: any) => (<Box key={`lc${x.id}`} title={`${uz.coop.myRequest}: ${nameOf(room, x.giver)} — ${money(x.amount)}`}>
+        <Text style={s.note}>{uz.coop.requestLife}</Text>
+        <Button kind="ghost" label={uz.coop.cancelRequest} onPress={() => onAct({ type: "loan_cancel", proposalId: x.id })} /></Box>))}
 
       {mineTurn && (
         <Box title={uz.coop.bank}>

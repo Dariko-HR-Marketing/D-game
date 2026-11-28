@@ -72,3 +72,19 @@ describe("voqealar yozuvi (so'nggi voqealar)", () => {
     expect(seen).toBe(true);
   });
 });
+
+describe("qarz so'rovi: bekor qilish va 1 aylana (4 oy) muddati", () => {
+  const prep = () => { const s = newGame(ctx, Array.from({ length: 5 }, (_, i) => `p${i}`), 1, []); for (const p of s.players) { p.circle = "small"; p.cash = 100_000; p.salary = 5_000; } P(s, "p0").cash = 1_000; return s; };
+  it("oluvchi istalgan payt bekor qiladi; boshqa o'yinchi qila olmaydi", () => {
+    const s = must(run(prep(), { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 })); const id = s.proposals[0].id;
+    expect(run(s, { type: "loan_cancel", playerId: "p1", proposalId: id })).toEqual({ ok: false, error: "not_receiver" });
+    const t = must(run(s, { type: "loan_cancel", playerId: "p0", proposalId: id })); expect(t.proposals).toHaveLength(0); expect(t.log.some((l) => l.includes("bekor qildi"))).toBe(true);
+  });
+  it("oluvchining 4 o'yin oyi o'tgach so'rov yo'qoladi va xabar boradi", () => {
+    let s = must(run(prep(), { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 })); const id = s.proposals[0].id;
+    s.players.find((p) => p.id === "p0")!.monthsPlayed = 3; s = must(run(s, { type: "loan_request", playerId: "p2", giverId: "p1", amount: 500, months: 12 }));
+    expect(s.proposals.some((x) => x.id === id)).toBe(true); // 3 oy — hali amalda
+    s.players.find((p) => p.id === "p0")!.monthsPlayed = 4; s = must(run(s, { type: "loan_request", playerId: "p3", giverId: "p1", amount: 500, months: 12 }));
+    expect(s.proposals.some((x) => x.id === id)).toBe(false); expect(s.notices!.some((n) => n.to === "p0" && n.key === "loan_expired")).toBe(true);
+  });
+});

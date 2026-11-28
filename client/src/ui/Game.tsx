@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { layoutOf } from "../layout";
 import { chatText } from "../chatText";
 import { lazyNamed, LaterOverlay } from "../lazy";
+import { Socials } from "./Socials";
 const ChatSheet = lazyNamed(() => import("./ChatSheet"), "ChatSheet"), HistoryDetail = lazyNamed(() => import("./History"), "HistoryDetail"), LiveAnalytics = lazyNamed(() => import("./LiveAnalytics"), "LiveAnalytics"), SheetDetail = lazyNamed(() => import("./Sheet"), "SheetDetail"), AuctionLayer = lazyNamed(() => import("./AuctionLayer"), "AuctionLayer"), RecapLayer = lazyNamed(() => import("./RecapLayer"), "RecapLayer");
 import { getMuted } from "../chatMute";
 import { VoicePanel, useVoice } from "./VoicePanel";
@@ -217,7 +218,7 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
     <View style={{ gap: space.md }}>
       {timeInSide && <TimePanel room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
-        <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
+        <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" || n.key === "loan_expired" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined" | "loan_expired"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0} group="side" id="acts"><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}
@@ -244,13 +245,21 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
     {error && error !== "offline" && error !== "unauthorized" && <Banner kind="bad">{errText(error)}</Banner>}</>);
   const circleName = viewCircle === "big" ? uz.hud.bigCircle : uz.hud.smallCircle;
   const tiny = width < 360; // 320 px telefon: oltita tugma va sarlavha sig'sin
+  const [socOpen, setSocOpen] = useState(false);
   const roomy = wide && !compact; // keng ekran: tugmalar guruhlarga yig'iladi; juda keng bo'lsa yozuvlar ham chiqadi, aks holda faqat belgi (sarlavha hech qachon qirqilmasin)
   const labels = roomy && hdrW >= 1180, ib = tiny ? 20 : 22, flat = !roomy;
   const ui: HUi = { flat, labels, ib, tiny };
   const reqLayers = (<>
+    {socOpen && http && <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 120, backgroundColor: "rgba(8,38,62,0.55)", alignItems: "center", justifyContent: "center", padding: space.md }} role="dialog" aria-modal aria-label={uz.game.socials} testID="socials-modal">
+      <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={() => setSocOpen(false)} accessibilityLabel={uz.game.close} />
+      <View style={{ backgroundColor: color.white, borderRadius: radius.lg, padding: space.lg, width: "100%", maxWidth: 480, maxHeight: "90%", gap: space.md }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><Text style={{ fontSize: font.lg, fontWeight: "800", color: color.navy }} accessibilityRole="header">{uz.game.socials}</Text><Pressable accessibilityRole="button" accessibilityLabel={uz.game.close} onPress={() => setSocOpen(false)} style={{ minHeight: 44, minWidth: 44, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 18, color: color.navy }} aria-hidden>✕</Text></Pressable></View>
+        <ScrollView><Socials http={http} /></ScrollView>
+      </View></View>}
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
     {!state.winner && <ProfileMenu fromBottom={!wide} open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} items={[
       { key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" },
+      ...(http ? [{ key: "soc", icon: "star", label: uz.game.socials, onPress: () => setSocOpen(true), tid: "socials-open" }] : []),
       ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : []),
       ...(reqs.length > 0 ? [{ key: "req", icon: "bell", label: uz.req.bellN.replace("{n}", String(reqs.length)), onPress: reqModal.show, tid: "requests-open", badge: reqs.length }] : []),
       ...(voice && vs && vs.status === "on" && vs.hasMic ? [{ key: "mic", icon: vs.muted ? "micOff" : "mic", label: vs.muted ? uz.voice.headerOff : uz.voice.headerOn, onPress: () => voice.setMuted(!vs.muted), tid: "voice-header-mic" }] : []),

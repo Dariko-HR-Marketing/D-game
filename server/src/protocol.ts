@@ -28,6 +28,7 @@ export const ActionIn = z.discriminatedUnion("type", [
   z.object({ type: z.literal("loan_request"), giverId: id, amount: money, months: int(1, 36), witnesses: z.array(id).length(3).optional() }).strict(),
   z.object({ type: z.literal("loan_accept"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("loan_decline"), proposalId: int(1, 1e9) }).strict(),
+  z.object({ type: z.literal("loan_cancel"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("loan_witness"), proposalId: int(1, 1e9) }).strict(),
   z.object({ type: z.literal("loan_repay"), debtId: int(1, 1e9), amount: money }).strict(),
   z.object({ type: z.literal("loan_remind"), debtorId: id, debtId: int(1, 1e9) }).strict(),
