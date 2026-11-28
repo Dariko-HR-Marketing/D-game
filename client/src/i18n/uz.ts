@@ -253,7 +253,7 @@ export const uz = {
   req: {
     bell: "So'rovlar", bellN: "So'rovlar: {n} ta kutmoqda", title: "Sizdan javob kutilmoqda", count: "{i} / {n}", later: "Keyinroq",
     witnessQ: "{a} {b} dan {s} so'm qarz so'rayapti. Siz bu qarzga guvoh bo'lasizmi?", witnessYes: "Guvohman",
-    loanQ: "{a} sizdan {s} so'm qarz so'rayapti ({m} oy). Qarz berasizmi?", loanYes: "Ha, qarz beraman", loanNo: "Yo'q, rad etaman",
+    borrowerInfo: "Qarzdor limiti: {limit} · ochiq qarzlari: {used}", loanQ: "{a} sizdan {s} so'm qarz so'rayapti ({m} oy). Qarz berasizmi?", loanYes: "Ha, qarz beraman", loanNo: "Yo'q, rad etaman",
     partnerQ: "{a} sizga sheriklik taklif qilmoqda. Sherik bo'lasizmi?", partnerYes: "Ha, sherik bo'laman", partnerNo: "Yo'q, rad etaman",
     witnessNote: "Guvoh bo'lish — qarz haqida xabardor ekaningizni tasdiqlash. Pul sizdan o'tmaydi.", empty: "Hozircha kutayotgan so'rov yo'q",
   },

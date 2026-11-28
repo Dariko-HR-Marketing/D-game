@@ -5,6 +5,7 @@ import { Icon } from "./Icon";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, radius, shadow, space, font } from "../theme";
+import { mutualLoanLimit } from "@tajriba24/rules";
 import { me, myProposals, nameOf } from "../model";
 import type { RoomView } from "../net/connection";
 
@@ -42,7 +43,9 @@ export function RequestModal({ room, userId, reqs, onAct, onClose }: { room: Roo
   } else if (r.kind === "loan") {
     const wait = !!x.witnesses && (x.confirmed ?? []).length < x.witnesses.length; const poor = p.cash < x.amount;
     q = rep(uz.req.loanQ, { a: nameOf(room, x.receiver), s: money(x.amount), m: String(x.months) });
-    note = wait ? uz.coop.witnessWait.replace("{n}", String((x.confirmed ?? []).length)).replace("{m}", String(x.witnesses.length)) : poor ? uz.coop.needCashLoan.replace("{n}", money(x.amount)) : "";
+    const rc = room.state?.players?.find((z: any) => z.id === x.receiver); const lim = rc ? mutualLoanLimit(rc.salary, (rc.assets ?? []).reduce((t: number, as: any) => t + as.monthlyIncome, 0)) : 0, used = rc ? (rc.handDebts ?? []).reduce((t: number, d: any) => t + d.amount, 0) : 0;
+    const info = rc ? uz.req.borrowerInfo.replace("{limit}", money(lim)).replace("{used}", money(used)) : "";
+    note = [info, wait ? uz.coop.witnessWait.replace("{n}", String((x.confirmed ?? []).length)).replace("{m}", String(x.witnesses.length)) : poor ? uz.coop.needCashLoan.replace("{n}", money(x.amount)) : ""].filter(Boolean).join("\n");
     buttons = <><Button label={uz.req.loanYes} disabled={wait || poor} onPress={() => onAct({ type: "loan_accept", proposalId: x.id })} /><Button kind="ghost" label={uz.req.loanNo} onPress={() => onAct({ type: "loan_decline", proposalId: x.id })} /><Button kind="ghost" label={uz.req.later} onPress={onClose} /></>;
   } else {
     const poor = x.half != null && p.cash < x.half;
