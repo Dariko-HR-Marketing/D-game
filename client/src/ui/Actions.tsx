@@ -24,7 +24,7 @@ const Box = ({ title, children, icon }: { title: string; children: React.ReactNo
 /** Limit o'lchagichi (infografika): to'ldirilgan qismi ishlatilgan; kengligi silliq o'zgaradi (web'da CSS o'tish). */
 function Gauge({ used, total, label }: { used: number; total: number; label: string }) {
   const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((used / total) * 100))) : 0; const hot = pct >= 80;
-  return (<View style={{ gap: 4 }} accessible accessibilityLabel={`${label}: ${money(used)} / ${money(total)}`} testID="gauge">
+  return (<View style={{ gap: 4 }} accessible role="img" accessibilityLabel={`${label}: ${money(used)} / ${money(total)}`} testID="gauge">
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={s.note}>{label}</Text><Text style={[s.note, { fontWeight: "800", color: hot ? color.red : color.navy }]}>{money(used)} / {money(total)}</Text></View>
     <View style={{ height: 10, borderRadius: 5, backgroundColor: "#E8EEF1", overflow: "hidden" }} aria-hidden><View style={[{ height: 10, borderRadius: 5, width: `${pct}%` as any, backgroundColor: hot ? color.red : color.green }, { transitionProperty: "width", transitionDuration: "450ms" } as any]} /></View>
   </View>);
@@ -32,7 +32,7 @@ function Gauge({ used, total, label }: { used: number; total: number; label: str
 
 /** Ulush chizig'i (infografika): ikki rangli, chap ulush `pct` %; qiymat belgilari ostida. */
 function Split({ pct, left, right }: { pct: number; left: string; right: string }) {
-  return (<View style={{ gap: 4 }} accessible accessibilityLabel={`${left} ${pct} %, ${right} ${100 - pct} %`} testID="split">
+  return (<View style={{ gap: 4 }} accessible role="img" accessibilityLabel={`${left} ${pct} %, ${right} ${100 - pct} %`} testID="split">
     <View style={{ flexDirection: "row", height: 12, borderRadius: 6, overflow: "hidden" }} aria-hidden><View style={{ width: `${pct}%` as any, backgroundColor: color.green }} /><View style={{ flex: 1, backgroundColor: "#F0B429" }} /></View>
     <View style={{ flexDirection: "row", justifyContent: "space-between" }} aria-hidden><Text style={s.note}>{left}: {pct} %</Text><Text style={s.note}>{right}: {100 - pct} %</Text></View>
   </View>);
