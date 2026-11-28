@@ -217,7 +217,7 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
     <View style={{ gap: space.md }}>
       {timeInSide && <TimePanel room={room} userId={userId} settled={settled} />}
       {notices.length > 0 && (<View style={{ gap: space.xs }} accessibilityLiveRegion="polite">{notices.map((n: any) => (
-        <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
+        <Banner key={n.id} kind="warn">{n.key === "loan_reminder" || n.key === "loan_declined" || n.key === "loan_expired" ? `${nameOf(room, n.from)} ${uz.notice[n.key as "loan_reminder" | "loan_declined" | "loan_expired"]}${n.amount ? `: ${money(n.amount)}` : ""}` : n.key === "partner_declined" ? `${nameOf(room, n.from)} ${uz.notice.partner_declined}` : uz.notice[n.key as "crisis_start" | "crisis_end"]}</Banner>))}</View>)}
       {mine && <View testID="finance"><FinanceCard mode={state.mode} p={mine} shown={fx.shown} profession={room.professions?.[mine.id]} dream={mine.dreamIdx !== null && mine.dreamIdx !== undefined ? room.dreams?.[mine.dreamIdx] : null} /></View>}
       <View testID="actions"><Collapsible title={uz.game.moneyActions} badge={incoming || undefined} defaultOpen={incoming > 0} group="side" id="acts"><Actions room={room} userId={userId} onAct={onAct} /></Collapsible></View>
       {mine && !tri && <PortfolioCard room={room} userId={userId} onOpen={() => setPortfolioOpen(true)} onAct={onAct} />}

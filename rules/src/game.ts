@@ -68,13 +68,13 @@ export interface RestartRecap {
 
 export type Proposal =
   | { id: number; kind: "suyunchi"; parent: string; given: string[] }
-  | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number; witnesses?: string[]; confirmed?: string[] }
+  | { id: number; kind: "loan"; giver: string; receiver: string; amount: number; months: number; witnesses?: string[]; confirmed?: string[]; at?: number }
   | { id: number; kind: "partner"; owner: string; partner: string; cardId: string; half?: number }
   | { id: number; kind: "market"; cardId: string; sold: string[] }
   | { id: number; kind: "offer"; cardId: string; sold: string[]; first: boolean }; // katalog «sotish taklifi»: `first` — faqat birinchi rozi bo'lgan sota oladi
 
 /** Xabarnoma (§5.7: inqiroz tugaganda aloqador o'yinchilarga; §5.6: qarz eslatmasi). `to`: o'yinchi ID yoki "all". */
-export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder" | "loan_declined" | "partner_declined"; round: number; from?: string; amount?: number }
+export interface Notice { id: number; to: string; key: "crisis_start" | "crisis_end" | "loan_reminder" | "loan_declined" | "loan_expired" | "partner_declined"; round: number; from?: string; amount?: number }
 
 export interface GameState {
   notices: Notice[]; nextNotice: number;
@@ -294,6 +294,7 @@ export type Action =
   | { type: "loan_request"; playerId: string; giverId: string; amount: number; months: number; witnesses?: string[] }
   | { type: "loan_accept"; playerId: string; proposalId: number }
   | { type: "loan_decline"; playerId: string; proposalId: number }
+  | { type: "loan_cancel"; playerId: string; proposalId: number }
   | { type: "loan_witness"; playerId: string; proposalId: number }
   | { type: "loan_repay"; playerId: string; debtId: number; amount: number }
   | { type: "loan_remind"; playerId: string; debtorId: string; debtId: number }
@@ -312,7 +313,13 @@ export type Action =
 export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false; error: string };
 
 /** Har bir muvaffaqiyatli harakatdan keyin: egasi qarorini qabul qilgan (karta yopilgan) sheriklik takliflari o'chadi. Aks holda sherik «karta mavjud emas» xatosini ko'radi. */
-const pruneStale = (s: GameState) => { s.proposals = s.proposals.filter((x) => x.kind !== "partner" || (s.pending?.cardId === x.cardId && s.pending.playerId === x.owner)); };
+const pruneStale = (s: GameState) => {
+  s.proposals = s.proposals.filter((x) => x.kind !== "partner" || (s.pending?.cardId === x.cardId && s.pending.playerId === x.owner));
+  // Qarz so'rovi 1 aylana (4 oy) amal qiladi (qaror 2026-11-27): oluvchining o'yin oylari bo'yicha muddat o'tsa so'rov yo'qoladi
+  const gone = s.proposals.filter((x): x is Extract<GameState["proposals"][number], { kind: "loan" }> => x.kind === "loan" && x.at !== undefined && (s.players.find((p) => p.id === x.receiver)?.monthsPlayed ?? 0) - x.at >= RULES.loanRequestMonths);
+  for (const x of gone) { notify(s, x.receiver, "loan_expired", { from: x.giver, amount: x.amount }); logf(s, `${x.receiver}: ${x.giver} ga qarz so'rovi muddati tugadi`); }
+  if (gone.length) s.proposals = s.proposals.filter((x) => !gone.includes(x as never));
+};
 /** Voqealar tarixi uchun: har bir amaldan keyin naqdi o'zgargan o'yinchi uchun «naqd ±X» qatori (sababi — undan oldingi qator). */
 function logCashChanges(prev: GameState, next: GameState) {
   for (const p of next.players) { const b = prev.players.find((x) => x.id === p.id); if (!b) continue; const d = p.cash - b.cash; if (d !== 0) logf(next, `${p.id}: naqd ${d > 0 ? "+" : "−"}${Math.abs(d)}`); }
@@ -992,7 +999,7 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
         if (w.some((id) => id === rec.id || id === giver.id || !s.players.some((p) => p.id === id) || s.bots.includes(id) || s.restricted.includes(id))) return err("bad_witnesses");
         witnesses = [...w];
       }
-      s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months, ...(witnesses ? { witnesses, confirmed: [] } : {}) });
+      s.proposals.push({ id: s.nextProposal++, kind: "loan", giver: giver.id, receiver: rec.id, amount: a.amount, months: a.months, at: rec.monthsPlayed ?? 0, ...(witnesses ? { witnesses, confirmed: [] } : {}) });
       logf(s, `${rec.id}: ${giver.id} dan qarz so'radi (${a.amount})`); return ok();
     }
     case "loan_accept": {
@@ -1022,6 +1029,12 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (!pr || pr.kind !== "loan") return err("no_proposal");
       if (pr.giver !== a.playerId) return err("not_giver");
       s.proposals = s.proposals.filter((x) => x.id !== pr.id); notify(s, pr.receiver, "loan_declined", { from: pr.giver, amount: pr.amount }); logf(s, `${pr.giver}: ${pr.receiver} ning qarz so'rovini rad etdi`); return ok();
+    }
+    case "loan_cancel": { // oluvchi o'z so'rovini istalgan payt bekor qiladi
+      const pr = s.proposals.find((x) => x.id === a.proposalId);
+      if (!pr || pr.kind !== "loan") return err("no_proposal");
+      if (pr.receiver !== a.playerId) return err("not_receiver");
+      s.proposals = s.proposals.filter((x) => x.id !== pr.id); logf(s, `${pr.receiver}: ${pr.giver} ga qarz so'rovini bekor qildi`); return ok();
     }
     case "loan_remind": { // qarz beruvchi qarzdorga eslatma yuboradi: har bir qarz uchun raundda bir marta (qaror, #62)
       const debtor = s.players.find((p) => p.id === a.debtorId); const d = debtor?.handDebts.find((x) => x.id === a.debtId);
