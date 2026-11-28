@@ -483,7 +483,7 @@ export const uz = {
     titleVoluntary: "{name} mulkini auksionga qo'ydi", titleMarket: "{name} kartani ola olmadi: karta bozor auksioniga chiqdi",
     notes: { majburiy: "Boshlang'ich narx — mulkning o'z narxi. Bank faqat o'z qarzini va haqini oladi, ortiqcha summa mulk egasiga qaytariladi.", ixtiyoriy: "Boshlang'ich narxni egasi o'zi belgilagan. Butun summa mulk egasiga tushadi (mulkning o'z krediti bo'lsa, u avval yopiladi).", bozor: "Karta to'liq narxdan sotiladi. Pul bankka ketadi. To'lov faqat naqd." },
     spectator: "Siz kuzatuvchisiz: taklif qila olmaysiz, lekin hammasini ko'rasiz.", drawerWait: "Karta sizga yetmadi, auksionda qatnasha olmaysiz.",
-    listTitle: "Mulkni auksionga qo'yish (ixtiyoriy)", listHint: "Boshlang'ich narx mulk narxining 50–100 % i. Past narx tezroq sotiladi.", listBtn: "Auksionga qo'yish", listPct: "{p} %",
+    listTitle: "Mulkni auksionga qo'yish (ixtiyoriy)", listHint: "Boshlang'ich narx mulk narxining 50–100 % i. Past narx tezroq sotiladi.", listBtn: "Auksionga qo'yish", listFew: "Auksion ochilishi uchun boshlang'ich narxni naqd to'lay oladigan kamida {n} ta boshqa o'yinchi kerak. Hozir yetarli emas: narx foizini pasaytiring yoki o'yinchilar naqdi yetishini kuting.", listPct: "{p} %",
     title: "Garov auksioni", titleLombard: "{name}ning lombard (rahn) qarzi to'lanmadi: garovdagi mulk sotiladi", titleBank: "{name}ning bank krediti (murobaha) to'lanmadi: garovdagi mulk sotiladi",
     due: "Bankka qarz va qo'shimcha haq", credits: "Mulkning o'z krediti (sotuvdan yopiladi)", start: "Boshlang'ich narx", best: "Eng yuqori taklif", noBids: "Hali taklif yo'q",
     surplus: "Bank faqat o'z haqini oladi. Sotuv narxi shundan ko'p bo'lsa, ortiqcha summa mulk egasiga qaytariladi.",
