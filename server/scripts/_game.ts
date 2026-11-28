@@ -19,6 +19,7 @@ for (const [tag, w, h] of [["m", 390, 844], ["d", 1440, 900]] as [string, number
   const room = x.rooms.rooms.get(code)!; await shot(a, "03-start");
   for (let i = 0; i < 6; i++) { const me = currentPlayer(room.state!).id; await x.rooms.act(code, me, { type: "roll", playerId: me }, room.seq); if (room.state!.pending) { const p = currentPlayer(room.state!).id; await x.rooms.act(code, p, { type: "decide", playerId: p, accept: false }, room.seq).catch(() => {}); } }
   await shot(a, "04-after-rolls");
+  const tb = a.getByRole("button", { name: "Blank", exact: true }); if (await tb.count()) { await tb.click(); await a.waitForTimeout(500); await shot(a, "05a-blank"); const ac = a.getByRole("button", { name: /Moliya amallari/ }); if (await ac.count()) { await ac.first().click(); await a.waitForTimeout(400); await a.evaluate(() => window.scrollTo(0, 99999)); await shot(a, "05b-blank-finance"); } }
   const acts = a.getByRole("button", { name: /Moliya amallari/ }); if (await acts.count()) { await acts.first().click(); await a.waitForTimeout(400); await a.evaluate(() => window.scrollTo(0, 99999)); await shot(a, "05-finance"); }
   const pl = a.getByRole("button", { name: "O'yinchilar", exact: true }); if (await pl.count()) { await pl.click(); await shot(a, "06-players-events"); }
   await c.close(); await a.close();

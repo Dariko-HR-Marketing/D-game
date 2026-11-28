@@ -42,7 +42,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compa
       {wide && (
         <View style={s.wideRow}>
           <DeadlineRing deadline={room.deadline} total={phaseSeconds(room)} size={dense ? 40 : 48} />
-          <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
+          {(lr || mineTurn) && <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>}{/* sarlavha allaqachon «Navbat: X» desa takrorlanmaydi */}
         </View>)}
       {wide && gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : null}
       {wide && !gate && mineTurn && !hasCard && !moving && <View style={{ alignSelf: "stretch", paddingHorizontal: space.md, position: "relative", zIndex: 95 }} testID="roll-front"><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View>}

@@ -62,11 +62,11 @@ export function ShopScreen({ http, onBack }: { http: Http; onBack: () => void })
           </>) : null}
           {minor && <Field label="Ota-onangizning telefon raqami" value={parentPhone} onChange={setParentPhone} placeholder="+998 …" keyboard="phone-pad" max={20} />}
           {minor && <Text style={s.small}>18 yoshgacha xarid ota-ona roziligi bilan. Unga SMS orqali havola yuboriladi; raqam qaror qabul qilingach o'chiriladi.</Text>}
-          <View style={s.rowW}>
+          {d.plus.monthly === null && d.plus.yearly === null ? <Banner kind="info">{uz.packs.pricePending}</Banner> : (<View style={s.rowW}>
             <Button label={`Oylik · ${money(d.plus.monthly)}`} disabled={d.plus.monthly === null} onPress={() => buy("plus:monthly")} />
             <Button kind="ghost" label={`Yillik · ${money(d.plus.yearly)}`} disabled={d.plus.yearly === null} onPress={() => buy("plus:yearly")} />
-          </View>
-          {!d.paymentsReady && <Banner kind="warn">To'lov usullari hozircha ulanmagan.</Banner>}
+          </View>)}
+          {!d.paymentsReady && !(d.plus.monthly === null && d.plus.yearly === null) && <Banner kind="warn">To'lov usullari hozircha ulanmagan.</Banner>}
           <Button kind="ghost" label="Xaridni tiklash" onPress={() => run(() => http.restore(), "Tekshirildi")} />
         </Card>
 
