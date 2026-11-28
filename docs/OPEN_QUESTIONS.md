@@ -288,3 +288,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 253. **Klub «Qanday ishlaydi» diagrammasi (2026-11-28).** Klublar sahifasi tepasida 3 bosqichli diagramma: klub yarating (Premium) → kodni ulashing → klub reytingida raqobat. Narx/limit raqamlari yo'q (konfiguratsiyada bo'sh).
 
 254. **Reyting premium bo'sh holati (2026-11-28).** Reyting sarlavhasida kubok belgisi va chips («Reytingda», «Mening o'rnim»); bo'sh bo'lsa 2–1–3 bo'sh podium kolonnalari va «Birinchi bo'ling» matni. Ko'rik uchun `server/scripts/_pages.ts` (bosh, profil, reyting, do'kon, paketlar, klublar, qoidalar suratlari) qo'shildi.
+
+255. **Moliya infografikasi davomi (2026-11-28).** Lombard (garov 50 %: qo'lga / garovda) va sheriklik (narx va foyda 50/50: siz / sherik) bloklarida ikki rangli ulush chizig'i; o'zaro qarz blokida qarz limiti o'lchagichi (ishlatilgan/limit). Raqamlar SPEC bo'yicha (§5.3, §5.6).
