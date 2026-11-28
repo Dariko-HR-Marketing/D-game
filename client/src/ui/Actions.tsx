@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { bankLoanPayoff, lombardPayoff, oneTimeFee, RULES } from "@tajriba24/rules";
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { Button } from "./Button";
+import { Icon, type IconName } from "./Icon";
 import { uz } from "../i18n/uz";
 import { money } from "../format";
 import { color, MIN_TAP } from "../theme";
@@ -9,8 +10,16 @@ import { offerHowLines } from "../offerHow";
 import { nameOf, bankRoom, pledgeableAssets, sellableAssets, canOfferPartner, marketOffers, loanBounds, loanGivers, loanWitnessOptions, me, myPartneredAssets, myProposals, partnerCandidates, suyunchiAmounts } from "../model";
 import type { RoomView } from "../net/connection";
 
-const Box = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <View style={s.box}><Text style={s.h} aria-level={2} accessibilityRole="header">{title}</Text>{children}</View>);
+/** Moliya amali bloki: sarlavha qatori bosilsa yig'iladi (akkordion; qaror 2026-11-27). Belgi amal turiga qarab; ochiq turadi, shunda amal shakli doim ko'rinadi. */
+const Box = ({ title, children, icon }: { title: string; children: React.ReactNode; icon?: IconName }) => {
+  const [open, setOpen] = useState(true);
+  return (<View style={[s.box, !open && { paddingBottom: 0 }]}>
+    <Pressable accessibilityRole="button" aria-expanded={open} accessibilityState={{ expanded: open }} accessibilityLabel={title} onPress={() => setOpen(!open)} style={s.hRow}>
+      {icon ? <View style={s.hIco} aria-hidden><Icon name={icon} size={18} color={color.navy} /></View> : null}
+      <Text style={[s.h, { flex: 1 }]} aria-level={2} accessibilityRole="header">{title}</Text>
+      <View style={{ transform: [{ rotate: open ? "90deg" : "0deg" }] }} aria-hidden><Icon name="chevron" size={18} color={color.navy} /></View>
+    </Pressable>{open ? children : null}</View>);
+};
 
 function Pick({ options, value, onChange, label, names }: { options: string[]; value: string; onChange: (v: string) => void; label: string; names?: (id: string) => string }) {
   return (<View style={s.chips} role="group" aria-label={label}>{options.map((o) => (
@@ -76,7 +85,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
         <Button kind="ghost" label={uz.coop.cancelRequest} onPress={() => onAct({ type: "loan_cancel", proposalId: x.id })} /></Box>))}
 
       {mineTurn && (
-        <Box title={uz.coop.bank}>
+        <Box title={uz.coop.bank} icon="bank">
           <Text style={s.note}>{uz.coop.bankRoom}: {money(bankRoom(p))}</Text>
           <Text style={s.note}>{buyCardOpen ? uz.coop.bankRules : uz.coop.bankPurpose}</Text>
           <Num label={uz.coop.bankHint} value={bank} onChange={setBank} />
@@ -86,7 +95,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
             return (<Button key={i} kind="ghost" label={`${uz.coop.repayEarly}: ${money(l.amount)} · ${money(cost)}`} disabled={elapsed < RULES.bankEarlyCloseMonths || p.cash < cost} onPress={() => onAct({ type: "bank_repay", loanIdx: i })} />); })}
         </Box>)}
       {mineTurn && p.halalFin && p.circle === "small" && !room.state?.auction && pledgeableAssets(p).length > 0 && (
-        <Box title={uz.auction.listTitle}>
+        <Box title={uz.auction.listTitle} icon="board">
           <Text style={s.note}>{uz.auction.listHint}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{[50, 60, 70, 80, 90, 100].map((v) => (<Button key={v} kind={listPct === v ? "primary" : "ghost"} label={uz.auction.listPct.replace("{p}", String(v))} onPress={() => setListPct(v)} />))}</View>
           {(() => { const rivals = st.players.filter((o: any) => o.id !== userId && o.circle === p.circle && !(st.restricted ?? []).includes(o.id)); const enough = (start: number) => rivals.filter((o: any) => o.cash >= start).length >= RULES.auctionMinBidders; let blocked = false;
@@ -95,12 +104,12 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
             return (<>{btns}{blocked && <Text style={s.note} accessibilityRole="alert" testID="auction-few">{uz.auction.listFew.replace("{n}", String(RULES.auctionMinBidders))}</Text>}</>); })()}
         </Box>)}
       {mineTurn && pledgeableAssets(p).length > 0 && (
-        <Box title={uz.coop.lombard}>
+        <Box title={uz.coop.lombard} icon="lock">
           <Text style={s.note}>{uz.coop.lombardRules}</Text>
           {pledgeableAssets(p).map(({ idx, a }) => (<Button key={idx} kind="ghost" label={`${a.code} → +${money(Math.floor((a.price * 0.5) / 100) * 100)}`} onPress={() => onAct({ type: "lombard", assetIdx: idx })} />))}
         </Box>)}
       {mineTurn && sellableAssets(p).length > 0 && (
-        <Box title={uz.slots.sellTitle}>
+        <Box title={uz.slots.sellTitle} icon="dollar">
           <Text style={s.note}>{uz.slots.sellHint}</Text>
           {sellableAssets(p).map(({ idx, a, proceeds }) => sellIdx === idx ? (
             <View key={idx} style={{ gap: 6 }}>
@@ -114,14 +123,14 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
       {mineTurn && (p.lombards ?? []).map((l: any, i: number) => (<Button key={`lr${i}`} kind="ghost" label={`${uz.coop.lombardRepay}: ${l.code} · ${money(lombardPayoff(l))}`} disabled={p.cash < lombardPayoff(l)} onPress={() => onAct({ type: "lombard_repay", lombardIdx: i })} />))}
 
       {buy && (
-        <Box title={uz.coop.partner}>
+        <Box title={uz.coop.partner} icon="people">
           <Pick label={uz.coop.chooseHint} options={partnerCandidates(room, userId)} value={partner} onChange={setPartner} names={(id) => nameOf(room, id)} />
           <Button label={uz.coop.partnerOffer} disabled={!partner} onPress={() => onAct({ type: "partner_offer", partnerId: partner })} /></Box>)}
       {partnered.map((a: any) => (
         <Button key={a.code} label={`${uz.coop.partnerBuyout}: ${a.code}`} kind="ghost" onPress={() => onAct({ type: "partner_buyout", assetCode: a.code })} />))}
 
       {p.circle === "small" && gv.length > 0 && (
-        <Box title={uz.coop.loan}>
+        <Box title={uz.coop.loan} icon="hand">
           {!loanBounds(room, userId, gv[0]).enough ? <Text style={s.note}>{uz.coop.fewPlayers}</Text> : (<>
             <Pick label={uz.coop.giver} options={gv} value={giver} onChange={(v: string) => { setGiver(v); setWit(["", "", ""]); }} names={(id) => nameOf(room, id)} />
             {bounds && <Text style={s.note}>{uz.coop.max}: {money(bounds.max)}</Text>}
@@ -137,19 +146,20 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
       {(() => {
         const owed = (room.state.players as any[]).flatMap((q) => (q.handDebts ?? []).filter((d: any) => d.to === userId).map((d: any) => ({ ...d, debtor: q.id })));
         return owed.length > 0 && (
-          <Box title={uz.coop.owed}>{owed.map((d: any) => (
+          <Box title={uz.coop.owed} icon="clock">{owed.map((d: any) => (
             <View key={d.id} style={s.row}><Text style={s.note}>{nameOf(room, d.debtor)}: {money(d.amount)}</Text>
               <Button label={uz.coop.remind} kind="ghost" disabled={d.remindedRound === room.state.round} onPress={() => onAct({ type: "loan_remind", debtorId: d.debtor, debtId: d.id })} /></View>))}</Box>);
       })()}
 
       {p.handDebts?.length > 0 && (
-        <Box title={uz.coop.debts}>{p.handDebts.map((d: any) => (
+        <Box title={uz.coop.debts} icon="list">{p.handDebts.map((d: any) => (
           <View key={d.id} style={s.row}><Text style={s.note}>{nameOf(room, d.to)}: {money(d.amount)}</Text>
             <Button label={uz.coop.repay} kind="ghost" onPress={() => onAct({ type: "loan_repay", debtId: d.id, amount: Math.min(d.amount, Math.floor(p.cash)) })} /></View>))}</Box>)}
     </View>
   );
 }
 const s = StyleSheet.create({
+  hRow: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TAP }, hIco: { width: 32, height: 32, borderRadius: 10, backgroundColor: "#EAF3EF", alignItems: "center", justifyContent: "center" },
   box: { backgroundColor: color.bg, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: color.line, gap: 10 },
   h: { fontWeight: "700", color: color.navy }, note: { color: color.text2 }, row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 },
   input: { minHeight: MIN_TAP, borderWidth: 1, borderColor: color.line, borderRadius: 10, paddingHorizontal: 12, fontSize: 16, color: color.navy, backgroundColor: color.white },

@@ -276,3 +276,5 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 247. **O'yin ichida ijtimoiy tarmoqlar va katak ma'lumoti (2026-11-28).** O'yin ichidagi profil menyusida «Ijtimoiy tarmoqlar» (Instagram/Telegram/YouTube... ulash — profildagi bilan bir xil oyna). Katak bosilganda ma'lumot ikkala aylanada ham chiqadi (kichik: turi va qoidasi; katta: biznes — nima, kimniki, narx/daromad/qoplanish; tavakkal; orzu — qaysi orzu, kim tanlagan, narxi); orzu katagi matni asl qoidaga moslandi.
 
 248. **Ijtimoiy a'zolik kartalari premium (2026-11-28).** Har tarmoq belgisi brend gradientida (Instagram rasmiy rang o'tishi) va soyali; tepada yulduzcha jamlanmasi va progress chizig'i. Ma'no va tugmalar o'zgarmadi.
+
+249. **Moliya amallari akkordion (2026-11-28, buyurtmachi).** «Moliya amallari»dagi bloklar (bank, auksion, lombard, aktiv sotish, sheriklik, qarz, qarzlarim) sarlavha qatori bosilganda yig'iladigan akkordion, amal turiga mos belgi bilan; standart ochiq (shakl doim ko'rinadi). Infografika va animatsiya keyingi bosqich.
