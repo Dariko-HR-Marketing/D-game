@@ -16,7 +16,7 @@ describe("oferta roziligi", () => {
     x.profiles.put("alice", { name: "Alisa", color: 0, birthYear: 1990 } as any); const a = client(port, "alice"); await a.open;
     const h = { authorization: "Bearer alice" }, call = async (m: "GET" | "POST" | "DELETE", payload?: any) => (await x.app.inject({ method: m, url: "/me/consent", headers: h, payload })).json();
     expect(await call("GET")).toMatchObject({ required: "2026-11-26", accepted: null, ok: false });
-    a.send({ type: "create", visibility: "open", start: "host" }); expect(await a.until((m) => m.type === "error")).toMatchObject({ error: "offer_required" });
+    a.send({ type: "create", visibility: "open", start: "host" }); await a.until((m) => m.type === "state"); // qaror 2026-11-27: oferta faqat ro'yxatdan o'tishda; o'yin ochish/qo'shilish rozilikka bog'liq emas
     expect((await x.app.inject({ method: "POST", url: "/me/consent", headers: h, payload: { version: "eski" } })).statusCode).toBe(400);
     expect(await call("POST", { version: "2026-11-26" })).toMatchObject({ ok: true, accepted: "2026-11-26" }); expect(await call("GET")).toMatchObject({ ok: true });
     a.send({ type: "create", visibility: "open", start: "host" }); await a.until((m) => m.type === "state");

@@ -37,6 +37,7 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
   const [emailOn, setEmailOn] = useState(false); useEffect(() => { let off = false; auth.config().then((c) => { if (!off) setEmailOn(!!c.email); }).catch(() => {}); return () => { off = true; }; }, [auth]);
   const emailTyped = ident.includes("@");
   const phoneOk = emailTyped ? emailOn && validEmail(ident) : validPhone(ident); // telefon yoki (server yoqqan bo'lsa) email
+  const gLocked = tab === "register" && !terms; // Google orqali ro'yxatdan o'tishdan oldin oferta belgisi shart
   const canSend = !busy && phoneOk && (tab === "login" || (validName(name) && validYear(year) && terms));
   const run = async (f: () => Promise<void>) => { setBusy(true); setStatus(null); try { await f(); } catch (e) { setStatus({ kind: "bad", text: errText(e instanceof HttpError ? e.code : "network") }); } finally { setBusy(false); } };
   const send = () => run(async () => { await (emailTyped ? auth.emailRequest(ident.trim()) : auth.request(ident)); if (tab === "register") { onSignupProfile?.({ name: name.trim(), year }); markSignupOffer(); } setStep("code"); setCool(RESEND_S); });
@@ -46,7 +47,7 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
   useEffect(() => { let off = false; if (!GOOGLE_CLIENT_ID) return; auth.config().then((c) => { if (!off) setGOn(googleEnabled(c.google)); }).catch(() => {}); return () => { off = true; }; }, [auth]);
   useEffect(() => { // Google tugmasi: rasmiy tugma shu joyga chiziladi. Har chizishda serverdan bir martalik nonce olinadi (replay himoyasi); token + nonce serverga yuboriladi, server tekshiradi
     if (!gOn || !gRef.current) return; let off = false;
-    Promise.all([loadGis(), auth.nonce()]).then(([g, nonce]) => { if (off || !gRef.current) return; g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, nonce, callback: (r: { credential?: string }) => { if (r?.credential) run(async () => { try { onDone(await auth.google(r.credential!, nonce), remember); } catch (e) { if (e instanceof HttpError && e.code === "bad_nonce") setGKey((k) => k + 1); throw e; } }); } }); g.accounts.id.renderButton(gRef.current, { theme: "filled_black", size: "large", width: 320, text: tab === "login" ? "signin_with" : "signup_with" }); }).catch(() => setStatus({ kind: "bad", text: uz.login.googleSoon }));
+    Promise.all([loadGis(), auth.nonce()]).then(([g, nonce]) => { if (off || !gRef.current) return; g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, nonce, callback: (r: { credential?: string }) => { if (r?.credential) run(async () => { try { if (tab === "register") markSignupOffer(); onDone(await auth.google(r.credential!, nonce), remember); } catch (e) { if (e instanceof HttpError && e.code === "bad_nonce") setGKey((k) => k + 1); throw e; } }); } }); g.accounts.id.renderButton(gRef.current, { theme: "filled_black", size: "large", width: 320, text: tab === "login" ? "signin_with" : "signup_with" }); }).catch(() => setStatus({ kind: "bad", text: uz.login.googleSoon }));
     return () => { off = true; };
   }, [gOn, tab, remember, gKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const google = () => setStatus(AUTH_METHODS.google ? null : { kind: "info", text: uz.login.googleSoon });
@@ -84,10 +85,14 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
                   <Pressable key={k} role="tab" accessibilityRole="tab" aria-selected={tab === k} accessibilityState={{ selected: tab === k }} onPress={() => switchTab(k)} style={[s.tab, tab === k && s.tabOn]}>
                     <Text style={[s.tabT, tab === k && { color: "#FFFFFF" }]}>{l}</Text></Pressable>))}
               </View>
+              {tab === "register" && <OfferCheck checked={terms} onChange={setTerms} />}
+              <View style={gLocked ? { opacity: 0.45 } : undefined} pointerEvents={gLocked ? "none" : "auto"} testID="google-wrap" aria-disabled={gLocked}>
               {gOn ? <View ref={gRef} testID="google-gis" style={{ alignItems: "center", minHeight: 44 }} />
-              : <Pressable accessibilityRole="button" accessibilityLabel={uz.login.google} onPress={google} style={({ pressed }) => [s.google, pressed && { opacity: 0.85 }]}>
+              : <Pressable accessibilityRole="button" accessibilityLabel={uz.login.google} disabled={gLocked} onPress={google} style={({ pressed }) => [s.google, pressed && { opacity: 0.85 }]}>
                 <View style={s.gBadge} aria-hidden><Text style={s.gT}>G</Text></View><Text style={s.googleT}>{uz.login.google}</Text>
               </Pressable>}
+              </View>
+              {gLocked && <Text style={k.note}>{uz.login.termsNeedGoogle}</Text>}
               <View style={s.divider} aria-hidden><View style={s.rule} /><Text style={s.dividerT}>{uz.login.or}</Text><View style={s.rule} /></View>
 
               {tab === "register" && <><Field id="nm" label={uz.login.fullName} value={name} onChangeText={setName} placeholder={uz.login.fullNamePh} maxLength={24} autoComplete="nickname" />{!validName(name) && <Text style={k.note}>{uz.login.nameHint}</Text>}</>}
@@ -102,7 +107,6 @@ export function Login({ auth, onDone, onSignupProfile }: { auth: ReturnType<type
               {AUTH_METHODS.password && <Pressable accessibilityRole="button" accessibilityLabel={showPass ? uz.login.hide : uz.login.show} onPress={() => setShowPass(!showPass)} style={s.eye}><Text style={s.eyeT}>{showPass ? uz.login.hide : uz.login.show}</Text></Pressable>}
 
               {tab === "login" && <Check label={uz.login.remember} checked={remember} onChange={setRemember} />}
-              {tab === "register" && <OfferCheck checked={terms} onChange={setTerms} />}
               {tab === "register" && !terms && validName(name) && phoneOk && validYear(year) && <Text style={k.warn} accessibilityLiveRegion="polite">{uz.login.termsNeed}</Text>}
               <Cta label={busy ? uz.login.wait : tab === "login" ? uz.login.submitLogin : uz.login.submitRegister} disabled={!canSend} onPress={send} />
             </>) : (<>
