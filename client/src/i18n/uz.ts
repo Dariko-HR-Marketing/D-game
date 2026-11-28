@@ -161,6 +161,7 @@ export const uz = {
   },
   gamble: { title: "Tavakkal", die: "Kubik", won: "yutdi", lost: "yutqazdi", by: "tavakkal qildi" },
   game: {
+    socials: "Ijtimoiy tarmoqlar",
     drew: "karta tortdi", close: "Yopish", offlineBanner: "Aloqa uzildi. Qayta ulanmoqda… O'yin davom etadi, qaytganingizda holat tiklanadi.", moneyActions: "Moliya amallari", events: "So'nggi voqealar", noEvents: "Hozircha voqea yo'q", finance: "Moliyaviy holat", done: "bajarilgan", notYet: "hali emas", bigCircle: "Katta aylana", decideBelow: "Qaror kartada", secShort: "s", players: "O'yinchilar", turnNow: "navbat", diceNone: "Kubik hali tashlanmagan", diceLabel: "Kubik", rolled: "tashladi", yourTurn: "Sizning navbatingiz", waitFor: "Navbat:", roll: "Kubik tashlash", accept: "Qabul qilaman", skip: "O'tkazaman",
     cash: "Naqd", cashflow: "Pul oqimi", passive: "Passiv daromad", debt: "Qarz va kreditlar", profession: "Kasb", salary: "Ish haqi", expenses: "Oylik xarajat",
     mandatory: "Majburiy karta", optional: "Ixtiyoriy karta", seconds: "soniya", winner: "G'olib", round: "Aylana",
@@ -284,7 +285,7 @@ export const uz = {
     big: { T: "Turg'un biznes", V: "Tavakkal biznes", O: "Orzu katagi", Y: "Yana pullar", X: "Maxsus katak" } as Record<string, string>,
     turnT: "Faqat naqd to'lanadi, oylik daromad olasiz. Egasi bor bo'lsa — egasiga oylik daromadni to'laysiz yoki 2× narxda sotib olasiz (keyingisida 3×).",
     turnV: "Narx to'liq naqd to'lanadi, so'ng bitta kubik tashlanadi: yutuqli qirra tushsa — yutuq (bir martalik yoki oylik daromad).",
-    dream: "Orzu katagi: unga tushganda pul oqimi ≥ {flow} bo'lsa va naqd tanlangan orzu narxidan kam bo'lmasa — g'alaba; aks holda katta xarajat kartasi olinadi.", dreamHere: "Orzu", dreamValue: "Orzu qiymati", dreamBy: "Tanlagan", dreamNobody: "Hech kim tanlamagan", dreamEmpty: "Bu katakda hozircha tanlangan orzu yo'q.", dreamMine: "Sizning orzuingiz: {name} — {price}",
+    dream: "Orzu katagi. G'alaba faqat O'Z orzungiz turgan katakda: pul oqimi ≥ {flow} va naqd orzu narxidan kam bo'lmasa. Birovning orzusi turgan katakda (yoki shart bajarilmasa) katta xarajat kartasi olinadi.", dreamHere: "Orzu", dreamValue: "Orzu qiymati", dreamBy: "Tanlagan", dreamNobody: "Hech kim tanlamagan", dreamEmpty: "Bu katakda hozircha tanlangan orzu yo'q.", dreamMine: "Sizning orzuingiz: {name} — {price}",
     dreamVisit: "Orzu katagiga yetdi, shart bajarilmadi", yana: "Yana pullar: o'tganda ham, tushganda ham bir oy o'tadi — pul oqimi qo'shiladi, qarz bo'lsa darhol yopiladi.",
     bankrupt: "Bankrot: eng kam daromadli biznesingiz yo'qoladi; biznes bo'lmasa naqd va kichik aylana mulki bilan kichik aylanaga qaytasiz.", cashShare: "Har safar naqdingizning {pct} % i to'lanadi.",
     shady: "Nohalol biznes: 1-marta {first}; 2-marta naqdning {pct} %; 3-marta ta'sirsiz.", noEffect: "Maxsus katak: ta'sirsiz.", noSalary: "{n} oy maosh yo'q (xarajat to'lanadi, passiv daromad davom etadi).", restartNote: "Maydon egasi «Kutilmagan hodisa» kartalarini yoqqan bo'lsa — hodisa kartasi ochiladi, aks holda oddiy katak.",
