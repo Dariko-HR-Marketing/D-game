@@ -23,3 +23,13 @@ describe("orzular «O» kataklarida", () => {
     expect(dreamCells("X", O, players(2), undefined).size).toBe(0);
   });
 });
+
+import { placedFromServer } from "./dreamCells";
+describe("placedFromServer", () => {
+  it("server joylashuvini ko'rsatadi; tanlanmagan orzuda `by` bo'sh; server yo'q bo'lsa null", () => {
+    const dr = [{ name: "A", price: 1 }, { name: "B", price: 2 }, { name: "C", price: 3 }];
+    const m = placedFromServer({ "10": 1, "20": 2 }, [{ id: "p", dreamIdx: 1 }], dr)!;
+    expect(m.get(10)).toEqual({ name: "B", price: 2, by: "p" }); expect(m.get(20)).toEqual({ name: "C", price: 3, by: "" });
+    expect(placedFromServer(undefined, [], dr)).toBeNull();
+  });
+});

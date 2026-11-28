@@ -1,4 +1,4 @@
-import { dreamCells, type PlacedDream } from "../dreamCells";
+import { dreamCells, placedFromServer, type PlacedDream } from "../dreamCells";
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Easing } from "react-native";
 import { useReducedMotion } from "../motion";
@@ -90,7 +90,7 @@ export function Board({ room, userId, width, wide, currentId, tight, compact, ro
   const offset = g.shape.offset; // to'rtta daromad katagi burchaklarda (boardLayout.ringShape)
   const tiles = React.useMemo(() => ringTiles(g.shape, W, H, c), [g.shape, W, H, c]);
   const owners = circle === "big" ? bigOwners(players) : null; // katta aylana: kim qaysi biznesni (va orzuni) sotib olgan
-  const placedDreams = React.useMemo(() => (circle === "big" ? dreamCells(room.code, BIG_CELLS.flatMap((c, i) => (c.t === "O" ? [i] : [])), players, room.dreams) : new Map<number, PlacedDream>()), [circle, room.code, room.dreams, players]);
+  const placedDreams = React.useMemo(() => (circle === "big" ? (placedFromServer((room.state as any)?.dreamCells, players, room.dreams) ?? dreamCells(room.code, BIG_CELLS.flatMap((c, i) => (c.t === "O" ? [i] : [])), players, room.dreams)) : new Map<number, PlacedDream>()), [circle, room.code, room.dreams, room.state, players]);
   const [sel, setSel] = useState<number | null>(null); const openCell = React.useCallback((i: number) => setSel(i), []);
   const info: CellInfoData | null = sel === null ? null : circle === "small" ? smallCellInfo(sel) : (() => { // bosilgan katak tushuntirishi
     const me = players.find((p) => p.id === userId); const dr = me && me.dreamIdx !== null && me.dreamIdx !== undefined ? room.dreams?.[me.dreamIdx] : null;

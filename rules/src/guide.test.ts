@@ -4,6 +4,7 @@ import { loadContent } from "@tajriba24/content";
 import { ctx as base } from "./testctx";
 import { Ctx, GameState, newGame, reduce, slotBlocked, effectOf, SMALL_BOARD, canExitSmallCircle } from "./index";
 import { settleOwe } from "./engine";
+import { placeDreams } from "./game";
 
 const ctx: Ctx = { ...base, cellRules: loadContent().cellRules };
 const mk = (n = 3, events = true) => newGame(ctx, Array.from({ length: n }, (_, i) => `p${i}`), 1, [], [], { events });
@@ -278,5 +279,22 @@ describe("Kubik: kichik aylanada 1 ta, katta aylanada 2 ta (qo'llanma §04)", ()
     }
     expect(Math.min(...seen.small)).toBe(1); expect(Math.max(...seen.small)).toBe(6);
     expect(Math.min(...seen.big)).toBe(2); expect(Math.max(...seen.big)).toBeGreaterThan(6);
+  });
+});
+
+describe("Orzu kataklari serverda joylashadi (qaror 2026-11-27): faqat o'z orzusi katagida g'alaba", () => {
+  const Os = ctx.bigBoard.filter((c) => c.t === "O").map((c) => c.i);
+  const prep = (g: GameState) => { g.players[0].dreamIdx = 3; g.players[1].dreamIdx = 7; g.players[2].dreamIdx = 9; placeDreams(g, ctx); };
+  it("hamma «O» kataki to'ladi, tanlangan orzular ichida, bo'sh katak yo'q", () => {
+    const g = mk(); prep(g); const cells = g.dreamCells!;
+    expect(Object.keys(cells).map(Number).sort((a, b) => a - b)).toEqual([...Os].sort((a, b) => a - b));
+    for (const d of [3, 7, 9]) expect(Object.values(cells)).toContain(d);
+    expect(Object.values(cells).every((d) => d >= 0 && d < ctx.dreams.length)).toBe(true);
+  });
+  it("o'z orzusi katagida g'alaba; birovniki — g'alaba yo'q, kxar kartasi", () => {
+    const g0 = mk(); prep(g0); const own = Number(Object.keys(g0.dreamCells!).find((k) => g0.dreamCells![k] === 3)), other = Number(Object.keys(g0.dreamCells!).find((k) => g0.dreamCells![k] === 7));
+    const rich = (g: GameState) => { prep(g); Object.assign(g.players[0], { lockedFlow: 100_000, cash: ctx.dreams[3].price + 1 }); };
+    const w = land("big", own, rich); expect(w.winner).toBe("p0");
+    const l = land("big", other, rich); expect(l.winner).toBeNull(); expect(ctx.effects[l.lastCard!.cardId].deck).toBe("kxar");
   });
 });
