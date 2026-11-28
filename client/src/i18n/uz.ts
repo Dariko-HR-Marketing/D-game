@@ -399,6 +399,7 @@ export const uz = {
     mine: "Mening klublarim", empty: "Hozircha klubingiz yo'q.", members: "{n} a'zo", owner: "Egasi", codeIs: "Klub kodi", codeHint: "Kodni do'stlaringizga yuboring: ular bepul qo'shiladi.", board: "Klub reytingi", you: "(siz)", leave: "Klubdan chiqish", del: "Klubni o'chirish", wins: "g'alaba", games: "o'yin", loading: "Yuklanmoqda…",
   },
   packs: {
+    pricePending: "Plus narxlari tez orada e'lon qilinadi. Hozir barcha asosiy imkoniyatlar bepul.",
     title: "Paketlar", back: "Orqaga", early: "Premium · erta kirish", pilot: "Sinov (pilot) paketlari", lead: "Qo'shilish hamma uchun bepul. Cheklov faqat yangi o'yin maydonini ochishda. Pullik paketlar o'yin natijasiga ta'sir qilmaydi.",
     priceTbd: "Narx aniqlanadi", buy: "Sotib olish", current: "Hozirgi paket", pay: "Payme, Click, Humo va Uzcard kartalari · ilovada faqat do'kon to'lovi", perMonth: "oyiga", perYear: "yiliga", save: "{n} % tejaysiz", forFree: "Bepul",
     plans: {

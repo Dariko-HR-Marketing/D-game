@@ -61,7 +61,7 @@ export function DiceModal({ room, userId, prompt }: { room: RoomView; userId: st
         <Pressable accessibilityRole="button" accessibilityLabel={uz.dice.close} onPress={close} style={s.backdrop} testID="dice-backdrop" />
         <View pointerEvents="box-none" style={s.center}><Pressable accessibilityRole="button" accessibilityLabel={uz.dice.close} onPress={close} testID="dice-press">{card}</Pressable></View>
       </View>)
-    : (<View style={s.layer} pointerEvents="none" role="status" aria-label={uz.dice.title} testID="dice-observer"><View pointerEvents="none" style={s.center}>{card}</View></View>);
+    : (<View style={s.layer} pointerEvents="none" role="status" aria-label={uz.dice.title} testID="dice-observer"><View pointerEvents="none" style={[s.observer, { bottom: width < 700 ? 150 : 28 }]}>{card}</View></View>);
 }
 
 /** Navbatingiz: kubik(lar) va «Kubikni tashlash» tugmasi oynaning eng oldida (modal). Fon/Esc — «keyinroq» (oddiy tugma sahifada qoladi). */
@@ -99,6 +99,7 @@ function RollingDie({ value, n, size }: { value: number; n: number; size: number
 }
 
 const s = StyleSheet.create({
+  observer: { position: "absolute", left: 0, right: 0, alignItems: "center" },
   layer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 },
   backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(8,38,62,0.45)" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.lg },
