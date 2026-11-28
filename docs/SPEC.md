@@ -54,7 +54,7 @@ Bu bitta fayl Claude Code'ga Tajriba 24 stol o'yinining onlayn versiyasini profe
 
 **5.4 Kichik aylanadan chiqish.** Uchta shart bir vaqtda: naqd ≥ 1 000 000; oylik passiv daromad ≥ 25 000 (xarajat ayrilmaydi — asl qo'llanma, TZ, yagona spetsifikatsiya); qarz va kreditlar = 0. Chiqishda barcha kichik va katta bizneslar bankka topshiriladi (kartalar to'plamga qaytadi); kvartira, aksiya, yer, uy va avtomobil o'yinchida qoladi. Blankning orqa tomoniga chiqish paytidagi oylik pul oqimi (daromad − xarajat, topshirishdan oldin) yoziladi. Chiqishdan oldin hamkorlik qarzlari va sheriklik yopilgan bo'lishi shart. (Namuna holat: naqd 1 020 000, pul oqimi 25 400.) Katta aylanada o'tgan pul oqimi kamaymaydi.
 
-**5.5 Katta aylana.** G'alaba sharti uchta: oylik pul oqimi ≥ 100 000; orzu katagiga tushish (2026-10-24, buyurtmachi qarori: istalgan «O» katagi — OPEN_QUESTIONS 156); naqd ≥ tanlangan orzu qiymati. Progress ekranda doim ko'rinadi. Katak turlari B ilovada.
+**5.5 Katta aylana.** G'alaba sharti uchta: oylik pul oqimi ≥ 100 000; orzu katagiga tushish (**2026-11-27, buyurtmachi qarori — asl qoidaga qaytildi: faqat O'Z orzusi turgan «O» katagi; birovning orzusi turgan katakda katta aylana xarajat kartasi.** 14 ta «O» katagiga orzular o'yin boshida serverda bir marta joylashadi: avval o'yinchilar tanlaganlari, qolganlariga tasodifiy tanlanmagan orzular — OPEN_QUESTIONS 243; eski 156-qaror shu bilan almashtirildi); naqd ≥ tanlangan orzu qiymati. Progress ekranda doim ko'rinadi. Katak turlari B ilovada.
 
 **5.6 Hamkorlik.**
 | Qoida | Shart |
@@ -201,6 +201,15 @@ Imkoniyat katagida kichik yoki katta sarmoya kartasi qaysi shartda chiqishi qo'l
 5. **Farzand tug'ilishi (suyunchi) bayrami.** Suyunchi taklifi paydo bo'lganda (katak «Siz ota bo'ldingiz») hamma o'yinchi va tomoshabin ekranida bayram: konfeti chap, o'ng va tepadan, sharlar, surnaychalar; markazda «Tug'ildi!» va kimga tug'ilgani katta yozuvda (o'zingizga: «Siz farzandli bo'ldingiz!»). O'yinni to'smaydi, ~6 soniyada o'zi yo'qoladi, bosilsa yopiladi; «harakatni kamaytirish» yoqilgan bo'lsa harakatsiz yozuv (4 soniya). Ulanish yoki qayta ulanishda eski suyunchi takliflari uchun bayram takrorlanmaydi. Bayram faqat ko'rinish: o'yin natijasiga ta'siri yo'q. Suyunchi faqat kichik aylana o'yinchilari o'rtasida (§2.7).
 6. **Kirishda telefon raqam formati** (hozir to'qqiz raqam bo'lsa ham kiradi) — alohida topshiriq sifatida keyinga qoldirildi; hozir o'zgartirilmadi.
 
+
+## Buyurtmachi qarorlari 2026-11-27/28
+1. **Oferta** faqat ro'yxatdan o'tishda, bir marta va qat'iy (katak belgilanmaguncha tugma yo'q; Google bilan ro'yxatdan o'tishda belgi Google tugmasidan oldin). O'yin ochish/qo'shilish, mavjud foydalanuvchilarga oyna va rozilikni qaytarib olish yo'q (OQ 239). Obuna (Instagram/Telegram) faqat o'yin boshlashdan oldin.
+2. **Bozor ta'siri oynasi.** Faol narx/daromad ta'siri aktivga uni sotib olishdan 12 oy (3 aylana) oldin boshlangan va keyingi bo'lsagina tegadi; eskilari tegmaydi. Jahon inqirozi umumiy (OQ 240).
+3. **Qatlamlar.** Kubik tugmasi doim oldinda; bozor taklifi bir marta ko'rinib 15 soniyada yopiladi (taklif «Moliya amallari»da qoladi); xabar matni to'liq o'qiladi (OQ 242).
+4. **Qarz so'rovi.** 1 aylana = 4 o'yin oyi amal qiladi, so'ng o'zi yo'qoladi; oluvchi istalgan payt bekor qila oladi; 3 guvoh majburiy; guvoh «Guvohman» yoki «Keyinroq» (rad eta olmaydi); qisman to'lash mumkin (OQ 246). Beruvchi so'rovda qarzdorning limitini va ochiq qarzlarini ko'radi, naqdini emas (tavsiya).
+5. **So'nggi voqealar.** Har kubik va har naqd o'zgarishi («naqd ±X») jurnalga yoziladi; kartada oxirgi 40 voqea to'liq matn bilan aylantiriladi (OQ 245).
+6. **Interfeys.** Sarlavha hamma qurilmada bir xil (Kartalarim, Hisob varag'i, Tahlil, Chat; «N-tur» izohi); profil menyusida ijtimoiy tarmoqlar; «Moliya amallari» akkordion (OQ 244, 247, 249).
+7. **Ishchilar** mexanikasi yo'q (tushunmovchilik edi); «katta aylana» talabi interfeys va hamma qurilmaga moslashuv haqida edi.
 
 ## Jonli tahlil (2026-11-14, buyurtmachi talabi)
 1. **Nima.** O'yin davomida har bir o'yinchi, bozor holati va nazariy matritsalar bitta ekranda: «Tahlil» tugmasi (sarlavha, «Hujjatlar va tarix» guruhi). Bo'limlar: Umumiy, O'yinchi, Bozor, Taqqoslash, Nazariya.

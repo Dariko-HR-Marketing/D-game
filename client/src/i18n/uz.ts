@@ -245,7 +245,8 @@ export const uz = {
   },
   hod7: { pay: "Pul to'layman", lose: "Biznesdan voz kechaman" },
   orient: { title: "Telefonni tik tuting", text: "Tajriba24 telefonda faqat tik (portret) holatda o'ynaladi. Telefonni to'g'rilang — o'yin shu joyidan davom etadi." },
-  rules: { groups: { play: "O'yin tartibi", money: "Pul, qarz va sheriklik", circles: "Aylanalar va g'alaba", more: "Qo'shimcha" } as Record<string, string>, ruleWord: "qoida", title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
+  rules: {
+    path: { title: "O'yin yo'li", s1: "Kichik aylana: kasb va oylik", d1: "Kubik tashlang, kartalarni ko'ring, qaror qabul qiling: xarajatni boshqaring, aktiv oling.", s2: "Passiv daromad yarating", d2: "Biznes, ko'chmas mulk va aksiyalar oylik daromad keltiradi; qarz va sheriklikdan foydalaning.", s3: "Chiqish: naqd {cash} va passiv {flow}", d3: "Shartlar bajarilsa katta aylanaga chiqasiz: pul endi ishlaydi.", s4: "Katta aylana: pul oqimi ≥ {flow} va orzuingiz", d4: "O'z orzuingiz turgan katakka tushing, naqdingiz orzu narxiga yetsa g'alaba qozonasiz." }, groups: { play: "O'yin tartibi", money: "Pul, qarz va sheriklik", circles: "Aylanalar va g'alaba", more: "Qo'shimcha" } as Record<string, string>, ruleWord: "qoida", title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
   leave: {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
     warn: "Chiqsangiz, siz qaytib kira olmaysiz: o'rningizni bot egallaydi va o'yin sizsiz davom etadi. Bu amalni qaytarib bo'lmaydi.",
@@ -253,7 +254,7 @@ export const uz = {
   req: {
     bell: "So'rovlar", bellN: "So'rovlar: {n} ta kutmoqda", title: "Sizdan javob kutilmoqda", count: "{i} / {n}", later: "Keyinroq",
     witnessQ: "{a} {b} dan {s} so'm qarz so'rayapti. Siz bu qarzga guvoh bo'lasizmi?", witnessYes: "Guvohman",
-    loanQ: "{a} sizdan {s} so'm qarz so'rayapti ({m} oy). Qarz berasizmi?", loanYes: "Ha, qarz beraman", loanNo: "Yo'q, rad etaman",
+    borrowerInfo: "Qarzdor limiti: {limit} · ochiq qarzlari: {used}", loanQ: "{a} sizdan {s} so'm qarz so'rayapti ({m} oy). Qarz berasizmi?", loanYes: "Ha, qarz beraman", loanNo: "Yo'q, rad etaman",
     partnerQ: "{a} sizga sheriklik taklif qilmoqda. Sherik bo'lasizmi?", partnerYes: "Ha, sherik bo'laman", partnerNo: "Yo'q, rad etaman",
     witnessNote: "Guvoh bo'lish — qarz haqida xabardor ekaningizni tasdiqlash. Pul sizdan o'tmaydi.", empty: "Hozircha kutayotgan so'rov yo'q",
   },
@@ -392,6 +393,7 @@ export const uz = {
     accSettings: "Maydon turi", accRooms: "Ochiq o'yinlar", kidCode: "Do'stingiz bergan maydon kodini kiriting. Ro'yxat 16 yoshgacha ko'rinmaydi.", 
   },
   clubs: {
+    howTitle: "Klub qanday ishlaydi", how1t: "Klub yarating", how1d: "Premium egasi klub ochadi va nom beradi.", how2t: "Kodni ulashing", how2d: "6 belgili kod bilan do'stlar yoki sinfdoshlar qo'shiladi.", how3t: "Klub reytingida raqobat", how3d: "A'zolar o'yin natijalari bo'yicha klub ichida o'rin egallaydi.",
     title: "Klublar", short: "Do'stlar reytingi", lead: "Do'stlar guruhi va o'z reytingi. Klub yaratish Premium paketda; qo'shilish hamma uchun bepul (kod bilan).", back: "Orqaga",
     join: "Kod bilan qo'shilish", code: "Klub kodi", joinBtn: "Qo'shilish", create: "Klub yaratish", name: "Klub nomi", createBtn: "Yaratish", premiumNeed: "Klub yaratish Premium paketda. Mavjud klubga kod bilan bepul qo'shilasiz.", seePacks: "Paketlarni ko'rish", restricted: "16 yoshgacha klublar yopiq.",
     mine: "Mening klublarim", empty: "Hozircha klubingiz yo'q.", members: "{n} a'zo", owner: "Egasi", codeIs: "Klub kodi", codeHint: "Kodni do'stlaringizga yuboring: ular bepul qo'shiladi.", board: "Klub reytingi", you: "(siz)", leave: "Klubdan chiqish", del: "Klubni o'chirish", wins: "g'alaba", games: "o'yin", loading: "Yuklanmoqda…",
@@ -471,7 +473,7 @@ export const uz = {
   },
   corp: { title: "Korporativ maydonga kirish", hint: "Kompaniya yoki tashkilot bergan kodni kiriting. Korporativ maydon umumiy ro'yxatda ko'rinmaydi.", codeLabel: "Maydon kodi", join: "Qo'shilish", badge: "Korporativ", adultsOnly: "Faqat 16 yoshdan katta o'yinchilar uchun", sponsorLabel: "Tashkilot", organizerSees: "Tashkilotchi ismingizni va shu maydondagi natijalaringizni ko'radi.", orgTitle: "Tashkilotchi paneli", orgHint: "Siz boshqaradigan korporativ maydonlar.", orgCode: "Kirish kodi", orgStatus: "Holat", orgNext: { draft: "Ro'yxatni ochish", open: "O'yinni boshlash", running: "Yakunlash" } as Record<string, string>, orgStatusName: { draft: "Qoralama", open: "Ro'yxat ochiq", running: "Davom etmoqda", finished: "Yakunlangan" } as Record<string, string>, orgNewCode: "Kodni almashtirish", orgNewCodeNote: "Eski kod ishlamay qoladi; qo'shilganlar maydonda qoladi.", orgPeople: "Ishtirokchilar", orgNone: "Hali hech kim qo'shilmagan.", orgRemove: "Olib tashlash", orgBoard: "Reyting", orgCsv: "CSV yuklab olish", orgBack: "Maydonlar", orgPlayers: "ishtirokchi", orgGames: "tugagan o'yin" },
   coop: {
-    owed: "Menga qaytariladigan qarzlar", remind: "Eslatish", bank: "Bank krediti (murobaha)", bankHint: "Bank krediti (100 ga karrali, 2 000–5 000)", bankRoom: "Hozir olish mumkin bo'lgan eng ko'p kredit",
+    owed: "Menga qaytariladigan qarzlar", remind: "Eslatish", bank: "Bank krediti (murobaha)", bankHint: "Bank krediti (100 ga karrali, 2 000–5 000)", bankLimitUsed: "Bank limiti (ishlatilgan)", bankRoom: "Hozir olish mumkin bo'lgan eng ko'p kredit",
     bankRules: "Garov kredit summasining 120 % i (aktivlaringiz garovda qoladi va sotilmaydi). Oylik to'lov daromaddan oshmasligi kerak. Foiz yo'q: kredit berilganda bir martalik haq (ustama) belgilanadi.", bankPurpose: "Bank krediti faqat biznes, aksiya yoki aktiv sotib olish uchun: avval sotib olish kartasi ochilishi kerak.",
     bankFee: "Bir martalik haq (ustama): {v}. Muddatidan oldin yopsangiz ham to'liq to'lanadi. Har bir farzand uchun haq {p} % ga kamayadi.", lombardFee: "Bir martalik haq (ustama): {v}", repayEarly: "Kreditni to'lash (muddatidan oldin)", lombardRepay: "Lombardni to'lash (rahn)", lombard: "Lombard (rahn: garovli qarz)", lombardRules: "Aktivni garovga qo'yib qiymatining 50 % ini qarz sifatida olasiz (lombard · rahn). Foiz yo'q: bir martalik haq (ustama) belgilanadi va oylarga bo'linadi; asosiy qarz 12 oydan keyin. To'lanmasa garov sotiladi, qarz yopiladi, ortiqchasi sizga qaytadi.", lombardActive: "Lombardda", take: "Kredit olish (murobaha)", amount: "Summa",
     suyunchi: "Suyunchi", suyunchiFor: "farzand tug'ildi — suyunchi bering", give: "Berish", loan: "O'zaro qarz", loanAsk: "Qarz so'rash", giver: "Beruvchi", months: "Muddat (oy)", max: "Eng ko'pi",

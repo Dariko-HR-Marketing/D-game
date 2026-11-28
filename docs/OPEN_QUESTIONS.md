@@ -278,3 +278,11 @@ Buyurtmachi qarori kerak (SPEC §16): 4 ta yangi kasb; narxlar; §5.6 "tasdiq ku
 248. **Ijtimoiy a'zolik kartalari premium (2026-11-28).** Har tarmoq belgisi brend gradientida (Instagram rasmiy rang o'tishi) va soyali; tepada yulduzcha jamlanmasi va progress chizig'i. Ma'no va tugmalar o'zgarmadi.
 
 249. **Moliya amallari akkordion (2026-11-28, buyurtmachi).** «Moliya amallari»dagi bloklar (bank, auksion, lombard, aktiv sotish, sheriklik, qarz, qarzlarim) sarlavha qatori bosilganda yig'iladigan akkordion, amal turiga mos belgi bilan; standart ochiq (shakl doim ko'rinadi). Infografika va animatsiya keyingi bosqich.
+
+250. **Beruvchiga qarzdor ma'lumoti (tavsiya bo'yicha, 2026-11-28).** Qarz so'rovi oynasida beruvchi qarzdorning limiti va ochiq qarzlarini ko'radi, naqdini emas. SPEC.md ga «Buyurtmachi qarorlari 2026-11-27/28» bo'limi yozildi; 5.5 (orzu) yangilandi.
+
+251. **Qoidalar infografikasi (2026-11-28).** Qoidalar sahifasi tepasida «O'yin yo'li» — 4 bosqichli vertikal infografika (kichik aylana → passiv daromad → chiqish → katta aylana/orzu); raqamlar `RULES` dan (chiqish naqd/passiv, g'alaba pul oqimi), qoida matnlari akkordionda o'zgarmadi.
+
+252. **Bank limiti o'lchagichi (2026-11-28).** «Moliya amallari → Bank» blokida ishlatilgan/jami limit (`RULES.bankLimit`) progress chizig'i (80 % dan oshsa qizil), silliq animatsiya bilan.
+
+253. **Klub «Qanday ishlaydi» diagrammasi (2026-11-28).** Klublar sahifasi tepasida 3 bosqichli diagramma: klub yarating (Premium) → kodni ulashing → klub reytingida raqobat. Narx/limit raqamlari yo'q (konfiguratsiyada bo'sh).
