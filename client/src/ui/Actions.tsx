@@ -21,6 +21,15 @@ const Box = ({ title, children, icon }: { title: string; children: React.ReactNo
     </Pressable>{open ? children : null}</View>);
 };
 
+/** Limit o'lchagichi (infografika): to'ldirilgan qismi ishlatilgan; kengligi silliq o'zgaradi (web'da CSS o'tish). */
+function Gauge({ used, total, label }: { used: number; total: number; label: string }) {
+  const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((used / total) * 100))) : 0; const hot = pct >= 80;
+  return (<View style={{ gap: 4 }} accessible accessibilityLabel={`${label}: ${money(used)} / ${money(total)}`} testID="gauge">
+    <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={s.note}>{label}</Text><Text style={[s.note, { fontWeight: "800", color: hot ? color.red : color.navy }]}>{money(used)} / {money(total)}</Text></View>
+    <View style={{ height: 10, borderRadius: 5, backgroundColor: "#E8EEF1", overflow: "hidden" }} aria-hidden><View style={[{ height: 10, borderRadius: 5, width: `${pct}%` as any, backgroundColor: hot ? color.red : color.green }, { transitionProperty: "width", transitionDuration: "450ms" } as any]} /></View>
+  </View>);
+}
+
 function Pick({ options, value, onChange, label, names }: { options: string[]; value: string; onChange: (v: string) => void; label: string; names?: (id: string) => string }) {
   return (<View style={s.chips} role="group" aria-label={label}>{options.map((o) => (
     <Pressable key={o} accessibilityRole="button" accessibilityState={{ selected: o === value }} onPress={() => onChange(o)} style={[s.chip, o === value && s.chipOn]}>
@@ -86,6 +95,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
 
       {mineTurn && (
         <Box title={uz.coop.bank} icon="bank">
+          <Gauge used={Math.max(0, RULES.bankLimit - bankRoom(p))} total={RULES.bankLimit} label={uz.coop.bankLimitUsed} />
           <Text style={s.note}>{uz.coop.bankRoom}: {money(bankRoom(p))}</Text>
           <Text style={s.note}>{buyCardOpen ? uz.coop.bankRules : uz.coop.bankPurpose}</Text>
           <Num label={uz.coop.bankHint} value={bank} onChange={setBank} />
