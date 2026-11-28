@@ -30,7 +30,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compa
         <DeadlineRing deadline={room.deadline} total={phaseSeconds(room)} size={40} />
       </View>
       <Text style={[s.turnC, mineTurn && { color: tone.good }]} numberOfLines={2} accessibilityLiveRegion="polite">{lr && !mineTurn ? `${who} ${uz.game.rolled}: ${lr.die}` : mineTurn ? (hasCard && !moving ? uz.game.decideBelow : lr ? `${who} ${uz.game.rolled}: ${lr.die}` : uz.game.yourTurn) : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
-      {gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : mineTurn && !hasCard && !moving ? <View style={{ alignSelf: "stretch", paddingHorizontal: space.sm }}><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View> : null}
+      {gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : mineTurn && !hasCard && !moving ? <View style={{ alignSelf: "stretch", paddingHorizontal: space.sm, position: "relative", zIndex: 95 }} testID="roll-front"><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View> : null}
     </View>
   );
   return (
@@ -45,7 +45,7 @@ export function TurnPanel({ room, userId, mineTurn, hasCard, onRoll, wide, compa
           <Text style={[s.turn, mineTurn && { color: tone.good }]} accessibilityLiveRegion="polite">{mineTurn ? uz.game.yourTurn : `${uz.game.waitFor} ${nameOf(room, curId)}`}</Text>
         </View>)}
       {wide && gate ? <View style={{ alignSelf: "stretch" }}>{gate}</View> : null}
-      {wide && !gate && mineTurn && !hasCard && !moving && <View style={{ alignSelf: "stretch", paddingHorizontal: space.md }}><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View>}
+      {wide && !gate && mineTurn && !hasCard && !moving && <View style={{ alignSelf: "stretch", paddingHorizontal: space.md, position: "relative", zIndex: 95 }} testID="roll-front"><Button label={big ? uz.hud.rollBig : uz.hud.rollSmall} onPress={onRoll} /></View>}
       {mineTurn && hasCard && !moving && <Text style={s.sub}>{uz.game.decideBelow}</Text>}
     </View>
   );

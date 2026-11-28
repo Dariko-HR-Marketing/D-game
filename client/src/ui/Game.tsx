@@ -362,7 +362,7 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
         {tab === "players" && (<View style={{ gap: space.md }}><PlayerList room={room} userId={userId} accordion />{eventsCard(6)}</View>)}
       </ScrollView>
       {tab === "field" && gate && <ScrollView style={s.gateSheet} contentContainerStyle={{ padding: space.md }}>{gate}</ScrollView>}
-      {tab === "field" && canRoll && !promptOpen && (<View style={s.cta}><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
+      {tab === "field" && canRoll && !promptOpen && (<View style={[s.cta, { position: "relative", zIndex: 95 }]} testID="roll-front"><Button label={curP?.circle === "big" ? uz.hud.rollBig : uz.hud.rollSmall} onPress={() => onAct({ type: "roll" })} /></View>)}
       {/* §9: telefonda qaror pastki varaqda (bottom sheet) */}
       {sheetOpen && mine && sheetMin && miniBar(false)}
       {sheetShown && mine && (
