@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { bankLoanPayoff, lombardPayoff, oneTimeFee, RULES } from "@tajriba24/rules";
+import { bankLoanPayoff, lombardPayoff, mutualLoanLimit, oneTimeFee, RULES } from "@tajriba24/rules";
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { Button } from "./Button";
 import { Icon, type IconName } from "./Icon";
@@ -24,9 +24,17 @@ const Box = ({ title, children, icon }: { title: string; children: React.ReactNo
 /** Limit o'lchagichi (infografika): to'ldirilgan qismi ishlatilgan; kengligi silliq o'zgaradi (web'da CSS o'tish). */
 function Gauge({ used, total, label }: { used: number; total: number; label: string }) {
   const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((used / total) * 100))) : 0; const hot = pct >= 80;
-  return (<View style={{ gap: 4 }} accessible accessibilityLabel={`${label}: ${money(used)} / ${money(total)}`} testID="gauge">
+  return (<View style={{ gap: 4 }} accessible role="img" accessibilityLabel={`${label}: ${money(used)} / ${money(total)}`} testID="gauge">
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={s.note}>{label}</Text><Text style={[s.note, { fontWeight: "800", color: hot ? color.red : color.navy }]}>{money(used)} / {money(total)}</Text></View>
     <View style={{ height: 10, borderRadius: 5, backgroundColor: "#E8EEF1", overflow: "hidden" }} aria-hidden><View style={[{ height: 10, borderRadius: 5, width: `${pct}%` as any, backgroundColor: hot ? color.red : color.green }, { transitionProperty: "width", transitionDuration: "450ms" } as any]} /></View>
+  </View>);
+}
+
+/** Ulush chizig'i (infografika): ikki rangli, chap ulush `pct` %; qiymat belgilari ostida. */
+function Split({ pct, left, right }: { pct: number; left: string; right: string }) {
+  return (<View style={{ gap: 4 }} accessible role="img" accessibilityLabel={`${left} ${pct} %, ${right} ${100 - pct} %`} testID="split">
+    <View style={{ flexDirection: "row", height: 12, borderRadius: 6, overflow: "hidden" }} aria-hidden><View style={{ width: `${pct}%` as any, backgroundColor: color.green }} /><View style={{ flex: 1, backgroundColor: "#F0B429" }} /></View>
+    <View style={{ flexDirection: "row", justifyContent: "space-between" }} aria-hidden><Text style={s.note}>{left}: {pct} %</Text><Text style={s.note}>{right}: {100 - pct} %</Text></View>
   </View>);
 }
 
@@ -116,6 +124,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
       {mineTurn && pledgeableAssets(p).length > 0 && (
         <Box title={uz.coop.lombard} icon="lock">
           <Text style={s.note}>{uz.coop.lombardRules}</Text>
+          <Split pct={50} left={uz.coop.splitYouGet} right={uz.coop.splitPledged} />
           {pledgeableAssets(p).map(({ idx, a }) => (<Button key={idx} kind="ghost" label={`${a.code} → +${money(Math.floor((a.price * 0.5) / 100) * 100)}`} onPress={() => onAct({ type: "lombard", assetIdx: idx })} />))}
         </Box>)}
       {mineTurn && sellableAssets(p).length > 0 && (
@@ -134,6 +143,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
 
       {buy && (
         <Box title={uz.coop.partner} icon="people">
+          <Split pct={50} left={uz.coop.splitYou} right={uz.coop.splitPartner} />
           <Pick label={uz.coop.chooseHint} options={partnerCandidates(room, userId)} value={partner} onChange={setPartner} names={(id) => nameOf(room, id)} />
           <Button label={uz.coop.partnerOffer} disabled={!partner} onPress={() => onAct({ type: "partner_offer", partnerId: partner })} /></Box>)}
       {partnered.map((a: any) => (
@@ -143,6 +153,7 @@ export function Actions({ room, userId, onAct }: { room: RoomView; userId: strin
         <Box title={uz.coop.loan} icon="hand">
           {!loanBounds(room, userId, gv[0]).enough ? <Text style={s.note}>{uz.coop.fewPlayers}</Text> : (<>
             <Pick label={uz.coop.giver} options={gv} value={giver} onChange={(v: string) => { setGiver(v); setWit(["", "", ""]); }} names={(id) => nameOf(room, id)} />
+            <Gauge used={(p.handDebts ?? []).reduce((t: number, d: any) => t + d.amount, 0)} total={mutualLoanLimit(p.salary, (p.assets ?? []).reduce((t: number, as: any) => t + as.monthlyIncome, 0))} label={uz.coop.loanLimitUsed} />
             {bounds && <Text style={s.note}>{uz.coop.max}: {money(bounds.max)}</Text>}
             <Num label={uz.coop.amount} value={loanAmt} onChange={setLoanAmt} />
             <Num label={uz.coop.months} value={months} onChange={setMonths} />
