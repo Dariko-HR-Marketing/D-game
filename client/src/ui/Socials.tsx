@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, Linking, StyleSheet } from "react-native";
+import { View, Text, Pressable, Linking, StyleSheet, Platform } from "react-native";
 import { Icon, type IconName } from "./Icon";
 import { soc } from "../i18n/uz";
 import { color, radius, space, tone } from "../theme";
@@ -7,6 +7,9 @@ import type { Http, SocialItem, SocialsInfo } from "../net/http";
 import { googleToken } from "./socialAuth";
 
 export const BRAND: Record<string, string> = { telegram: "#229ED9", instagram: "#C13584", youtube: "#C4302B", facebook: "#1877F2" };
+/** Premium belgi foni: veb'da brend gradienti (Instagram — rasmiy rang o'tishi), native'da bir xil rang. */
+const TILE: Record<string, string> = { telegram: "linear-gradient(135deg,#37AEE2,#1E96C8)", instagram: "linear-gradient(45deg,#F58529,#DD2A7B 45%,#8134AF 75%,#515BD4)", youtube: "linear-gradient(135deg,#FF4B45,#C4302B)", facebook: "linear-gradient(135deg,#3B8BFF,#1877F2)" };
+const tile = (id: string): any => ({ backgroundColor: BRAND[id], ...(Platform.OS === "web" ? { backgroundImage: TILE[id], boxShadow: `0 6px 16px ${BRAND[id]}55` } : {}) });
 const open = (u?: string) => { if (u) void Linking.openURL(u); };
 const when = (t: number | null) => (t ? new Date(t).toLocaleDateString("uz") : "");
 export const socialSummary = (i: SocialsInfo | null) => (i ? `★ ${i.stars}/${i.items.filter((x) => x.verifiable && x.configured).length || 3}` : "");
@@ -37,12 +40,15 @@ export function Socials({ http, onInfo }: { http: Http; onInfo?: (i: SocialsInfo
   return (
     <View style={{ gap: space.sm }}>
       <Text style={s.muted}>{soc.lead}{info.starXp > 0 ? ` ${soc.xpNote}` : ""}</Text>
+      {(() => { const total = info.items.filter((x) => x.verifiable && x.configured).length || 3; const got = Math.min(info.stars, total); return (
+        <View style={s.sum} accessible accessibilityLabel={`${got} / ${total}`} testID="socials-summary"><Text style={s.sumT}>★ {got} / {total}</Text>
+          <View style={s.track} aria-hidden><View style={[s.fill, { width: `${Math.round((got / total) * 100)}%` }]} /></View></View>); })()}
       {info.items.map((it) => {
         const live = it.configured && it.verifiable, name = soc.names[it.id];
         return (
           <View key={it.id} style={[s.card, it.ok && s.cardOk]} accessibilityLabel={`${name}: ${it.ok ? soc.connected : live ? soc.notConnected : soc.soon}`}>
             <View style={s.top}>
-              <View style={[s.logo, { backgroundColor: BRAND[it.id] }]} aria-hidden><Icon name={it.id as IconName} size={22} color="#fff" stroke={1.9} /></View>
+              <View style={[s.logo, tile(it.id)]} aria-hidden><Icon name={it.id as IconName} size={22} color="#fff" stroke={1.9} /></View>
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={s.nameRow}><Text style={s.name}>{name}</Text>
                   {(live || (it.self && it.configured)) && <Text style={[s.tag, it.required ? s.tagReq : s.tagOpt]}>{it.required ? soc.required : soc.optional}</Text>}</View>
@@ -69,9 +75,11 @@ export function Socials({ http, onInfo }: { http: Http; onInfo?: (i: SocialsInfo
 const Btn = ({ label, onPress, primary, danger }: { label: string; onPress: () => void; primary?: boolean; danger?: boolean }) => (
   <Pressable accessibilityRole="button" onPress={onPress} style={[s.b, primary && s.bp, danger && s.bd]}><Text style={[s.bt, primary && { color: "#fff" }, danger && { color: color.red }]}>{label}</Text></Pressable>);
 const s = StyleSheet.create({
+  sum: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, backgroundColor: "#FFF8E5", borderWidth: 1, borderColor: "#F1DFA6" }, sumT: { color: "#8A5A00", fontWeight: "800", fontSize: 16 },
+  track: { flex: 1, height: 8, borderRadius: 4, backgroundColor: "#F1E6BF", overflow: "hidden" }, fill: { height: 8, borderRadius: 4, backgroundColor: "#D9A400" },
   muted: { color: tone.muted, fontSize: 13, lineHeight: 18 }, warn: { color: tone.warn, fontSize: 13 }, code: { color: color.navy, fontWeight: "700", fontSize: 14 },
-  card: { borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.md, gap: space.sm, backgroundColor: color.white }, cardOk: { borderColor: "#BFE3D1", backgroundColor: "#F3FAF6" },
-  top: { flexDirection: "row", alignItems: "center", gap: space.md }, logo: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  card: { borderWidth: 1, borderColor: color.line, borderRadius: radius.lg, padding: space.md, gap: space.sm, backgroundColor: color.white }, cardOk: { borderColor: "#BFE3D1", backgroundColor: "#F3FAF6" },
+  top: { flexDirection: "row", alignItems: "center", gap: space.md }, logo: { width: 48, height: 48, borderRadius: 15, alignItems: "center", justifyContent: "center" },
   nameRow: { flexDirection: "row", alignItems: "center", gap: space.sm, flexWrap: "wrap" }, name: { color: color.navy, fontWeight: "800", fontSize: 16 },
   tag: { fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, overflow: "hidden" }, tagReq: { backgroundColor: "#FDECEC", color: color.red }, tagOpt: { backgroundColor: "#EEF2F5", color: tone.muted },
   star: { fontSize: 26 }, row: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
