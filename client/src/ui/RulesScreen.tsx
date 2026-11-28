@@ -6,7 +6,7 @@ import { Icon, type IconName } from "./Icon";
 import { uz } from "../i18n/uz";
 import { ruleItems } from "../i18n/rulesText";
 import { money } from "../format";
-import { color, font, radius, space, tone } from "../theme";
+import { color, font, GREEN_TEXT, radius, space, tone } from "../theme";
 
 /** Qoida bo'limlari: 25 ta qoida 4 guruhga yig'iladi — sahifa uzun aylanmaydi (yig'iq holatda 4 qator). Matnlar `rulesText`dan, guruhlash faqat tuzilma. */
 const GROUPS: { key: string; icon: IconName; ids: string[] }[] = [
@@ -31,7 +31,7 @@ function PathInfo() {
       {steps.map((st, i) => (
         <View key={i} style={s.stepRow}>
           <View style={s.railCol} aria-hidden><View style={s.stepNo}><Icon name={st.icon} size={18} color="#fff" /></View>{i < steps.length - 1 && <View style={s.rail} />}</View>
-          <View style={{ flex: 1, paddingBottom: i < steps.length - 1 ? space.md : 0 }}><Text style={s.stepT}><Text style={{ color: color.green }}>{i + 1}. </Text>{st.t}</Text><Text style={s.stepD}>{st.d}</Text></View>
+          <View style={{ flex: 1, paddingBottom: i < steps.length - 1 ? space.md : 0 }}><Text style={s.stepT}><Text style={{ color: GREEN_TEXT }}>{i + 1}. </Text>{st.t}</Text><Text style={s.stepD}>{st.d}</Text></View>
         </View>))}
     </View>);
 }

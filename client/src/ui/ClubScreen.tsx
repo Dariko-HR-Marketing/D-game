@@ -8,7 +8,7 @@ import { Icon } from "./Icon";
 import { Avatar } from "./Avatar";
 import type { Http } from "../net/http";
 import { uz, errText } from "../i18n/uz";
-import { color, font, MIN_TAP, radius, space, tone } from "../theme";
+import { color, font, GREEN_TEXT, MIN_TAP, radius, space, tone } from "../theme";
 
 const K = uz.clubs;
 /** Klub qanday ishlaydi: 3 bosqichli gorizontal diagramma (belgi → belgi → belgi); tor ekranda ustma-ust. */
@@ -17,7 +17,7 @@ function HowItWorks() {
   return (<View style={s.how} role="group" aria-label={K.howTitle} testID="club-how"><Text style={s.h}>{K.howTitle}</Text>
     <View style={s.howRow}>{steps.map((st, i) => (<View key={i} style={s.howStep}>
       <View style={s.howIco} aria-hidden><Icon name={st.icon} size={22} color="#fff" /></View>
-      <Text style={s.howT}><Text style={{ color: color.green }}>{i + 1}. </Text>{st.t}</Text><Text style={s.howD}>{st.d}</Text></View>))}</View></View>);
+      <Text style={s.howT}><Text style={{ color: GREEN_TEXT }}>{i + 1}. </Text>{st.t}</Text><Text style={s.howD}>{st.d}</Text></View>))}</View></View>);
 }
 type ClubInfo = { id: string; name: string; members: number; owner: boolean; code?: string };
 type Row = { rank: number; name: string; color: number; level: number; games: number; wins: number; me: boolean };
