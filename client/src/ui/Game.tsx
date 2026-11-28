@@ -250,8 +250,6 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
   const reqLayers = (<>
     {reqModal.open && <RequestModal room={room} userId={userId} reqs={reqs} onAct={onAct} onClose={reqModal.hide} />}
     {!state.winner && <ProfileMenu fromBottom={!wide} open={menuOpen} onClose={() => setMenuOpen(false)} onLeave={onLeave} items={[
-      ...(wide && http ? [{ key: "live", icon: "analytics", label: uz.live.title, onPress: () => setLiveOpen(true), tid: "live-open" }] : []),
-      ...(wide && onChat ? [{ key: "chat", icon: "chat", label: chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open, onPress: () => setChatOpen(true), tid: "chat-open", badge: chatUnread }] : []),
       { key: "rules", icon: "book", label: uz.rules.open, onPress: onRules, tid: "rules-open" },
       ...(http ? [{ key: "history", icon: "clock", label: uz.history.title, onPress: () => setHistoryOpen(true), tid: "history-open" }] : []),
       ...(reqs.length > 0 ? [{ key: "req", icon: "bell", label: uz.req.bellN.replace("{n}", String(reqs.length)), onPress: reqModal.show, tid: "requests-open", badge: reqs.length }] : []),
@@ -265,7 +263,7 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
       <View style={[s.dotC, { backgroundColor: viewCircle === "big" ? color.red : color.green }, !wide && { marginRight: 4 }]} aria-hidden />
       <View style={[wide ? { flexDirection: "row", alignItems: "center", gap: space.sm } : { flexShrink: 1 }, { flexShrink: 1, minWidth: 0 }]}>{/* telefonda sarlavha va tur ustma-ust: 6 ta tugma ekranga sig'sin */}
         <Text style={[s.hTitle, !wide && { fontSize: font.md }]} aria-level={1} accessibilityRole="header" numberOfLines={1}>{circleName}</Text>
-        <Text style={s.hSub} numberOfLines={1}>{state.round}-{uz.hud.turnWord}</Text>
+        <Text style={s.hSub} numberOfLines={1} accessibilityLabel={uz.hud.turnHelp.replace("{n}", String(state.round))} {...({ title: uz.hud.turnHelp.replace("{n}", String(state.round)) } as any)}>{state.round}-{uz.hud.turnWord}</Text>
       </View>
       {roomy && <View style={s.codePill}><Text style={s.codeT} aria-label={`${uz.home.code} ${room.code.split("").join(" ")}`}>{room.code}</Text></View>}
       <View style={{ flex: 1, minWidth: 0 }} />
@@ -278,6 +276,8 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
       {wide && <Seg ui={ui} label={uz.hud.group.docs}>
         <HBtn ui={ui} icon="file" label={uz.portfolio.title} text={uz.portfolio.title} onPress={() => setPortfolioOpen(true)} tid="portfolio-open" />
         <HBtn ui={ui} icon="chart" label={uz.sheet.title} text={uz.sheet.open} onPress={() => setSheetView(true)} tid="sheet-open" />
+        {http && <HBtn ui={ui} icon="analytics" label={uz.live.title} text={uz.live.title} onPress={() => setLiveOpen(true)} tid="live-open" />}
+        {onChat && <HBtn ui={ui} icon="chat" label={chatUnread ? `${uz.chat.open}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.chat.open} text={uz.chat.open} onPress={() => setChatOpen(true)} tid="chat-open">{chatUnread > 0 && <View style={s.chatBadge} aria-hidden><Text style={s.chatBadgeT}>{chatUnread > 9 ? "9+" : chatUnread}</Text></View>}</HBtn>}
       </Seg>}
       {wide && !state.winner && <Pressable accessibilityRole="button" aria-haspopup="menu" aria-expanded={menuOpen} accessibilityLabel={chatUnread ? `${uz.profMenu.menu}. ${uz.chat.unread.replace("{n}", String(chatUnread))}` : uz.profMenu.menu} onPress={() => setMenuOpen((v) => !v)} testID="profile-menu-open" style={({ pressed }) => [s.avatarBtn, pressed && { opacity: 0.8 }]}>
         <Avatar name={nameOf(room, userId)} colorIdx={room.names?.[userId]?.color ?? 0} size={36} photo={room.names?.[userId]?.photo} gender={room.names?.[userId]?.gender} frame={room.names?.[userId]?.cos?.frame} bgColor={room.names?.[userId]?.cos?.avatar} />
