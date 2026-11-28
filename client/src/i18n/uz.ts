@@ -245,7 +245,8 @@ export const uz = {
   },
   hod7: { pay: "Pul to'layman", lose: "Biznesdan voz kechaman" },
   orient: { title: "Telefonni tik tuting", text: "Tajriba24 telefonda faqat tik (portret) holatda o'ynaladi. Telefonni to'g'rilang — o'yin shu joyidan davom etadi." },
-  rules: { groups: { play: "O'yin tartibi", money: "Pul, qarz va sheriklik", circles: "Aylanalar va g'alaba", more: "Qo'shimcha" } as Record<string, string>, ruleWord: "qoida", title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
+  rules: {
+    path: { title: "O'yin yo'li", s1: "Kichik aylana: kasb va oylik", d1: "Kubik tashlang, kartalarni ko'ring, qaror qabul qiling: xarajatni boshqaring, aktiv oling.", s2: "Passiv daromad yarating", d2: "Biznes, ko'chmas mulk va aksiyalar oylik daromad keltiradi; qarz va sheriklikdan foydalaning.", s3: "Chiqish: naqd {cash} va passiv {flow}", d3: "Shartlar bajarilsa katta aylanaga chiqasiz: pul endi ishlaydi.", s4: "Katta aylana: pul oqimi ≥ {flow} va orzuingiz", d4: "O'z orzuingiz turgan katakka tushing, naqdingiz orzu narxiga yetsa g'alaba qozonasiz." }, groups: { play: "O'yin tartibi", money: "Pul, qarz va sheriklik", circles: "Aylanalar va g'alaba", more: "Qo'shimcha" } as Record<string, string>, ruleWord: "qoida", title: "O'yin qoidalari", intro: "Quyidagi qoidalar o'yin serverida amal qiluvchi qoidalar bilan bir xil. Har birining manbasi ko'rsatilgan.", source: "Manba", open: "Qoidalar" },
   leave: {
     button: "O'yindan chiqish", title: "O'yindan chiqasizmi?", confirm: "Ha, chiqaman", cancel: "Yo'q, qolaman",
     warn: "Chiqsangiz, siz qaytib kira olmaysiz: o'rningizni bot egallaydi va o'yin sizsiz davom etadi. Bu amalni qaytarib bo'lmaydi.",

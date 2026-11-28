@@ -5,6 +5,7 @@ import { Screen } from "./Screen";
 import { Icon, type IconName } from "./Icon";
 import { uz } from "../i18n/uz";
 import { ruleItems } from "../i18n/rulesText";
+import { money } from "../format";
 import { color, font, radius, space, tone } from "../theme";
 
 /** Qoida bo'limlari: 25 ta qoida 4 guruhga yig'iladi — sahifa uzun aylanmaydi (yig'iq holatda 4 qator). Matnlar `rulesText`dan, guruhlash faqat tuzilma. */
@@ -16,12 +17,32 @@ const GROUPS: { key: string; icon: IconName; ids: string[] }[] = [
 ];
 
 /** Qoidalar: ikki bosqichli akkordion — bo'lim (katta) va ichida qoida (nomi kattaroq). Bir vaqtda bitta bo'lim va bitta qoida ochiq; mobil va kompyuterda bir xil. */
+/** O'yin yo'li infografikasi: 4 bosqich (raqamlar `RULES` dan; matnlar `uz.rules.path`). */
+function PathInfo() {
+  const steps = [
+    { icon: "dice" as IconName, t: uz.rules.path.s1, d: uz.rules.path.d1 },
+    { icon: "dollar" as IconName, t: uz.rules.path.s2, d: uz.rules.path.d2 },
+    { icon: "flag" as IconName, t: uz.rules.path.s3.replace("{cash}", money(RULES.exitCash)).replace("{flow}", money(RULES.exitPassiveFlow)), d: uz.rules.path.d3 },
+    { icon: "trophy" as IconName, t: uz.rules.path.s4.replace("{flow}", money(RULES.winCashflow)), d: uz.rules.path.d4 },
+  ];
+  return (
+    <View style={s.path} role="group" aria-label={uz.rules.path.title} testID="rules-path">
+      <Text style={s.pathH}>{uz.rules.path.title}</Text>
+      {steps.map((st, i) => (
+        <View key={i} style={s.stepRow}>
+          <View style={s.railCol} aria-hidden><View style={s.stepNo}><Icon name={st.icon} size={18} color="#fff" /></View>{i < steps.length - 1 && <View style={s.rail} />}</View>
+          <View style={{ flex: 1, paddingBottom: i < steps.length - 1 ? space.md : 0 }}><Text style={s.stepT}><Text style={{ color: color.green }}>{i + 1}. </Text>{st.t}</Text><Text style={s.stepD}>{st.d}</Text></View>
+        </View>))}
+    </View>);
+}
+
 export function RulesScreen({ onBack }: { onBack: () => void }) {
   const items = ruleItems(RULES); const byId = new Map(items.map((r) => [r.id, r])); const used = new Set(GROUPS.flatMap((g) => g.ids));
   const groups = GROUPS.map((g) => ({ ...g, rules: g.ids.map((id) => byId.get(id)).filter(Boolean) as typeof items })).concat([{ key: "extra", icon: "book" as IconName, ids: [], rules: items.filter((r) => !used.has(r.id)) }]).filter((g) => g.rules.length > 0);
   const [openG, setOpenG] = useState<string | null>(null); const [openR, setOpenR] = useState<string | null>(null);
   return (
     <Screen title={uz.rules.title} subtitle={uz.rules.intro} onBack={onBack} maxWidth={760}>
+      <PathInfo />
       <View style={s.list} testID="rules-list">
         {groups.map((g) => { const gOn = openG === g.key; const gName = uz.rules.groups[g.key] ?? uz.rules.groups.more; return (
           <View key={g.key} style={[s.group, gOn && s.groupOn]} testID={`rules-group-${g.key}`}>
@@ -43,6 +64,9 @@ export function RulesScreen({ onBack }: { onBack: () => void }) {
     </Screen>);
 }
 const s = StyleSheet.create({
+  path: { backgroundColor: "#F3FAF6", borderWidth: 1, borderColor: "#BFE3D1", borderRadius: radius.lg, padding: space.lg, marginBottom: space.md, gap: space.sm }, pathH: { color: color.navy, fontWeight: "800", fontSize: font.lg, marginBottom: 2 },
+  stepRow: { flexDirection: "row", gap: space.md }, railCol: { alignItems: "center", width: 36 }, stepNo: { width: 36, height: 36, borderRadius: 18, backgroundColor: color.green, alignItems: "center", justifyContent: "center" }, rail: { flex: 1, width: 3, minHeight: 14, backgroundColor: "#BFE3D1", marginTop: 2, borderRadius: 2 },
+  stepT: { color: color.navy, fontWeight: "800", fontSize: font.md }, stepD: { color: tone.muted, fontSize: font.sm, lineHeight: 19, marginTop: 2 },
   list: { gap: space.sm },
   group: { backgroundColor: color.white, borderRadius: radius.lg, borderWidth: 1, borderColor: "#E6ECEF", overflow: "hidden" }, groupOn: { borderColor: color.green },
   gHead: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 68, paddingHorizontal: space.lg, paddingVertical: space.sm },
