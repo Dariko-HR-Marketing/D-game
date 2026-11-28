@@ -56,7 +56,7 @@ services:
       GATE_IG_VERIFY_TOKEN: ${GATE_IG_VERIFY_TOKEN:-}
       GATE_YT_CHANNEL_ID: ${GATE_YT_CHANNEL_ID:-}
       GATE_YT_CHANNEL_URL: ${GATE_YT_CHANNEL_URL:-}
-      OFFER_VERSION: ${OFFER_VERSION:-2026-11-27}   # oferta versiyasi (client/public/oferta.html bilan bir xil): rozilik ro'yxatdan o'tishda va o'yin ochish/qo'shilishdan oldin talab qilinadi; bo'sh qiymat = talab o'chiq
+      OFFER_VERSION: ${OFFER_VERSION:-2026-11-27}   # oferta versiyasi (client/public/oferta.html bilan bir xil): rozilik faqat ro'yxatdan o'tishda yoziladi (2026-11-27 qarori); bo'sh qiymat = yozuv o'chiq
       TRIAL_DAYS: ${TRIAL_DAYS:-7}   # yangi o'yinchiga profil yaratilganda beriladigan cheklovsiz kunlar (0 = o'chiq)
       GATE_REQUIRED: ${GATE_REQUIRED:-telegram,instagram}   # majburiy tarmoqlar; qolgani (YouTube) ixtiyoriy: faqat yulduzcha
       GATE_FB_URL: ${GATE_FB_URL:-}

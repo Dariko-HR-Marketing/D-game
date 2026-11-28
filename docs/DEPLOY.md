@@ -68,7 +68,7 @@ GATE_TG_BOT_USERNAME=Tajriba24_bot
 GATE_TG_CHANNEL=@tajriba24_uz
 GATE_TG_WEBHOOK_SECRET=<openssl rand -hex 24 natijasi>
 ```
-`GATE_PUBLIC_API_URL` o'zi `https://$API_DOMAIN` bo'ladi. Guruh majburiy bo'lishi uchun `GATE_TG_GROUP=@guruh` yoziladi va bot guruhda administrator bo'ladi; tavsiyaviy bo'lsa bo'sh qoladi. Facebook sahifasi: `GATE_FB_URL`. Yulduzcha XP: `SOCIAL_STAR_XP`. Oferta roziligi: `OFFER_VERSION` (bo'sh = o'chiq; yurist tasdiqlagach yoziladi). O'zgartirgach: `docker compose up -d server`. Holat: admin panel → «Obuna darvozasi».
+`GATE_PUBLIC_API_URL` o'zi `https://$API_DOMAIN` bo'ladi. Guruh majburiy bo'lishi uchun `GATE_TG_GROUP=@guruh` yoziladi va bot guruhda administrator bo'ladi; tavsiyaviy bo'lsa bo'sh qoladi. Facebook sahifasi: `GATE_FB_URL`. **Batafsil va aniq buyruqlar: [OVOZ_VA_SOZLAMALAR.md](OVOZ_VA_SOZLAMALAR.md).** Yulduzcha XP: `SOCIAL_STAR_XP`. Oferta roziligi: `OFFER_VERSION` (bo'sh = o'chiq; yurist tasdiqlagach yoziladi). O'zgartirgach: `docker compose up -d server`. Holat: admin panel → «Obuna darvozasi».
 
 Guruh **tavsiyaviy** (majburiy emas) bo'lsa faqat havola beriladi, `GATE_TG_GROUP` yozilmaydi:
 ```
