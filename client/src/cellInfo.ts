@@ -36,7 +36,7 @@ export function bigCellInfo(i: number, owners: BigOwner[], names: (id: string) =
   if (c.t === "T" || c.t === "V") lines.push({ k: uz.cell.owner, v: biz ? names(biz.id) : uz.cell.free });
   if (c.t === "O") {
     text.push(fill(uz.cell.dream, { flow: money(RULES.winCashflow) }));
-    if (placed) lines.push({ k: uz.cell.dreamHere, v: placed.name }, { k: uz.cell.dreamValue, v: money(placed.price) }, { k: uz.cell.dreamBy, v: names(placed.by) }); else text.push(uz.cell.dreamEmpty);
+    if (placed) lines.push({ k: uz.cell.dreamHere, v: placed.name }, { k: uz.cell.dreamValue, v: money(placed.price) }, ...(placed.by ? [{ k: uz.cell.dreamBy, v: names(placed.by) }] : [{ k: uz.cell.dreamBy, v: uz.cell.dreamNobody }])); else text.push(uz.cell.dreamEmpty);
     if (viewer?.dreamName) { text.push(fill(uz.cell.dreamMine, { name: viewer.dreamName, price: money(viewer.dreamPrice ?? 0) })); lines.push({ k: uz.cell.yourFlow, v: `${money(viewer.flow)} / ${money(RULES.winCashflow)}` }, { k: uz.cell.yourCash, v: `${money(viewer.cash)} / ${money(viewer.dreamPrice ?? 0)}` }); }
   }
   if (c.t === "Y") text.push(uz.cell.yana);

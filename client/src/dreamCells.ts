@@ -15,3 +15,10 @@ export function dreamCells(code: string, oCells: number[], players: { id: string
   chosen.slice(0, cells.length).forEach((d, i) => out.set(cells[i], d));
   return out;
 }
+
+/** Server joylashuvi (`state.dreamCells`: katak → orzu indeksi) bo'lsa shuni ko'rsatadi: kim tanlagan bo'lsa nomi, tanlanmagan orzu uchun `by` bo'sh. Server yo'q (eski o'yin) — `dreamCells` hisobi. */
+export function placedFromServer(cells: Record<string, number> | undefined, players: { id: string; dreamIdx?: number | null }[], dreams: ({ name: string; price: number } | null)[] | undefined): Map<number, PlacedDream> | null {
+  if (!cells || !dreams) return null; const out = new Map<number, PlacedDream>();
+  for (const [k, di] of Object.entries(cells)) { const d = dreams[di]; if (!d) continue; out.set(Number(k), { name: d.name, price: d.price, by: players.find((p) => p.dreamIdx === di)?.id ?? "" }); }
+  return out;
+}

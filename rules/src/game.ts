@@ -80,6 +80,8 @@ export interface GameState {
   notices: Notice[]; nextNotice: number;
   /** "dreams": orzu tanlash (butun maydon ochiq, §6.4); "play": o'yin. `dreamPhase`: o'yin orzu bosqichi bilan boshlangan (jurnaldan qayta o'ynash uchun). */
   phase: "dreams" | "play"; dreamPhase: boolean;
+  /** Orzu kataklari (qaror 2026-11-27): katta aylana «O» katagi raqami → orzu indeksi. O'yin boshida bir marta serverda tuziladi: tanlangan orzular + qolgan kataklarga tasodifiy tanlanmagan orzular. Yo'q bo'lsa (eski o'yin) — istalgan «O» katagi. */
+  dreamCells?: Record<string, number>;
   /** Boshlovchi kubik bo'yicha aniqlangan (qo'llanma): `openingDice` — jurnaldan qayta o'ynash uchun; `first` — birinchi yuruvchi indeksi (tur shundan hisoblanadi); `opening` — tashlangan kubiklar (tenglikda qayta tashlanadi). */
   openingDice?: boolean; first?: number; opening?: Record<string, number>[];
   /** Oxirgi tashlangan kubik (mijoz ko'rsatishi uchun): kim, nechta, va qaysi tartib raqamda. */
@@ -141,7 +143,7 @@ export function newGame(ctx: Ctx, playerIds: string[], seed: number, bots: strin
   if (opts.dreamPhase) { // orzu bosqichi: botlar o'zi tanlaydi, odamlar tanlaguncha o'yin boshlanmaydi
     s.dreamPhase = true; s.phase = "dreams";
     for (const p of s.players) if (bots.includes(p.id)) pickFreeDream(s, ctx, p.id);
-    finishDreamsIfDone(s);
+    finishDreamsIfDone(s, ctx);
   }
   return s;
 }
@@ -261,8 +263,17 @@ function pickFreeDream(s: GameState, ctx: Ctx, pid: string) {
   const i = withRng(s, (r) => free[Math.floor(r() * free.length)]);
   s.players[idx(s, pid)].dreamIdx = i;
 }
-function finishDreamsIfDone(s: GameState) {
-  if (s.phase === "dreams" && s.players.every((p) => p.dreamIdx !== null)) { s.phase = "play"; logf(s, "orzular tanlandi — o'yin boshlandi"); }
+/** Orzularni katta aylana «O» kataklariga joylashtiradi: avval o'yinchilar tanlaganlari, qolgan kataklarga tasodifiy tanlanmagan orzular (bo'sh katak qolmaydi). */
+export function placeDreams(s: GameState, ctx: Ctx) {
+  const cells = ctx.bigBoard.filter((c) => c.t === "O").map((c) => c.i); if (!cells.length || !ctx.dreams.length) return;
+  const chosen = [...new Set(s.players.map((p) => p.dreamIdx).filter((x): x is number => x !== null))];
+  const rest = ctx.dreams.map((_, i) => i).filter((i) => !chosen.includes(i));
+  const shuffle = <T,>(a: T[]) => withRng(s, (r) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; });
+  const pool = [...shuffle(chosen), ...shuffle(rest)]; const at = shuffle(cells), out: Record<string, number> = {};
+  at.forEach((c, k) => { out[String(c)] = pool[k % pool.length]; }); s.dreamCells = out;
+}
+function finishDreamsIfDone(s: GameState, ctx: Ctx) {
+  if (s.phase === "dreams" && s.players.every((p) => p.dreamIdx !== null)) { s.phase = "play"; placeDreams(s, ctx); logf(s, "orzular tanlandi — o'yin boshlandi"); }
 }
 
 export function chooseDream(s: GameState, playerId: string, dreamIdx: number): GameState {
@@ -654,7 +665,7 @@ function smallLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
 
 function bigLanding(s: GameState, ctx: Ctx, p: GamePlayer) {
   const cell = ctx.bigBoard[p.pos];
-  if (cell.t === "O" && p.dreamIdx !== null) { // orzu katagi — istalgan «O» katagi (OPEN_QUESTIONS 156, qaror A): g'alaba — pul oqimi, naqd ≥ tanlangan orzu narxi
+  if (cell.t === "O" && p.dreamIdx !== null && (!s.dreamCells || s.dreamCells[String(cell.i)] === p.dreamIdx)) { // orzu katagi — faqat O'Z orzusi turgan katak (asl qoida, qaror 2026-11-27); birovniki — kxar kartasi. Eski o'yinda (dreamCells yo'q) istalgan «O»: g'alaba — pul oqimi, naqd ≥ tanlangan orzu narxi
     const dream = ctx.dreams[p.dreamIdx];
     if (hasWonBigCircle({ cashflow: Math.max(playerCashflow(p), p.lockedFlow), onDreamCell: true, cash: p.cash, dreamPrice: dream.price })) {
       setP(s, { ...p, won: true, cash: p.cash - dream.price, dreamAt: cell.i }); s.winner = p.id; logf(s, `${p.id} g'alaba qildi`); return;
@@ -924,12 +935,12 @@ function cooperate(s: GameState, ctx: Ctx, a: Exclude<Action, { type: "roll" } |
       if (s.bots.includes(a.playerId)) return err("bot");
       if (!Number.isInteger(a.dreamIdx) || a.dreamIdx < 0 || a.dreamIdx >= ctx.dreams.length) return err("bad_dream");
       if (s.players.some((q) => q.id !== a.playerId && q.dreamIdx === a.dreamIdx)) return err("dream_taken");
-      P(a.playerId).dreamIdx = a.dreamIdx; finishDreamsIfDone(s); return ok();
+      P(a.playerId).dreamIdx = a.dreamIdx; finishDreamsIfDone(s, ctx); return ok();
     }
     case "auto_dreams": { // vaqt tugadi: tanlamaganlarga bo'sh orzulardan tasodifiy (serverning manbasi, jurnalga yoziladi)
       if (s.phase !== "dreams") return err("not_dream_phase");
       for (const q of s.players) if (q.dreamIdx === null && (!a.only || a.only.includes(q.id))) pickFreeDream(s, ctx, q.id);
-      finishDreamsIfDone(s); return ok();
+      finishDreamsIfDone(s, ctx); return ok();
     }
     case "time_up": { // vaqtli rejim
       if (a.playerId !== "server") return err("bad_action"); // faqat server (taymer) (reytingli, o'quv): vaqt tugadi — o'yin yakunlanadi, o'rinlar «katta aylana → passiv daromad → naqd» bo'yicha
