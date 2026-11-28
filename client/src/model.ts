@@ -127,7 +127,7 @@ export function humanize(room: any, line: string): string {
 
 export type LogKind = "good" | "warn" | "bad" | "info" | "plain";
 export type LogPart = { t: string; kind?: LogKind; bold?: boolean };
-const STATUS: [RegExp, LogKind][] = [[/qabul qildi/g, "good"], [/ga qarz berdi/g, "good"], [/sheriklikni qabul qildi/g, "good"], [/o'tkazdi/g, "warn"], [/rad etdi/g, "bad"], [/karta chiqdi/g, "info"], [/qarz so'radi|taklif qildi/g, "info"]];
+const STATUS: [RegExp, LogKind][] = [[/naqd \+\d+/g, "good"], [/naqd −\d+/g, "bad"], [/kubik [\d +=]+/g, "info"], [/qabul qildi/g, "good"], [/ga qarz berdi/g, "good"], [/sheriklikni qabul qildi/g, "good"], [/o'tkazdi/g, "warn"], [/rad etdi/g, "bad"], [/karta chiqdi/g, "info"], [/qarz so'radi|taklif qildi/g, "info"]];
 /** Voqea qatorini bo'laklarga ajratadi: o'yinchi nomlari qalin, holat so'zlari («qabul qildi», «o'tkazdi», «rad etdi») rangli va qalin. `kind` — qatorning umumiy holati. */
 export function richLog(room: any, line: string): { parts: LogPart[]; kind: LogKind } {
   const ids: string[] = (room?.state?.players ?? []).map((p: any) => p.id).sort((a: string, b: string) => b.length - a.length);

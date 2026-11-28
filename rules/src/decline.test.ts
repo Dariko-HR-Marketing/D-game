@@ -61,7 +61,7 @@ describe("voqealar yozuvi (so'nggi voqealar)", () => {
     expect(s.log.at(-1)).toContain("p0: p1 dan qarz so'radi");
     s = must(run(s, { type: "loan_decline", playerId: "p1", proposalId: s.proposals[0].id })); expect(s.log.at(-1)).toContain("p1: p0 ning qarz so'rovini rad etdi");
     s = must(run(s, { type: "loan_request", playerId: "p0", giverId: "p1", amount: 500, months: 12 }));
-    s = must(run(s, { type: "loan_accept", playerId: "p1", proposalId: s.proposals[0].id })); expect(s.log.at(-1)).toContain("p1: p0 ga qarz berdi");
+    s = must(run(s, { type: "loan_accept", playerId: "p1", proposalId: s.proposals[0].id })); expect(s.log.some((l) => l.includes("p1: p0 ga qarz berdi"))).toBe(true); expect(s.log.at(-1)).toMatch(/naqd/);
   });
   it("karta chiqdi va qaror (qabul qildi / o'tkazdi) yoziladi", () => {
     let s = newGame(ctx, ["p0", "p1"], 3, []); let seen = false;

@@ -298,3 +298,11 @@ describe("Orzu kataklari serverda joylashadi (qaror 2026-11-27): faqat o'z orzus
     const l = land("big", other, rich); expect(l.winner).toBeNull(); expect(ctx.effects[l.lastCard!.cardId].deck).toBe("kxar");
   });
 });
+
+describe("Voqealar tarixi: kubik va naqd o'zgarishi yoziladi", () => {
+  it("kubik natijasi va naqd ± qatori jurnalga tushadi", () => {
+    const s = land("small", cellOf("D"));
+    expect(s.log.some((l) => /^p0: kubik \d/.test(l))).toBe(true);
+    expect(s.log.some((l) => /^p0: naqd [+−]\d+/.test(l))).toBe(true);
+  });
+});

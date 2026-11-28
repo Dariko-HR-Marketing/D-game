@@ -170,7 +170,7 @@ function notify(s: GameState, to: string, key: Notice["key"], extra: Partial<Not
   s.notices ??= []; s.nextNotice ??= 1;
   s.notices.push({ id: s.nextNotice++, to, key, round: s.round, ...extra }); if (s.notices.length > 20) s.notices.splice(0, s.notices.length - 20);
 }
-const logf = (s: GameState, m: string) => { s.log.push(m); s.logN = (s.logN ?? 0) + 1; if (s.log.length > 30) s.log.splice(0, s.log.length - 30); };
+const logf = (s: GameState, m: string) => { s.log.push(m); s.logN = (s.logN ?? 0) + 1; if (s.log.length > 60) s.log.splice(0, s.log.length - 60); };
 
 const firstSentence = (t?: string) => { const x = (t ?? "").split(/(?<=[.!?])\s/)[0]?.trim() ?? ""; return x.length > 56 ? x.slice(0, 55) + "…" : x; };
 const assetLabel = (ctx: Ctx, a: { code: string; cardId?: string; name?: string }) => a.name ?? firstSentence(ctx.effects[a.cardId ?? ""]?.text) ?? a.code;
@@ -313,8 +313,12 @@ export type Outcome = { ok: true; state: GameState; die?: number } | { ok: false
 
 /** Har bir muvaffaqiyatli harakatdan keyin: egasi qarorini qabul qilgan (karta yopilgan) sheriklik takliflari o'chadi. Aks holda sherik «karta mavjud emas» xatosini ko'radi. */
 const pruneStale = (s: GameState) => { s.proposals = s.proposals.filter((x) => x.kind !== "partner" || (s.pending?.cardId === x.cardId && s.pending.playerId === x.owner)); };
+/** Voqealar tarixi uchun: har bir amaldan keyin naqdi o'zgargan o'yinchi uchun «naqd ±X» qatori (sababi — undan oldingi qator). */
+function logCashChanges(prev: GameState, next: GameState) {
+  for (const p of next.players) { const b = prev.players.find((x) => x.id === p.id); if (!b) continue; const d = p.cash - b.cash; if (d !== 0) logf(next, `${p.id}: naqd ${d > 0 ? "+" : "−"}${Math.abs(d)}`); }
+}
 export function reduce(state: GameState, ctx: Ctx, a: Action): Outcome {
-  const o = reduceCore(state, ctx, a); if (o.ok) pruneStale(o.state); return o;
+  const o = reduceCore(state, ctx, a); if (o.ok) { pruneStale(o.state); logCashChanges(state, o.state); } return o;
 }
 function reduceCore(state: GameState, ctx: Ctx, a: Action): Outcome {
   if (state.winner) return { ok: false, error: "game_over" };
@@ -341,6 +345,7 @@ function reduceCore(state: GameState, ctx: Ctx, a: Action): Outcome {
     const die = dice.reduce((x, y) => x + y, 0);
     if (two && (cur.twoDice ?? 0) > 0) s.players[idx(s, cur.id)].twoDice = (cur.twoDice ?? 0) - 1;
     s.lastRoll = { playerId: cur.id, die, dice, n: (s.lastRoll?.n ?? 0) + 1 };
+    logf(s, `${cur.id}: kubik ${dice.length > 1 ? `${dice.join(" + ")} = ${die}` : die}`);
     land(s, ctx, cur.id, die);
     if (!s.pending) endTurn(s, ctx);
     return { ok: true, state: s, die };

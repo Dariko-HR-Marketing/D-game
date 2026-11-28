@@ -141,7 +141,7 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
   const incoming = marketOffers(room, userId).length + pr.suyunchi.length + pr.loansToAccept.length + pr.loansToWitness.length + pr.partnerToAccept.length;
   const reqs = useRequests(room, userId); const reqModal = useRequestModal(reqs);
   const notices = (state.notices ?? []).filter((n: any) => (n.to === "all" || n.to === userId) && n.round >= state.round - 1).slice(-3);
-  const log: string[] = state.log.slice(-8).reverse(); // yangisi tepada; LogLine ismlarni qalin qilib chiqaradi
+  const log: string[] = state.log.slice(-40).reverse(); // yangisi tepada; LogLine ismlarni qalin qilib chiqaradi
   const bank = mine ? bankRoom(mine) : 0;
   const manualCalc = room.calc?.mode === "manual"; const due = manualCalc && !!room.calc!.due.includes(userId); // hisob yangilanmaguncha kubik tashlab bo'lmaydi
   const recapOpen = (state.recaps?.length ?? 0) > 0; // bankrot tahlili ochiq: o'yin to'xtagan
@@ -210,7 +210,7 @@ export function Game({ http, room, userId, onAct, onLeave, onResume, onBreak, ch
   const eventsCard = (nLines: number) => (
     <Card>
       <SectionTitle>{uz.game.events}</SectionTitle>
-      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : <View style={{ gap: 6 }}>{log.slice(0, nLines).map((l, i) => <LogLine key={i} room={room} line={l} latest={i === 0} lines={wide ? 2 : undefined} />)}</View>}
+      {log.length === 0 ? <Text style={s.muted}>{uz.game.noEvents}</Text> : <ScrollView style={{ maxHeight: Math.max(150, nLines * 40) }} nestedScrollEnabled tabIndex={0} role="log" aria-label={uz.game.events} testID="events-scroll" contentContainerStyle={{ gap: 6 }}>{log.map((l, i) => <LogLine key={i} room={room} line={l} latest={i === 0} />)}</ScrollView>}
     </Card>);
   // Chap ustun: bildirishnoma, qaror, moliyaviy holat, moliya amallari
   const sideMain = (
